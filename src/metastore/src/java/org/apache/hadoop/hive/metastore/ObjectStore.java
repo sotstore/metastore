@@ -99,6 +99,7 @@ import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.model.MColumnDescriptor;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MDatabase;
+import org.apache.hadoop.hive.metastore.model.MDevice;
 import org.apache.hadoop.hive.metastore.model.MFieldSchema;
 import org.apache.hadoop.hive.metastore.model.MFile;
 import org.apache.hadoop.hive.metastore.model.MFileLocation;
@@ -635,6 +636,20 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
+  public void createDevice(MDevice md) throws InvalidObjectException, MetaException {
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      pm.makePersistent(md);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+  }
+
   public void createNode(Node node) throws InvalidObjectException, MetaException {
     boolean commited = false;
 
@@ -701,6 +716,10 @@ public class ObjectStore implements RawStore, Configurable {
     //createFile(new SFile(20, 10, 5, 6, "xyz", 1, 2, null));
     Node n = new Node("abc_node", ips, 1000);
     SFile sf = new SFile(0, 10, 5, 6, "xyzadfads", 1, 2, null);
+    MDevice md1 = new MDevice("xyz1");
+    MDevice md2 = new MDevice("xyz1");
+    createDevice(md1);
+    createDevice(md2);
     createNode(n);
     createFile(sf);
     createFileLocation(new SFileLocation(n.getNode_name(), sf.getFid(), "ffffffff", "xxxxxxxxx", 100, 1000, 2, "yyyyy"));
@@ -900,6 +919,26 @@ public class ObjectStore implements RawStore, Configurable {
     return getTables(dbName, ".*");
   }
 
+  private MDevice getMDevice(String dev_name) {
+    MDevice md = null;
+    boolean commited = false;
+    try {
+      openTransaction();
+      dev_name = dev_name.toLowerCase().trim();
+      Query query = pm.newQuery(MDevice.class, "this.dev_name == dev_name");
+      query.declareParameters("java.lang.String dev_name");
+      query.setUnique(true);
+      md = (MDevice)query.execute(dev_name);
+      pm.retrieve(md);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return md;
+  }
+
   private MNode getMNode(String node_name) {
     MNode mn = null;
     boolean commited = false;
@@ -1060,7 +1099,12 @@ public class ObjectStore implements RawStore, Configurable {
       return null;
     }
 
-    return new MFileLocation(mn, mf, location.getDevid(), location.getLocation(),
+    MDevice md = getMDevice(location.getDevid());
+    if (md == null) {
+      return null;
+    }
+
+    return new MFileLocation(mn, mf, md, location.getLocation(),
         location.getRep_id(), location.getUpdate_time(), location.getVisit_status(), location.getDigest());
   }
 

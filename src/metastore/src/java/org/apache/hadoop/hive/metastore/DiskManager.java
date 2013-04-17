@@ -50,7 +50,7 @@ public class DiskManager {
           LOG.info("RECV: " + recvStr);
           int port = recvPacket.getPort();
           InetAddress addr = recvPacket.getAddress();
-          String sendStr = "Hello ! I'm Server";
+          String sendStr = "+OK";
           byte[] sendBuf;
           sendBuf = sendStr.getBytes();
           DatagramPacket sendPacket

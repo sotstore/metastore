@@ -889,6 +889,21 @@
       </field>
     </class>
     
+    <class name="MDevice" table="DEVICES" identity-type="datastore" detachable="true">
+      <index name="UniqueDevice" unique="true">
+        <column name="DEV_ID"/>
+        <column name="DEV_NAME"/>
+      </index>
+      
+      <datastore-identity>
+        <column name="DEV_ID"/>
+      </datastore-identity>
+      
+      <field name="dev_name">
+        <column name="DEV_NAME"/>
+      </field>
+    </class>
+    
     <class name="MFile" table="FILES" identity-type="datastore" detachable="true">
       <index name="UniqueFile" unique="true">
         <column name="FILE_ID"/>
@@ -937,7 +952,7 @@
       <field name="file">
         <column name="FILE_ID"/>
       </field>
-      <field name="devid">
+      <field name="dev">
         <column name="DEV_ID"/>
       </field>
       <field name="location">
