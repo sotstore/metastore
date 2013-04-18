@@ -710,19 +710,26 @@ public class ObjectStore implements RawStore, Configurable {
   }
 
   public void createTable(Table tbl) throws InvalidObjectException, MetaException {
-    List<String> ips = Arrays.asList("192.168.1.1", "127.0.0.1");
+    List<String> ips = Arrays.asList("192.168.11.7", "127.0.0.1");
     //createNode(new Node("test_node", ips, 100));
     //createFile(new SFile(10, 10, 3, 4, "abc", 1, 2, null));
     //createFile(new SFile(20, 10, 5, 6, "xyz", 1, 2, null));
-    Node n = new Node("abc_node", ips, 1000);
+    Node n = new Node("macan", ips, 1000);
     SFile sf = new SFile(0, 10, 5, 6, "xyzadfads", 1, 2, null);
-    MDevice md1 = new MDevice("xyz1");
-    MDevice md2 = new MDevice("xyz1");
+    createNode(n);
+    MDevice md1 = new MDevice(getMNode("macan"), "dev-hello");
+    MDevice md2 = new MDevice(getMNode("macan"), "xyz1");
     createDevice(md1);
     createDevice(md2);
-    createNode(n);
+
     createFile(sf);
     createFileLocation(new SFileLocation(n.getNode_name(), sf.getFid(), "ffffffff", "xxxxxxxxx", 100, 1000, 2, "yyyyy"));
+    Node y = findNode("127.0.0.1");
+    if (y == null) {
+      LOG.info("BAD++++");
+    } else {
+      LOG.info("findNode => " + y.getNode_name());
+    }
 
     long fid = 0;
     MFile mf = getMFile(fid);
@@ -5480,4 +5487,28 @@ public class ObjectStore implements RawStore, Configurable {
     return delCnt;
   }
 
+  @Override
+  public Node findNode(String ip) throws MetaException {
+    MNode mn = null;
+    boolean commited = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MNode.class, "this.ips.matches(\".*\" + ip + \".*\")");
+      query.declareParameters("java.lang.String ip");
+      query.setUnique(true);
+      mn = (MNode)query.execute(ip);
+      pm.retrieve(mn);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+
+    if (mn == null) {
+      return null;
+    } else {
+      return convertToNode(mn);
+    }
+  }
 }

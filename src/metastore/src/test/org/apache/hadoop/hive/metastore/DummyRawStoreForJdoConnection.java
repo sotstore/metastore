@@ -33,6 +33,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
@@ -553,6 +554,12 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   public boolean updatePartitionColumnStatistics(ColumnStatistics statsObj,List<String> partVals)
     throws NoSuchObjectException, MetaException, InvalidObjectException {
     return false;
+  }
+
+  @Override
+  public Node findNode(String ip) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
 

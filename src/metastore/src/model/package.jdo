@@ -899,6 +899,9 @@
         <column name="DEV_ID"/>
       </datastore-identity>
       
+      <field name="node">
+      	<column name="NODE_ID"/>
+      </field>
       <field name="dev_name">
         <column name="DEV_NAME"/>
       </field>

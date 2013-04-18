@@ -26,8 +26,8 @@ to call at top-level: ant deploy-contrib compile-core-test
   <import file="../build-common.xml"/>
 
   <!-- default list of shims to build -->
-  <!--<property name="shims.include" value="0.20,0.20S,0.23"/>-->
-  <property name="shims.include" value="0.20"/>
+  <property name="shims.include" value="0.20,0.20S,0.23"/>
+  <!--<property name="shims.include" value="0.20"/>-->
   <property name="shims.common.sources" value="${basedir}/src/common/java"/>	
   <property name="shims.common.secure.sources" value="${basedir}/src/common/java;${basedir}/src/common-secure/java"/>
   <!-- sources and hadoop version for each shim -->
