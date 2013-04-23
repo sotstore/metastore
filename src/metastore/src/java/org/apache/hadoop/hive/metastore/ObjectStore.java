@@ -57,6 +57,7 @@ import org.apache.hadoop.hive.common.classification.InterfaceAudience;
 import org.apache.hadoop.hive.common.classification.InterfaceStability;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
+import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.BooleanColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
@@ -709,12 +710,42 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
+  public void createOrUpdateDevice(DeviceInfo di, Node node) throws MetaException, InvalidObjectException {
+    MDevice md = getMDevice(di.dev.trim());
+    boolean doCreate = false;
+
+    if (md == null) {
+      // create it now
+      MNode mn = getMNode(node.getNode_name());
+      if (mn == null) {
+        throw new InvalidObjectException("Invalid Node name '" + node.getNode_name() + "'!");
+      }
+      md = new MDevice(mn, di.dev.trim());
+      doCreate = true;
+    } else {
+      // update it now
+      if (!md.getNode().getNode_name().equalsIgnoreCase(node.getNode_name())) {
+        LOG.info("Saved " + md.getNode().getNode_name() + ", this " + node.getNode_name());
+        // should update it.
+        MNode mn = getMNode(node.getNode_name());
+        if (mn == null) {
+          throw new InvalidObjectException("Invalid Node name '" + node.getNode_name() + "'!");
+        }
+        md.setNode(mn);
+        doCreate = true;
+      }
+    }
+    if (doCreate) {
+      createDevice(md);
+    }
+  }
+
   public void createTable(Table tbl) throws InvalidObjectException, MetaException {
     List<String> ips = Arrays.asList("192.168.11.7", "127.0.0.1");
     //createNode(new Node("test_node", ips, 100));
     //createFile(new SFile(10, 10, 3, 4, "abc", 1, 2, null));
     //createFile(new SFile(20, 10, 5, 6, "xyz", 1, 2, null));
-    Node n = new Node("macan", ips, 1000);
+    Node n = new Node("macan", ips, MNode.NodeStatus.SUSPECT);
     SFile sf = new SFile(0, 10, 5, 6, "xyzadfads", 1, 2, null);
     createNode(n);
     MDevice md1 = new MDevice(getMNode("macan"), "dev-hello");
@@ -850,6 +881,28 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
+  public void updateNode(Node node) throws MetaException {
+    MNode mn = getMNode(node.getNode_name());
+    if (mn != null) {
+      mn.setStatus(node.getStatus());
+      mn.setIpList(node.getIps());
+    } else {
+      return;
+    }
+
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      pm.makePersistent(mn);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+  }
+
   public Node getNode(String node_name) throws MetaException {
     boolean commited = false;
     Node n = null;
@@ -931,7 +984,7 @@ public class ObjectStore implements RawStore, Configurable {
     boolean commited = false;
     try {
       openTransaction();
-      dev_name = dev_name.toLowerCase().trim();
+      dev_name = dev_name.trim();
       Query query = pm.newQuery(MDevice.class, "this.dev_name == dev_name");
       query.declareParameters("java.lang.String dev_name");
       query.setUnique(true);

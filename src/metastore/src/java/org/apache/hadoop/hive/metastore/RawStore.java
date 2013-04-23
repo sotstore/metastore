@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configurable;
+import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -98,6 +99,13 @@ public interface RawStore extends Configurable {
 
   public abstract void createTable(Table tbl) throws InvalidObjectException,
       MetaException;
+
+  public abstract void createOrUpdateDevice(DeviceInfo di, Node node) throws
+      InvalidObjectException, MetaException;
+
+  public abstract void createNode(Node node) throws InvalidObjectException, MetaException;
+
+  public void updateNode(Node node) throws MetaException;
 
   public abstract boolean dropTable(String dbName, String tableName)
       throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException;

@@ -25,6 +25,7 @@ import junit.framework.Assert;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -560,6 +561,25 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   public Node findNode(String ip) throws MetaException {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public void createOrUpdateDevice(DeviceInfo di, Node node) throws InvalidObjectException,
+      MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void createNode(Node node) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void updateNode(Node node) throws MetaException {
+    // TODO Auto-generated method stub
+
   }
 }
 

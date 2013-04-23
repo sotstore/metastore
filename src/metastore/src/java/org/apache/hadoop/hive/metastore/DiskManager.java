@@ -11,8 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.model.MNode;
 import org.apache.hadoop.util.ReflectionUtils;
 
 public class DiskManager {
@@ -24,8 +26,8 @@ public class DiskManager {
     private DMThread dmt;
 
     public class DeviceInfo {
-      public String dev;
-      public String mp;
+      public String dev; // dev name
+      public String mp; // mount point
       public long read_nr;
       public long write_nr;
       public long err_nr;
@@ -53,12 +55,25 @@ public class DiskManager {
     }
 
     // Return old devs
-    public List<DeviceInfo> addToNDMap(String node, List<DeviceInfo> ndi) {
-      return ndmap.put(node, ndi);
+    public List<DeviceInfo> addToNDMap(Node node, List<DeviceInfo> ndi) {
+      // flush to database
+      for (DeviceInfo di : ndi) {
+        try {
+          rs.createOrUpdateDevice(di, node);
+        } catch (InvalidObjectException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (MetaException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      }
+
+      return ndmap.put(node.getNode_name(), ndi);
     }
 
-    public List<DeviceInfo> removeFromNDMap(String node) {
-      return ndmap.remove(node);
+    public List<DeviceInfo> removeFromNDMap(Node node) {
+      return ndmap.remove(node.getNode_name());
     }
 
     public List<DeviceInfo> findDevices(String node) {
@@ -155,14 +170,31 @@ public class DiskManager {
             LOG.error("Failed to find Node: " + addr.getHostAddress());
             sendStr = "+FAIL";
           } else {
+            switch (reportNode.getStatus()) {
+            default:
+            case MNode.NodeStatus.ONLINE:
+              break;
+            case MNode.NodeStatus.SUSPECT:
+              try {
+                reportNode.setStatus(MNode.NodeStatus.ONLINE);
+                rs.updateNode(reportNode);
+              } catch (MetaException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+              }
+              break;
+            case MNode.NodeStatus.OFFLINE:
+              LOG.warn("OFFLINE node '" + reportNode.getNode_name() + "' do report!");
+              break;
+            }
             // parse report str
             List<DeviceInfo> dilist = parseDevices(recvStr);
             if (dilist == null) {
               // remove from the map
-              removeFromNDMap(reportNode.getNode_name());
+              removeFromNDMap(reportNode);
             } else {
               // update the map
-              addToNDMap(reportNode.getNode_name(), dilist);
+              addToNDMap(reportNode, dilist);
             }
           }
           // send back the reply
