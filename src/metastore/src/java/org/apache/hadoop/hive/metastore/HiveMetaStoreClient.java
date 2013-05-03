@@ -46,6 +46,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -55,12 +56,14 @@ import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
+import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -97,6 +100,52 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   private int retryDelaySeconds = 0;
 
   static final private Log LOG = LogFactory.getLog("hive.metastore");
+
+  public HiveMetaStoreClient(String msUri, Integer retry, Integer retryDelay, HiveMetaHookLoader hookLoader)
+  throws MetaException {
+    this.hookLoader = hookLoader;
+    this.conf = new HiveConf(HiveMetaStoreClient.class);
+
+    localMetaStore = (msUri == null) ? true : msUri.trim().isEmpty();
+    if (localMetaStore) {
+      // instantiate the metastore server handler directly instead of connecting
+      // through the network
+      client = HiveMetaStore.newHMSHandler("hive client", conf);
+      isConnected = true;
+      return;
+    }
+
+    // get the number retries
+    retries = retry;
+    retryDelaySeconds = retryDelay;
+
+    // user wants file store based configuration
+    if (msUri != null) {
+      String metastoreUrisString[] = msUri.split(",");
+      metastoreUris = new URI[metastoreUrisString.length];
+      try {
+        int i = 0;
+        for (String s : metastoreUrisString) {
+          URI tmpUri = new URI(s);
+          if (tmpUri.getScheme() == null) {
+            throw new IllegalArgumentException("URI: " + s
+                + " does not have a scheme");
+          }
+          metastoreUris[i++] = tmpUri;
+
+        }
+      } catch (IllegalArgumentException e) {
+        throw (e);
+      } catch (Exception e) {
+        MetaStoreUtils.logAndThrowMetaException(e);
+      }
+    } else {
+      LOG.error("NOT getting uris from user args");
+      throw new MetaException("MetaStoreURIs not found in conf file");
+    }
+    // finally open the store
+    open();
+  }
 
   public HiveMetaStoreClient(HiveConf conf)
     throws MetaException {
@@ -1310,6 +1359,26 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     assert tbl_name != null;
     assert partKVs != null;
     return client.isPartitionMarkedForEvent(db_name, tbl_name, partKVs, eventType);
+  }
+
+  @Override
+  public SFile create_file(String node_name, int repnr, long table_id)
+      throws FileOperationException, TException {
+
+    if ("".equals(node_name)) {
+      node_name = null;
+    }
+    if (repnr == 0) {
+      repnr = 1;
+    }
+
+    return client.create_file(node_name, repnr, table_id);
+  }
+
+  @Override
+  public Node add_node(String node_name, List<String> ipl) throws MetaException, TException {
+    assert node_name != null;
+    return client.add_node(node_name, ipl);
   }
 
 }

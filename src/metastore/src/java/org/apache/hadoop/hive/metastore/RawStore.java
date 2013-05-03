@@ -38,6 +38,7 @@ import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
+import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
@@ -105,13 +106,23 @@ public interface RawStore extends Configurable {
 
   public abstract void createNode(Node node) throws InvalidObjectException, MetaException;
 
-  public void updateNode(Node node) throws MetaException;
+  public boolean updateNode(Node node) throws MetaException;
+
+  public boolean delNode(String node_name) throws MetaException;
+
+  public long countNode() throws MetaException;
+
+  public void createFile(SFile file) throws InvalidObjectException, MetaException;
+
+  public SFile getSFile(long fid) throws MetaException;
 
   public abstract boolean dropTable(String dbName, String tableName)
       throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException;
 
   public abstract Table getTable(String dbName, String tableName)
       throws MetaException;
+
+  public abstract Table getTableByID(long id) throws MetaException;
 
   public abstract boolean addPartition(Partition part)
       throws InvalidObjectException, MetaException;
@@ -426,7 +437,7 @@ public interface RawStore extends Configurable {
     String colName)
     throws NoSuchObjectException, MetaException, InvalidObjectException, InvalidInputException;
 
- public abstract long cleanupEvents();
+  public abstract long cleanupEvents();
 
   public abstract Node findNode(String ip) throws MetaException;
 

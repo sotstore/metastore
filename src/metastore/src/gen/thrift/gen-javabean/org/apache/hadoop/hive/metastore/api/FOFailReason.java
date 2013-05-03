@@ -16,7 +16,8 @@ public enum FOFailReason implements org.apache.thrift.TEnum {
   INVALID_TABLE(2),
   INVALID_FILE(3),
   NOSPACE(10),
-  NOTEXIST(11);
+  NOTEXIST(11),
+  SAFEMODE(12);
 
   private final int value;
 
@@ -47,6 +48,8 @@ public enum FOFailReason implements org.apache.thrift.TEnum {
         return NOSPACE;
       case 11:
         return NOTEXIST;
+      case 12:
+        return SAFEMODE;
       default:
         return null;
     }

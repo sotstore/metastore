@@ -147,6 +147,27 @@ public class ObjectStore implements RawStore, Configurable {
     NO_STATE, OPEN, COMMITED, ROLLBACK
   }
 
+  private void restoreFID() {
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      Query query = pm.newQuery("javax.jdo.query.SQL", "SELECT max(fid) FROM FILES");
+      List results = (List) query.execute();
+      Long maxfid = (Long) results.iterator().next();
+      if (maxfid != null) {
+        g_fid = maxfid.longValue() + 1;
+      }
+      commited = commitTransaction();
+    } catch (javax.jdo.JDODataStoreException e) {
+      LOG.info("" + e.getCause());
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+  }
+
   public long getNextFID() {
     return g_fid++;
   }
@@ -237,6 +258,9 @@ public class ObjectStore implements RawStore, Configurable {
     prop = dsProps;
     pm = getPersistenceManager();
     isInitialized = pm != null;
+    if (isInitialized) {
+      restoreFID();
+    }
     return;
   }
 
@@ -654,6 +678,14 @@ public class ObjectStore implements RawStore, Configurable {
   public void createNode(Node node) throws InvalidObjectException, MetaException {
     boolean commited = false;
 
+    for (String ip : node.getIps()) {
+      Node other = findNode(ip);
+      if (other != null) {
+        throw new MetaException("Duplicate IP address for node '" + node.getNode_name() +
+            "' vs '" + other.getNode_name() + "' on IP(" + ip + ")");
+      }
+    }
+
     try {
       openTransaction();
       MNode mnode = convertToMNode(node);
@@ -740,7 +772,7 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
-  public void createTable(Table tbl) throws InvalidObjectException, MetaException {
+  private void testHook() throws InvalidObjectException, MetaException {
     List<String> ips = Arrays.asList("192.168.11.7", "127.0.0.1");
     //createNode(new Node("test_node", ips, 100));
     //createFile(new SFile(10, 10, 3, 4, "abc", 1, 2, null));
@@ -769,12 +801,15 @@ public class ObjectStore implements RawStore, Configurable {
     } else {
       LOG.info("Read fid from PM: " + mf.getFid());
     }
+  }
 
+  public void createTable(Table tbl) throws InvalidObjectException, MetaException {
     boolean commited = false;
     try {
       openTransaction();
       MTable mtbl = convertToMTable(tbl);
       pm.makePersistent(mtbl);
+      LOG.info("createTable w/ ID=" + JDOHelper.getObjectId(mtbl));
       PrincipalPrivilegeSet principalPrivs = tbl.getPrivileges();
       List<Object> toPersistPrivObjs = new ArrayList<Object>();
       if (principalPrivs != null) {
@@ -881,13 +916,15 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
-  public void updateNode(Node node) throws MetaException {
+  public boolean updateNode(Node node) throws MetaException {
+    boolean success = false;
+
     MNode mn = getMNode(node.getNode_name());
     if (mn != null) {
       mn.setStatus(node.getStatus());
       mn.setIpList(node.getIps());
     } else {
-      return;
+      return success;
     }
 
     boolean commited = false;
@@ -899,8 +936,31 @@ public class ObjectStore implements RawStore, Configurable {
     } finally {
       if (!commited) {
         rollbackTransaction();
+      } else {
+        success = true;
       }
     }
+
+    return success;
+  }
+
+  public long countNode() throws MetaException {
+    boolean commited = false;
+    long r = 0;
+
+    try {
+      openTransaction();
+      Query query = pm.newQuery("javax.jdo.query.SQL", "SELECT count(*) FROM NODES");
+      List results = (List) query.execute();
+      Integer tableSize = (Integer) results.iterator().next();
+      r = tableSize.longValue();
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return r;
   }
 
   public Node getNode(String node_name) throws MetaException {
@@ -916,6 +976,38 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     return n;
+  }
+
+  public SFile getSFile(long fid) throws MetaException {
+    boolean commited = false;
+    SFile f = null;
+    try {
+      openTransaction();
+      f = convertToSFile(getMFile(fid));
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return f;
+  }
+
+  public Table getTableByID(long id) throws MetaException {
+    boolean commited = false;
+    Table tbl = null;
+    try {
+      openTransaction();
+      String oidStr = Long.toString(id) + "[OID]" + MTable.class.getName();
+      MTable mtbl = (MTable)pm.getObjectById(MTable.class, oidStr);
+      tbl = convertToTable(mtbl);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return tbl;
   }
 
   public Table getTable(String dbName, String tableName) throws MetaException {
@@ -1101,6 +1193,14 @@ public class ObjectStore implements RawStore, Configurable {
       return null;
     }
     return new Node(mn.getNode_name(), mn.getIPList(), mn.getStatus());
+  }
+
+  private SFile convertToSFile(MFile mf) throws MetaException {
+    if (mf == null) {
+      return null;
+    }
+    return new SFile(mf.getFid(), mf.getPlacement(), mf.getStore_status(), mf.getRep_nr(),
+        mf.getDigest(), mf.getRecord_nr(), mf.getAll_record_nr(), null);
   }
 
   private Table convertToTable(MTable mtbl) throws MetaException {
@@ -5563,5 +5663,21 @@ public class ObjectStore implements RawStore, Configurable {
     } else {
       return convertToNode(mn);
     }
+  }
+
+  @Override
+  public boolean delNode(String node_name) throws MetaException {
+    boolean success = false;
+    try {
+      openTransaction();
+      MNode mnode = getMNode(node_name);
+      pm.deletePersistent(mnode);
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
   }
 }

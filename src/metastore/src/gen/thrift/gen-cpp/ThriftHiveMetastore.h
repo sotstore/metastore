@@ -91,12 +91,15 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void get_delegation_token(std::string& _return, const std::string& token_owner, const std::string& renewer_kerberos_principal_name) = 0;
   virtual int64_t renew_delegation_token(const std::string& token_str_form) = 0;
   virtual void cancel_delegation_token(const std::string& token_str_form) = 0;
-  virtual void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& table_name) = 0;
+  virtual void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const int64_t table_id) = 0;
   virtual int32_t close_file(const SFile& file) = 0;
   virtual void get_file_by_id(SFile& _return, const int64_t fid) = 0;
   virtual int32_t rm_file_logical(const SFile& file) = 0;
   virtual int32_t restore_file(const SFile& file) = 0;
   virtual int32_t rm_file_physical(const SFile& file) = 0;
+  virtual void add_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl) = 0;
+  virtual int32_t del_node(const std::string& node_name) = 0;
+  virtual void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status) = 0;
 };
 
 class ThriftHiveMetastoreIfFactory : virtual public  ::facebook::fb303::FacebookServiceIfFactory {
@@ -369,7 +372,7 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void cancel_delegation_token(const std::string& /* token_str_form */) {
     return;
   }
-  void create_file(SFile& /* _return */, const std::string& /* node_name */, const int32_t /* repnr */, const std::string& /* table_name */) {
+  void create_file(SFile& /* _return */, const std::string& /* node_name */, const int32_t /* repnr */, const int64_t /* table_id */) {
     return;
   }
   int32_t close_file(const SFile& /* file */) {
@@ -390,6 +393,16 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   int32_t rm_file_physical(const SFile& /* file */) {
     int32_t _return = 0;
     return _return;
+  }
+  void add_node(Node& /* _return */, const std::string& /* node_name */, const std::vector<std::string> & /* ipl */) {
+    return;
+  }
+  int32_t del_node(const std::string& /* node_name */) {
+    int32_t _return = 0;
+    return _return;
+  }
+  void alter_node(Node& /* _return */, const std::string& /* node_name */, const std::vector<std::string> & /* ipl */, const int32_t /* status */) {
+    return;
   }
 };
 
@@ -10981,23 +10994,23 @@ class ThriftHiveMetastore_cancel_delegation_token_presult {
 };
 
 typedef struct _ThriftHiveMetastore_create_file_args__isset {
-  _ThriftHiveMetastore_create_file_args__isset() : node_name(false), repnr(false), table_name(false) {}
+  _ThriftHiveMetastore_create_file_args__isset() : node_name(false), repnr(false), table_id(false) {}
   bool node_name;
   bool repnr;
-  bool table_name;
+  bool table_id;
 } _ThriftHiveMetastore_create_file_args__isset;
 
 class ThriftHiveMetastore_create_file_args {
  public:
 
-  ThriftHiveMetastore_create_file_args() : node_name(), repnr(0), table_name() {
+  ThriftHiveMetastore_create_file_args() : node_name(), repnr(0), table_id(0) {
   }
 
   virtual ~ThriftHiveMetastore_create_file_args() throw() {}
 
   std::string node_name;
   int32_t repnr;
-  std::string table_name;
+  int64_t table_id;
 
   _ThriftHiveMetastore_create_file_args__isset __isset;
 
@@ -11009,8 +11022,8 @@ class ThriftHiveMetastore_create_file_args {
     repnr = val;
   }
 
-  void __set_table_name(const std::string& val) {
-    table_name = val;
+  void __set_table_id(const int64_t val) {
+    table_id = val;
   }
 
   bool operator == (const ThriftHiveMetastore_create_file_args & rhs) const
@@ -11019,7 +11032,7 @@ class ThriftHiveMetastore_create_file_args {
       return false;
     if (!(repnr == rhs.repnr))
       return false;
-    if (!(table_name == rhs.table_name))
+    if (!(table_id == rhs.table_id))
       return false;
     return true;
   }
@@ -11043,7 +11056,7 @@ class ThriftHiveMetastore_create_file_pargs {
 
   const std::string* node_name;
   const int32_t* repnr;
-  const std::string* table_name;
+  const int64_t* table_id;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -11756,6 +11769,387 @@ class ThriftHiveMetastore_rm_file_physical_presult {
 
 };
 
+typedef struct _ThriftHiveMetastore_add_node_args__isset {
+  _ThriftHiveMetastore_add_node_args__isset() : node_name(false), ipl(false) {}
+  bool node_name;
+  bool ipl;
+} _ThriftHiveMetastore_add_node_args__isset;
+
+class ThriftHiveMetastore_add_node_args {
+ public:
+
+  ThriftHiveMetastore_add_node_args() : node_name() {
+  }
+
+  virtual ~ThriftHiveMetastore_add_node_args() throw() {}
+
+  std::string node_name;
+  std::vector<std::string>  ipl;
+
+  _ThriftHiveMetastore_add_node_args__isset __isset;
+
+  void __set_node_name(const std::string& val) {
+    node_name = val;
+  }
+
+  void __set_ipl(const std::vector<std::string> & val) {
+    ipl = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_node_args & rhs) const
+  {
+    if (!(node_name == rhs.node_name))
+      return false;
+    if (!(ipl == rhs.ipl))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_node_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_node_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_add_node_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_node_pargs() throw() {}
+
+  const std::string* node_name;
+  const std::vector<std::string> * ipl;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_node_result__isset {
+  _ThriftHiveMetastore_add_node_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_add_node_result__isset;
+
+class ThriftHiveMetastore_add_node_result {
+ public:
+
+  ThriftHiveMetastore_add_node_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_add_node_result() throw() {}
+
+  Node success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_add_node_result__isset __isset;
+
+  void __set_success(const Node& val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_node_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_node_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_node_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_node_presult__isset {
+  _ThriftHiveMetastore_add_node_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_add_node_presult__isset;
+
+class ThriftHiveMetastore_add_node_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_node_presult() throw() {}
+
+  Node* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_add_node_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_del_node_args__isset {
+  _ThriftHiveMetastore_del_node_args__isset() : node_name(false) {}
+  bool node_name;
+} _ThriftHiveMetastore_del_node_args__isset;
+
+class ThriftHiveMetastore_del_node_args {
+ public:
+
+  ThriftHiveMetastore_del_node_args() : node_name() {
+  }
+
+  virtual ~ThriftHiveMetastore_del_node_args() throw() {}
+
+  std::string node_name;
+
+  _ThriftHiveMetastore_del_node_args__isset __isset;
+
+  void __set_node_name(const std::string& val) {
+    node_name = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_del_node_args & rhs) const
+  {
+    if (!(node_name == rhs.node_name))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_del_node_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_del_node_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_del_node_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_del_node_pargs() throw() {}
+
+  const std::string* node_name;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_del_node_result__isset {
+  _ThriftHiveMetastore_del_node_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_del_node_result__isset;
+
+class ThriftHiveMetastore_del_node_result {
+ public:
+
+  ThriftHiveMetastore_del_node_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_del_node_result() throw() {}
+
+  int32_t success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_del_node_result__isset __isset;
+
+  void __set_success(const int32_t val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_del_node_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_del_node_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_del_node_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_del_node_presult__isset {
+  _ThriftHiveMetastore_del_node_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_del_node_presult__isset;
+
+class ThriftHiveMetastore_del_node_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_del_node_presult() throw() {}
+
+  int32_t* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_del_node_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_alter_node_args__isset {
+  _ThriftHiveMetastore_alter_node_args__isset() : node_name(false), ipl(false), status(false) {}
+  bool node_name;
+  bool ipl;
+  bool status;
+} _ThriftHiveMetastore_alter_node_args__isset;
+
+class ThriftHiveMetastore_alter_node_args {
+ public:
+
+  ThriftHiveMetastore_alter_node_args() : node_name(), status(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_alter_node_args() throw() {}
+
+  std::string node_name;
+  std::vector<std::string>  ipl;
+  int32_t status;
+
+  _ThriftHiveMetastore_alter_node_args__isset __isset;
+
+  void __set_node_name(const std::string& val) {
+    node_name = val;
+  }
+
+  void __set_ipl(const std::vector<std::string> & val) {
+    ipl = val;
+  }
+
+  void __set_status(const int32_t val) {
+    status = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_alter_node_args & rhs) const
+  {
+    if (!(node_name == rhs.node_name))
+      return false;
+    if (!(ipl == rhs.ipl))
+      return false;
+    if (!(status == rhs.status))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_alter_node_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_alter_node_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_alter_node_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_alter_node_pargs() throw() {}
+
+  const std::string* node_name;
+  const std::vector<std::string> * ipl;
+  const int32_t* status;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_alter_node_result__isset {
+  _ThriftHiveMetastore_alter_node_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_alter_node_result__isset;
+
+class ThriftHiveMetastore_alter_node_result {
+ public:
+
+  ThriftHiveMetastore_alter_node_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_alter_node_result() throw() {}
+
+  Node success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_alter_node_result__isset __isset;
+
+  void __set_success(const Node& val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_alter_node_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_alter_node_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_alter_node_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_alter_node_presult__isset {
+  _ThriftHiveMetastore_alter_node_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_alter_node_presult__isset;
+
+class ThriftHiveMetastore_alter_node_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_alter_node_presult() throw() {}
+
+  Node* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_alter_node_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  ::facebook::fb303::FacebookServiceClient {
  public:
   ThriftHiveMetastoreClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -11993,8 +12387,8 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void cancel_delegation_token(const std::string& token_str_form);
   void send_cancel_delegation_token(const std::string& token_str_form);
   void recv_cancel_delegation_token();
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& table_name);
-  void send_create_file(const std::string& node_name, const int32_t repnr, const std::string& table_name);
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const int64_t table_id);
+  void send_create_file(const std::string& node_name, const int32_t repnr, const int64_t table_id);
   void recv_create_file(SFile& _return);
   int32_t close_file(const SFile& file);
   void send_close_file(const SFile& file);
@@ -12011,6 +12405,15 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   int32_t rm_file_physical(const SFile& file);
   void send_rm_file_physical(const SFile& file);
   int32_t recv_rm_file_physical();
+  void add_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl);
+  void send_add_node(const std::string& node_name, const std::vector<std::string> & ipl);
+  void recv_add_node(Node& _return);
+  int32_t del_node(const std::string& node_name);
+  void send_del_node(const std::string& node_name);
+  int32_t recv_del_node();
+  void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status);
+  void send_alter_node(const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status);
+  void recv_alter_node(Node& _return);
 };
 
 class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceProcessor {
@@ -12102,6 +12505,9 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_rm_file_logical(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_restore_file(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_rm_file_physical(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_add_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_del_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_alter_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   ThriftHiveMetastoreProcessor(boost::shared_ptr<ThriftHiveMetastoreIf> iface) :
      ::facebook::fb303::FacebookServiceProcessor(iface),
@@ -12187,6 +12593,9 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["rm_file_logical"] = &ThriftHiveMetastoreProcessor::process_rm_file_logical;
     processMap_["restore_file"] = &ThriftHiveMetastoreProcessor::process_restore_file;
     processMap_["rm_file_physical"] = &ThriftHiveMetastoreProcessor::process_rm_file_physical;
+    processMap_["add_node"] = &ThriftHiveMetastoreProcessor::process_add_node;
+    processMap_["del_node"] = &ThriftHiveMetastoreProcessor::process_del_node;
+    processMap_["alter_node"] = &ThriftHiveMetastoreProcessor::process_alter_node;
   }
 
   virtual ~ThriftHiveMetastoreProcessor() {}
@@ -12937,13 +13346,13 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     ifaces_[i]->cancel_delegation_token(token_str_form);
   }
 
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& table_name) {
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const int64_t table_id) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->create_file(_return, node_name, repnr, table_name);
+      ifaces_[i]->create_file(_return, node_name, repnr, table_id);
     }
-    ifaces_[i]->create_file(_return, node_name, repnr, table_name);
+    ifaces_[i]->create_file(_return, node_name, repnr, table_id);
     return;
   }
 
@@ -12991,6 +13400,35 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->rm_file_physical(file);
     }
     return ifaces_[i]->rm_file_physical(file);
+  }
+
+  void add_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->add_node(_return, node_name, ipl);
+    }
+    ifaces_[i]->add_node(_return, node_name, ipl);
+    return;
+  }
+
+  int32_t del_node(const std::string& node_name) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->del_node(node_name);
+    }
+    return ifaces_[i]->del_node(node_name);
+  }
+
+  void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->alter_node(_return, node_name, ipl, status);
+    }
+    ifaces_[i]->alter_node(_return, node_name, ipl, status);
+    return;
   }
 
 };

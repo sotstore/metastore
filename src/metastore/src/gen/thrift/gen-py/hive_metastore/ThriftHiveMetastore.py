@@ -654,12 +654,12 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
-  def create_file(self, node_name, repnr, table_name):
+  def create_file(self, node_name, repnr, table_id):
     """
     Parameters:
      - node_name
      - repnr
-     - table_name
+     - table_id
     """
     pass
 
@@ -695,6 +695,30 @@ class Iface(fb303.FacebookService.Iface):
     """
     Parameters:
      - file
+    """
+    pass
+
+  def add_node(self, node_name, ipl):
+    """
+    Parameters:
+     - node_name
+     - ipl
+    """
+    pass
+
+  def del_node(self, node_name):
+    """
+    Parameters:
+     - node_name
+    """
+    pass
+
+  def alter_node(self, node_name, ipl, status):
+    """
+    Parameters:
+     - node_name
+     - ipl
+     - status
     """
     pass
 
@@ -3472,22 +3496,22 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     return
 
-  def create_file(self, node_name, repnr, table_name):
+  def create_file(self, node_name, repnr, table_id):
     """
     Parameters:
      - node_name
      - repnr
-     - table_name
+     - table_id
     """
-    self.send_create_file(node_name, repnr, table_name)
+    self.send_create_file(node_name, repnr, table_id)
     return self.recv_create_file()
 
-  def send_create_file(self, node_name, repnr, table_name):
+  def send_create_file(self, node_name, repnr, table_id):
     self._oprot.writeMessageBegin('create_file', TMessageType.CALL, self._seqid)
     args = create_file_args()
     args.node_name = node_name
     args.repnr = repnr
-    args.table_name = table_name
+    args.table_id = table_id
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
@@ -3678,6 +3702,108 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "rm_file_physical failed: unknown result");
 
+  def add_node(self, node_name, ipl):
+    """
+    Parameters:
+     - node_name
+     - ipl
+    """
+    self.send_add_node(node_name, ipl)
+    return self.recv_add_node()
+
+  def send_add_node(self, node_name, ipl):
+    self._oprot.writeMessageBegin('add_node', TMessageType.CALL, self._seqid)
+    args = add_node_args()
+    args.node_name = node_name
+    args.ipl = ipl
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_add_node(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = add_node_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "add_node failed: unknown result");
+
+  def del_node(self, node_name):
+    """
+    Parameters:
+     - node_name
+    """
+    self.send_del_node(node_name)
+    return self.recv_del_node()
+
+  def send_del_node(self, node_name):
+    self._oprot.writeMessageBegin('del_node', TMessageType.CALL, self._seqid)
+    args = del_node_args()
+    args.node_name = node_name
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_del_node(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = del_node_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "del_node failed: unknown result");
+
+  def alter_node(self, node_name, ipl, status):
+    """
+    Parameters:
+     - node_name
+     - ipl
+     - status
+    """
+    self.send_alter_node(node_name, ipl, status)
+    return self.recv_alter_node()
+
+  def send_alter_node(self, node_name, ipl, status):
+    self._oprot.writeMessageBegin('alter_node', TMessageType.CALL, self._seqid)
+    args = alter_node_args()
+    args.node_name = node_name
+    args.ipl = ipl
+    args.status = status
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_alter_node(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = alter_node_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "alter_node failed: unknown result");
+
 
 class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
   def __init__(self, handler):
@@ -3763,6 +3889,9 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["rm_file_logical"] = Processor.process_rm_file_logical
     self._processMap["restore_file"] = Processor.process_restore_file
     self._processMap["rm_file_physical"] = Processor.process_rm_file_physical
+    self._processMap["add_node"] = Processor.process_add_node
+    self._processMap["del_node"] = Processor.process_del_node
+    self._processMap["alter_node"] = Processor.process_alter_node
 
   def process(self, iprot, oprot):
     (name, type, seqid) = iprot.readMessageBegin()
@@ -5011,7 +5140,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     iprot.readMessageEnd()
     result = create_file_result()
     try:
-      result.success = self._handler.create_file(args.node_name, args.repnr, args.table_name)
+      result.success = self._handler.create_file(args.node_name, args.repnr, args.table_id)
     except FileOperationException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("create_file", TMessageType.REPLY, seqid)
@@ -5095,6 +5224,48 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     except MetaException as o2:
       result.o2 = o2
     oprot.writeMessageBegin("rm_file_physical", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_add_node(self, seqid, iprot, oprot):
+    args = add_node_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = add_node_result()
+    try:
+      result.success = self._handler.add_node(args.node_name, args.ipl)
+    except MetaException as o1:
+      result.o1 = o1
+    oprot.writeMessageBegin("add_node", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_del_node(self, seqid, iprot, oprot):
+    args = del_node_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = del_node_result()
+    try:
+      result.success = self._handler.del_node(args.node_name)
+    except MetaException as o1:
+      result.o1 = o1
+    oprot.writeMessageBegin("del_node", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_alter_node(self, seqid, iprot, oprot):
+    args = alter_node_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = alter_node_result()
+    try:
+      result.success = self._handler.alter_node(args.node_name, args.ipl, args.status)
+    except MetaException as o1:
+      result.o1 = o1
+    oprot.writeMessageBegin("alter_node", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -17746,20 +17917,20 @@ class create_file_args:
   Attributes:
    - node_name
    - repnr
-   - table_name
+   - table_id
   """
 
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'node_name', None, None, ), # 1
     (2, TType.I32, 'repnr', None, None, ), # 2
-    (3, TType.STRING, 'table_name', None, None, ), # 3
+    (3, TType.I64, 'table_id', None, None, ), # 3
   )
 
-  def __init__(self, node_name=None, repnr=None, table_name=None,):
+  def __init__(self, node_name=None, repnr=None, table_id=None,):
     self.node_name = node_name
     self.repnr = repnr
-    self.table_name = table_name
+    self.table_id = table_id
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -17781,8 +17952,8 @@ class create_file_args:
         else:
           iprot.skip(ftype)
       elif fid == 3:
-        if ftype == TType.STRING:
-          self.table_name = iprot.readString();
+        if ftype == TType.I64:
+          self.table_id = iprot.readI64();
         else:
           iprot.skip(ftype)
       else:
@@ -17803,9 +17974,9 @@ class create_file_args:
       oprot.writeFieldBegin('repnr', TType.I32, 2)
       oprot.writeI32(self.repnr)
       oprot.writeFieldEnd()
-    if self.table_name is not None:
-      oprot.writeFieldBegin('table_name', TType.STRING, 3)
-      oprot.writeString(self.table_name)
+    if self.table_id is not None:
+      oprot.writeFieldBegin('table_id', TType.I64, 3)
+      oprot.writeI64(self.table_id)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -18609,6 +18780,456 @@ class rm_file_physical_result:
     if self.o2 is not None:
       oprot.writeFieldBegin('o2', TType.STRUCT, 2)
       self.o2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class add_node_args:
+  """
+  Attributes:
+   - node_name
+   - ipl
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'node_name', None, None, ), # 1
+    (2, TType.LIST, 'ipl', (TType.STRING,None), None, ), # 2
+  )
+
+  def __init__(self, node_name=None, ipl=None,):
+    self.node_name = node_name
+    self.ipl = ipl
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.node_name = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.LIST:
+          self.ipl = []
+          (_etype560, _size557) = iprot.readListBegin()
+          for _i561 in xrange(_size557):
+            _elem562 = iprot.readString();
+            self.ipl.append(_elem562)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('add_node_args')
+    if self.node_name is not None:
+      oprot.writeFieldBegin('node_name', TType.STRING, 1)
+      oprot.writeString(self.node_name)
+      oprot.writeFieldEnd()
+    if self.ipl is not None:
+      oprot.writeFieldBegin('ipl', TType.LIST, 2)
+      oprot.writeListBegin(TType.STRING, len(self.ipl))
+      for iter563 in self.ipl:
+        oprot.writeString(iter563)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class add_node_result:
+  """
+  Attributes:
+   - success
+   - o1
+  """
+
+  thrift_spec = (
+    (0, TType.STRUCT, 'success', (Node, Node.thrift_spec), None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, o1=None,):
+    self.success = success
+    self.o1 = o1
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.STRUCT:
+          self.success = Node()
+          self.success.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('add_node_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.STRUCT, 0)
+      self.success.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class del_node_args:
+  """
+  Attributes:
+   - node_name
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'node_name', None, None, ), # 1
+  )
+
+  def __init__(self, node_name=None,):
+    self.node_name = node_name
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.node_name = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('del_node_args')
+    if self.node_name is not None:
+      oprot.writeFieldBegin('node_name', TType.STRING, 1)
+      oprot.writeString(self.node_name)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class del_node_result:
+  """
+  Attributes:
+   - success
+   - o1
+  """
+
+  thrift_spec = (
+    (0, TType.I32, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, o1=None,):
+    self.success = success
+    self.o1 = o1
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.I32:
+          self.success = iprot.readI32();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('del_node_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.I32, 0)
+      oprot.writeI32(self.success)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class alter_node_args:
+  """
+  Attributes:
+   - node_name
+   - ipl
+   - status
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'node_name', None, None, ), # 1
+    (2, TType.LIST, 'ipl', (TType.STRING,None), None, ), # 2
+    (3, TType.I32, 'status', None, None, ), # 3
+  )
+
+  def __init__(self, node_name=None, ipl=None, status=None,):
+    self.node_name = node_name
+    self.ipl = ipl
+    self.status = status
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.node_name = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.LIST:
+          self.ipl = []
+          (_etype567, _size564) = iprot.readListBegin()
+          for _i568 in xrange(_size564):
+            _elem569 = iprot.readString();
+            self.ipl.append(_elem569)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.I32:
+          self.status = iprot.readI32();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('alter_node_args')
+    if self.node_name is not None:
+      oprot.writeFieldBegin('node_name', TType.STRING, 1)
+      oprot.writeString(self.node_name)
+      oprot.writeFieldEnd()
+    if self.ipl is not None:
+      oprot.writeFieldBegin('ipl', TType.LIST, 2)
+      oprot.writeListBegin(TType.STRING, len(self.ipl))
+      for iter570 in self.ipl:
+        oprot.writeString(iter570)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.status is not None:
+      oprot.writeFieldBegin('status', TType.I32, 3)
+      oprot.writeI32(self.status)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class alter_node_result:
+  """
+  Attributes:
+   - success
+   - o1
+  """
+
+  thrift_spec = (
+    (0, TType.STRUCT, 'success', (Node, Node.thrift_spec), None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, o1=None,):
+    self.success = success
+    self.o1 = o1
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.STRUCT:
+          self.success = Node()
+          self.success.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('alter_node_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.STRUCT, 0)
+      self.success.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

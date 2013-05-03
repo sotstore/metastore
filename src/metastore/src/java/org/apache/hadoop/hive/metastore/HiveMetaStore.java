@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
 import java.util.Timer;
 import java.util.regex.Pattern;
@@ -61,6 +62,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
+import org.apache.hadoop.hive.metastore.api.FOFailReason;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -74,6 +76,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
@@ -82,6 +85,7 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -110,7 +114,10 @@ import org.apache.hadoop.hive.metastore.events.PreDropTableEvent;
 import org.apache.hadoop.hive.metastore.events.PreEventContext;
 import org.apache.hadoop.hive.metastore.events.PreLoadPartitionDoneEvent;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
+import org.apache.hadoop.hive.metastore.model.MFile;
+import org.apache.hadoop.hive.metastore.model.MFileLocation;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
+import org.apache.hadoop.hive.metastore.model.MNode.NodeStatus;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MPartitionPrivilege;
 import org.apache.hadoop.hive.metastore.model.MRole;
@@ -171,6 +178,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return childTransFactory.getTransport(parentTransFactory.getTransport(trans));
     }
   }
+
+  public static DiskManager dm = null;
+  public static Random rand = new Random();
 
   public static class HMSHandler extends FacebookBase implements
       IHMSHandler {
@@ -3999,10 +4009,57 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public SFile create_file(String node_name, int repnr, String table_name)
+    public SFile create_file(String node_name, int repnr, long table_id)
         throws FileOperationException, TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      if (node_name == null) {
+        // this means we should select Best Available Node and Best Available Device;
+        try {
+          node_name = dm.findBestNode();
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+          throw new FileOperationException("Can not find any Best Available Node now, please retry", FOFailReason.SAFEMODE);
+        }
+      }
+
+      SFile cfile = null;
+
+      // Step 1: find best device to put a file
+      if (dm == null) {
+        return null;
+      }
+      try {
+        String devid = dm.findBestDevice(node_name);
+        String location = "/data/";
+        String table_name = null;
+
+        // try to parse table_name
+        if (table_id >= 0) {
+          Table tbl = getMS().getTableByID(table_id);
+          table_name = tbl.getDbName() + "/" + tbl.getTableName();
+        }
+
+        if (table_name == null) {
+          location += "UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
+        } else {
+          location += table_name + "/" + rand.nextInt(Integer.MAX_VALUE);
+        }
+        // how to convert table_name to tbl_id?
+        cfile = new SFile(0, table_id, MFile.StoreStatus.INCREATE, repnr,
+            "", 0, 0, null);
+        getMS().createFile(cfile);
+        cfile = getMS().getSFile(cfile.getFid());
+        SFileLocation sfloc = new SFileLocation(node_name, cfile.getFid(), devid, location, 0, System.currentTimeMillis(),
+            MFileLocation.VisitStatus.ONLINE, "DEFAULT");
+        List<SFileLocation> sfloclist = new ArrayList<SFileLocation>();
+        sfloclist.add(sfloc);
+        cfile.setLocations(sfloclist);
+      } catch (IOException e) {
+        throw new FileOperationException("System might in Safe Mode, please wait ...", FOFailReason.SAFEMODE);
+      }
+
+      return cfile;
     }
 
     @Override
@@ -4034,6 +4091,33 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         TException {
       // TODO Auto-generated method stub
       return 0;
+    }
+
+    @Override
+    public Node add_node(String node_name, List<String> ipl) throws MetaException, TException {
+      Node node = new Node(node_name, ipl, NodeStatus.ONLINE);
+      getMS().createNode(node);
+      return node;
+    }
+
+    @Override
+    public int del_node(String node_name) throws MetaException, TException {
+      if (getMS().delNode(node_name)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+
+    @Override
+    public Node alter_node(String node_name, List<String> ipl, int status) throws MetaException,
+        TException {
+      Node node = new Node(node_name, ipl, status);
+      if (getMS().updateNode(node)) {
+        return node;
+      } else {
+        return null;
+      }
     }
   }
 
@@ -4175,7 +4259,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
       });
 
-      DiskManager dm = new DiskManager(new HiveConf(DiskManager.class), HMSHandler.LOG);
+      dm = new DiskManager(new HiveConf(DiskManager.class), HMSHandler.LOG);
       startMetaStore(cli.port, ShimLoader.getHadoopThriftAuthBridge(), conf);
     } catch (Throwable t) {
       // Catch the exception, log it and rethrow it.

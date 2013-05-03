@@ -77,6 +77,8 @@ enum FOFailReason {
   
   NOSPACE = 10,
   NOTEXIST = 11,
+  
+  SAFEMODE = 12,
 }
 
 struct HiveObjectRef{
@@ -648,7 +650,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   void cancel_delegation_token(1:string token_str_form) throws (1:MetaException o1)
   
   // method for file operations
-  SFile create_file(1:string node_name, 2:i32 repnr, 3:string table_name) throws (1:FileOperationException o1)
+  SFile create_file(1:string node_name, 2:i32 repnr, 3:i64 table_id) throws (1:FileOperationException o1)
   
   i32 close_file(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
   
@@ -659,6 +661,13 @@ service ThriftHiveMetastore extends fb303.FacebookService
   i32 restore_file(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
   
   i32 rm_file_physical(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
+  
+  // method for node operations
+  Node add_node(1:string node_name, 2:list<string> ipl) throws (1:MetaException o1)
+  
+  i32 del_node(1:string node_name) throws (1:MetaException o1)
+  
+  Node alter_node(1:string node_name, 2:list<string> ipl, 3:i32 status) throws (1:MetaException o1)
 }
 
 // * Note about the DDL_TIME: When creating or altering a table or a partition,

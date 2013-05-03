@@ -53,7 +53,8 @@ struct FOFailReason {
     INVALID_TABLE = 2,
     INVALID_FILE = 3,
     NOSPACE = 10,
-    NOTEXIST = 11
+    NOTEXIST = 11,
+    SAFEMODE = 12
   };
 };
 

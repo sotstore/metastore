@@ -188,7 +188,7 @@ public class ThriftHiveMetastore {
 
     public void cancel_delegation_token(String token_str_form) throws MetaException, org.apache.thrift.TException;
 
-    public SFile create_file(String node_name, int repnr, String table_name) throws FileOperationException, org.apache.thrift.TException;
+    public SFile create_file(String node_name, int repnr, long table_id) throws FileOperationException, org.apache.thrift.TException;
 
     public int close_file(SFile file) throws FileOperationException, MetaException, org.apache.thrift.TException;
 
@@ -199,6 +199,12 @@ public class ThriftHiveMetastore {
     public int restore_file(SFile file) throws FileOperationException, MetaException, org.apache.thrift.TException;
 
     public int rm_file_physical(SFile file) throws FileOperationException, MetaException, org.apache.thrift.TException;
+
+    public Node add_node(String node_name, List<String> ipl) throws MetaException, org.apache.thrift.TException;
+
+    public int del_node(String node_name) throws MetaException, org.apache.thrift.TException;
+
+    public Node alter_node(String node_name, List<String> ipl, int status) throws MetaException, org.apache.thrift.TException;
 
   }
 
@@ -354,7 +360,7 @@ public class ThriftHiveMetastore {
 
     public void cancel_delegation_token(String token_str_form, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.cancel_delegation_token_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void create_file(String node_name, int repnr, String table_name, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.create_file_call> resultHandler) throws org.apache.thrift.TException;
+    public void create_file(String node_name, int repnr, long table_id, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.create_file_call> resultHandler) throws org.apache.thrift.TException;
 
     public void close_file(SFile file, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.close_file_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -365,6 +371,12 @@ public class ThriftHiveMetastore {
     public void restore_file(SFile file, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.restore_file_call> resultHandler) throws org.apache.thrift.TException;
 
     public void rm_file_physical(SFile file, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.rm_file_physical_call> resultHandler) throws org.apache.thrift.TException;
+
+    public void add_node(String node_name, List<String> ipl, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.add_node_call> resultHandler) throws org.apache.thrift.TException;
+
+    public void del_node(String node_name, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.del_node_call> resultHandler) throws org.apache.thrift.TException;
+
+    public void alter_node(String node_name, List<String> ipl, int status, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.alter_node_call> resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -2670,18 +2682,18 @@ public class ThriftHiveMetastore {
       return;
     }
 
-    public SFile create_file(String node_name, int repnr, String table_name) throws FileOperationException, org.apache.thrift.TException
+    public SFile create_file(String node_name, int repnr, long table_id) throws FileOperationException, org.apache.thrift.TException
     {
-      send_create_file(node_name, repnr, table_name);
+      send_create_file(node_name, repnr, table_id);
       return recv_create_file();
     }
 
-    public void send_create_file(String node_name, int repnr, String table_name) throws org.apache.thrift.TException
+    public void send_create_file(String node_name, int repnr, long table_id) throws org.apache.thrift.TException
     {
       create_file_args args = new create_file_args();
       args.setNode_name(node_name);
       args.setRepnr(repnr);
-      args.setTable_name(table_name);
+      args.setTable_id(table_id);
       sendBase("create_file", args);
     }
 
@@ -2841,6 +2853,87 @@ public class ThriftHiveMetastore {
         throw result.o2;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "rm_file_physical failed: unknown result");
+    }
+
+    public Node add_node(String node_name, List<String> ipl) throws MetaException, org.apache.thrift.TException
+    {
+      send_add_node(node_name, ipl);
+      return recv_add_node();
+    }
+
+    public void send_add_node(String node_name, List<String> ipl) throws org.apache.thrift.TException
+    {
+      add_node_args args = new add_node_args();
+      args.setNode_name(node_name);
+      args.setIpl(ipl);
+      sendBase("add_node", args);
+    }
+
+    public Node recv_add_node() throws MetaException, org.apache.thrift.TException
+    {
+      add_node_result result = new add_node_result();
+      receiveBase(result, "add_node");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      if (result.o1 != null) {
+        throw result.o1;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "add_node failed: unknown result");
+    }
+
+    public int del_node(String node_name) throws MetaException, org.apache.thrift.TException
+    {
+      send_del_node(node_name);
+      return recv_del_node();
+    }
+
+    public void send_del_node(String node_name) throws org.apache.thrift.TException
+    {
+      del_node_args args = new del_node_args();
+      args.setNode_name(node_name);
+      sendBase("del_node", args);
+    }
+
+    public int recv_del_node() throws MetaException, org.apache.thrift.TException
+    {
+      del_node_result result = new del_node_result();
+      receiveBase(result, "del_node");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      if (result.o1 != null) {
+        throw result.o1;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "del_node failed: unknown result");
+    }
+
+    public Node alter_node(String node_name, List<String> ipl, int status) throws MetaException, org.apache.thrift.TException
+    {
+      send_alter_node(node_name, ipl, status);
+      return recv_alter_node();
+    }
+
+    public void send_alter_node(String node_name, List<String> ipl, int status) throws org.apache.thrift.TException
+    {
+      alter_node_args args = new alter_node_args();
+      args.setNode_name(node_name);
+      args.setIpl(ipl);
+      args.setStatus(status);
+      sendBase("alter_node", args);
+    }
+
+    public Node recv_alter_node() throws MetaException, org.apache.thrift.TException
+    {
+      alter_node_result result = new alter_node_result();
+      receiveBase(result, "alter_node");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      if (result.o1 != null) {
+        throw result.o1;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "alter_node failed: unknown result");
     }
 
   }
@@ -5600,9 +5693,9 @@ public class ThriftHiveMetastore {
       }
     }
 
-    public void create_file(String node_name, int repnr, String table_name, org.apache.thrift.async.AsyncMethodCallback<create_file_call> resultHandler) throws org.apache.thrift.TException {
+    public void create_file(String node_name, int repnr, long table_id, org.apache.thrift.async.AsyncMethodCallback<create_file_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      create_file_call method_call = new create_file_call(node_name, repnr, table_name, resultHandler, this, ___protocolFactory, ___transport);
+      create_file_call method_call = new create_file_call(node_name, repnr, table_id, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -5610,12 +5703,12 @@ public class ThriftHiveMetastore {
     public static class create_file_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String node_name;
       private int repnr;
-      private String table_name;
-      public create_file_call(String node_name, int repnr, String table_name, org.apache.thrift.async.AsyncMethodCallback<create_file_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private long table_id;
+      public create_file_call(String node_name, int repnr, long table_id, org.apache.thrift.async.AsyncMethodCallback<create_file_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.node_name = node_name;
         this.repnr = repnr;
-        this.table_name = table_name;
+        this.table_id = table_id;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -5623,7 +5716,7 @@ public class ThriftHiveMetastore {
         create_file_args args = new create_file_args();
         args.setNode_name(node_name);
         args.setRepnr(repnr);
-        args.setTable_name(table_name);
+        args.setTable_id(table_id);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -5798,6 +5891,111 @@ public class ThriftHiveMetastore {
       }
     }
 
+    public void add_node(String node_name, List<String> ipl, org.apache.thrift.async.AsyncMethodCallback<add_node_call> resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      add_node_call method_call = new add_node_call(node_name, ipl, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class add_node_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String node_name;
+      private List<String> ipl;
+      public add_node_call(String node_name, List<String> ipl, org.apache.thrift.async.AsyncMethodCallback<add_node_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.node_name = node_name;
+        this.ipl = ipl;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("add_node", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        add_node_args args = new add_node_args();
+        args.setNode_name(node_name);
+        args.setIpl(ipl);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public Node getResult() throws MetaException, org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_add_node();
+      }
+    }
+
+    public void del_node(String node_name, org.apache.thrift.async.AsyncMethodCallback<del_node_call> resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      del_node_call method_call = new del_node_call(node_name, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class del_node_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String node_name;
+      public del_node_call(String node_name, org.apache.thrift.async.AsyncMethodCallback<del_node_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.node_name = node_name;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("del_node", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        del_node_args args = new del_node_args();
+        args.setNode_name(node_name);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public int getResult() throws MetaException, org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_del_node();
+      }
+    }
+
+    public void alter_node(String node_name, List<String> ipl, int status, org.apache.thrift.async.AsyncMethodCallback<alter_node_call> resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      alter_node_call method_call = new alter_node_call(node_name, ipl, status, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class alter_node_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String node_name;
+      private List<String> ipl;
+      private int status;
+      public alter_node_call(String node_name, List<String> ipl, int status, org.apache.thrift.async.AsyncMethodCallback<alter_node_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.node_name = node_name;
+        this.ipl = ipl;
+        this.status = status;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("alter_node", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        alter_node_args args = new alter_node_args();
+        args.setNode_name(node_name);
+        args.setIpl(ipl);
+        args.setStatus(status);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public Node getResult() throws MetaException, org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_alter_node();
+      }
+    }
+
   }
 
   public static class Processor<I extends Iface> extends com.facebook.fb303.FacebookService.Processor<I> implements org.apache.thrift.TProcessor {
@@ -5892,6 +6090,9 @@ public class ThriftHiveMetastore {
       processMap.put("rm_file_logical", new rm_file_logical());
       processMap.put("restore_file", new restore_file());
       processMap.put("rm_file_physical", new rm_file_physical());
+      processMap.put("add_node", new add_node());
+      processMap.put("del_node", new del_node());
+      processMap.put("alter_node", new alter_node());
       return processMap;
     }
 
@@ -7905,7 +8106,7 @@ public class ThriftHiveMetastore {
       public create_file_result getResult(I iface, create_file_args args) throws org.apache.thrift.TException {
         create_file_result result = new create_file_result();
         try {
-          result.success = iface.create_file(args.node_name, args.repnr, args.table_name);
+          result.success = iface.create_file(args.node_name, args.repnr, args.table_id);
         } catch (FileOperationException o1) {
           result.o1 = o1;
         }
@@ -8042,6 +8243,79 @@ public class ThriftHiveMetastore {
           result.o1 = o1;
         } catch (MetaException o2) {
           result.o2 = o2;
+        }
+        return result;
+      }
+    }
+
+    public static class add_node<I extends Iface> extends org.apache.thrift.ProcessFunction<I, add_node_args> {
+      public add_node() {
+        super("add_node");
+      }
+
+      public add_node_args getEmptyArgsInstance() {
+        return new add_node_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public add_node_result getResult(I iface, add_node_args args) throws org.apache.thrift.TException {
+        add_node_result result = new add_node_result();
+        try {
+          result.success = iface.add_node(args.node_name, args.ipl);
+        } catch (MetaException o1) {
+          result.o1 = o1;
+        }
+        return result;
+      }
+    }
+
+    public static class del_node<I extends Iface> extends org.apache.thrift.ProcessFunction<I, del_node_args> {
+      public del_node() {
+        super("del_node");
+      }
+
+      public del_node_args getEmptyArgsInstance() {
+        return new del_node_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public del_node_result getResult(I iface, del_node_args args) throws org.apache.thrift.TException {
+        del_node_result result = new del_node_result();
+        try {
+          result.success = iface.del_node(args.node_name);
+          result.setSuccessIsSet(true);
+        } catch (MetaException o1) {
+          result.o1 = o1;
+        }
+        return result;
+      }
+    }
+
+    public static class alter_node<I extends Iface> extends org.apache.thrift.ProcessFunction<I, alter_node_args> {
+      public alter_node() {
+        super("alter_node");
+      }
+
+      public alter_node_args getEmptyArgsInstance() {
+        return new alter_node_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public alter_node_result getResult(I iface, alter_node_args args) throws org.apache.thrift.TException {
+        alter_node_result result = new alter_node_result();
+        try {
+          result.success = iface.alter_node(args.node_name, args.ipl, args.status);
+        } catch (MetaException o1) {
+          result.o1 = o1;
         }
         return result;
       }
@@ -91841,7 +92115,7 @@ public class ThriftHiveMetastore {
 
     private static final org.apache.thrift.protocol.TField NODE_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("node_name", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField REPNR_FIELD_DESC = new org.apache.thrift.protocol.TField("repnr", org.apache.thrift.protocol.TType.I32, (short)2);
-    private static final org.apache.thrift.protocol.TField TABLE_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("table_name", org.apache.thrift.protocol.TType.STRING, (short)3);
+    private static final org.apache.thrift.protocol.TField TABLE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("table_id", org.apache.thrift.protocol.TType.I64, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -91851,13 +92125,13 @@ public class ThriftHiveMetastore {
 
     private String node_name; // required
     private int repnr; // required
-    private String table_name; // required
+    private long table_id; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       NODE_NAME((short)1, "node_name"),
       REPNR((short)2, "repnr"),
-      TABLE_NAME((short)3, "table_name");
+      TABLE_ID((short)3, "table_id");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -91876,8 +92150,8 @@ public class ThriftHiveMetastore {
             return NODE_NAME;
           case 2: // REPNR
             return REPNR;
-          case 3: // TABLE_NAME
-            return TABLE_NAME;
+          case 3: // TABLE_ID
+            return TABLE_ID;
           default:
             return null;
         }
@@ -91919,6 +92193,7 @@ public class ThriftHiveMetastore {
 
     // isset id assignments
     private static final int __REPNR_ISSET_ID = 0;
+    private static final int __TABLE_ID_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
@@ -91927,8 +92202,8 @@ public class ThriftHiveMetastore {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.REPNR, new org.apache.thrift.meta_data.FieldMetaData("repnr", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-      tmpMap.put(_Fields.TABLE_NAME, new org.apache.thrift.meta_data.FieldMetaData("table_name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.TABLE_ID, new org.apache.thrift.meta_data.FieldMetaData("table_id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(create_file_args.class, metaDataMap);
     }
@@ -91939,13 +92214,14 @@ public class ThriftHiveMetastore {
     public create_file_args(
       String node_name,
       int repnr,
-      String table_name)
+      long table_id)
     {
       this();
       this.node_name = node_name;
       this.repnr = repnr;
       setRepnrIsSet(true);
-      this.table_name = table_name;
+      this.table_id = table_id;
+      setTable_idIsSet(true);
     }
 
     /**
@@ -91957,9 +92233,7 @@ public class ThriftHiveMetastore {
         this.node_name = other.node_name;
       }
       this.repnr = other.repnr;
-      if (other.isSetTable_name()) {
-        this.table_name = other.table_name;
-      }
+      this.table_id = other.table_id;
     }
 
     public create_file_args deepCopy() {
@@ -91971,7 +92245,8 @@ public class ThriftHiveMetastore {
       this.node_name = null;
       setRepnrIsSet(false);
       this.repnr = 0;
-      this.table_name = null;
+      setTable_idIsSet(false);
+      this.table_id = 0;
     }
 
     public String getNode_name() {
@@ -92019,27 +92294,26 @@ public class ThriftHiveMetastore {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REPNR_ISSET_ID, value);
     }
 
-    public String getTable_name() {
-      return this.table_name;
+    public long getTable_id() {
+      return this.table_id;
     }
 
-    public void setTable_name(String table_name) {
-      this.table_name = table_name;
+    public void setTable_id(long table_id) {
+      this.table_id = table_id;
+      setTable_idIsSet(true);
     }
 
-    public void unsetTable_name() {
-      this.table_name = null;
+    public void unsetTable_id() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TABLE_ID_ISSET_ID);
     }
 
-    /** Returns true if field table_name is set (has been assigned a value) and false otherwise */
-    public boolean isSetTable_name() {
-      return this.table_name != null;
+    /** Returns true if field table_id is set (has been assigned a value) and false otherwise */
+    public boolean isSetTable_id() {
+      return EncodingUtils.testBit(__isset_bitfield, __TABLE_ID_ISSET_ID);
     }
 
-    public void setTable_nameIsSet(boolean value) {
-      if (!value) {
-        this.table_name = null;
-      }
+    public void setTable_idIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TABLE_ID_ISSET_ID, value);
     }
 
     public void setFieldValue(_Fields field, Object value) {
@@ -92060,11 +92334,11 @@ public class ThriftHiveMetastore {
         }
         break;
 
-      case TABLE_NAME:
+      case TABLE_ID:
         if (value == null) {
-          unsetTable_name();
+          unsetTable_id();
         } else {
-          setTable_name((String)value);
+          setTable_id((Long)value);
         }
         break;
 
@@ -92079,8 +92353,8 @@ public class ThriftHiveMetastore {
       case REPNR:
         return Integer.valueOf(getRepnr());
 
-      case TABLE_NAME:
-        return getTable_name();
+      case TABLE_ID:
+        return Long.valueOf(getTable_id());
 
       }
       throw new IllegalStateException();
@@ -92097,8 +92371,8 @@ public class ThriftHiveMetastore {
         return isSetNode_name();
       case REPNR:
         return isSetRepnr();
-      case TABLE_NAME:
-        return isSetTable_name();
+      case TABLE_ID:
+        return isSetTable_id();
       }
       throw new IllegalStateException();
     }
@@ -92134,12 +92408,12 @@ public class ThriftHiveMetastore {
           return false;
       }
 
-      boolean this_present_table_name = true && this.isSetTable_name();
-      boolean that_present_table_name = true && that.isSetTable_name();
-      if (this_present_table_name || that_present_table_name) {
-        if (!(this_present_table_name && that_present_table_name))
+      boolean this_present_table_id = true;
+      boolean that_present_table_id = true;
+      if (this_present_table_id || that_present_table_id) {
+        if (!(this_present_table_id && that_present_table_id))
           return false;
-        if (!this.table_name.equals(that.table_name))
+        if (this.table_id != that.table_id)
           return false;
       }
 
@@ -92160,10 +92434,10 @@ public class ThriftHiveMetastore {
       if (present_repnr)
         builder.append(repnr);
 
-      boolean present_table_name = true && (isSetTable_name());
-      builder.append(present_table_name);
-      if (present_table_name)
-        builder.append(table_name);
+      boolean present_table_id = true;
+      builder.append(present_table_id);
+      if (present_table_id)
+        builder.append(table_id);
 
       return builder.toHashCode();
     }
@@ -92196,12 +92470,12 @@ public class ThriftHiveMetastore {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetTable_name()).compareTo(typedOther.isSetTable_name());
+      lastComparison = Boolean.valueOf(isSetTable_id()).compareTo(typedOther.isSetTable_id());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetTable_name()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.table_name, typedOther.table_name);
+      if (isSetTable_id()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.table_id, typedOther.table_id);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -92238,12 +92512,8 @@ public class ThriftHiveMetastore {
       sb.append(this.repnr);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("table_name:");
-      if (this.table_name == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.table_name);
-      }
+      sb.append("table_id:");
+      sb.append(this.table_id);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -92306,10 +92576,10 @@ public class ThriftHiveMetastore {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 3: // TABLE_NAME
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.table_name = iprot.readString();
-                struct.setTable_nameIsSet(true);
+            case 3: // TABLE_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.table_id = iprot.readI64();
+                struct.setTable_idIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -92335,11 +92605,9 @@ public class ThriftHiveMetastore {
         oprot.writeFieldBegin(REPNR_FIELD_DESC);
         oprot.writeI32(struct.repnr);
         oprot.writeFieldEnd();
-        if (struct.table_name != null) {
-          oprot.writeFieldBegin(TABLE_NAME_FIELD_DESC);
-          oprot.writeString(struct.table_name);
-          oprot.writeFieldEnd();
-        }
+        oprot.writeFieldBegin(TABLE_ID_FIELD_DESC);
+        oprot.writeI64(struct.table_id);
+        oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -92364,7 +92632,7 @@ public class ThriftHiveMetastore {
         if (struct.isSetRepnr()) {
           optionals.set(1);
         }
-        if (struct.isSetTable_name()) {
+        if (struct.isSetTable_id()) {
           optionals.set(2);
         }
         oprot.writeBitSet(optionals, 3);
@@ -92374,8 +92642,8 @@ public class ThriftHiveMetastore {
         if (struct.isSetRepnr()) {
           oprot.writeI32(struct.repnr);
         }
-        if (struct.isSetTable_name()) {
-          oprot.writeString(struct.table_name);
+        if (struct.isSetTable_id()) {
+          oprot.writeI64(struct.table_id);
         }
       }
 
@@ -92392,8 +92660,8 @@ public class ThriftHiveMetastore {
           struct.setRepnrIsSet(true);
         }
         if (incoming.get(2)) {
-          struct.table_name = iprot.readString();
-          struct.setTable_nameIsSet(true);
+          struct.table_id = iprot.readI64();
+          struct.setTable_idIsSet(true);
         }
       }
     }
@@ -97526,6 +97794,2896 @@ public class ThriftHiveMetastore {
           struct.o2 = new MetaException();
           struct.o2.read(iprot);
           struct.setO2IsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class add_node_args implements org.apache.thrift.TBase<add_node_args, add_node_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("add_node_args");
+
+    private static final org.apache.thrift.protocol.TField NODE_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("node_name", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField IPL_FIELD_DESC = new org.apache.thrift.protocol.TField("ipl", org.apache.thrift.protocol.TType.LIST, (short)2);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new add_node_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new add_node_argsTupleSchemeFactory());
+    }
+
+    private String node_name; // required
+    private List<String> ipl; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      NODE_NAME((short)1, "node_name"),
+      IPL((short)2, "ipl");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // NODE_NAME
+            return NODE_NAME;
+          case 2: // IPL
+            return IPL;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.NODE_NAME, new org.apache.thrift.meta_data.FieldMetaData("node_name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.IPL, new org.apache.thrift.meta_data.FieldMetaData("ipl", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(add_node_args.class, metaDataMap);
+    }
+
+    public add_node_args() {
+    }
+
+    public add_node_args(
+      String node_name,
+      List<String> ipl)
+    {
+      this();
+      this.node_name = node_name;
+      this.ipl = ipl;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public add_node_args(add_node_args other) {
+      if (other.isSetNode_name()) {
+        this.node_name = other.node_name;
+      }
+      if (other.isSetIpl()) {
+        List<String> __this__ipl = new ArrayList<String>();
+        for (String other_element : other.ipl) {
+          __this__ipl.add(other_element);
+        }
+        this.ipl = __this__ipl;
+      }
+    }
+
+    public add_node_args deepCopy() {
+      return new add_node_args(this);
+    }
+
+    @Override
+    public void clear() {
+      this.node_name = null;
+      this.ipl = null;
+    }
+
+    public String getNode_name() {
+      return this.node_name;
+    }
+
+    public void setNode_name(String node_name) {
+      this.node_name = node_name;
+    }
+
+    public void unsetNode_name() {
+      this.node_name = null;
+    }
+
+    /** Returns true if field node_name is set (has been assigned a value) and false otherwise */
+    public boolean isSetNode_name() {
+      return this.node_name != null;
+    }
+
+    public void setNode_nameIsSet(boolean value) {
+      if (!value) {
+        this.node_name = null;
+      }
+    }
+
+    public int getIplSize() {
+      return (this.ipl == null) ? 0 : this.ipl.size();
+    }
+
+    public java.util.Iterator<String> getIplIterator() {
+      return (this.ipl == null) ? null : this.ipl.iterator();
+    }
+
+    public void addToIpl(String elem) {
+      if (this.ipl == null) {
+        this.ipl = new ArrayList<String>();
+      }
+      this.ipl.add(elem);
+    }
+
+    public List<String> getIpl() {
+      return this.ipl;
+    }
+
+    public void setIpl(List<String> ipl) {
+      this.ipl = ipl;
+    }
+
+    public void unsetIpl() {
+      this.ipl = null;
+    }
+
+    /** Returns true if field ipl is set (has been assigned a value) and false otherwise */
+    public boolean isSetIpl() {
+      return this.ipl != null;
+    }
+
+    public void setIplIsSet(boolean value) {
+      if (!value) {
+        this.ipl = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case NODE_NAME:
+        if (value == null) {
+          unsetNode_name();
+        } else {
+          setNode_name((String)value);
+        }
+        break;
+
+      case IPL:
+        if (value == null) {
+          unsetIpl();
+        } else {
+          setIpl((List<String>)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case NODE_NAME:
+        return getNode_name();
+
+      case IPL:
+        return getIpl();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case NODE_NAME:
+        return isSetNode_name();
+      case IPL:
+        return isSetIpl();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof add_node_args)
+        return this.equals((add_node_args)that);
+      return false;
+    }
+
+    public boolean equals(add_node_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_node_name = true && this.isSetNode_name();
+      boolean that_present_node_name = true && that.isSetNode_name();
+      if (this_present_node_name || that_present_node_name) {
+        if (!(this_present_node_name && that_present_node_name))
+          return false;
+        if (!this.node_name.equals(that.node_name))
+          return false;
+      }
+
+      boolean this_present_ipl = true && this.isSetIpl();
+      boolean that_present_ipl = true && that.isSetIpl();
+      if (this_present_ipl || that_present_ipl) {
+        if (!(this_present_ipl && that_present_ipl))
+          return false;
+        if (!this.ipl.equals(that.ipl))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      HashCodeBuilder builder = new HashCodeBuilder();
+
+      boolean present_node_name = true && (isSetNode_name());
+      builder.append(present_node_name);
+      if (present_node_name)
+        builder.append(node_name);
+
+      boolean present_ipl = true && (isSetIpl());
+      builder.append(present_ipl);
+      if (present_ipl)
+        builder.append(ipl);
+
+      return builder.toHashCode();
+    }
+
+    public int compareTo(add_node_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      add_node_args typedOther = (add_node_args)other;
+
+      lastComparison = Boolean.valueOf(isSetNode_name()).compareTo(typedOther.isSetNode_name());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetNode_name()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.node_name, typedOther.node_name);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIpl()).compareTo(typedOther.isSetIpl());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIpl()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ipl, typedOther.ipl);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("add_node_args(");
+      boolean first = true;
+
+      sb.append("node_name:");
+      if (this.node_name == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.node_name);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ipl:");
+      if (this.ipl == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ipl);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class add_node_argsStandardSchemeFactory implements SchemeFactory {
+      public add_node_argsStandardScheme getScheme() {
+        return new add_node_argsStandardScheme();
+      }
+    }
+
+    private static class add_node_argsStandardScheme extends StandardScheme<add_node_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, add_node_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // NODE_NAME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.node_name = iprot.readString();
+                struct.setNode_nameIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // IPL
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list632 = iprot.readListBegin();
+                  struct.ipl = new ArrayList<String>(_list632.size);
+                  for (int _i633 = 0; _i633 < _list632.size; ++_i633)
+                  {
+                    String _elem634; // required
+                    _elem634 = iprot.readString();
+                    struct.ipl.add(_elem634);
+                  }
+                  iprot.readListEnd();
+                }
+                struct.setIplIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, add_node_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.node_name != null) {
+          oprot.writeFieldBegin(NODE_NAME_FIELD_DESC);
+          oprot.writeString(struct.node_name);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ipl != null) {
+          oprot.writeFieldBegin(IPL_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.ipl.size()));
+            for (String _iter635 : struct.ipl)
+            {
+              oprot.writeString(_iter635);
+            }
+            oprot.writeListEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class add_node_argsTupleSchemeFactory implements SchemeFactory {
+      public add_node_argsTupleScheme getScheme() {
+        return new add_node_argsTupleScheme();
+      }
+    }
+
+    private static class add_node_argsTupleScheme extends TupleScheme<add_node_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, add_node_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetNode_name()) {
+          optionals.set(0);
+        }
+        if (struct.isSetIpl()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetNode_name()) {
+          oprot.writeString(struct.node_name);
+        }
+        if (struct.isSetIpl()) {
+          {
+            oprot.writeI32(struct.ipl.size());
+            for (String _iter636 : struct.ipl)
+            {
+              oprot.writeString(_iter636);
+            }
+          }
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, add_node_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.node_name = iprot.readString();
+          struct.setNode_nameIsSet(true);
+        }
+        if (incoming.get(1)) {
+          {
+            org.apache.thrift.protocol.TList _list637 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.ipl = new ArrayList<String>(_list637.size);
+            for (int _i638 = 0; _i638 < _list637.size; ++_i638)
+            {
+              String _elem639; // required
+              _elem639 = iprot.readString();
+              struct.ipl.add(_elem639);
+            }
+          }
+          struct.setIplIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class add_node_result implements org.apache.thrift.TBase<add_node_result, add_node_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("add_node_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+    private static final org.apache.thrift.protocol.TField O1_FIELD_DESC = new org.apache.thrift.protocol.TField("o1", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new add_node_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new add_node_resultTupleSchemeFactory());
+    }
+
+    private Node success; // required
+    private MetaException o1; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
+      O1((short)1, "o1");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          case 1: // O1
+            return O1;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Node.class)));
+      tmpMap.put(_Fields.O1, new org.apache.thrift.meta_data.FieldMetaData("o1", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(add_node_result.class, metaDataMap);
+    }
+
+    public add_node_result() {
+    }
+
+    public add_node_result(
+      Node success,
+      MetaException o1)
+    {
+      this();
+      this.success = success;
+      this.o1 = o1;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public add_node_result(add_node_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new Node(other.success);
+      }
+      if (other.isSetO1()) {
+        this.o1 = new MetaException(other.o1);
+      }
+    }
+
+    public add_node_result deepCopy() {
+      return new add_node_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+      this.o1 = null;
+    }
+
+    public Node getSuccess() {
+      return this.success;
+    }
+
+    public void setSuccess(Node success) {
+      this.success = success;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public MetaException getO1() {
+      return this.o1;
+    }
+
+    public void setO1(MetaException o1) {
+      this.o1 = o1;
+    }
+
+    public void unsetO1() {
+      this.o1 = null;
+    }
+
+    /** Returns true if field o1 is set (has been assigned a value) and false otherwise */
+    public boolean isSetO1() {
+      return this.o1 != null;
+    }
+
+    public void setO1IsSet(boolean value) {
+      if (!value) {
+        this.o1 = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((Node)value);
+        }
+        break;
+
+      case O1:
+        if (value == null) {
+          unsetO1();
+        } else {
+          setO1((MetaException)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      case O1:
+        return getO1();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      case O1:
+        return isSetO1();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof add_node_result)
+        return this.equals((add_node_result)that);
+      return false;
+    }
+
+    public boolean equals(add_node_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      boolean this_present_o1 = true && this.isSetO1();
+      boolean that_present_o1 = true && that.isSetO1();
+      if (this_present_o1 || that_present_o1) {
+        if (!(this_present_o1 && that_present_o1))
+          return false;
+        if (!this.o1.equals(that.o1))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      HashCodeBuilder builder = new HashCodeBuilder();
+
+      boolean present_success = true && (isSetSuccess());
+      builder.append(present_success);
+      if (present_success)
+        builder.append(success);
+
+      boolean present_o1 = true && (isSetO1());
+      builder.append(present_o1);
+      if (present_o1)
+        builder.append(o1);
+
+      return builder.toHashCode();
+    }
+
+    public int compareTo(add_node_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      add_node_result typedOther = (add_node_result)other;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetO1()).compareTo(typedOther.isSetO1());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetO1()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.o1, typedOther.o1);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("add_node_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("o1:");
+      if (this.o1 == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.o1);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class add_node_resultStandardSchemeFactory implements SchemeFactory {
+      public add_node_resultStandardScheme getScheme() {
+        return new add_node_resultStandardScheme();
+      }
+    }
+
+    private static class add_node_resultStandardScheme extends StandardScheme<add_node_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, add_node_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new Node();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 1: // O1
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.o1 = new MetaException();
+                struct.o1.read(iprot);
+                struct.setO1IsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, add_node_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.o1 != null) {
+          oprot.writeFieldBegin(O1_FIELD_DESC);
+          struct.o1.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class add_node_resultTupleSchemeFactory implements SchemeFactory {
+      public add_node_resultTupleScheme getScheme() {
+        return new add_node_resultTupleScheme();
+      }
+    }
+
+    private static class add_node_resultTupleScheme extends TupleScheme<add_node_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, add_node_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        if (struct.isSetO1()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
+        if (struct.isSetO1()) {
+          struct.o1.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, add_node_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.success = new Node();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.o1 = new MetaException();
+          struct.o1.read(iprot);
+          struct.setO1IsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class del_node_args implements org.apache.thrift.TBase<del_node_args, del_node_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("del_node_args");
+
+    private static final org.apache.thrift.protocol.TField NODE_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("node_name", org.apache.thrift.protocol.TType.STRING, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new del_node_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new del_node_argsTupleSchemeFactory());
+    }
+
+    private String node_name; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      NODE_NAME((short)1, "node_name");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // NODE_NAME
+            return NODE_NAME;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.NODE_NAME, new org.apache.thrift.meta_data.FieldMetaData("node_name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(del_node_args.class, metaDataMap);
+    }
+
+    public del_node_args() {
+    }
+
+    public del_node_args(
+      String node_name)
+    {
+      this();
+      this.node_name = node_name;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public del_node_args(del_node_args other) {
+      if (other.isSetNode_name()) {
+        this.node_name = other.node_name;
+      }
+    }
+
+    public del_node_args deepCopy() {
+      return new del_node_args(this);
+    }
+
+    @Override
+    public void clear() {
+      this.node_name = null;
+    }
+
+    public String getNode_name() {
+      return this.node_name;
+    }
+
+    public void setNode_name(String node_name) {
+      this.node_name = node_name;
+    }
+
+    public void unsetNode_name() {
+      this.node_name = null;
+    }
+
+    /** Returns true if field node_name is set (has been assigned a value) and false otherwise */
+    public boolean isSetNode_name() {
+      return this.node_name != null;
+    }
+
+    public void setNode_nameIsSet(boolean value) {
+      if (!value) {
+        this.node_name = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case NODE_NAME:
+        if (value == null) {
+          unsetNode_name();
+        } else {
+          setNode_name((String)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case NODE_NAME:
+        return getNode_name();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case NODE_NAME:
+        return isSetNode_name();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof del_node_args)
+        return this.equals((del_node_args)that);
+      return false;
+    }
+
+    public boolean equals(del_node_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_node_name = true && this.isSetNode_name();
+      boolean that_present_node_name = true && that.isSetNode_name();
+      if (this_present_node_name || that_present_node_name) {
+        if (!(this_present_node_name && that_present_node_name))
+          return false;
+        if (!this.node_name.equals(that.node_name))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      HashCodeBuilder builder = new HashCodeBuilder();
+
+      boolean present_node_name = true && (isSetNode_name());
+      builder.append(present_node_name);
+      if (present_node_name)
+        builder.append(node_name);
+
+      return builder.toHashCode();
+    }
+
+    public int compareTo(del_node_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      del_node_args typedOther = (del_node_args)other;
+
+      lastComparison = Boolean.valueOf(isSetNode_name()).compareTo(typedOther.isSetNode_name());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetNode_name()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.node_name, typedOther.node_name);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("del_node_args(");
+      boolean first = true;
+
+      sb.append("node_name:");
+      if (this.node_name == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.node_name);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class del_node_argsStandardSchemeFactory implements SchemeFactory {
+      public del_node_argsStandardScheme getScheme() {
+        return new del_node_argsStandardScheme();
+      }
+    }
+
+    private static class del_node_argsStandardScheme extends StandardScheme<del_node_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, del_node_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // NODE_NAME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.node_name = iprot.readString();
+                struct.setNode_nameIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, del_node_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.node_name != null) {
+          oprot.writeFieldBegin(NODE_NAME_FIELD_DESC);
+          oprot.writeString(struct.node_name);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class del_node_argsTupleSchemeFactory implements SchemeFactory {
+      public del_node_argsTupleScheme getScheme() {
+        return new del_node_argsTupleScheme();
+      }
+    }
+
+    private static class del_node_argsTupleScheme extends TupleScheme<del_node_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, del_node_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetNode_name()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetNode_name()) {
+          oprot.writeString(struct.node_name);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, del_node_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.node_name = iprot.readString();
+          struct.setNode_nameIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class del_node_result implements org.apache.thrift.TBase<del_node_result, del_node_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("del_node_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I32, (short)0);
+    private static final org.apache.thrift.protocol.TField O1_FIELD_DESC = new org.apache.thrift.protocol.TField("o1", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new del_node_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new del_node_resultTupleSchemeFactory());
+    }
+
+    private int success; // required
+    private MetaException o1; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
+      O1((short)1, "o1");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          case 1: // O1
+            return O1;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    private static final int __SUCCESS_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.O1, new org.apache.thrift.meta_data.FieldMetaData("o1", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(del_node_result.class, metaDataMap);
+    }
+
+    public del_node_result() {
+    }
+
+    public del_node_result(
+      int success,
+      MetaException o1)
+    {
+      this();
+      this.success = success;
+      setSuccessIsSet(true);
+      this.o1 = o1;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public del_node_result(del_node_result other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.success = other.success;
+      if (other.isSetO1()) {
+        this.o1 = new MetaException(other.o1);
+      }
+    }
+
+    public del_node_result deepCopy() {
+      return new del_node_result(this);
+    }
+
+    @Override
+    public void clear() {
+      setSuccessIsSet(false);
+      this.success = 0;
+      this.o1 = null;
+    }
+
+    public int getSuccess() {
+      return this.success;
+    }
+
+    public void setSuccess(int success) {
+      this.success = success;
+      setSuccessIsSet(true);
+    }
+
+    public void unsetSuccess() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
+    }
+
+    public MetaException getO1() {
+      return this.o1;
+    }
+
+    public void setO1(MetaException o1) {
+      this.o1 = o1;
+    }
+
+    public void unsetO1() {
+      this.o1 = null;
+    }
+
+    /** Returns true if field o1 is set (has been assigned a value) and false otherwise */
+    public boolean isSetO1() {
+      return this.o1 != null;
+    }
+
+    public void setO1IsSet(boolean value) {
+      if (!value) {
+        this.o1 = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((Integer)value);
+        }
+        break;
+
+      case O1:
+        if (value == null) {
+          unsetO1();
+        } else {
+          setO1((MetaException)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return Integer.valueOf(getSuccess());
+
+      case O1:
+        return getO1();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      case O1:
+        return isSetO1();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof del_node_result)
+        return this.equals((del_node_result)that);
+      return false;
+    }
+
+    public boolean equals(del_node_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true;
+      boolean that_present_success = true;
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (this.success != that.success)
+          return false;
+      }
+
+      boolean this_present_o1 = true && this.isSetO1();
+      boolean that_present_o1 = true && that.isSetO1();
+      if (this_present_o1 || that_present_o1) {
+        if (!(this_present_o1 && that_present_o1))
+          return false;
+        if (!this.o1.equals(that.o1))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      HashCodeBuilder builder = new HashCodeBuilder();
+
+      boolean present_success = true;
+      builder.append(present_success);
+      if (present_success)
+        builder.append(success);
+
+      boolean present_o1 = true && (isSetO1());
+      builder.append(present_o1);
+      if (present_o1)
+        builder.append(o1);
+
+      return builder.toHashCode();
+    }
+
+    public int compareTo(del_node_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      del_node_result typedOther = (del_node_result)other;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetO1()).compareTo(typedOther.isSetO1());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetO1()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.o1, typedOther.o1);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("del_node_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("o1:");
+      if (this.o1 == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.o1);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class del_node_resultStandardSchemeFactory implements SchemeFactory {
+      public del_node_resultStandardScheme getScheme() {
+        return new del_node_resultStandardScheme();
+      }
+    }
+
+    private static class del_node_resultStandardScheme extends StandardScheme<del_node_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, del_node_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+                struct.success = iprot.readI32();
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 1: // O1
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.o1 = new MetaException();
+                struct.o1.read(iprot);
+                struct.setO1IsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, del_node_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.isSetSuccess()) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          oprot.writeI32(struct.success);
+          oprot.writeFieldEnd();
+        }
+        if (struct.o1 != null) {
+          oprot.writeFieldBegin(O1_FIELD_DESC);
+          struct.o1.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class del_node_resultTupleSchemeFactory implements SchemeFactory {
+      public del_node_resultTupleScheme getScheme() {
+        return new del_node_resultTupleScheme();
+      }
+    }
+
+    private static class del_node_resultTupleScheme extends TupleScheme<del_node_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, del_node_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        if (struct.isSetO1()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          oprot.writeI32(struct.success);
+        }
+        if (struct.isSetO1()) {
+          struct.o1.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, del_node_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.success = iprot.readI32();
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.o1 = new MetaException();
+          struct.o1.read(iprot);
+          struct.setO1IsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class alter_node_args implements org.apache.thrift.TBase<alter_node_args, alter_node_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("alter_node_args");
+
+    private static final org.apache.thrift.protocol.TField NODE_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("node_name", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField IPL_FIELD_DESC = new org.apache.thrift.protocol.TField("ipl", org.apache.thrift.protocol.TType.LIST, (short)2);
+    private static final org.apache.thrift.protocol.TField STATUS_FIELD_DESC = new org.apache.thrift.protocol.TField("status", org.apache.thrift.protocol.TType.I32, (short)3);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new alter_node_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new alter_node_argsTupleSchemeFactory());
+    }
+
+    private String node_name; // required
+    private List<String> ipl; // required
+    private int status; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      NODE_NAME((short)1, "node_name"),
+      IPL((short)2, "ipl"),
+      STATUS((short)3, "status");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // NODE_NAME
+            return NODE_NAME;
+          case 2: // IPL
+            return IPL;
+          case 3: // STATUS
+            return STATUS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    private static final int __STATUS_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.NODE_NAME, new org.apache.thrift.meta_data.FieldMetaData("node_name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.IPL, new org.apache.thrift.meta_data.FieldMetaData("ipl", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
+      tmpMap.put(_Fields.STATUS, new org.apache.thrift.meta_data.FieldMetaData("status", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(alter_node_args.class, metaDataMap);
+    }
+
+    public alter_node_args() {
+    }
+
+    public alter_node_args(
+      String node_name,
+      List<String> ipl,
+      int status)
+    {
+      this();
+      this.node_name = node_name;
+      this.ipl = ipl;
+      this.status = status;
+      setStatusIsSet(true);
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public alter_node_args(alter_node_args other) {
+      __isset_bitfield = other.__isset_bitfield;
+      if (other.isSetNode_name()) {
+        this.node_name = other.node_name;
+      }
+      if (other.isSetIpl()) {
+        List<String> __this__ipl = new ArrayList<String>();
+        for (String other_element : other.ipl) {
+          __this__ipl.add(other_element);
+        }
+        this.ipl = __this__ipl;
+      }
+      this.status = other.status;
+    }
+
+    public alter_node_args deepCopy() {
+      return new alter_node_args(this);
+    }
+
+    @Override
+    public void clear() {
+      this.node_name = null;
+      this.ipl = null;
+      setStatusIsSet(false);
+      this.status = 0;
+    }
+
+    public String getNode_name() {
+      return this.node_name;
+    }
+
+    public void setNode_name(String node_name) {
+      this.node_name = node_name;
+    }
+
+    public void unsetNode_name() {
+      this.node_name = null;
+    }
+
+    /** Returns true if field node_name is set (has been assigned a value) and false otherwise */
+    public boolean isSetNode_name() {
+      return this.node_name != null;
+    }
+
+    public void setNode_nameIsSet(boolean value) {
+      if (!value) {
+        this.node_name = null;
+      }
+    }
+
+    public int getIplSize() {
+      return (this.ipl == null) ? 0 : this.ipl.size();
+    }
+
+    public java.util.Iterator<String> getIplIterator() {
+      return (this.ipl == null) ? null : this.ipl.iterator();
+    }
+
+    public void addToIpl(String elem) {
+      if (this.ipl == null) {
+        this.ipl = new ArrayList<String>();
+      }
+      this.ipl.add(elem);
+    }
+
+    public List<String> getIpl() {
+      return this.ipl;
+    }
+
+    public void setIpl(List<String> ipl) {
+      this.ipl = ipl;
+    }
+
+    public void unsetIpl() {
+      this.ipl = null;
+    }
+
+    /** Returns true if field ipl is set (has been assigned a value) and false otherwise */
+    public boolean isSetIpl() {
+      return this.ipl != null;
+    }
+
+    public void setIplIsSet(boolean value) {
+      if (!value) {
+        this.ipl = null;
+      }
+    }
+
+    public int getStatus() {
+      return this.status;
+    }
+
+    public void setStatus(int status) {
+      this.status = status;
+      setStatusIsSet(true);
+    }
+
+    public void unsetStatus() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __STATUS_ISSET_ID);
+    }
+
+    /** Returns true if field status is set (has been assigned a value) and false otherwise */
+    public boolean isSetStatus() {
+      return EncodingUtils.testBit(__isset_bitfield, __STATUS_ISSET_ID);
+    }
+
+    public void setStatusIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __STATUS_ISSET_ID, value);
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case NODE_NAME:
+        if (value == null) {
+          unsetNode_name();
+        } else {
+          setNode_name((String)value);
+        }
+        break;
+
+      case IPL:
+        if (value == null) {
+          unsetIpl();
+        } else {
+          setIpl((List<String>)value);
+        }
+        break;
+
+      case STATUS:
+        if (value == null) {
+          unsetStatus();
+        } else {
+          setStatus((Integer)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case NODE_NAME:
+        return getNode_name();
+
+      case IPL:
+        return getIpl();
+
+      case STATUS:
+        return Integer.valueOf(getStatus());
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case NODE_NAME:
+        return isSetNode_name();
+      case IPL:
+        return isSetIpl();
+      case STATUS:
+        return isSetStatus();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof alter_node_args)
+        return this.equals((alter_node_args)that);
+      return false;
+    }
+
+    public boolean equals(alter_node_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_node_name = true && this.isSetNode_name();
+      boolean that_present_node_name = true && that.isSetNode_name();
+      if (this_present_node_name || that_present_node_name) {
+        if (!(this_present_node_name && that_present_node_name))
+          return false;
+        if (!this.node_name.equals(that.node_name))
+          return false;
+      }
+
+      boolean this_present_ipl = true && this.isSetIpl();
+      boolean that_present_ipl = true && that.isSetIpl();
+      if (this_present_ipl || that_present_ipl) {
+        if (!(this_present_ipl && that_present_ipl))
+          return false;
+        if (!this.ipl.equals(that.ipl))
+          return false;
+      }
+
+      boolean this_present_status = true;
+      boolean that_present_status = true;
+      if (this_present_status || that_present_status) {
+        if (!(this_present_status && that_present_status))
+          return false;
+        if (this.status != that.status)
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      HashCodeBuilder builder = new HashCodeBuilder();
+
+      boolean present_node_name = true && (isSetNode_name());
+      builder.append(present_node_name);
+      if (present_node_name)
+        builder.append(node_name);
+
+      boolean present_ipl = true && (isSetIpl());
+      builder.append(present_ipl);
+      if (present_ipl)
+        builder.append(ipl);
+
+      boolean present_status = true;
+      builder.append(present_status);
+      if (present_status)
+        builder.append(status);
+
+      return builder.toHashCode();
+    }
+
+    public int compareTo(alter_node_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      alter_node_args typedOther = (alter_node_args)other;
+
+      lastComparison = Boolean.valueOf(isSetNode_name()).compareTo(typedOther.isSetNode_name());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetNode_name()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.node_name, typedOther.node_name);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIpl()).compareTo(typedOther.isSetIpl());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIpl()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ipl, typedOther.ipl);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetStatus()).compareTo(typedOther.isSetStatus());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetStatus()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.status, typedOther.status);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("alter_node_args(");
+      boolean first = true;
+
+      sb.append("node_name:");
+      if (this.node_name == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.node_name);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ipl:");
+      if (this.ipl == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ipl);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("status:");
+      sb.append(this.status);
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class alter_node_argsStandardSchemeFactory implements SchemeFactory {
+      public alter_node_argsStandardScheme getScheme() {
+        return new alter_node_argsStandardScheme();
+      }
+    }
+
+    private static class alter_node_argsStandardScheme extends StandardScheme<alter_node_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, alter_node_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // NODE_NAME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.node_name = iprot.readString();
+                struct.setNode_nameIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // IPL
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list640 = iprot.readListBegin();
+                  struct.ipl = new ArrayList<String>(_list640.size);
+                  for (int _i641 = 0; _i641 < _list640.size; ++_i641)
+                  {
+                    String _elem642; // required
+                    _elem642 = iprot.readString();
+                    struct.ipl.add(_elem642);
+                  }
+                  iprot.readListEnd();
+                }
+                struct.setIplIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // STATUS
+              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+                struct.status = iprot.readI32();
+                struct.setStatusIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, alter_node_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.node_name != null) {
+          oprot.writeFieldBegin(NODE_NAME_FIELD_DESC);
+          oprot.writeString(struct.node_name);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ipl != null) {
+          oprot.writeFieldBegin(IPL_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.ipl.size()));
+            for (String _iter643 : struct.ipl)
+            {
+              oprot.writeString(_iter643);
+            }
+            oprot.writeListEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldBegin(STATUS_FIELD_DESC);
+        oprot.writeI32(struct.status);
+        oprot.writeFieldEnd();
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class alter_node_argsTupleSchemeFactory implements SchemeFactory {
+      public alter_node_argsTupleScheme getScheme() {
+        return new alter_node_argsTupleScheme();
+      }
+    }
+
+    private static class alter_node_argsTupleScheme extends TupleScheme<alter_node_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, alter_node_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetNode_name()) {
+          optionals.set(0);
+        }
+        if (struct.isSetIpl()) {
+          optionals.set(1);
+        }
+        if (struct.isSetStatus()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetNode_name()) {
+          oprot.writeString(struct.node_name);
+        }
+        if (struct.isSetIpl()) {
+          {
+            oprot.writeI32(struct.ipl.size());
+            for (String _iter644 : struct.ipl)
+            {
+              oprot.writeString(_iter644);
+            }
+          }
+        }
+        if (struct.isSetStatus()) {
+          oprot.writeI32(struct.status);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, alter_node_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(3);
+        if (incoming.get(0)) {
+          struct.node_name = iprot.readString();
+          struct.setNode_nameIsSet(true);
+        }
+        if (incoming.get(1)) {
+          {
+            org.apache.thrift.protocol.TList _list645 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.ipl = new ArrayList<String>(_list645.size);
+            for (int _i646 = 0; _i646 < _list645.size; ++_i646)
+            {
+              String _elem647; // required
+              _elem647 = iprot.readString();
+              struct.ipl.add(_elem647);
+            }
+          }
+          struct.setIplIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.status = iprot.readI32();
+          struct.setStatusIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class alter_node_result implements org.apache.thrift.TBase<alter_node_result, alter_node_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("alter_node_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+    private static final org.apache.thrift.protocol.TField O1_FIELD_DESC = new org.apache.thrift.protocol.TField("o1", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new alter_node_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new alter_node_resultTupleSchemeFactory());
+    }
+
+    private Node success; // required
+    private MetaException o1; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
+      O1((short)1, "o1");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          case 1: // O1
+            return O1;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Node.class)));
+      tmpMap.put(_Fields.O1, new org.apache.thrift.meta_data.FieldMetaData("o1", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(alter_node_result.class, metaDataMap);
+    }
+
+    public alter_node_result() {
+    }
+
+    public alter_node_result(
+      Node success,
+      MetaException o1)
+    {
+      this();
+      this.success = success;
+      this.o1 = o1;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public alter_node_result(alter_node_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new Node(other.success);
+      }
+      if (other.isSetO1()) {
+        this.o1 = new MetaException(other.o1);
+      }
+    }
+
+    public alter_node_result deepCopy() {
+      return new alter_node_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+      this.o1 = null;
+    }
+
+    public Node getSuccess() {
+      return this.success;
+    }
+
+    public void setSuccess(Node success) {
+      this.success = success;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public MetaException getO1() {
+      return this.o1;
+    }
+
+    public void setO1(MetaException o1) {
+      this.o1 = o1;
+    }
+
+    public void unsetO1() {
+      this.o1 = null;
+    }
+
+    /** Returns true if field o1 is set (has been assigned a value) and false otherwise */
+    public boolean isSetO1() {
+      return this.o1 != null;
+    }
+
+    public void setO1IsSet(boolean value) {
+      if (!value) {
+        this.o1 = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((Node)value);
+        }
+        break;
+
+      case O1:
+        if (value == null) {
+          unsetO1();
+        } else {
+          setO1((MetaException)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      case O1:
+        return getO1();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      case O1:
+        return isSetO1();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof alter_node_result)
+        return this.equals((alter_node_result)that);
+      return false;
+    }
+
+    public boolean equals(alter_node_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      boolean this_present_o1 = true && this.isSetO1();
+      boolean that_present_o1 = true && that.isSetO1();
+      if (this_present_o1 || that_present_o1) {
+        if (!(this_present_o1 && that_present_o1))
+          return false;
+        if (!this.o1.equals(that.o1))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      HashCodeBuilder builder = new HashCodeBuilder();
+
+      boolean present_success = true && (isSetSuccess());
+      builder.append(present_success);
+      if (present_success)
+        builder.append(success);
+
+      boolean present_o1 = true && (isSetO1());
+      builder.append(present_o1);
+      if (present_o1)
+        builder.append(o1);
+
+      return builder.toHashCode();
+    }
+
+    public int compareTo(alter_node_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      alter_node_result typedOther = (alter_node_result)other;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetO1()).compareTo(typedOther.isSetO1());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetO1()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.o1, typedOther.o1);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("alter_node_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("o1:");
+      if (this.o1 == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.o1);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class alter_node_resultStandardSchemeFactory implements SchemeFactory {
+      public alter_node_resultStandardScheme getScheme() {
+        return new alter_node_resultStandardScheme();
+      }
+    }
+
+    private static class alter_node_resultStandardScheme extends StandardScheme<alter_node_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, alter_node_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new Node();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 1: // O1
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.o1 = new MetaException();
+                struct.o1.read(iprot);
+                struct.setO1IsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, alter_node_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.o1 != null) {
+          oprot.writeFieldBegin(O1_FIELD_DESC);
+          struct.o1.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class alter_node_resultTupleSchemeFactory implements SchemeFactory {
+      public alter_node_resultTupleScheme getScheme() {
+        return new alter_node_resultTupleScheme();
+      }
+    }
+
+    private static class alter_node_resultTupleScheme extends TupleScheme<alter_node_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, alter_node_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        if (struct.isSetO1()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
+        if (struct.isSetO1()) {
+          struct.o1.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, alter_node_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.success = new Node();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.o1 = new MetaException();
+          struct.o1.read(iprot);
+          struct.setO1IsSet(true);
         }
       }
     }

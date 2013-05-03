@@ -75,6 +75,7 @@ class FOFailReason:
   INVALID_FILE = 3
   NOSPACE = 10
   NOTEXIST = 11
+  SAFEMODE = 12
 
   _VALUES_TO_NAMES = {
     1: "INVALID_NODE",
@@ -82,6 +83,7 @@ class FOFailReason:
     3: "INVALID_FILE",
     10: "NOSPACE",
     11: "NOTEXIST",
+    12: "SAFEMODE",
   }
 
   _NAMES_TO_VALUES = {
@@ -90,6 +92,7 @@ class FOFailReason:
     "INVALID_FILE": 3,
     "NOSPACE": 10,
     "NOTEXIST": 11,
+    "SAFEMODE": 12,
   }
 
 

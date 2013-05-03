@@ -3,6 +3,13 @@ package org.apache.hadoop.hive.metastore.model;
 public class MFile {
   private long fid;
   private long placement;
+  public class StoreStatus {
+    public static final int INCREATE = 0;
+    public static final int CLOSED = 1;
+    public static final int REPLICATED = 2;
+    public static final int RM_LOGICAL = 3;
+    public static final int RM_PHYSICAL = 4;
+  }
   private int store_status;
   private int rep_nr;
   private String digest;

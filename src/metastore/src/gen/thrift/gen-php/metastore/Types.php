@@ -55,12 +55,14 @@ final class FOFailReason {
   const INVALID_FILE = 3;
   const NOSPACE = 10;
   const NOTEXIST = 11;
+  const SAFEMODE = 12;
   static public $__names = array(
     1 => 'INVALID_NODE',
     2 => 'INVALID_TABLE',
     3 => 'INVALID_FILE',
     10 => 'NOSPACE',
     11 => 'NOTEXIST',
+    12 => 'SAFEMODE',
   );
 }
 

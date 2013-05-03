@@ -1285,13 +1285,13 @@ module ThriftHiveMetastore
       return
     end
 
-    def create_file(node_name, repnr, table_name)
-      send_create_file(node_name, repnr, table_name)
+    def create_file(node_name, repnr, table_id)
+      send_create_file(node_name, repnr, table_id)
       return recv_create_file()
     end
 
-    def send_create_file(node_name, repnr, table_name)
-      send_message('create_file', Create_file_args, :node_name => node_name, :repnr => repnr, :table_name => table_name)
+    def send_create_file(node_name, repnr, table_id)
+      send_message('create_file', Create_file_args, :node_name => node_name, :repnr => repnr, :table_id => table_id)
     end
 
     def recv_create_file()
@@ -1384,6 +1384,54 @@ module ThriftHiveMetastore
       raise result.o1 unless result.o1.nil?
       raise result.o2 unless result.o2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'rm_file_physical failed: unknown result')
+    end
+
+    def add_node(node_name, ipl)
+      send_add_node(node_name, ipl)
+      return recv_add_node()
+    end
+
+    def send_add_node(node_name, ipl)
+      send_message('add_node', Add_node_args, :node_name => node_name, :ipl => ipl)
+    end
+
+    def recv_add_node()
+      result = receive_message(Add_node_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_node failed: unknown result')
+    end
+
+    def del_node(node_name)
+      send_del_node(node_name)
+      return recv_del_node()
+    end
+
+    def send_del_node(node_name)
+      send_message('del_node', Del_node_args, :node_name => node_name)
+    end
+
+    def recv_del_node()
+      result = receive_message(Del_node_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'del_node failed: unknown result')
+    end
+
+    def alter_node(node_name, ipl, status)
+      send_alter_node(node_name, ipl, status)
+      return recv_alter_node()
+    end
+
+    def send_alter_node(node_name, ipl, status)
+      send_message('alter_node', Alter_node_args, :node_name => node_name, :ipl => ipl, :status => status)
+    end
+
+    def recv_alter_node()
+      result = receive_message(Alter_node_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'alter_node failed: unknown result')
     end
 
   end
@@ -2396,7 +2444,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, Create_file_args)
       result = Create_file_result.new()
       begin
-        result.success = @handler.create_file(args.node_name, args.repnr, args.table_name)
+        result.success = @handler.create_file(args.node_name, args.repnr, args.table_id)
       rescue ::FileOperationException => o1
         result.o1 = o1
       end
@@ -2466,6 +2514,39 @@ module ThriftHiveMetastore
         result.o2 = o2
       end
       write_result(result, oprot, 'rm_file_physical', seqid)
+    end
+
+    def process_add_node(seqid, iprot, oprot)
+      args = read_args(iprot, Add_node_args)
+      result = Add_node_result.new()
+      begin
+        result.success = @handler.add_node(args.node_name, args.ipl)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'add_node', seqid)
+    end
+
+    def process_del_node(seqid, iprot, oprot)
+      args = read_args(iprot, Del_node_args)
+      result = Del_node_result.new()
+      begin
+        result.success = @handler.del_node(args.node_name)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'del_node', seqid)
+    end
+
+    def process_alter_node(seqid, iprot, oprot)
+      args = read_args(iprot, Alter_node_args)
+      result = Alter_node_result.new()
+      begin
+        result.success = @handler.alter_node(args.node_name, args.ipl, args.status)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'alter_node', seqid)
     end
 
   end
@@ -5421,12 +5502,12 @@ module ThriftHiveMetastore
     include ::Thrift::Struct, ::Thrift::Struct_Union
     NODE_NAME = 1
     REPNR = 2
-    TABLE_NAME = 3
+    TABLE_ID = 3
 
     FIELDS = {
       NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'},
       REPNR => {:type => ::Thrift::Types::I32, :name => 'repnr'},
-      TABLE_NAME => {:type => ::Thrift::Types::STRING, :name => 'table_name'}
+      TABLE_ID => {:type => ::Thrift::Types::I64, :name => 'table_id'}
     }
 
     def struct_fields; FIELDS; end
@@ -5625,6 +5706,114 @@ module ThriftHiveMetastore
       SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::FileOperationException},
       O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_node_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NODE_NAME = 1
+    IPL = 2
+
+    FIELDS = {
+      NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'},
+      IPL => {:type => ::Thrift::Types::LIST, :name => 'ipl', :element => {:type => ::Thrift::Types::STRING}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_node_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Node},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Del_node_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NODE_NAME = 1
+
+    FIELDS = {
+      NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Del_node_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Alter_node_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NODE_NAME = 1
+    IPL = 2
+    STATUS = 3
+
+    FIELDS = {
+      NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'},
+      IPL => {:type => ::Thrift::Types::LIST, :name => 'ipl', :element => {:type => ::Thrift::Types::STRING}},
+      STATUS => {:type => ::Thrift::Types::I32, :name => 'status'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Alter_node_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Node},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end

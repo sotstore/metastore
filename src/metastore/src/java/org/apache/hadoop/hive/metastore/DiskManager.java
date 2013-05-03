@@ -7,6 +7,8 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
@@ -24,6 +26,9 @@ public class DiskManager {
     public final int bsize = 64 * 1024;
     public DatagramSocket server;
     private DMThread dmt;
+    public boolean safeMode = true;
+    private final Timer timer = new Timer("checker");
+    private final DMTimerTask dmtt = new DMTimerTask();
 
     public class DeviceInfo {
       public String dev; // dev name
@@ -34,7 +39,45 @@ public class DiskManager {
       public long used;
       public long free;
     }
-    private final Map<String, List<DeviceInfo>> ndmap;
+
+    public class NodeInfo {
+      public long lastRptTs;
+      List<DeviceInfo> dis;
+
+      public NodeInfo(List<DeviceInfo> dis) {
+        this.lastRptTs = System.currentTimeMillis();
+        this.dis = dis;
+      }
+    }
+
+    // Node -> Device Map
+    private final Map<String, NodeInfo> ndmap;
+
+    public class DMTimerTask extends TimerTask {
+      private int times = 0;
+      public static final long timeout = 60000; //in millisecond
+
+      @Override
+      public void run() {
+        times++;
+        // iterate the map, and invalidate the Node entry
+        List<String> toInvalidate = new ArrayList<String>();
+
+        for (Map.Entry<String, NodeInfo> entry : ndmap.entrySet()) {
+          if (entry.getValue().lastRptTs + timeout < System.currentTimeMillis()) {
+            // invalid this entry
+            LOG.info("TIMES[" + times + "] " + "Invalidate Entry '" + entry.getKey() + "' for timeout.");
+            toInvalidate.add(entry.getKey());
+          } else {
+            LOG.info("TIMES[" + times + "] " + "Validate   Entry '" + entry.getKey() + "'.");
+          }
+        }
+
+        for (String node : toInvalidate) {
+          removeFromNDMapWTO(node, System.currentTimeMillis());
+        }
+      }
+    }
 
     public DiskManager(HiveConf conf, Log LOG) throws IOException, MetaException {
       this.hiveConf = conf;
@@ -43,7 +86,7 @@ public class DiskManager {
       Class<? extends RawStore> rawStoreClass = (Class<? extends RawStore>) MetaStoreUtils.getClass(
         rawStoreClassName);
       this.rs = (RawStore) ReflectionUtils.newInstance(rawStoreClass, conf);
-      ndmap = new ConcurrentHashMap<String, List<DeviceInfo>>();
+      ndmap = new ConcurrentHashMap<String, NodeInfo>();
       init();
     }
 
@@ -52,10 +95,11 @@ public class DiskManager {
       LOG.info("Starting DiskManager on port " + listenPort);
       server = new DatagramSocket(listenPort);
       dmt = new DMThread("DiskManagerThread");
+      timer.schedule(dmtt, 0, 20000);
     }
 
     // Return old devs
-    public List<DeviceInfo> addToNDMap(Node node, List<DeviceInfo> ndi) {
+    public NodeInfo addToNDMap(Node node, List<DeviceInfo> ndi) {
       // flush to database
       for (DeviceInfo di : ndi) {
         try {
@@ -68,20 +112,77 @@ public class DiskManager {
           e.printStackTrace();
         }
       }
+      NodeInfo ni = new NodeInfo(ndi);
 
-      return ndmap.put(node.getNode_name(), ndi);
+      NodeInfo rni = ndmap.put(node.getNode_name(), ni);
+
+      // check if we can leave safe mode
+      try {
+        if (safeMode && ((double) ndmap.size() / (double)rs.countNode() > 0.99)) {
+          LOG.info(ndmap.size() + ", " + rs.countNode());
+          safeMode = false;
+        }
+      } catch (MetaException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      return rni;
     }
 
-    public List<DeviceInfo> removeFromNDMap(Node node) {
+    public NodeInfo removeFromNDMap(Node node) {
       return ndmap.remove(node.getNode_name());
     }
 
-    public List<DeviceInfo> findDevices(String node) {
-      return ndmap.get(node);
+    public NodeInfo removeFromNDMapWTO(String node, long cts) {
+      if (ndmap.get(node).lastRptTs + DMTimerTask.timeout < cts) {
+        return ndmap.remove(node);
+      }
+      return null;
     }
 
-    public String findBestDevice(String node) {
-      List<DeviceInfo> dilist = ndmap.get(node);
+    public String findBestNode() throws IOException {
+      if (safeMode) {
+        throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
+      }
+      int largest = 0;
+      String largestNode = null;
+
+      for (Map.Entry<String, NodeInfo> entry : ndmap.entrySet()) {
+        List<DeviceInfo> dis = entry.getValue().dis;
+        int thisfree = 0;
+        for (DeviceInfo di : dis) {
+          thisfree += di.free;
+        }
+        if (thisfree > largest) {
+          largestNode = entry.getKey();
+          largest = thisfree;
+        }
+      }
+
+      return largestNode;
+    }
+
+    public List<DeviceInfo> findDevices(String node) throws IOException {
+      if (safeMode) {
+        throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
+      }
+      NodeInfo ni = ndmap.get(node);
+      if (ni == null) {
+        return null;
+      } else {
+        return ni.dis;
+      }
+    }
+
+    public String findBestDevice(String node) throws IOException {
+      if (safeMode) {
+        throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
+      }
+      NodeInfo ni = ndmap.get(node);
+      if (ni == null) {
+        throw new IOException("Node '" + node + "' does not exist in NDMap ...\n");
+      }
+      List<DeviceInfo> dilist = ni.dis;
       String bestDev = null;
       long free = 0;
 
