@@ -993,6 +993,29 @@ public class ObjectStore implements RawStore, Configurable {
     return f;
   }
 
+  public SFile updateSFile(SFile newfile) throws MetaException {
+    boolean commited = false;
+    SFile f = null;
+    try {
+      MFile mf = getMFile(newfile.getFid());
+      mf.setRep_nr(newfile.getRep_nr());
+      mf.setDigest(newfile.getDigest());
+      mf.setRecord_nr(newfile.getRecord_nr());
+      mf.setAll_record_nr(newfile.getAll_record_nr());
+      mf.setStore_status(newfile.getStore_status());
+
+      openTransaction();
+      pm.makePersistent(mf);
+      f = convertToSFile(mf);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return f;
+  }
+
   public Table getTableByID(long id) throws MetaException {
     boolean commited = false;
     Table tbl = null;
@@ -1023,6 +1046,23 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     return tbl;
+  }
+
+  public long getTableOID(String dbName, String tableName) throws MetaException {
+    boolean commited = false;
+    long oid = -1;
+
+    try {
+      openTransaction();
+      MTable mtbl = getMTable(dbName, tableName);
+      commited = commitTransaction();
+      oid = Long.parseLong(JDOHelper.getObjectId(mtbl).toString().split("[OID]")[0]);
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return oid;
   }
 
   public List<String> getTables(String dbName, String pattern)

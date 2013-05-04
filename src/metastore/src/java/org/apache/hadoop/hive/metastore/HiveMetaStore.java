@@ -55,6 +55,7 @@ import org.apache.hadoop.hive.common.cli.CommonCliOptions;
 import org.apache.hadoop.hive.common.metrics.Metrics;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
+import org.apache.hadoop.hive.metastore.DiskManager.DMRequest;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
@@ -4036,7 +4037,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
         // try to parse table_name
         if (table_id >= 0) {
-          Table tbl = getMS().getTableByID(table_id);
+          Table tbl;
+          try {
+            tbl = getMS().getTableByID(table_id);
+          } catch (MetaException me) {
+            throw new FileOperationException("Invalid Table ID:" + table_id, FOFailReason.INVALID_TABLE);
+          }
           table_name = tbl.getDbName() + "/" + tbl.getTableName();
         }
 
@@ -4052,6 +4058,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         cfile = getMS().getSFile(cfile.getFid());
         SFileLocation sfloc = new SFileLocation(node_name, cfile.getFid(), devid, location, 0, System.currentTimeMillis(),
             MFileLocation.VisitStatus.ONLINE, "DEFAULT");
+        getMS().createFileLocation(sfloc);
         List<SFileLocation> sfloclist = new ArrayList<SFileLocation>();
         sfloclist.add(sfloc);
         cfile.setLocations(sfloclist);
@@ -4064,32 +4071,57 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public int close_file(SFile file) throws FileOperationException, MetaException, TException {
-      // TODO Auto-generated method stub
+      if (file.getStore_status() != MFile.StoreStatus.INCREATE) {
+        throw new FileOperationException("File StoreStatus is not in INCREATE.", FOFailReason.INVALID_STATE);
+      }
+      file.setStore_status(MFile.StoreStatus.CLOSED);
+      getMS().updateSFile(file);
+      synchronized (dm.repQ) {
+        dm.repQ.add(new DMRequest(file, DMRequest.DMROperation.REPLICATE));
+        dm.repQ.notify();
+      }
       return 0;
     }
 
     @Override
     public SFile get_file_by_id(long fid) throws FileOperationException, MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getMS().getSFile(fid);
     }
 
     @Override
     public int rm_file_logical(SFile file) throws FileOperationException, MetaException, TException {
-      // TODO Auto-generated method stub
+      // only in REPLICATED state can step into RM_LOGICAL
+      if (file.getStore_status() != MFile.StoreStatus.REPLICATED) {
+        throw new FileOperationException("File StoreStatus is not in REPLICATED.", FOFailReason.INVALID_STATE);
+      }
+      file.setStore_status(MFile.StoreStatus.RM_LOGICAL);
+      getMS().updateSFile(file);
       return 0;
     }
 
     @Override
     public int restore_file(SFile file) throws FileOperationException, MetaException, TException {
-      // TODO Auto-generated method stub
+      if (file.getStore_status() != MFile.StoreStatus.RM_LOGICAL) {
+        throw new FileOperationException("File StoreStatus is not in RM_LOGICAL.", FOFailReason.INVALID_STATE);
+      }
+      file.setStore_status(MFile.StoreStatus.REPLICATED);
+      getMS().updateSFile(file);
       return 0;
     }
 
     @Override
     public int rm_file_physical(SFile file) throws FileOperationException, MetaException,
         TException {
-      // TODO Auto-generated method stub
+      if (file.getStore_status() != MFile.StoreStatus.REPLICATED ||
+          file.getStore_status() != MFile.StoreStatus.RM_LOGICAL) {
+        throw new FileOperationException("File StoreStatus is not in REPLICATED/RM_LOGICAL.", FOFailReason.INVALID_STATE);
+      }
+      file.setStore_status(MFile.StoreStatus.RM_PHYSICAL);
+      getMS().updateSFile(file);
+      synchronized (dm.cleanQ) {
+        dm.cleanQ.add(new DMRequest(file, DMRequest.DMROperation.RM_PHYSICAL));
+        dm.cleanQ.notify();
+      }
       return 0;
     }
 

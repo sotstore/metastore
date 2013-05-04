@@ -79,6 +79,7 @@ enum FOFailReason {
   NOTEXIST = 11,
   
   SAFEMODE = 12,
+  INVALID_STATE = 13,
 }
 
 struct HiveObjectRef{

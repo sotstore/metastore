@@ -54,7 +54,8 @@ struct FOFailReason {
     INVALID_FILE = 3,
     NOSPACE = 10,
     NOTEXIST = 11,
-    SAFEMODE = 12
+    SAFEMODE = 12,
+    INVALID_STATE = 13
   };
 };
 

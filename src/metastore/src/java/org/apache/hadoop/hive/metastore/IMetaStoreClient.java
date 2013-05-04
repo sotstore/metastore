@@ -973,5 +973,7 @@ public interface IMetaStoreClient {
   public SFile create_file(String node_name, int repnr, long table_id)
       throws FileOperationException, TException;
 
+  public int close_file(SFile file) throws FileOperationException, TException;
+
   public Node add_node(String node_name, List<String> ipl) throws MetaException, TException;
 }

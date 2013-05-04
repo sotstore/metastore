@@ -39,6 +39,7 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
@@ -116,6 +117,10 @@ public interface RawStore extends Configurable {
 
   public SFile getSFile(long fid) throws MetaException;
 
+  public SFile updateSFile(SFile newfile) throws MetaException;
+
+  public void createFileLocation(SFileLocation location) throws InvalidObjectException, MetaException;
+
   public abstract boolean dropTable(String dbName, String tableName)
       throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException;
 
@@ -123,6 +128,8 @@ public interface RawStore extends Configurable {
       throws MetaException;
 
   public abstract Table getTableByID(long id) throws MetaException;
+
+  public long getTableOID(String dbName, String tableName) throws MetaException;
 
   public abstract boolean addPartition(Partition part)
       throws InvalidObjectException, MetaException;

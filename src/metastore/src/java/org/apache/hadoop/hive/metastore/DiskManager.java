@@ -7,17 +7,26 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
+import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.hadoop.hive.metastore.model.MFileLocation;
 import org.apache.hadoop.hive.metastore.model.MNode;
 import org.apache.hadoop.util.ReflectionUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class DiskManager {
     public RawStore rs;
@@ -26,9 +35,25 @@ public class DiskManager {
     public final int bsize = 64 * 1024;
     public DatagramSocket server;
     private DMThread dmt;
+    private DMCleanThread dmct;
+    private DMRepThread dmrt;
     public boolean safeMode = true;
     private final Timer timer = new Timer("checker");
     private final DMTimerTask dmtt = new DMTimerTask();
+    public final Queue<DMRequest> cleanQ = new ConcurrentLinkedQueue<DMRequest>();
+    public final Queue<DMRequest> repQ = new ConcurrentLinkedQueue<DMRequest>();
+
+    public static class DMRequest {
+      public enum DMROperation {
+        REPLICATE, RM_PHYSICAL,
+      }
+      SFile file;
+      DMROperation op;
+      public DMRequest(SFile f, DMROperation o) {
+        file = f;
+        op = o;
+      }
+    }
 
     public class DeviceInfo {
       public String dev; // dev name
@@ -43,10 +68,14 @@ public class DiskManager {
     public class NodeInfo {
       public long lastRptTs;
       List<DeviceInfo> dis;
+      List<SFileLocation> toDelete;
+      List<JSONObject> toRep;
 
       public NodeInfo(List<DeviceInfo> dis) {
         this.lastRptTs = System.currentTimeMillis();
         this.dis = dis;
+        this.toDelete = new ArrayList<SFileLocation>();
+        this.toRep = new ArrayList<JSONObject>();
       }
     }
 
@@ -95,6 +124,8 @@ public class DiskManager {
       LOG.info("Starting DiskManager on port " + listenPort);
       server = new DatagramSocket(listenPort);
       dmt = new DMThread("DiskManagerThread");
+      dmct = new DMCleanThread("DiskManagerCleanThread");
+      dmrt = new DMRepThread("DiskManagerRepThread");
       timer.schedule(dmtt, 0, 20000);
     }
 
@@ -112,14 +143,20 @@ public class DiskManager {
           e.printStackTrace();
         }
       }
-      NodeInfo ni = new NodeInfo(ndi);
+      NodeInfo ni = ndmap.get(node.getNode_name());
+      if (ni == null) {
+        ni = new NodeInfo(ndi);
+      }
 
       NodeInfo rni = ndmap.put(node.getNode_name(), ni);
 
       // check if we can leave safe mode
       try {
         if (safeMode && ((double) ndmap.size() / (double)rs.countNode() > 0.99)) {
-          LOG.info(ndmap.size() + ", " + rs.countNode());
+          double cn = (double)rs.countNode();
+
+          LOG.info("Nodemap size: " + ndmap.size() + ", saved size: " + rs.countNode() + ", reach " +
+              (double)ndmap.size() / (double)cn * 100 + "%, leave SafeMode.");
           safeMode = false;
         }
       } catch (MetaException e) {
@@ -134,22 +171,33 @@ public class DiskManager {
     }
 
     public NodeInfo removeFromNDMapWTO(String node, long cts) {
+      NodeInfo ni = null;
+
       if (ndmap.get(node).lastRptTs + DMTimerTask.timeout < cts) {
-        return ndmap.remove(node);
+        ni = ndmap.remove(node);
       }
-      return null;
+      try {
+        if ((double)ndmap.size() / (double)rs.countNode() <= 0.99) {
+          safeMode = true;
+          LOG.info("Lost too many Nodes, enter into SafeMode now.");
+        }
+      } catch (MetaException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      return ni;
     }
 
     public String findBestNode() throws IOException {
       if (safeMode) {
         throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
       }
-      int largest = 0;
+      long largest = 0;
       String largestNode = null;
 
       for (Map.Entry<String, NodeInfo> entry : ndmap.entrySet()) {
         List<DeviceInfo> dis = entry.getValue().dis;
-        int thisfree = 0;
+        long thisfree = 0;
         for (DeviceInfo di : dis) {
           thisfree += di.free;
         }
@@ -193,6 +241,126 @@ public class DiskManager {
       }
 
       return bestDev;
+    }
+
+    public class DMCleanThread implements Runnable {
+      Thread runner;
+      public DMCleanThread(String threadName) {
+        runner = new Thread(this, threadName);
+        runner.start();
+      }
+
+      public void run() {
+        while (true) {
+          // dequeue requests from the clean queue
+          DMRequest r = cleanQ.poll();
+          if (r == null) {
+            try {
+              synchronized (cleanQ) {
+                cleanQ.wait();
+              }
+            } catch (InterruptedException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
+            continue;
+          }
+          if (r.op == DMRequest.DMROperation.RM_PHYSICAL) {
+            for (SFileLocation loc : r.file.getLocations()) {
+              NodeInfo ni = ndmap.get(loc.getNode_name());
+              synchronized (ni.toDelete) {
+                ni.toDelete.add(loc);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    public class DMRepThread implements Runnable {
+      Thread runner;
+
+      public DMRepThread(String threadName) {
+        runner = new Thread(this, threadName);
+        runner.start();
+      }
+
+      public void run() {
+        while (true) {
+          // dequeue requests from the clean queue
+          DMRequest r = repQ.poll();
+          if (r == null) {
+            try {
+              synchronized (repQ) {
+                repQ.wait();
+              }
+            } catch (InterruptedException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
+            continue;
+          }
+          if (r.op == DMRequest.DMROperation.REPLICATE) {
+            // allocate new file locations
+            for (int i = 1; i < r.file.getRep_nr(); i++) {
+              try {
+                String node_name = findBestNode();
+                if (node_name == null) {
+                  // insert back to the queue;
+                  synchronized (repQ) {
+                    repQ.add(r);
+                    repQ.notify();
+                  }
+                  break;
+                }
+                String devid = findBestDevice(node_name);
+                String location = "/data/";
+                Random rand = new Random();
+
+                if (r.file.getPlacement() > 0) {
+                  Table t = rs.getTableByID(r.file.getPlacement());
+                  location += t.getDbName() + "/" + t.getTableName() + "/"
+                      + rand.nextInt(Integer.MAX_VALUE);
+                } else {
+                  location += "UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
+                }
+                SFileLocation nloc = new SFileLocation(node_name, r.file.getFid(), devid, location,
+                    i, System.currentTimeMillis(),
+                    MFileLocation.VisitStatus.ONLINE, "DEFAULT");
+                rs.createFileLocation(nloc);
+                r.file.addToLocations(nloc);
+
+                // indicate file transfer
+                JSONObject jo = new JSONObject();
+                try {
+                  jo.append("from", r.file.getLocations().get(0));
+                  jo.append("to", r.file.getLocations().get(i));
+                } catch (JSONException e) {
+                  // TODO Auto-generated catch block
+                  e.printStackTrace();
+                }
+                NodeInfo ni = ndmap.get(node_name);
+                if (ni == null) {
+                  LOG.error("Can not find Node '" + node_name + "' in nodemap now, is it offline?");
+                } else {
+                  synchronized (ni.toRep) {
+                    ni.toRep.add(jo);
+                  }
+                }
+              } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+              } catch (MetaException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+              } catch (InvalidObjectException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+              }
+            }
+          }
+        }
+      }
     }
 
     public class DMThread implements Runnable {
@@ -265,11 +433,11 @@ public class DiskManager {
             e1.printStackTrace();
             reportNode = null;
           }
-          String sendStr = "+OK";
+          String sendStr = "+OK\n";
 
           if (reportNode == null) {
             LOG.error("Failed to find Node: " + addr.getHostAddress());
-            sendStr = "+FAIL";
+            sendStr = "+FAIL\n";
           } else {
             switch (reportNode.getStatus()) {
             default:
@@ -298,6 +466,31 @@ public class DiskManager {
               addToNDMap(reportNode, dilist);
             }
           }
+          // append any commands
+          if (reportNode != null) {
+            NodeInfo ni = ndmap.get(reportNode.getNode_name());
+            if (ni != null && ni.toDelete.size() > 0) {
+              synchronized (ni.toDelete) {
+                for (SFileLocation loc : ni.toDelete) {
+                  sendStr += "+DEL:" + loc.getDevid() + ":" + loc.getLocation() + "\n";
+                }
+                ni.toDelete.clear();
+              }
+            }
+          }
+          // append toRep
+          if (reportNode != null) {
+            NodeInfo ni = ndmap.get(reportNode.getNode_name());
+            if (ni != null && ni.toRep.size() > 0) {
+              synchronized (ni.toRep) {
+                for (JSONObject jo : ni.toRep) {
+                  sendStr += "+REP:" + jo.toString() + "\n";
+                }
+                ni.toRep.clear();
+              }
+            }
+          }
+
           // send back the reply
           int port = recvPacket.getPort();
           byte[] sendBuf;

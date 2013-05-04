@@ -76,6 +76,7 @@ class FOFailReason:
   NOSPACE = 10
   NOTEXIST = 11
   SAFEMODE = 12
+  INVALID_STATE = 13
 
   _VALUES_TO_NAMES = {
     1: "INVALID_NODE",
@@ -84,6 +85,7 @@ class FOFailReason:
     10: "NOSPACE",
     11: "NOTEXIST",
     12: "SAFEMODE",
+    13: "INVALID_STATE",
   }
 
   _NAMES_TO_VALUES = {
@@ -93,6 +95,7 @@ class FOFailReason:
     "NOSPACE": 10,
     "NOTEXIST": 11,
     "SAFEMODE": 12,
+    "INVALID_STATE": 13,
   }
 
 

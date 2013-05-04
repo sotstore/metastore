@@ -1381,4 +1381,10 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     return client.add_node(node_name, ipl);
   }
 
+  @Override
+  public int close_file(SFile file) throws FileOperationException, TException {
+    assert file != null;
+    return client.close_file(file);
+  }
+
 }

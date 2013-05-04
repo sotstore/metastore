@@ -52,7 +52,8 @@ int _kFOFailReasonValues[] = {
   FOFailReason::INVALID_FILE,
   FOFailReason::NOSPACE,
   FOFailReason::NOTEXIST,
-  FOFailReason::SAFEMODE
+  FOFailReason::SAFEMODE,
+  FOFailReason::INVALID_STATE
 };
 const char* _kFOFailReasonNames[] = {
   "INVALID_NODE",
@@ -60,9 +61,10 @@ const char* _kFOFailReasonNames[] = {
   "INVALID_FILE",
   "NOSPACE",
   "NOTEXIST",
-  "SAFEMODE"
+  "SAFEMODE",
+  "INVALID_STATE"
 };
-const std::map<int, const char*> _FOFailReason_VALUES_TO_NAMES(::apache::thrift::TEnumIterator(6, _kFOFailReasonValues, _kFOFailReasonNames), ::apache::thrift::TEnumIterator(-1, NULL, NULL));
+const std::map<int, const char*> _FOFailReason_VALUES_TO_NAMES(::apache::thrift::TEnumIterator(7, _kFOFailReasonValues, _kFOFailReasonNames), ::apache::thrift::TEnumIterator(-1, NULL, NULL));
 
 const char* Version::ascii_fingerprint = "07A9615F837F7D0A952B595DD3020972";
 const uint8_t Version::binary_fingerprint[16] = {0x07,0xA9,0x61,0x5F,0x83,0x7F,0x7D,0x0A,0x95,0x2B,0x59,0x5D,0xD3,0x02,0x09,0x72};

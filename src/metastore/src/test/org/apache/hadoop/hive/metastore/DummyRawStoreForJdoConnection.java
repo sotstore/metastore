@@ -42,6 +42,7 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
@@ -580,7 +581,7 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   @Override
   public boolean updateNode(Node node) throws MetaException {
     // TODO Auto-generated method stub
-
+    return false;
   }
 
   @Override
@@ -605,6 +606,31 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   public boolean delNode(String node_name) throws MetaException {
     // TODO Auto-generated method stub
     return false;
+  }
+
+  @Override
+  public Table getTableByID(long id) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public long getTableOID(String dbName, String tableName) throws MetaException {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  public SFile updateSFile(SFile newfile) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void createFileLocation(SFileLocation location) throws InvalidObjectException,
+      MetaException {
+    // TODO Auto-generated method stub
+
   }
 }
 

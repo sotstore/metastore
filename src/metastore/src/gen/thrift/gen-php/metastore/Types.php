@@ -56,6 +56,7 @@ final class FOFailReason {
   const NOSPACE = 10;
   const NOTEXIST = 11;
   const SAFEMODE = 12;
+  const INVALID_STATE = 13;
   static public $__names = array(
     1 => 'INVALID_NODE',
     2 => 'INVALID_TABLE',
@@ -63,6 +64,7 @@ final class FOFailReason {
     10 => 'NOSPACE',
     11 => 'NOTEXIST',
     12 => 'SAFEMODE',
+    13 => 'INVALID_STATE',
   );
 }
 
