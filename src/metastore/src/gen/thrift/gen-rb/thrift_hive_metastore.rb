@@ -1386,6 +1386,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'rm_file_physical failed: unknown result')
     end
 
+    def get_node(node_name)
+      send_get_node(node_name)
+      return recv_get_node()
+    end
+
+    def send_get_node(node_name)
+      send_message('get_node', Get_node_args, :node_name => node_name)
+    end
+
+    def recv_get_node()
+      result = receive_message(Get_node_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_node failed: unknown result')
+    end
+
     def add_node(node_name, ipl)
       send_add_node(node_name, ipl)
       return recv_add_node()
@@ -2514,6 +2530,17 @@ module ThriftHiveMetastore
         result.o2 = o2
       end
       write_result(result, oprot, 'rm_file_physical', seqid)
+    end
+
+    def process_get_node(seqid, iprot, oprot)
+      args = read_args(iprot, Get_node_args)
+      result = Get_node_result.new()
+      begin
+        result.success = @handler.get_node(args.node_name)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'get_node', seqid)
     end
 
     def process_add_node(seqid, iprot, oprot)
@@ -5706,6 +5733,40 @@ module ThriftHiveMetastore
       SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::FileOperationException},
       O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_node_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NODE_NAME = 1
+
+    FIELDS = {
+      NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_node_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Node},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end

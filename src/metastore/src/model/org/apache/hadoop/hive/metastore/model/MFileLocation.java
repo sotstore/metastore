@@ -8,10 +8,6 @@ public class MFileLocation {
   private String location;
   private int rep_id;
   private long update_time;
-  public class VisitStatus {
-    public static final int ONLINE = 0;
-    public static final int OFFLINE = 1;
-  }
   private int visit_status;
   private String digest;
 

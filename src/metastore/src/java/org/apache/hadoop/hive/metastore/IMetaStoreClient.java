@@ -975,5 +975,16 @@ public interface IMetaStoreClient {
 
   public int close_file(SFile file) throws FileOperationException, TException;
 
+  public SFile get_file_by_id(long fid) throws FileOperationException, MetaException, TException;
+
+  public int rm_file_logical(SFile file) throws FileOperationException, MetaException, TException;
+
+  public int restore_file(SFile file) throws FileOperationException, MetaException, TException;
+
+  public int rm_file_physical(SFile file) throws FileOperationException, MetaException, TException;
+
   public Node add_node(String node_name, List<String> ipl) throws MetaException, TException;
+
+  public Node get_node(String node_name) throws MetaException, TException;
+
 }

@@ -632,6 +632,43 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
 
   }
+
+  @Override
+  public Node getNode(String node_name) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean delSFile(long fid) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public List<SFileLocation> getSFileLocations(long fid) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public SFileLocation getSFileLocation(String node, String devid, String location)
+      throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public SFileLocation updateSFileLocation(SFileLocation newsfl) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean delSFileLocation(String node, String devid, String location) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
 }
 
 

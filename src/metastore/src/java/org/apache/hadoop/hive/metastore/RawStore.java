@@ -111,15 +111,27 @@ public interface RawStore extends Configurable {
 
   public boolean delNode(String node_name) throws MetaException;
 
+  public abstract Node getNode(String node_name) throws MetaException;
+
   public long countNode() throws MetaException;
 
   public void createFile(SFile file) throws InvalidObjectException, MetaException;
 
   public SFile getSFile(long fid) throws MetaException;
 
+  public boolean delSFile(long fid) throws MetaException;
+
   public SFile updateSFile(SFile newfile) throws MetaException;
 
   public void createFileLocation(SFileLocation location) throws InvalidObjectException, MetaException;
+
+  public List<SFileLocation> getSFileLocations(long fid) throws MetaException;
+
+  public SFileLocation getSFileLocation(String node, String devid, String location) throws MetaException;
+
+  public SFileLocation updateSFileLocation(SFileLocation newsfl) throws MetaException;
+
+  public boolean delSFileLocation(String node, String devid, String location) throws MetaException;
 
   public abstract boolean dropTable(String dbName, String tableName)
       throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException;

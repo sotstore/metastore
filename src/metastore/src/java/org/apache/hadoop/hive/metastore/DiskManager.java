@@ -3,12 +3,13 @@ package org.apache.hadoop.hive.metastore;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,7 +23,6 @@ import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.Table;
-import org.apache.hadoop.hive.metastore.model.MFileLocation;
 import org.apache.hadoop.hive.metastore.model.MNode;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.json.JSONException;
@@ -42,6 +42,14 @@ public class DiskManager {
     private final DMTimerTask dmtt = new DMTimerTask();
     public final Queue<DMRequest> cleanQ = new ConcurrentLinkedQueue<DMRequest>();
     public final Queue<DMRequest> repQ = new ConcurrentLinkedQueue<DMRequest>();
+
+    public static class DMReply {
+      public enum DMReplyType {
+        DELETED, REPLICATED,
+      }
+      DMReplyType type;
+      String args;
+    }
 
     public static class DMRequest {
       public enum DMROperation {
@@ -76,6 +84,15 @@ public class DiskManager {
         this.dis = dis;
         this.toDelete = new ArrayList<SFileLocation>();
         this.toRep = new ArrayList<JSONObject>();
+      }
+
+      public String getMP(String devid) {
+        for (DeviceInfo di : dis) {
+          if (di.dev.equals(devid)) {
+            return di.mp;
+          }
+        }
+        return null;
       }
     }
 
@@ -326,15 +343,29 @@ public class DiskManager {
                 }
                 SFileLocation nloc = new SFileLocation(node_name, r.file.getFid(), devid, location,
                     i, System.currentTimeMillis(),
-                    MFileLocation.VisitStatus.ONLINE, "DEFAULT");
+                    MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_REP_DEFAULT");
                 rs.createFileLocation(nloc);
                 r.file.addToLocations(nloc);
 
                 // indicate file transfer
                 JSONObject jo = new JSONObject();
                 try {
-                  jo.append("from", r.file.getLocations().get(0));
-                  jo.append("to", r.file.getLocations().get(i));
+                  JSONObject j = new JSONObject();
+                  NodeInfo ni = ndmap.get(r.file.getLocations().get(0).getNode_name());
+
+                  j.put("node_name", r.file.getLocations().get(0).getNode_name());
+                  j.put("devid", r.file.getLocations().get(0).getDevid());
+                  j.put("mp", ni.getMP(r.file.getLocations().get(0).getDevid()));
+                  j.put("location", r.file.getLocations().get(0).getLocation());
+                  jo.put("from", j);
+
+                  j = new JSONObject();
+                  ni = ndmap.get(r.file.getLocations().get(i).getNode_name());
+                  j.put("node_name", r.file.getLocations().get(i).getNode_name());
+                  j.put("devid", r.file.getLocations().get(i).getDevid());
+                  j.put("mp", ni.getMP(r.file.getLocations().get(i).getDevid()));
+                  j.put("location", r.file.getLocations().get(i).getLocation());
+                  jo.put("to", j);
                 } catch (JSONException e) {
                   // TODO Auto-generated catch block
                   e.printStackTrace();
@@ -368,6 +399,71 @@ public class DiskManager {
       public DMThread(String threadName) {
         runner = new Thread(this, threadName);
         runner.start();
+      }
+
+      public class DMReport {
+        // Report Format:
+        // +node:node_name
+        // DEVMAPS
+        // +CMD
+        // +DEL:node,devid,location
+        // +DEL:node,devid,location
+        // ...
+        // +REP:node,devid,location
+        // +REP:node,devid,location
+        // ...
+        public String node = null;
+        public List<DeviceInfo> dil = null;
+        public List<DMReply> replies = null;
+      }
+
+      public DMReport parseReport(String recv) {
+        DMReport r = new DMReport();
+        String[] reports = recv.split("\\+CMD\n");
+
+        switch (reports.length) {
+        case 1:
+          // only DEVMAPS
+          r.node = reports[0].substring(0, reports[0].indexOf('\n')).replaceFirst("\\+node:", "");
+          r.dil = parseDevices(reports[0].substring(reports[0].indexOf('\n') + 1));
+          break;
+        case 2:
+          // contains CMDS
+          r.node = reports[0].substring(0, reports[0].indexOf('\n')).replaceFirst("\\+node:", "");
+          r.dil = parseDevices(reports[0].substring(reports[0].indexOf('\n') + 1));
+          r.replies = parseCmds(reports[1]);
+          break;
+        default:
+          LOG.error("parseReport '" + recv + "' error.");
+          r = null;
+        }
+        LOG.info("----node----->" + r.node);
+        for (DeviceInfo di : r.dil) {
+          LOG.info("----DI------>" + di.dev + "," + di.mp + "," + di.used + "," + di.free);
+        }
+
+        return r;
+      }
+
+      List<DMReply> parseCmds(String cmdStr) {
+        List<DMReply> r = new ArrayList<DMReply>();
+        String[] cmds = cmdStr.split("\n");
+
+        for (int i = 0; i < cmds.length; i++) {
+          if (cmds[i].startsWith("+REP:")) {
+            DMReply dmr = new DMReply();
+            dmr.type = DMReply.DMReplyType.REPLICATED;
+            dmr.args = cmds[i].substring(5);
+            r.add(dmr);
+          } else if (cmds[i].startsWith("+DEL:")) {
+            DMReply dmr = new DMReply();
+            dmr.type = DMReply.DMReplyType.DELETED;
+            dmr.args = cmds[i].substring(5);
+            r.add(dmr);
+          }
+        }
+
+        return r;
       }
 
       // report format:
@@ -425,20 +521,40 @@ public class DiskManager {
           String recvStr = new String(recvPacket.getData() , 0 , recvPacket.getLength());
           LOG.info("RECV: " + recvStr);
 
-          InetAddress addr = recvPacket.getAddress();
-          Node reportNode;
-          try {
-            reportNode = rs.findNode(addr.getHostAddress());
-          } catch (MetaException e1) {
-            e1.printStackTrace();
-            reportNode = null;
+          DMReport report = parseReport(recvStr);
+
+          if (report == null) {
+            LOG.error("Invalid report from address: " + recvPacket.getAddress().getHostAddress());
+            continue;
           }
+          Node reportNode = null;
+
+          if (report.node == null) {
+            try {
+              reportNode = rs.findNode(recvPacket.getAddress().getHostAddress());
+            } catch (MetaException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
+          } else {
+            try {
+              reportNode = rs.getNode(report.node);
+            } catch (MetaException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
+          }
+
           String sendStr = "+OK\n";
 
           if (reportNode == null) {
-            LOG.error("Failed to find Node: " + addr.getHostAddress());
+            LOG.warn("Failed to find Node: " + recvPacket.getAddress().getHostAddress());
+            // try to use "+NODE:node_name" to find
             sendStr = "+FAIL\n";
-          } else {
+          }
+
+          if (reportNode != null) {
+            // 1. update Node status
             switch (reportNode.getStatus()) {
             default:
             case MNode.NodeStatus.ONLINE:
@@ -456,31 +572,107 @@ public class DiskManager {
               LOG.warn("OFFLINE node '" + reportNode.getNode_name() + "' do report!");
               break;
             }
-            // parse report str
-            List<DeviceInfo> dilist = parseDevices(recvStr);
-            if (dilist == null) {
+
+            // 2. update NDMap
+            if (report.dil == null) {
               // remove from the map
               removeFromNDMap(reportNode);
             } else {
               // update the map
-              addToNDMap(reportNode, dilist);
+              addToNDMap(reportNode, report.dil);
             }
-          }
-          // append any commands
-          if (reportNode != null) {
+
+            // 2.NA update metadata
+            Set<SFile> toCheckRep = new HashSet<SFile>();
+            Set<SFile> toCheckDel = new HashSet<SFile>();
+            if (report.replies != null) {
+              for (DMReply r : report.replies) {
+                String[] args = r.args.split(",");
+                switch (r.type) {
+                case REPLICATED:
+                  if (args.length < 3) {
+                    LOG.warn("Invalid REP report: " + r.args);
+                  } else {
+                    try {
+                      SFileLocation newsfl = rs.getSFileLocation(args[0], args[1], args[2]);
+                      SFile file = rs.getSFile(newsfl.getFid());
+                      toCheckRep.add(file);
+                      newsfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
+                      newsfl.setDigest(file.getDigest());
+                      rs.updateSFileLocation(newsfl);
+                    } catch (MetaException e) {
+                      e.printStackTrace();
+                    }
+                  }
+                  break;
+                case DELETED:
+                  if (args.length < 3) {
+                    LOG.warn("Invalid DEL report: " + r.args);
+                  } else {
+                    try {
+                      LOG.warn("Begin delete FLoc " + args[0] + "," + args[1] + "," + args[2]);
+                      SFileLocation sfl = rs.getSFileLocation(args[0], args[1], args[2]);
+                      SFile file = rs.getSFile(sfl.getFid());
+                      toCheckDel.add(file);
+                      rs.delSFileLocation(args[0], args[1], args[2]);
+                    } catch (MetaException e) {
+                      e.printStackTrace();
+                    }
+                  }
+                  break;
+                default:
+                  LOG.warn("Invalid DMReply type: " + r.type);
+                }
+              }
+            }
+            if (!toCheckRep.isEmpty()) {
+              for (SFile f : toCheckRep) {
+                try {
+                  List<SFileLocation> sfl = rs.getSFileLocations(f.getFid());
+                  int repnr = 0;
+                  for (SFileLocation fl : sfl) {
+                    if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
+                      repnr++;
+                    }
+                  }
+                  if (f.getRep_nr() == repnr && f.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED) {
+                    f.setStore_status(MetaStoreConst.MFileStoreStatus.REPLICATED);
+                    rs.updateSFile(f);
+                  }
+                } catch (MetaException e) {
+                  // TODO Auto-generated catch block
+                  e.printStackTrace();
+                }
+              }
+              toCheckRep.clear();
+            }
+            if (!toCheckDel.isEmpty()) {
+              for (SFile f : toCheckDel) {
+                try {
+                  List<SFileLocation> sfl = rs.getSFileLocations(f.getFid());
+                  if (sfl.size() == 0) {
+                    // delete this file
+                    rs.delSFile(f.getFid());
+                  }
+                } catch (MetaException e) {
+                  e.printStackTrace();
+                }
+              }
+              toCheckDel.clear();
+            }
+
+            // 3. append any commands
             NodeInfo ni = ndmap.get(reportNode.getNode_name());
             if (ni != null && ni.toDelete.size() > 0) {
               synchronized (ni.toDelete) {
                 for (SFileLocation loc : ni.toDelete) {
-                  sendStr += "+DEL:" + loc.getDevid() + ":" + loc.getLocation() + "\n";
+                  sendStr += "+DEL:" + loc.getNode_name() + ":" + loc.getDevid() + ":" +
+                      ndmap.get(loc.getNode_name()).getMP(loc.getDevid()) + ":" +
+                      loc.getLocation() + "\n";
                 }
                 ni.toDelete.clear();
               }
             }
-          }
-          // append toRep
-          if (reportNode != null) {
-            NodeInfo ni = ndmap.get(reportNode.getNode_name());
             if (ni != null && ni.toRep.size() > 0) {
               synchronized (ni.toRep) {
                 for (JSONObject jo : ni.toRep) {
@@ -495,8 +687,8 @@ public class DiskManager {
           int port = recvPacket.getPort();
           byte[] sendBuf;
           sendBuf = sendStr.getBytes();
-          DatagramPacket sendPacket
-          = new DatagramPacket(sendBuf , sendBuf.length , addr , port );
+          DatagramPacket sendPacket = new DatagramPacket(sendBuf , sendBuf.length ,
+              recvPacket.getAddress() , port );
           try {
             server.send(sendPacket);
           } catch (IOException e) {

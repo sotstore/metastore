@@ -137,6 +137,7 @@ import org.apache.hadoop.util.StringUtils;
  */
 public class ObjectStore implements RawStore, Configurable {
   private static long g_fid = 0;
+  private static boolean g_fid_inited = false;
   private static Properties prop = null;
   private static PersistenceManagerFactory pmf = null;
 
@@ -259,7 +260,10 @@ public class ObjectStore implements RawStore, Configurable {
     pm = getPersistenceManager();
     isInitialized = pm != null;
     if (isInitialized) {
-      restoreFID();
+      if (!g_fid_inited) {
+        g_fid_inited = true;
+        restoreFID();
+      }
     }
     return;
   }
@@ -685,6 +689,9 @@ public class ObjectStore implements RawStore, Configurable {
             "' vs '" + other.getNode_name() + "' on IP(" + ip + ")");
       }
     }
+    if (getNode(node.getNode_name()) != null) {
+      throw new MetaException("Duplicate node name '" + node.getNode_name() +"'");
+    }
 
     try {
       openTransaction();
@@ -756,7 +763,7 @@ public class ObjectStore implements RawStore, Configurable {
       doCreate = true;
     } else {
       // update it now
-      if (!md.getNode().getNode_name().equalsIgnoreCase(node.getNode_name())) {
+      if (!md.getNode().getNode_name().equals(node.getNode_name())) {
         LOG.info("Saved " + md.getNode().getNode_name() + ", this " + node.getNode_name());
         // should update it.
         MNode mn = getMNode(node.getNode_name());
@@ -993,6 +1000,36 @@ public class ObjectStore implements RawStore, Configurable {
     return f;
   }
 
+  public List<SFileLocation> getSFileLocations(long fid) throws MetaException {
+    boolean commited = false;
+    List<SFileLocation> sfl = null;
+    try {
+      openTransaction();
+      sfl = convertToSFileLocation(getMFileLocations(fid));
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return sfl;
+  }
+
+  public SFileLocation getSFileLocation(String node, String devid, String location) throws MetaException {
+    boolean commited = false;
+    SFileLocation sfl = null;
+    try {
+      openTransaction();
+      sfl = convertToSFileLocation(getMFileLocation(node, devid, location));
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return sfl;
+  }
+
   public SFile updateSFile(SFile newfile) throws MetaException {
     boolean commited = false;
     SFile f = null;
@@ -1014,6 +1051,27 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     return f;
+  }
+
+  public SFileLocation updateSFileLocation(SFileLocation newsfl) throws MetaException {
+    boolean commited = false;
+    SFileLocation sfl = null;
+    try {
+      MFileLocation mfl = getMFileLocation(newsfl.getNode_name(), newsfl.getDevid(), newsfl.getLocation());
+      mfl.setUpdate_time(System.currentTimeMillis());
+      mfl.setVisit_status(newsfl.getVisit_status());
+      mfl.setDigest(newsfl.getDigest());
+
+      openTransaction();
+      pm.makePersistent(mfl);
+      sfl = convertToSFileLocation(mfl);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return sfl;
   }
 
   public Table getTableByID(long id) throws MetaException {
@@ -1136,7 +1194,7 @@ public class ObjectStore implements RawStore, Configurable {
     boolean commited = false;
     try {
       openTransaction();
-      node_name = node_name.toLowerCase().trim();
+      node_name = node_name.trim();
       Query query = pm.newQuery(MNode.class, "this.node_name == node_name");
       query.declareParameters("java.lang.String node_name");
       query.setUnique(true);
@@ -1168,6 +1226,49 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     return mf;
+  }
+
+  private MFileLocation getMFileLocation(String node, String devid, String location) {
+    MFileLocation mfl = null;
+    boolean commited = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MFileLocation.class,
+          "this.node.node_name == node && this.dev.dev_name == devid && this.location == location");
+      query.declareParameters("java.lang.String node, java.lang.String devid, java.lang.String location");
+      query.setUnique(true);
+      mfl = (MFileLocation)query.execute(node, devid, location);
+      pm.retrieve(mfl);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return mfl;
+  }
+
+  private List<MFileLocation> getMFileLocations(long fid) {
+    List<MFileLocation> mfl = new ArrayList<MFileLocation>();
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MFileLocation.class, "this.file.fid == fid");
+      query.declareParameters("long fid");
+      List l = (List)query.execute(fid);
+      Iterator iter = l.iterator();
+      while (iter.hasNext()) {
+        MFileLocation mf = (MFileLocation)iter.next();
+        mfl.add(mf);
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return mfl;
   }
 
   private MTable getMTable(String db, String table) {
@@ -1243,6 +1344,26 @@ public class ObjectStore implements RawStore, Configurable {
         mf.getDigest(), mf.getRecord_nr(), mf.getAll_record_nr(), null);
   }
 
+  private List<SFileLocation> convertToSFileLocation(List<MFileLocation> mfl) throws MetaException {
+    if (mfl == null) {
+      return null;
+    }
+    List<SFileLocation> r = new ArrayList<SFileLocation>();
+    for (MFileLocation mf : mfl) {
+      r.add(new SFileLocation(mf.getNode().getNode_name(), mf.getFile().getFid(), mf.getDev().getDev_name(),
+          mf.getLocation(), mf.getRep_id(), mf.getUpdate_time(), mf.getVisit_status(), mf.getDigest()));
+    }
+    return r;
+  }
+
+  private SFileLocation convertToSFileLocation(MFileLocation mfl) throws MetaException {
+    if (mfl == null) {
+      return null;
+    }
+    return new SFileLocation(mfl.getNode().getNode_name(), mfl.getFile().getFid(), mfl.getDev().getDev_name(),
+        mfl.getLocation(), mfl.getRep_id(), mfl.getUpdate_time(), mfl.getVisit_status(), mfl.getDigest());
+  }
+
   private Table convertToTable(MTable mtbl) throws MetaException {
     if (mtbl == null) {
       return null;
@@ -1271,7 +1392,7 @@ public class ObjectStore implements RawStore, Configurable {
       return null;
     }
 
-    return new MNode(node.getNode_name(), node.getIps(), node.getStatus());
+    return new MNode(node.getNode_name().trim(), node.getIps(), node.getStatus());
   }
 
   private MFile convertToMFile(SFile file) {
@@ -5712,6 +5833,38 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       MNode mnode = getMNode(node_name);
       pm.deletePersistent(mnode);
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public boolean delSFile(long fid) throws MetaException {
+    boolean success = false;
+    try {
+      openTransaction();
+      MFile mf = getMFile(fid);
+      pm.deletePersistent(mf);
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public boolean delSFileLocation(String node, String devid, String location) throws MetaException {
+    boolean success = false;
+    try {
+      openTransaction();
+      MFileLocation mfl = getMFileLocation(node, devid, location);
+      pm.deletePersistent(mfl);
       success = commitTransaction();
     } finally {
       if (!success) {

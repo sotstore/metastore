@@ -115,8 +115,6 @@ import org.apache.hadoop.hive.metastore.events.PreDropTableEvent;
 import org.apache.hadoop.hive.metastore.events.PreEventContext;
 import org.apache.hadoop.hive.metastore.events.PreLoadPartitionDoneEvent;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
-import org.apache.hadoop.hive.metastore.model.MFile;
-import org.apache.hadoop.hive.metastore.model.MFileLocation;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
 import org.apache.hadoop.hive.metastore.model.MNode.NodeStatus;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnPrivilege;
@@ -4052,12 +4050,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           location += table_name + "/" + rand.nextInt(Integer.MAX_VALUE);
         }
         // how to convert table_name to tbl_id?
-        cfile = new SFile(0, table_id, MFile.StoreStatus.INCREATE, repnr,
-            "", 0, 0, null);
+        cfile = new SFile(0, table_id, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
+            "SFILE_DEFALUT", 0, 0, null);
         getMS().createFile(cfile);
         cfile = getMS().getSFile(cfile.getFid());
         SFileLocation sfloc = new SFileLocation(node_name, cfile.getFid(), devid, location, 0, System.currentTimeMillis(),
-            MFileLocation.VisitStatus.ONLINE, "DEFAULT");
+            MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_DEFAULT");
         getMS().createFileLocation(sfloc);
         List<SFileLocation> sfloclist = new ArrayList<SFileLocation>();
         sfloclist.add(sfloc);
@@ -4071,11 +4069,27 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public int close_file(SFile file) throws FileOperationException, MetaException, TException {
-      if (file.getStore_status() != MFile.StoreStatus.INCREATE) {
-        throw new FileOperationException("File StoreStatus is not in INCREATE.", FOFailReason.INVALID_STATE);
+      SFile saved = getMS().getSFile(file.getFid());
+      if (saved == null) {
+        throw new FileOperationException("Can not find SFile by FID" + file.getFid(), FOFailReason.INVALID_FILE);
       }
-      file.setStore_status(MFile.StoreStatus.CLOSED);
+
+      if (saved.getStore_status() != MetaStoreConst.MFileStoreStatus.INCREATE) {
+        throw new FileOperationException("File StoreStatus is not in INCREATE (vs " + saved.getStore_status() + ").",
+            FOFailReason.INVALID_STATE);
+      }
+
+      file.setStore_status(MetaStoreConst.MFileStoreStatus.CLOSED);
+      // keep repnr unchanged
+      file.setRep_nr(saved.getRep_nr());
       getMS().updateSFile(file);
+
+      SFileLocation sfl = file.getLocations().get(0);
+      assert sfl != null;
+      sfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
+      sfl.setDigest(file.getDigest());
+      getMS().updateSFileLocation(sfl);
+
       synchronized (dm.repQ) {
         dm.repQ.add(new DMRequest(file, DMRequest.DMROperation.REPLICATE));
         dm.repQ.notify();
@@ -4085,39 +4099,67 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public SFile get_file_by_id(long fid) throws FileOperationException, MetaException, TException {
-      return getMS().getSFile(fid);
+      SFile r = getMS().getSFile(fid);
+      if (r == null) {
+        throw new FileOperationException("Can not find SFile by FID " + fid, FOFailReason.INVALID_FILE);
+      }
+
+      switch (r.getStore_status()) {
+      case MetaStoreConst.MFileStoreStatus.RM_LOGICAL:
+      case MetaStoreConst.MFileStoreStatus.RM_PHYSICAL:
+        break;
+      default:
+        r.setLocations(getMS().getSFileLocations(fid));
+      }
+      return r;
     }
 
     @Override
     public int rm_file_logical(SFile file) throws FileOperationException, MetaException, TException {
+      SFile saved = getMS().getSFile(file.getFid());
+      if (saved == null) {
+        throw new FileOperationException("Can not find SFile by FID" + file.getFid(), FOFailReason.INVALID_FILE);
+      }
+
       // only in REPLICATED state can step into RM_LOGICAL
-      if (file.getStore_status() != MFile.StoreStatus.REPLICATED) {
+      if (saved.getStore_status() != MetaStoreConst.MFileStoreStatus.REPLICATED) {
         throw new FileOperationException("File StoreStatus is not in REPLICATED.", FOFailReason.INVALID_STATE);
       }
-      file.setStore_status(MFile.StoreStatus.RM_LOGICAL);
-      getMS().updateSFile(file);
+      saved.setStore_status(MetaStoreConst.MFileStoreStatus.RM_LOGICAL);
+      getMS().updateSFile(saved);
       return 0;
     }
 
     @Override
     public int restore_file(SFile file) throws FileOperationException, MetaException, TException {
-      if (file.getStore_status() != MFile.StoreStatus.RM_LOGICAL) {
+      SFile saved = getMS().getSFile(file.getFid());
+      if (saved == null) {
+        throw new FileOperationException("Can not find SFile by FID" + file.getFid(), FOFailReason.INVALID_FILE);
+      }
+
+      if (saved.getStore_status() != MetaStoreConst.MFileStoreStatus.RM_LOGICAL) {
         throw new FileOperationException("File StoreStatus is not in RM_LOGICAL.", FOFailReason.INVALID_STATE);
       }
-      file.setStore_status(MFile.StoreStatus.REPLICATED);
-      getMS().updateSFile(file);
+      saved.setStore_status(MetaStoreConst.MFileStoreStatus.REPLICATED);
+      getMS().updateSFile(saved);
       return 0;
     }
 
     @Override
     public int rm_file_physical(SFile file) throws FileOperationException, MetaException,
         TException {
-      if (file.getStore_status() != MFile.StoreStatus.REPLICATED ||
-          file.getStore_status() != MFile.StoreStatus.RM_LOGICAL) {
+      SFile saved = getMS().getSFile(file.getFid());
+      if (saved == null) {
+        throw new FileOperationException("Can not find SFile by FID" + file.getFid(), FOFailReason.INVALID_FILE);
+      }
+
+      if (!(saved.getStore_status() == MetaStoreConst.MFileStoreStatus.REPLICATED ||
+          saved.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_LOGICAL)) {
         throw new FileOperationException("File StoreStatus is not in REPLICATED/RM_LOGICAL.", FOFailReason.INVALID_STATE);
       }
-      file.setStore_status(MFile.StoreStatus.RM_PHYSICAL);
-      getMS().updateSFile(file);
+      saved.setStore_status(MetaStoreConst.MFileStoreStatus.RM_PHYSICAL);
+      file = getMS().updateSFile(saved);
+      file.setLocations(getMS().getSFileLocations(file.getFid()));
       synchronized (dm.cleanQ) {
         dm.cleanQ.add(new DMRequest(file, DMRequest.DMROperation.RM_PHYSICAL));
         dm.cleanQ.notify();
@@ -4150,6 +4192,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       } else {
         return null;
       }
+    }
+
+    @Override
+    public Node get_node(String node_name) throws MetaException, TException {
+      return getMS().getNode(node_name);
     }
   }
 

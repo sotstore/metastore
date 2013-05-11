@@ -427,6 +427,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("rm_file_physical\n");
   }
 
+  void get_node(Node& _return, const std::string& node_name) {
+    // Your implementation goes here
+    printf("get_node\n");
+  }
+
   void add_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl) {
     // Your implementation goes here
     printf("add_node\n");

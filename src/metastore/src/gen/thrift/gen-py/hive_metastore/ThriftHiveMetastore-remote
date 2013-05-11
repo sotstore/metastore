@@ -104,6 +104,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  i32 rm_file_logical(SFile file)'
   print '  i32 restore_file(SFile file)'
   print '  i32 rm_file_physical(SFile file)'
+  print '  Node get_node(string node_name)'
   print '  Node add_node(string node_name,  ipl)'
   print '  i32 del_node(string node_name)'
   print '  Node alter_node(string node_name,  ipl, i32 status)'
@@ -643,6 +644,12 @@ elif cmd == 'rm_file_physical':
     print 'rm_file_physical requires 1 args'
     sys.exit(1)
   pp.pprint(client.rm_file_physical(eval(args[0]),))
+
+elif cmd == 'get_node':
+  if len(args) != 1:
+    print 'get_node requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.get_node(args[0],))
 
 elif cmd == 'add_node':
   if len(args) != 2:

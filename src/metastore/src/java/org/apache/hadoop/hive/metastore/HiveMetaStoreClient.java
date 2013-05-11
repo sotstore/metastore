@@ -1387,4 +1387,34 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     return client.close_file(file);
   }
 
+  @Override
+  public SFile get_file_by_id(long fid) throws FileOperationException, MetaException, TException {
+    assert fid >= 0;
+    return client.get_file_by_id(fid);
+  }
+
+  @Override
+  public Node get_node(String node_name) throws MetaException, TException {
+    assert node_name != null;
+    return client.get_node(node_name);
+  }
+
+  @Override
+  public int rm_file_logical(SFile file) throws FileOperationException, MetaException, TException {
+    assert file != null;
+    return client.rm_file_logical(file);
+  }
+
+  @Override
+  public int restore_file(SFile file) throws FileOperationException, MetaException, TException {
+    assert file != null;
+    return client.restore_file(file);
+  }
+
+  @Override
+  public int rm_file_physical(SFile file) throws FileOperationException, MetaException, TException {
+    assert file != null;
+    return client.rm_file_physical(file);
+  }
+
 }

@@ -664,6 +664,8 @@ service ThriftHiveMetastore extends fb303.FacebookService
   i32 rm_file_physical(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
   
   // method for node operations
+  Node get_node(1:string node_name) throws (1:MetaException o1)
+  
   Node add_node(1:string node_name, 2:list<string> ipl) throws (1:MetaException o1)
   
   i32 del_node(1:string node_name) throws (1:MetaException o1)
