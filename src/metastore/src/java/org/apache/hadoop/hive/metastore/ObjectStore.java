@@ -136,6 +136,7 @@ import org.apache.hadoop.util.StringUtils;
  * filestore.
  */
 public class ObjectStore implements RawStore, Configurable {
+  private static String g_thisDC = null;
   private static long g_fid = 0;
   private static boolean g_fid_inited = false;
   private static Properties prop = null;
@@ -975,6 +976,17 @@ public class ObjectStore implements RawStore, Configurable {
     Node n = null;
     try {
       openTransaction();
+      // if node_name contains("."), then it is a remote node, caller should getNode from other DC
+      if (node_name.contains(".")) {
+        String[] ns = node_name.split(".");
+        if (ns.length != 2) {
+          throw new MetaException("Node name " + node_name + " contains too many '.'!");
+        }
+        if (!g_thisDC.equals(ns[0])) {
+          throw new MetaException("Node name " + node_name + " is on DC " + ns[0] + ", please call getNode() on that DC.");
+        }
+        node_name = ns[1];
+      }
       n = convertToNode(getMNode(node_name));
       commited = commitTransaction();
     } finally {
@@ -1194,12 +1206,14 @@ public class ObjectStore implements RawStore, Configurable {
     boolean commited = false;
     try {
       openTransaction();
-      node_name = node_name.trim();
-      Query query = pm.newQuery(MNode.class, "this.node_name == node_name");
-      query.declareParameters("java.lang.String node_name");
-      query.setUnique(true);
-      mn = (MNode)query.execute(node_name);
-      pm.retrieve(mn);
+      if (!node_name.contains(".")) {
+        node_name = node_name.trim();
+        Query query = pm.newQuery(MNode.class, "this.node_name == node_name");
+        query.declareParameters("java.lang.String node_name");
+        query.setUnique(true);
+        mn = (MNode)query.execute(node_name);
+        pm.retrieve(mn);
+      }
       commited = commitTransaction();
     } finally {
       if (!commited) {
@@ -5832,7 +5846,9 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       MNode mnode = getMNode(node_name);
-      pm.deletePersistent(mnode);
+      if (mnode != null) {
+        pm.deletePersistent(mnode);
+      }
       success = commitTransaction();
     } finally {
       if (!success) {

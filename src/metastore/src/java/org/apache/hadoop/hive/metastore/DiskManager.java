@@ -188,10 +188,12 @@ public class DiskManager {
     }
 
     public NodeInfo removeFromNDMapWTO(String node, long cts) {
-      NodeInfo ni = null;
+      NodeInfo ni = ndmap.get(node);
 
-      if (ndmap.get(node).lastRptTs + DMTimerTask.timeout < cts) {
-        ni = ndmap.remove(node);
+      if (ni.lastRptTs + DMTimerTask.timeout < cts) {
+        if (ni.toDelete.size() == 0 && ni.toRep.size() == 0) {
+          ni = ndmap.remove(node);
+        }
       }
       try {
         if ((double)ndmap.size() / (double)rs.countNode() <= 0.99) {
@@ -285,6 +287,13 @@ public class DiskManager {
           if (r.op == DMRequest.DMROperation.RM_PHYSICAL) {
             for (SFileLocation loc : r.file.getLocations()) {
               NodeInfo ni = ndmap.get(loc.getNode_name());
+              if (ni == null) {
+                // add back to cleanQ
+                synchronized (cleanQ) {
+                  cleanQ.add(r);
+                }
+                continue;
+              }
               synchronized (ni.toDelete) {
                 ni.toDelete.add(loc);
               }
@@ -353,6 +362,9 @@ public class DiskManager {
                   JSONObject j = new JSONObject();
                   NodeInfo ni = ndmap.get(r.file.getLocations().get(0).getNode_name());
 
+                  if (ni == null) {
+                    LOG.error("Can not find Node '" + node_name + "' in nodemap now, is it offline?");
+                  }
                   j.put("node_name", r.file.getLocations().get(0).getNode_name());
                   j.put("devid", r.file.getLocations().get(0).getDevid());
                   j.put("mp", ni.getMP(r.file.getLocations().get(0).getDevid()));
@@ -361,6 +373,9 @@ public class DiskManager {
 
                   j = new JSONObject();
                   ni = ndmap.get(r.file.getLocations().get(i).getNode_name());
+                  if (ni == null) {
+                    LOG.error("Can not find Node '" + node_name + "' in nodemap now, is it offline?");
+                  }
                   j.put("node_name", r.file.getLocations().get(i).getNode_name());
                   j.put("devid", r.file.getLocations().get(i).getDevid());
                   j.put("mp", ni.getMP(r.file.getLocations().get(i).getDevid()));
