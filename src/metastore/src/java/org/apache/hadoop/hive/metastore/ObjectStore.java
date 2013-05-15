@@ -736,8 +736,13 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
-  public void createFileLocation(SFileLocation location) throws InvalidObjectException, MetaException {
+  public boolean createFileLocation(SFileLocation location) throws InvalidObjectException, MetaException {
+    boolean r = true;
     boolean commited = false;
+    SFileLocation old = getSFileLocation(location.getNode_name(), location.getDevid(), location.getLocation());
+    if (old != null) {
+      r = false;
+    }
     try {
       openTransaction();
       MFileLocation mfloc = convertToMFileLocation(location);
@@ -748,6 +753,7 @@ public class ObjectStore implements RawStore, Configurable {
         rollbackTransaction();
       }
     }
+    return r;
   }
 
   public void createOrUpdateDevice(DeviceInfo di, Node node) throws MetaException, InvalidObjectException {

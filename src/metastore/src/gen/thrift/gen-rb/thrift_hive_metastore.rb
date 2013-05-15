@@ -1450,6 +1450,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'alter_node failed: unknown result')
     end
 
+    def find_best_nodes(nr)
+      send_find_best_nodes(nr)
+      return recv_find_best_nodes()
+    end
+
+    def send_find_best_nodes(nr)
+      send_message('find_best_nodes', Find_best_nodes_args, :nr => nr)
+    end
+
+    def recv_find_best_nodes()
+      result = receive_message(Find_best_nodes_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'find_best_nodes failed: unknown result')
+    end
+
   end
 
   class Processor < ::FacebookService::Processor 
@@ -2574,6 +2590,17 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'alter_node', seqid)
+    end
+
+    def process_find_best_nodes(seqid, iprot, oprot)
+      args = read_args(iprot, Find_best_nodes_args)
+      result = Find_best_nodes_result.new()
+      begin
+        result.success = @handler.find_best_nodes(args.nr)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'find_best_nodes', seqid)
     end
 
   end
@@ -5874,6 +5901,40 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Node},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Find_best_nodes_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NR = 1
+
+    FIELDS = {
+      NR => {:type => ::Thrift::Types::I32, :name => 'nr'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Find_best_nodes_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Node}},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 

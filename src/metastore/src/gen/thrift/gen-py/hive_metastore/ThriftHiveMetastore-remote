@@ -108,6 +108,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  Node add_node(string node_name,  ipl)'
   print '  i32 del_node(string node_name)'
   print '  Node alter_node(string node_name,  ipl, i32 status)'
+  print '   find_best_nodes(i32 nr)'
   print ''
   sys.exit(0)
 
@@ -668,6 +669,12 @@ elif cmd == 'alter_node':
     print 'alter_node requires 3 args'
     sys.exit(1)
   pp.pprint(client.alter_node(args[0],eval(args[1]),eval(args[2]),))
+
+elif cmd == 'find_best_nodes':
+  if len(args) != 1:
+    print 'find_best_nodes requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.find_best_nodes(eval(args[0]),))
 
 else:
   print 'Unrecognized method %s' % cmd

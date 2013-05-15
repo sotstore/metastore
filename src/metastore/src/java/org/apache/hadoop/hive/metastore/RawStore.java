@@ -123,7 +123,7 @@ public interface RawStore extends Configurable {
 
   public SFile updateSFile(SFile newfile) throws MetaException;
 
-  public void createFileLocation(SFileLocation location) throws InvalidObjectException, MetaException;
+  public boolean createFileLocation(SFileLocation location) throws InvalidObjectException, MetaException;
 
   public List<SFileLocation> getSFileLocations(long fid) throws MetaException;
 

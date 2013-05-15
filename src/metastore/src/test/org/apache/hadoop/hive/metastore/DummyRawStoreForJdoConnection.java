@@ -627,10 +627,10 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public void createFileLocation(SFileLocation location) throws InvalidObjectException,
+  public boolean createFileLocation(SFileLocation location) throws InvalidObjectException,
       MetaException {
     // TODO Auto-generated method stub
-
+    return false;
   }
 
   @Override

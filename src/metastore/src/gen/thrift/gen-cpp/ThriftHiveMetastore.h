@@ -101,6 +101,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void add_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl) = 0;
   virtual int32_t del_node(const std::string& node_name) = 0;
   virtual void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status) = 0;
+  virtual void find_best_nodes(std::vector<Node> & _return, const int32_t nr) = 0;
 };
 
 class ThriftHiveMetastoreIfFactory : virtual public  ::facebook::fb303::FacebookServiceIfFactory {
@@ -406,6 +407,9 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return _return;
   }
   void alter_node(Node& /* _return */, const std::string& /* node_name */, const std::vector<std::string> & /* ipl */, const int32_t /* status */) {
+    return;
+  }
+  void find_best_nodes(std::vector<Node> & /* _return */, const int32_t /* nr */) {
     return;
   }
 };
@@ -12272,6 +12276,124 @@ class ThriftHiveMetastore_alter_node_presult {
 
 };
 
+typedef struct _ThriftHiveMetastore_find_best_nodes_args__isset {
+  _ThriftHiveMetastore_find_best_nodes_args__isset() : nr(false) {}
+  bool nr;
+} _ThriftHiveMetastore_find_best_nodes_args__isset;
+
+class ThriftHiveMetastore_find_best_nodes_args {
+ public:
+
+  ThriftHiveMetastore_find_best_nodes_args() : nr(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_find_best_nodes_args() throw() {}
+
+  int32_t nr;
+
+  _ThriftHiveMetastore_find_best_nodes_args__isset __isset;
+
+  void __set_nr(const int32_t val) {
+    nr = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_find_best_nodes_args & rhs) const
+  {
+    if (!(nr == rhs.nr))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_find_best_nodes_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_find_best_nodes_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_find_best_nodes_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_find_best_nodes_pargs() throw() {}
+
+  const int32_t* nr;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_find_best_nodes_result__isset {
+  _ThriftHiveMetastore_find_best_nodes_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_find_best_nodes_result__isset;
+
+class ThriftHiveMetastore_find_best_nodes_result {
+ public:
+
+  ThriftHiveMetastore_find_best_nodes_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_find_best_nodes_result() throw() {}
+
+  std::vector<Node>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_find_best_nodes_result__isset __isset;
+
+  void __set_success(const std::vector<Node> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_find_best_nodes_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_find_best_nodes_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_find_best_nodes_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_find_best_nodes_presult__isset {
+  _ThriftHiveMetastore_find_best_nodes_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_find_best_nodes_presult__isset;
+
+class ThriftHiveMetastore_find_best_nodes_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_find_best_nodes_presult() throw() {}
+
+  std::vector<Node> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_find_best_nodes_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  ::facebook::fb303::FacebookServiceClient {
  public:
   ThriftHiveMetastoreClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -12539,6 +12661,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status);
   void send_alter_node(const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status);
   void recv_alter_node(Node& _return);
+  void find_best_nodes(std::vector<Node> & _return, const int32_t nr);
+  void send_find_best_nodes(const int32_t nr);
+  void recv_find_best_nodes(std::vector<Node> & _return);
 };
 
 class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceProcessor {
@@ -12634,6 +12759,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_add_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_del_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_alter_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_find_best_nodes(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   ThriftHiveMetastoreProcessor(boost::shared_ptr<ThriftHiveMetastoreIf> iface) :
      ::facebook::fb303::FacebookServiceProcessor(iface),
@@ -12723,6 +12849,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["add_node"] = &ThriftHiveMetastoreProcessor::process_add_node;
     processMap_["del_node"] = &ThriftHiveMetastoreProcessor::process_del_node;
     processMap_["alter_node"] = &ThriftHiveMetastoreProcessor::process_alter_node;
+    processMap_["find_best_nodes"] = &ThriftHiveMetastoreProcessor::process_find_best_nodes;
   }
 
   virtual ~ThriftHiveMetastoreProcessor() {}
@@ -13565,6 +13692,16 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->alter_node(_return, node_name, ipl, status);
     }
     ifaces_[i]->alter_node(_return, node_name, ipl, status);
+    return;
+  }
+
+  void find_best_nodes(std::vector<Node> & _return, const int32_t nr) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->find_best_nodes(_return, nr);
+    }
+    ifaces_[i]->find_best_nodes(_return, nr);
     return;
   }
 

@@ -4030,7 +4030,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       }
       try {
         String devid = dm.findBestDevice(node_name);
-        String location = "/data/";
         String table_name = null;
 
         // try to parse table_name
@@ -4044,22 +4043,30 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           table_name = tbl.getDbName() + "/" + tbl.getTableName();
         }
 
-        if (table_name == null) {
-          location += "UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
-        } else {
-          location += table_name + "/" + rand.nextInt(Integer.MAX_VALUE);
-        }
         // how to convert table_name to tbl_id?
         cfile = new SFile(0, table_id, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
             "SFILE_DEFALUT", 0, 0, null);
         getMS().createFile(cfile);
         cfile = getMS().getSFile(cfile.getFid());
-        SFileLocation sfloc = new SFileLocation(node_name, cfile.getFid(), devid, location, 0, System.currentTimeMillis(),
-            MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_DEFAULT");
-        getMS().createFileLocation(sfloc);
-        List<SFileLocation> sfloclist = new ArrayList<SFileLocation>();
-        sfloclist.add(sfloc);
-        cfile.setLocations(sfloclist);
+
+        do {
+          String location = "/data/";
+
+          if (table_name == null) {
+            location += "UNNAMED-DB/UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
+          } else {
+            location += table_name + "/" + rand.nextInt(Integer.MAX_VALUE);
+          }
+          SFileLocation sfloc = new SFileLocation(node_name, cfile.getFid(), devid, location, 0, System.currentTimeMillis(),
+              MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_DEFAULT");
+          if (!getMS().createFileLocation(sfloc)) {
+            continue;
+          }
+          List<SFileLocation> sfloclist = new ArrayList<SFileLocation>();
+          sfloclist.add(sfloc);
+          cfile.setLocations(sfloclist);
+          break;
+        } while (true);
       } catch (IOException e) {
         throw new FileOperationException("System might in Safe Mode, please wait ...", FOFailReason.SAFEMODE);
       }
@@ -4091,7 +4098,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       getMS().updateSFileLocation(sfl);
 
       synchronized (dm.repQ) {
-        dm.repQ.add(new DMRequest(file, DMRequest.DMROperation.REPLICATE));
+        dm.repQ.add(new DMRequest(file, DMRequest.DMROperation.REPLICATE, 1));
         dm.repQ.notify();
       }
       return 0;
@@ -4153,15 +4160,16 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         throw new FileOperationException("Can not find SFile by FID" + file.getFid(), FOFailReason.INVALID_FILE);
       }
 
-      if (!(saved.getStore_status() == MetaStoreConst.MFileStoreStatus.REPLICATED ||
+      if (!(saved.getStore_status() == MetaStoreConst.MFileStoreStatus.INCREATE ||
+          saved.getStore_status() == MetaStoreConst.MFileStoreStatus.REPLICATED ||
           saved.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_LOGICAL)) {
-        throw new FileOperationException("File StoreStatus is not in REPLICATED/RM_LOGICAL.", FOFailReason.INVALID_STATE);
+        throw new FileOperationException("File StoreStatus is not in INCREATE/REPLICATED/RM_LOGICAL.", FOFailReason.INVALID_STATE);
       }
       saved.setStore_status(MetaStoreConst.MFileStoreStatus.RM_PHYSICAL);
       file = getMS().updateSFile(saved);
       file.setLocations(getMS().getSFileLocations(file.getFid()));
       synchronized (dm.cleanQ) {
-        dm.cleanQ.add(new DMRequest(file, DMRequest.DMROperation.RM_PHYSICAL));
+        dm.cleanQ.add(new DMRequest(file, DMRequest.DMROperation.RM_PHYSICAL, 0));
         dm.cleanQ.notify();
       }
       return 0;
@@ -4197,6 +4205,15 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public Node get_node(String node_name) throws MetaException, TException {
       return getMS().getNode(node_name);
+    }
+
+    @Override
+    public List<Node> find_best_nodes(int nr) throws MetaException, TException {
+      try {
+        return dm.findBestNodes(nr);
+      } catch (IOException e) {
+        throw new MetaException(e.getMessage());
+      }
     }
   }
 
