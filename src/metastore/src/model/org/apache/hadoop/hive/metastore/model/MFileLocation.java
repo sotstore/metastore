@@ -4,18 +4,18 @@ package org.apache.hadoop.hive.metastore.model;
 public class MFileLocation {
   private MNode node;
   private MFile file;
-  private String devid;
+  private MDevice dev;
   private String location;
   private int rep_id;
   private long update_time;
   private int visit_status;
   private String digest;
 
-  public MFileLocation(MNode node, MFile file, String devid, String location, int rep_id,
+  public MFileLocation(MNode node, MFile file, MDevice dev, String location, int rep_id,
       long update_time, int visit_status, String digest) {
     this.node = node;
     this.file = file;
-    this.devid = devid;
+    this.dev = dev;
     this.location = location;
     this.rep_id = rep_id;
     this.update_time = update_time;
@@ -35,11 +35,11 @@ public class MFileLocation {
   public void setFile(MFile file) {
     this.file = file;
   }
-  public String getDevid() {
-    return devid;
+  public MDevice getDev() {
+    return dev;
   }
-  public void setDevid(String devid) {
-    this.devid = devid;
+  public void setDev(MDevice dev) {
+    this.dev = dev;
   }
   public String getLocation() {
     return location;

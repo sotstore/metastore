@@ -4179,6 +4179,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
       });
 
+      DiskManager dm = new DiskManager(new HiveConf(DiskManager.class), HMSHandler.LOG);
       startMetaStore(cli.port, ShimLoader.getHadoopThriftAuthBridge(), conf);
     } catch (Throwable t) {
       // Catch the exception, log it and rethrow it.

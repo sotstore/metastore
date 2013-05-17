@@ -100,6 +100,7 @@ import org.apache.hadoop.hive.metastore.model.MBusiTypeColumn;
 import org.apache.hadoop.hive.metastore.model.MColumnDescriptor;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MDatabase;
+import org.apache.hadoop.hive.metastore.model.MDevice;
 import org.apache.hadoop.hive.metastore.model.MFieldSchema;
 import org.apache.hadoop.hive.metastore.model.MFile;
 import org.apache.hadoop.hive.metastore.model.MFileLocation;
@@ -640,6 +641,20 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
+  public void createDevice(MDevice md) throws InvalidObjectException, MetaException {
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      pm.makePersistent(md);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+  }
+
   public void createNode(Node node) throws InvalidObjectException, MetaException {
     boolean commited = false;
 
@@ -700,24 +715,6 @@ public class ObjectStore implements RawStore, Configurable {
   }
 
   public void createTable(Table tbl) throws InvalidObjectException, MetaException {
-//    List<String> ips = Arrays.asList("192.168.1.1", "127.0.0.1");
-    //createNode(new Node("test_node", ips, 100));
-    //createFile(new SFile(10, 10, 3, 4, "abc", 1, 2, null));
-    //createFile(new SFile(20, 10, 5, 6, "xyz", 1, 2, null));
-//    Node n = new Node("abc_node", ips, 1000);
-//    SFile sf = new SFile(0, 10, 5, 6, "xyzadfads", 1, 2, null);
-//    createNode(n);
-//    createFile(sf);
-//    createFileLocation(new SFileLocation(n.getNode_name(), sf.getFid(), "ffffffff", "xxxxxxxxx", 100, 1000, 2, "yyyyy"));
-//
-//    long fid = 0;
-//    MFile mf = getMFile(fid);
-//    if (mf == null) {
-//      LOG.info("Can't get File w/ fid = " + fid);
-//    } else {
-//      LOG.info("Read fid from PM: " + mf.getFid());
-//    }
-
     boolean commited = false;
 
     try {
@@ -942,6 +939,26 @@ public class ObjectStore implements RawStore, Configurable {
     return getTables(dbName, ".*");
   }
 
+  private MDevice getMDevice(String dev_name) {
+    MDevice md = null;
+    boolean commited = false;
+    try {
+      openTransaction();
+      dev_name = dev_name.toLowerCase().trim();
+      Query query = pm.newQuery(MDevice.class, "this.dev_name == dev_name");
+      query.declareParameters("java.lang.String dev_name");
+      query.setUnique(true);
+      md = (MDevice)query.execute(dev_name);
+      pm.retrieve(md);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return md;
+  }
+
   private MNode getMNode(String node_name) {
     MNode mn = null;
     boolean commited = false;
@@ -1102,7 +1119,12 @@ public class ObjectStore implements RawStore, Configurable {
       return null;
     }
 
-    return new MFileLocation(mn, mf, location.getDevid(), location.getLocation(),
+    MDevice md = getMDevice(location.getDevid());
+    if (md == null) {
+      return null;
+    }
+
+    return new MFileLocation(mn, mf, md, location.getLocation(),
         location.getRep_id(), location.getUpdate_time(), location.getVisit_status(), location.getDigest());
   }
 
@@ -5542,4 +5564,28 @@ public class ObjectStore implements RawStore, Configurable {
     return delCnt;
   }
 
+  @Override
+  public Node findNode(String ip) throws MetaException {
+    MNode mn = null;
+    boolean commited = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MNode.class, "this.ips.matches(\".*\" + ip + \".*\")");
+      query.declareParameters("java.lang.String ip");
+      query.setUnique(true);
+      mn = (MNode)query.execute(ip);
+      pm.retrieve(mn);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+
+    if (mn == null) {
+      return null;
+    } else {
+      return convertToNode(mn);
+    }
+  }
 }

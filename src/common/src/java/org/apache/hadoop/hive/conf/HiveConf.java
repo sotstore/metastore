@@ -681,6 +681,8 @@ public class HiveConf extends Configuration {
     SERVER_READ_SOCKET_TIMEOUT("hive.server.read.socket.timeout", 10),
     SERVER_TCP_KEEP_ALIVE("hive.server.tcp.keepalive", true),
 
+    // Disk Manager
+    DISKMANAGERLISTENPORT("hive.diskmanager.listen.port", 20202),
     ;
 
     public final String varname;
