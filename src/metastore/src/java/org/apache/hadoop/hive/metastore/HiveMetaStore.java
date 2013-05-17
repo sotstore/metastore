@@ -116,7 +116,6 @@ import org.apache.hadoop.hive.metastore.events.PreEventContext;
 import org.apache.hadoop.hive.metastore.events.PreLoadPartitionDoneEvent;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
-import org.apache.hadoop.hive.metastore.model.MNode.NodeStatus;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MPartitionPrivilege;
 import org.apache.hadoop.hive.metastore.model.MRole;
@@ -4177,7 +4176,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public Node add_node(String node_name, List<String> ipl) throws MetaException, TException {
-      Node node = new Node(node_name, ipl, NodeStatus.ONLINE);
+      Node node = new Node(node_name, ipl, MetaStoreConst.MNodeStatus.ONLINE);
       getMS().createNode(node);
       return node;
     }

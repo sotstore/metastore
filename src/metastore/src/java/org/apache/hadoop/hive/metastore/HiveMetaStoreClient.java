@@ -1417,4 +1417,13 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     return client.rm_file_physical(file);
   }
 
+  @Override
+  public Node alter_node(String node_name, List<String> ipl, int status) throws MetaException,
+      TException {
+    assert node_name != null;
+    assert ipl != null;
+    assert (status >= 0 && status < MetaStoreConst.MNodeStatus.__MAX__);
+    return client.alter_node(node_name, ipl, status);
+  }
+
 }

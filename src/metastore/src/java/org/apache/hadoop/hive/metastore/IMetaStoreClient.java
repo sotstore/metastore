@@ -987,4 +987,6 @@ public interface IMetaStoreClient {
 
   public Node get_node(String node_name) throws MetaException, TException;
 
+  public Node alter_node(String node_name, List<String> ipl, int status) throws MetaException, TException;
+
 }

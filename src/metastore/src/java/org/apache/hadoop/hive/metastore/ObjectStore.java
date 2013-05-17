@@ -666,6 +666,123 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
+  public List<SFile> findUnderReplicatedFiles() throws MetaException {
+    List<SFile> r = new ArrayList<SFile>();
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      Query q = pm.newQuery(MFile.class);
+      Collection allFiles = (Collection)q.execute();
+      Iterator iter = allFiles.iterator();
+      while (iter.hasNext()) {
+        SFile s = convertToSFile((MFile)iter.next());
+        if (s != null &&
+            (s.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED ||
+             s.getStore_status() == MetaStoreConst.MFileStoreStatus.REPLICATED)) {
+          List<SFileLocation> l = getSFileLocations(s.getFid());
+          int nr = 0;
+
+          for (SFileLocation fl : l) {
+            if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
+              nr++;
+            }
+          }
+          if (s.getRep_nr() > nr) {
+            s.setLocations(l);
+            r.add(s);
+          }
+        }
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+
+    return r;
+  }
+
+  public List<SFile> findOverReplicatedFiles() throws MetaException {
+    List<SFile> r = new ArrayList<SFile>();
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      Query q = pm.newQuery(MFile.class);
+      Collection allFiles = (Collection)q.execute();
+      Iterator iter = allFiles.iterator();
+      while (iter.hasNext()) {
+        SFile s = convertToSFile((MFile)iter.next());
+        if (s != null &&
+            (s.getStore_status() != MetaStoreConst.MFileStoreStatus.INCREATE)) {
+          List<SFileLocation> l = getSFileLocations(s.getFid());
+          int nr = 0;
+
+          for (SFileLocation fl : l) {
+            if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
+              nr++;
+            }
+          }
+          if (s.getRep_nr() < nr) {
+            s.setLocations(l);
+            r.add(s);
+          }
+        }
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+
+    return r;
+  }
+
+  public List<SFile> findLingeringFiles() throws MetaException {
+    List<SFile> r = new ArrayList<SFile>();
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      Query q = pm.newQuery(MFile.class);
+      Collection allFiles = (Collection)q.execute();
+      Iterator iter = allFiles.iterator();
+      while (iter.hasNext()) {
+        SFile s = convertToSFile((MFile)iter.next());
+        if (s != null && s.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_PHYSICAL) {
+          List<SFileLocation> l = getSFileLocations(s.getFid());
+          s.setLocations(l);
+          r.add(s);
+        } else if (s != null && (s.getStore_status() != MetaStoreConst.MFileStoreStatus.INCREATE)) {
+          List<SFileLocation> l = getSFileLocations(s.getFid());
+          int offnr = 0, onnr = 0;
+
+          for (SFileLocation fl : l) {
+            if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
+              onnr++;
+            } else if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.OFFLINE) {
+              offnr++;
+            }
+          }
+          if (s.getRep_nr() <= onnr && offnr > 0) {
+            s.setLocations(l);
+            r.add(s);
+          }
+        }
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+
+    return r;
+  }
+
   public void createDevice(MDevice md) throws InvalidObjectException, MetaException {
     boolean commited = false;
 
@@ -791,7 +908,7 @@ public class ObjectStore implements RawStore, Configurable {
     //createNode(new Node("test_node", ips, 100));
     //createFile(new SFile(10, 10, 3, 4, "abc", 1, 2, null));
     //createFile(new SFile(20, 10, 5, 6, "xyz", 1, 2, null));
-    Node n = new Node("macan", ips, MNode.NodeStatus.SUSPECT);
+    Node n = new Node("macan", ips, MetaStoreConst.MNodeStatus.SUSPECT);
     SFile sf = new SFile(0, 10, 5, 6, "xyzadfads", 1, 2, null);
     createNode(n);
     MDevice md1 = new MDevice(getMNode("macan"), "dev-hello");

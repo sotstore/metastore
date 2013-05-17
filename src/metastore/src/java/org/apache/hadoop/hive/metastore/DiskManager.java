@@ -27,7 +27,6 @@ import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.Table;
-import org.apache.hadoop.hive.metastore.model.MNode;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -109,8 +108,138 @@ public class DiskManager {
     public class DMTimerTask extends TimerTask {
       private int times = 0;
       public static final long timeout = 60 * 1000; //in millisecond
+      public static final long repDelCheck = 60 * 1000;
       public static final long repTimeout = 15 * 60 * 1000;
       public static final long delTimeout = 5 * 60 * 1000;
+
+      private long last_repTs = System.currentTimeMillis();
+      private long last_delTs = System.currentTimeMillis();
+      private long last_scbTs = System.currentTimeMillis();
+
+      public void do_delete(SFile f, int nr) {
+        int i = 0;
+
+        if (nr <= 0) {
+          return;
+        }
+
+        synchronized (ndmap) {
+          for (SFileLocation loc : f.getLocations()) {
+            if (i >= nr) {
+              break;
+            }
+            NodeInfo ni = ndmap.get(loc.getNode_name());
+            if (ni == null) {
+              continue;
+            }
+            synchronized (ni.toDelete) {
+              ni.toDelete.add(loc);
+              i++;
+              LOG.info("----> Add toDelete " + loc.getLocation() + ", qs " + cleanQ.size() + ", "
+                  + f.getLocationsSize());
+            }
+          }
+        }
+      }
+
+      public void do_replicate(SFile f, int nr) {
+        int init_size = f.getLocationsSize();
+        int valid_idx = 0;
+
+        if (init_size <= 0) {
+          LOG.error("Not valid locations for file " + f.getFid());
+          return;
+        }
+        // find the valid entry
+        for (int i = 0; i < init_size; i++) {
+          if (f.getLocations().get(i).getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
+            valid_idx = i;
+            break;
+          }
+        }
+
+        for (int i = init_size; i < (init_size + nr); i++) {
+          try {
+            String node_name = findBestNode();
+            if (node_name == null) {
+              LOG.info("Could not find any best node to replicate file " + f.getFid());
+              break;
+            }
+            String devid = findBestDevice(node_name);
+            if (devid == null) {
+              LOG.info("Could not find any best device to replicate file " + f.getFid());
+              break;
+            }
+            String location = "/data/";
+            Random rand = new Random();
+
+            if (f.getPlacement() > 0) {
+              synchronized (rs) {
+                Table t = rs.getTableByID(f.getPlacement());
+                location += t.getDbName() + "/" + t.getTableName() + "/"
+                    + rand.nextInt(Integer.MAX_VALUE);
+              }
+            } else {
+              location += "UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
+            }
+            SFileLocation nloc = new SFileLocation(node_name, f.getFid(), devid, location,
+                i, System.currentTimeMillis(),
+                MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_REP_DEFAULT");
+            synchronized (rs) {
+              rs.createFileLocation(nloc);
+            }
+            f.addToLocations(nloc);
+
+            // indicate file transfer
+            JSONObject jo = new JSONObject();
+            try {
+              JSONObject j = new JSONObject();
+              NodeInfo ni = ndmap.get(f.getLocations().get(valid_idx).getNode_name());
+
+              if (ni == null) {
+                throw new IOException("Can not find Node '" + node_name + "' in nodemap now, is it offline?");
+                                 }
+              j.put("node_name", f.getLocations().get(valid_idx).getNode_name());
+              j.put("devid", f.getLocations().get(valid_idx).getDevid());
+              j.put("mp", ni.getMP(f.getLocations().get(valid_idx).getDevid()));
+              j.put("location", f.getLocations().get(valid_idx).getLocation());
+              jo.put("from", j);
+
+              j = new JSONObject();
+              ni = ndmap.get(f.getLocations().get(i).getNode_name());
+              if (ni == null) {
+                throw new IOException("Can not find Node '" + node_name + "' in nodemap now, is it offline?");
+              }
+              j.put("node_name", f.getLocations().get(i).getNode_name());
+              j.put("devid", f.getLocations().get(i).getDevid());
+              j.put("mp", ni.getMP(f.getLocations().get(i).getDevid()));
+              j.put("location", f.getLocations().get(i).getLocation());
+              jo.put("to", j);
+            } catch (JSONException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
+            synchronized (ndmap) {
+              NodeInfo ni = ndmap.get(node_name);
+              if (ni == null) {
+                LOG.error("Can not find Node '" + node_name + "' in nodemap now, is it offline?");
+              } else {
+                synchronized (ni.toRep) {
+                  ni.toRep.add(jo);
+                  LOG.info("----> ADD toRep " + jo);
+                }
+              }
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+            break;
+          } catch (MetaException e) {
+            e.printStackTrace();
+          } catch (InvalidObjectException e) {
+            e.printStackTrace();
+          }
+        }
+      }
 
       @Override
       public void run() {
@@ -132,6 +261,113 @@ public class DiskManager {
           synchronized (ndmap) {
             removeFromNDMapWTO(node, System.currentTimeMillis());
           }
+        }
+
+        // check any under/over replicated file
+        if (last_repTs + repDelCheck < System.currentTimeMillis()) {
+          List<SFile> files;
+          Map<SFile, Integer> m = new TreeMap<SFile, Integer>();
+
+          synchronized (rs) {
+            try {
+              files = rs.findUnderReplicatedFiles();
+              for (SFile f : files) {
+                // check whether we should issue a re-replicate command
+                int nr = 0;
+
+                LOG.info("check under replicated files for fid " + f.getFid());
+                for (SFileLocation fl : f.getLocations()) {
+                  if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE ||
+                      (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.OFFLINE &&
+                       fl.getUpdate_time() + repTimeout > System.currentTimeMillis())) {
+                    nr++;
+                  }
+                }
+                if (nr < f.getRep_nr()) {
+                  m.put(f, f.getRep_nr() - nr);
+                }
+              }
+            } catch (MetaException e) {
+              e.printStackTrace();
+            }
+          }
+          for (Map.Entry<SFile, Integer> entry : m.entrySet()) {
+            do_replicate(entry.getKey(), entry.getValue().intValue());
+          }
+          last_repTs = System.currentTimeMillis();
+        }
+
+        if (last_delTs + repDelCheck < System.currentTimeMillis()) {
+          List<SFile> files;
+          Map<SFile, Integer> m = new TreeMap<SFile, Integer>();
+
+          synchronized (rs) {
+            try {
+              files = rs.findOverReplicatedFiles();
+              for (SFile f : files) {
+                // check whether we should issue a del command
+                int nr = 0;
+
+                LOG.info("check over replicated files for fid " + f.getFid());
+                for (SFileLocation fl : f.getLocations()) {
+                  if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
+                    nr++;
+                  }
+                }
+                if (nr > f.getRep_nr()) {
+                  m.put(f, nr - f.getRep_nr());
+                }
+              }
+            } catch (MetaException e) {
+              e.printStackTrace();
+            }
+          }
+          for (Map.Entry<SFile, Integer> entry : m.entrySet()) {
+            do_delete(entry.getKey(), entry.getValue().intValue());
+          }
+          last_delTs = System.currentTimeMillis();
+        }
+
+        // check any unneeded OFFLINE file
+        if (last_scbTs + repDelCheck < System.currentTimeMillis()) {
+          List<SFile> files;
+          Set<SFileLocation> s = new TreeSet<SFileLocation>();
+          Set<SFile> sd = new TreeSet<SFile>();
+
+          synchronized (rs) {
+            try {
+              files = rs.findLingeringFiles();
+              for (SFile f : files) {
+                LOG.info("check lingering files for fid " + f.getFid());
+                if (f.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_PHYSICAL) {
+                  sd.add(f);
+                  continue;
+                }
+                for (SFileLocation fl : f.getLocations()) {
+                  if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.OFFLINE) {
+                    s.add(fl);
+                  }
+                }
+              }
+            } catch (MetaException e) {
+              e.printStackTrace();
+            }
+          }
+          for (SFileLocation fl : s) {
+            synchronized (rs) {
+              try {
+                rs.delSFileLocation(fl.getNode_name(), fl.getDevid(), fl.getLocation());
+              } catch (MetaException e) {
+                e.printStackTrace();
+              }
+            }
+          }
+          for (SFile f : sd) {
+            synchronized (rs) {
+              do_delete(f, f.getLocationsSize());
+            }
+          }
+          last_scbTs = System.currentTimeMillis();
         }
       }
     }
@@ -604,6 +840,8 @@ public class DiskManager {
             dmr.type = DMReply.DMReplyType.DELETED;
             dmr.args = cmds[i].substring(5);
             r.add(dmr);
+          } else if (cmds[i].startsWith("+FAIL:")) {
+            LOG.error("RECV ERR: " + cmds[i]);
           }
         }
 
@@ -705,11 +943,11 @@ public class DiskManager {
             // 1. update Node status
             switch (reportNode.getStatus()) {
             default:
-            case MNode.NodeStatus.ONLINE:
+            case MetaStoreConst.MNodeStatus.ONLINE:
               break;
-            case MNode.NodeStatus.SUSPECT:
+            case MetaStoreConst.MNodeStatus.SUSPECT:
               try {
-                reportNode.setStatus(MNode.NodeStatus.ONLINE);
+                reportNode.setStatus(MetaStoreConst.MNodeStatus.ONLINE);
                 synchronized (rs) {
                   rs.updateNode(reportNode);
                 }
@@ -718,7 +956,7 @@ public class DiskManager {
                 e.printStackTrace();
               }
               break;
-            case MNode.NodeStatus.OFFLINE:
+            case MetaStoreConst.MNodeStatus.OFFLINE:
               LOG.warn("OFFLINE node '" + reportNode.getNode_name() + "' do report!");
               break;
             }
@@ -748,8 +986,10 @@ public class DiskManager {
                     LOG.warn("Invalid REP report: " + r.args);
                   } else {
                     try {
+                      SFileLocation newsfl;
+
                       synchronized (rs) {
-                        SFileLocation newsfl = rs.getSFileLocation(args[0], args[1], args[2]);
+                        newsfl = rs.getSFileLocation(args[0], args[1], args[2]);
                         SFile file = rs.getSFile(newsfl.getFid());
                         toCheckRep.add(file);
                         newsfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);

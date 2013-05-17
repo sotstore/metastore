@@ -460,4 +460,10 @@ public interface RawStore extends Configurable {
 
   public abstract Node findNode(String ip) throws MetaException;
 
+  public List<SFile> findUnderReplicatedFiles() throws MetaException;
+
+  public List<SFile> findOverReplicatedFiles() throws MetaException;
+
+  public List<SFile> findLingeringFiles() throws MetaException;
+
 }
