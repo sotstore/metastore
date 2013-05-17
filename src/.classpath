@@ -105,8 +105,7 @@
 	<classpathentry kind="src" path="pdk/test-plugin/src"/>
 	<classpathentry kind="src" path="builtins/src"/>
 	<classpathentry kind="src" path="cli/src/test"/>
-	<classpathentry kind="lib" path="/home/dennis/workspace/hive-0.10.0/lib/ezmorph-1.0.6.jar"/>
-	<classpathentry kind="lib" path="/home/dennis/workspace/hive-0.10.0/lib/json-lib-2.4-jdk15.jar"/>
-	<classpathentry kind="lib" path="/home/dennis/workspace/riversql/web/WEB-INF/lib/commons-beanutils-1.6.1.jar"/>
+	<classpathentry kind="lib" path="lib/ezmorph-1.0.6.jar"/>
+	<classpathentry kind="lib" path="lib/json-lib-2.4-jdk15.jar"/>
 	<classpathentry kind="output" path="build/eclipse-classes"/>
 </classpath>
