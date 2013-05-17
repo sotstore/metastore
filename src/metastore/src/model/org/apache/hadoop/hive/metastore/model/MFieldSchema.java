@@ -17,9 +17,10 @@
  */
 
 /**
- * 
+ *
  */
 package org.apache.hadoop.hive.metastore.model;
+
 
 /**
  * Represent a column or a type of a table or object
@@ -28,6 +29,7 @@ public class MFieldSchema {
   private String name;
   private String type;
   private String comment;
+
   public MFieldSchema() {}
 
   /**
@@ -40,6 +42,7 @@ public class MFieldSchema {
     this.name = name;
     this.type = type;
   }
+
   /**
    * @return the name
    */
@@ -76,5 +79,6 @@ public class MFieldSchema {
   public void setType(String field) {
     this.type = field;
   }
-  
+
+
 }

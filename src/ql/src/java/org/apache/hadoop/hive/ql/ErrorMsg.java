@@ -330,7 +330,9 @@ public enum ErrorMsg {
   COLUMNSTATSCOLLECTOR_INVALID_SYNTAX(30008, "Dynamic partitioning is not supported yet while " +
     "gathering column statistics through ANALYZE statement"),
   COLUMNSTATSCOLLECTOR_PARSE_ERROR(30009, "Encountered parse error while parsing rewritten query"),
-  COLUMNSTATSCOLLECTOR_IO_ERROR(30010, "Encountered I/O exception while parsing rewritten query")
+  COLUMNSTATSCOLLECTOR_IO_ERROR(30010, "Encountered I/O exception while parsing rewritten query"),
+  //added by zjw
+  PARTITIONCOLUMNNOTEXIST_ERROR(40001, "Partition column not exist")
     ;
 
   private int errorCode;

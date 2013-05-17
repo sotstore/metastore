@@ -62,6 +62,7 @@ import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
@@ -80,6 +81,7 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Role;
+import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -1081,6 +1083,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         final EnvironmentContext envContext) throws AlreadyExistsException,
         MetaException, InvalidObjectException {
       startFunction("create_table", ": " + tbl.toString());
+
+      LOG.warn("----zjw--creating table");
       boolean success = false;
       Exception ex = null;
       try {
@@ -2320,6 +2324,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public List<String> get_tables(final String dbname, final String pattern)
         throws MetaException {
       startFunction("get_tables", ": db=" + dbname + " pat=" + pattern);
+
+      LOG.warn("-----zjw--haha ");
 
       List<String> ret = null;
       Exception ex = null;
@@ -3994,6 +4000,44 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         TException {
       Collections.addAll(groupNames, username);
       return groupNames;
+    }
+
+    @Override
+    public SFile create_file(String node_name, int repnr, String table_name)
+        throws FileOperationException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public int close_file(SFile file) throws FileOperationException, MetaException, TException {
+      // TODO Auto-generated method stub
+      return 0;
+    }
+
+    @Override
+    public SFile get_file_by_id(long fid) throws FileOperationException, MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public int rm_file_logical(SFile file) throws FileOperationException, MetaException, TException {
+      // TODO Auto-generated method stub
+      return 0;
+    }
+
+    @Override
+    public int restore_file(SFile file) throws FileOperationException, MetaException, TException {
+      // TODO Auto-generated method stub
+      return 0;
+    }
+
+    @Override
+    public int rm_file_physical(SFile file) throws FileOperationException, MetaException,
+        TException {
+      // TODO Auto-generated method stub
+      return 0;
     }
   }
 

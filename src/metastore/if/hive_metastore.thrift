@@ -41,6 +41,7 @@ struct FieldSchema {
   3: string comment
 }
 
+
 struct Type {
   1: string          name,             // one of the types in PrimitiveTypes or CollectionTypes or User defined types
   2: optional string type1,            // object type if the name is 'list' (LIST_TYPE), key type if the name is 'map' (MAP_TYPE)
@@ -118,13 +119,23 @@ struct Role {
   3: string ownerName,
 }
 
+// namespace for dbs
+struct Datacenter {
+  1: string name,
+  2: string description,
+  3: string locationUri,
+  4: map<string, string> parameters, // properties associated with the database
+  5: optional PrincipalPrivilegeSet privileges
+}
+
 // namespace for tables
 struct Database {
   1: string name,
   2: string description,
   3: string locationUri,
   4: map<string, string> parameters, // properties associated with the database
-  5: optional PrincipalPrivilegeSet privileges
+  5: optional PrincipalPrivilegeSet privileges,
+  6: optional Datacenter datacenter
 }
 
 // This object holds the information needed by SerDes
@@ -163,6 +174,34 @@ struct StorageDescriptor {
   12: optional bool   storedAsSubDirectories       // stored as subdirectories or not
 }
 
+
+struct Subpartition {
+  1: list<string> values // string value is converted to appropriate partition key type
+  2: string       dbName,
+  3: string       tableName,
+  4: i32          createTime,
+  5: i32          lastAccessTime,
+  6: StorageDescriptor   sd,
+  7: map<string, string> parameters,
+  8: optional string       partitionName,
+  9: optional i32 version,
+  10: optional PrincipalPrivilegeSet privileges
+}
+
+struct Partition {
+  1: list<string> values // string value is converted to appropriate partition key type
+  2: string       dbName,
+  3: string       tableName,
+  4: i32          createTime,
+  5: i32          lastAccessTime,
+  6: StorageDescriptor   sd,
+  7: map<string, string> parameters,
+  8: optional string       partitionName,
+  9: optional list<Subpartition> subpartitions,
+  10: optional i32 version,
+  11: optional PrincipalPrivilegeSet privileges
+}
+
 // table information
 struct Table {
   1: string tableName,                // name of the table
@@ -178,6 +217,7 @@ struct Table {
   11: string viewExpandedText,         // expanded view text, null for non-view
   12: string tableType,                 // table type enum, e.g. EXTERNAL_TABLE
   13: optional PrincipalPrivilegeSet privileges,
+  14: optional list<Partition> partitions,
 }
 
 struct Node {
@@ -208,16 +248,6 @@ struct SFile {
   8: list<SFileLocation> locations,
 }
 
-struct Partition {
-  1: list<string> values // string value is converted to appropriate partition key type
-  2: string       dbName,
-  3: string       tableName,
-  4: i32          createTime,
-  5: i32          lastAccessTime,
-  6: StorageDescriptor   sd,
-  7: map<string, string> parameters,
-  8: optional PrincipalPrivilegeSet privileges
-}
 
 struct Index {
   1: string       indexName, // unique with in the whole database namespace

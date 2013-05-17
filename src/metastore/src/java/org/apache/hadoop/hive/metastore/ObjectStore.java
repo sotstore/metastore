@@ -23,7 +23,6 @@ import static org.apache.commons.lang.StringUtils.join;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -91,11 +90,13 @@ import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.StringColumnStatsData;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.model.MBusiTypeColumn;
 import org.apache.hadoop.hive.metastore.model.MColumnDescriptor;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MDatabase;
@@ -121,6 +122,7 @@ import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTableColumnStatistics;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
 import org.apache.hadoop.hive.metastore.model.MType;
+import org.apache.hadoop.hive.metastore.msg.MSGFactory;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree.ANTLRNoCaseStringStream;
 import org.apache.hadoop.hive.metastore.parser.FilterLexer;
 import org.apache.hadoop.hive.metastore.parser.FilterParser;
@@ -402,6 +404,9 @@ public class ObjectStore implements RawStore, Configurable {
         rollbackTransaction();
       }
     }
+    LOG.warn("---zjw---in createdatabase");
+    MSGFactory.generateDDLMsg(org.apache.hadoop.hive.metastore.msg.MSGType.MSG_NEW_DATABESE,
+        (pm.getObjectId(mdb)),mdb);
   }
 
   @SuppressWarnings("nls")
@@ -695,25 +700,26 @@ public class ObjectStore implements RawStore, Configurable {
   }
 
   public void createTable(Table tbl) throws InvalidObjectException, MetaException {
-    List<String> ips = Arrays.asList("192.168.1.1", "127.0.0.1");
+//    List<String> ips = Arrays.asList("192.168.1.1", "127.0.0.1");
     //createNode(new Node("test_node", ips, 100));
     //createFile(new SFile(10, 10, 3, 4, "abc", 1, 2, null));
     //createFile(new SFile(20, 10, 5, 6, "xyz", 1, 2, null));
-    Node n = new Node("abc_node", ips, 1000);
-    SFile sf = new SFile(0, 10, 5, 6, "xyzadfads", 1, 2, null);
-    createNode(n);
-    createFile(sf);
-    createFileLocation(new SFileLocation(n.getNode_name(), sf.getFid(), "ffffffff", "xxxxxxxxx", 100, 1000, 2, "yyyyy"));
-
-    long fid = 0;
-    MFile mf = getMFile(fid);
-    if (mf == null) {
-      LOG.info("Can't get File w/ fid = " + fid);
-    } else {
-      LOG.info("Read fid from PM: " + mf.getFid());
-    }
+//    Node n = new Node("abc_node", ips, 1000);
+//    SFile sf = new SFile(0, 10, 5, 6, "xyzadfads", 1, 2, null);
+//    createNode(n);
+//    createFile(sf);
+//    createFileLocation(new SFileLocation(n.getNode_name(), sf.getFid(), "ffffffff", "xxxxxxxxx", 100, 1000, 2, "yyyyy"));
+//
+//    long fid = 0;
+//    MFile mf = getMFile(fid);
+//    if (mf == null) {
+//      LOG.info("Can't get File w/ fid = " + fid);
+//    } else {
+//      LOG.info("Read fid from PM: " + mf.getFid());
+//    }
 
     boolean commited = false;
+
     try {
       openTransaction();
       MTable mtbl = convertToMTable(tbl);
@@ -733,7 +739,43 @@ public class ObjectStore implements RawStore, Configurable {
         putPersistentPrivObjects(mtbl, toPersistPrivObjs, now, rolePrivs, PrincipalType.ROLE);
       }
       pm.makePersistentAll(toPersistPrivObjs);
+      if(mtbl.getSd().getCD().getCols() != null){//增加业务类型查询支持
+        List<MBusiTypeColumn> bcs = new ArrayList<MBusiTypeColumn>();
+        for(MFieldSchema f : mtbl.getSd().getCD().getCols()){
+          String cmet = f.getComment();
+          if(cmet != null && cmet.indexOf(MetaStoreUtils.BUSI_TYPES_PREFIX)>=0){
+            int pos = cmet.indexOf(MetaStoreUtils.BUSI_TYPES_PREFIX);// ip/tel/time/content
+            for(String type : MetaStoreUtils.BUSI_TYPES){
+              if( cmet.length() - pos >= type.length()
+                  && type.equals(cmet.substring(pos,type.length()).toLowerCase())){
+                MBusiTypeColumn bc = new MBusiTypeColumn(type,mtbl,f);
+                bcs.add(bc);
+              }
+            }
+          }
+        }
+        if(!bcs.isEmpty()){
+          LOG.warn("--zjw--getPartitions is not null,size:"+bcs.size());
+          pm.makePersistentAll(bcs);
+        }else{
+          LOG.warn("--zjw--getPartitions is null ");
+        }
+      }
+
+
+      if(tbl.getPartitions() != null && !tbl.getPartitions().isEmpty()){//存储分区
+        LOG.warn("--zjw--getPartitions is not null,size:"+tbl.getPartitionsSize());
+        List<MPartition> mparts = convertToMParts(tbl.getPartitions(),false,tbl.getDbName());
+        pm.makePersistentAll(mparts);
+      }else{
+        LOG.warn("--zjw--getPartitions is null ");
+      }
+
       commited = commitTransaction();
+
+
+
+
     } finally {
       if (!commited) {
         rollbackTransaction();
@@ -1447,10 +1489,74 @@ public class ObjectStore implements RawStore, Configurable {
       msd = convertToMStorageDescriptor(part.getSd());
     }
 
-    return new MPartition(Warehouse.makePartName(convertToFieldSchemas(mt
-        .getPartitionKeys()), part.getValues()), mt, part.getValues(), part
+//    return new MPartition(Warehouse.makePartName(convertToFieldSchemas(mt
+//        .getPartitionKeys()), part.getValues()), mt, part.getValues(), part
+//        .getCreateTime(), part.getLastAccessTime(),
+//        msd, part.getParameters());
+    return new MPartition(part.getPartitionName(), mt, part.getValues(), part
         .getCreateTime(), part.getLastAccessTime(),
         msd, part.getParameters());
+  }
+
+  private MPartition convertToMPartFromSubpartition(Subpartition part, boolean useTableCD)
+      throws InvalidObjectException, MetaException {
+    if (part == null) {
+      return null;
+    }
+    MTable mt = getMTable(part.getDbName(), part.getTableName());
+    if (mt == null) {
+      throw new InvalidObjectException(
+          "Partition doesn't have a valid table or database name");
+    }
+
+    // If this partition's set of columns is the same as the parent table's,
+    // use the parent table's, so we do not create a duplicate column descriptor,
+    // thereby saving space
+    MStorageDescriptor msd;
+    if (useTableCD &&
+        mt.getSd() != null && mt.getSd().getCD() != null &&
+        mt.getSd().getCD().getCols() != null &&
+        part.getSd() != null &&
+        convertToFieldSchemas(mt.getSd().getCD().getCols()).
+        equals(part.getSd().getCols())) {
+      msd = convertToMStorageDescriptor(part.getSd(), mt.getSd().getCD());
+    } else {
+      msd = convertToMStorageDescriptor(part.getSd());
+    }
+
+//    return new MPartition(Warehouse.makePartName(convertToFieldSchemas(mt
+//        .getPartitionKeys()), part.getValues()), mt, part.getValues(), part
+//        .getCreateTime(), part.getLastAccessTime(),
+//        msd, part.getParameters());
+    return new MPartition(part.getPartitionName(), mt, part.getValues(), part
+        .getCreateTime(), part.getLastAccessTime(),
+        msd, part.getParameters());
+  }
+
+  public List<MPartition> convertToMParts(List<Partition> parts, boolean useTableCD, String dbName)
+      throws InvalidObjectException, MetaException {
+    if(parts == null) {
+      return null;
+    }
+    List<MPartition> mparts = new ArrayList<MPartition>();
+    for(Partition p :parts){
+      p.setDbName(dbName);
+      MPartition part = this.convertToMPart(p,useTableCD);
+      mparts.add(part);
+      if(p.getSubpartitions() != null){
+        LOG.warn("--zjw--getSubPartitions is not null,size"+p.getSubpartitions().size());
+        for(Subpartition sub : p.getSubpartitions()){
+          sub.setDbName(dbName);
+          MPartition sub_part = convertToMPartFromSubpartition(sub,useTableCD);
+          sub_part.setParent(part);
+          part.getSubPartitions().add(sub_part);
+        }
+      }else{
+        LOG.warn("--zjw--getSubPartitions is  null");
+      }
+
+    }
+    return mparts;
   }
 
   private Partition convertToPart(MPartition mpart) throws MetaException {

@@ -115,6 +115,7 @@ import org.apache.hadoop.hive.ql.optimizer.physical.PhysicalContext;
 import org.apache.hadoop.hive.ql.optimizer.physical.PhysicalOptimizer;
 import org.apache.hadoop.hive.ql.optimizer.unionproc.UnionProcContext;
 import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer.tableSpec.SpecType;
+import org.apache.hadoop.hive.ql.parse.PartitionFactory.PartitionDefinition;
 import org.apache.hadoop.hive.ql.plan.AggregationDesc;
 import org.apache.hadoop.hive.ql.plan.ColumnStatsDesc;
 import org.apache.hadoop.hive.ql.plan.ColumnStatsWork;
@@ -8595,6 +8596,9 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     StorageFormat storageFormat = new StorageFormat();
     AnalyzeCreateCommonVars shared = new AnalyzeCreateCommonVars();
 
+    //added by zjw
+    PartitionDefinition pd = new PartitionDefinition();
+
     LOG.info("Creating table " + tableName + " position="
         + ast.getCharPositionInLine());
     int numCh = ast.getChildCount();
@@ -8661,8 +8665,13 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       case HiveParser.TOK_TABLECOMMENT:
         comment = unescapeSQLString(child.getChild(0).getText());
         break;
-      case HiveParser.TOK_TABLEPARTCOLS:
-        partCols = getColumns((ASTNode) child.getChild(0), false);
+//      case HiveParser.TOK_TABLEPARTCOLS:
+//        partCols = getColumns((ASTNode) child.getChild(0), false);
+      case HiveParser.TOK_PARTITIONED_BY:
+        pd.setTableName(tableName);
+        partCols = analyzePartitionClause((ASTNode) child, pd);
+        List<org.apache.hadoop.hive.metastore.api.Partition> ps = pd.toPartitionList();
+        int g=1;
         break;
       case HiveParser.TOK_TABLEBUCKETS:
         bucketCols = getColumnNames((ASTNode) child.getChild(0));
@@ -8752,6 +8761,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
           storageFormat.storageHandler, shared.serdeProps, tblProps, ifNotExists, skewedColNames,
           skewedValues);
       crtTblDesc.setStoredAsSubDirectories(storedAsDirs);
+      //added by zjw
+      crtTblDesc.setPartitions(pd.toPartitionList());
 
       crtTblDesc.validate();
       // outputs is empty, which means this create table happens in the current
