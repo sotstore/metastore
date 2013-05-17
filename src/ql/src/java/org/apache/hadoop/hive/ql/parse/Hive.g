@@ -520,13 +520,13 @@ addNodeStatement
 @after { msgs.pop(); }
     : KW_ADD KW_NODE LPAREN name=Identifier COMMA status=Identifier COMMA ip=Identifier RPAREN 
         (KW_WITH KW_NODEPROPERTIES nodeprops=nodeProperties)?
-    -> ^(TOK_ADDNODE $name $status $ip $nodeProperties?)
+    -> ^(TOK_ADDNODE $name $status $ip $nodeprops?)
         ;
 nodeProperties
 @init { msgs.push("nodeproperties"); }
 @after { msgs.pop(); }
     :
-      LPAREN dcPropertiesList RPAREN -> ^(TOK_NODERPROPERTIES nodePropertiesList)
+      LPAREN nodePropertiesList RPAREN -> ^(TOK_NODERPROPERTIES nodePropertiesList)
     ;
 nodePropertiesList
 @init { msgs.push("node properties list"); }
@@ -548,7 +548,7 @@ alterNodeStatement
 @after { msgs.pop(); }
     :  KW_MODIFY KW_NODE LPAREN name=Identifier COMMA status=Identifier COMMA ip=Identifier RPAREN 
         (KW_WITH KW_NODEPROPERTIES nodeprops=nodeProperties)?
-    -> ^(TOK_MODIFYNODE $name $status $ip $nodeProperties?)
+    -> ^(TOK_MODIFYNODE $name $status $ip $nodeprops?)
     ;
 //end of node
 
@@ -787,9 +787,9 @@ alterIndexStatementSuffix
     ;
 
  alterStatementSuffixDropPartitionIndexs
- @init { msgs.push("drop partition statement"); }
-@after { msgs.pop(); }
-    :KW_DROP KW_PARTITION partition_name=partitionName  
+ @init { msgs.push("drop partition index statement"); }
+ @after { msgs.pop(); }
+   :KW_DROP KW_PARTITION partition_name=partitionName  
     -> ^(TOK_ALTERINDEX_DROP_PARTINDEXS $partition_name )
     |KW_DROP KW_SUBPARTITION partition_name=partitionName 
     -> ^(TOK_ALTERINDEX_DROP_SUBPARTINDEXS $partition_name )
@@ -798,16 +798,16 @@ alterIndexStatementSuffix
   alterStatementSuffixAddPartitionIndexs
   @init { msgs.push("add partition index statement"); }
   @after { msgs.pop(); }
-    : KW_ADD KW_PARTITION partition_name=partitionName 
+   : KW_ADD KW_PARTITION partition_name=partitionName 
     -> ^(TOK_ALTERINDEX_ADD_PARTINDEXS $partition_name )
     |KW_ADD KW_SUBPARTITION partition_name=partitionName   
-    -> ^(TOK_ALTERINDEX_ADD_SUBPARTINDEXS $partition_name 
+    -> ^(TOK_ALTERINDEX_ADD_SUBPARTINDEXS $partition_name)
     ;
     
-    alterStatementSuffixModiFyPartitionIndexDropFiles
-    @init { msgs.push("add partition index file statement"); }
-    @after { msgs.pop(); }
-    :KW_ADD KW_PARTITION KW_ADD partition_name=partitionName  KW_ADD KW_FILE file_id=Identifier
+  alterStatementSuffixModiFyPartitionIndexDropFiles
+  @init { msgs.push("add partition index file statement"); }
+  @after { msgs.pop(); }
+   :KW_ADD KW_PARTITION KW_ADD partition_name=partitionName  KW_ADD KW_FILE file_id=Identifier
     -> ^(TOK_ALTERINDEX_MODIFY_PARTITION_ADD_FILE $partition_name $file_id)
     |KW_MODIFY KW_SUBPARTITION partition_name=partitionName  KW_ADD KW_FILE file_id=Identifier
     -> ^(TOK_ALTERINDEX_MODIFY_SUBPARTITION_ADD_FILE $partition_name $file_id)
