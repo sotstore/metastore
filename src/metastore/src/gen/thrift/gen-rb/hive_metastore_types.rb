@@ -239,7 +239,7 @@ class Role
   ::Thrift::Struct.generate_accessors self
 end
 
-class Database
+class Datacenter
   include ::Thrift::Struct, ::Thrift::Struct_Union
   NAME = 1
   DESCRIPTION = 2
@@ -253,6 +253,32 @@ class Database
     LOCATIONURI => {:type => ::Thrift::Types::STRING, :name => 'locationUri'},
     PARAMETERS => {:type => ::Thrift::Types::MAP, :name => 'parameters', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}},
     PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
+class Database
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  NAME = 1
+  DESCRIPTION = 2
+  LOCATIONURI = 3
+  PARAMETERS = 4
+  PRIVILEGES = 5
+  DATACENTER = 6
+
+  FIELDS = {
+    NAME => {:type => ::Thrift::Types::STRING, :name => 'name'},
+    DESCRIPTION => {:type => ::Thrift::Types::STRING, :name => 'description'},
+    LOCATIONURI => {:type => ::Thrift::Types::STRING, :name => 'locationUri'},
+    PARAMETERS => {:type => ::Thrift::Types::MAP, :name => 'parameters', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}},
+    PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true},
+    DATACENTER => {:type => ::Thrift::Types::STRUCT, :name => 'datacenter', :class => ::Datacenter, :optional => true}
   }
 
   def struct_fields; FIELDS; end

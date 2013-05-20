@@ -919,7 +919,7 @@
       </field>
     </class>
     
-    <class name="MNode" table="	" identity-type="datastore" detachable="true">
+    <class name="MNode" table="NODES" identity-type="datastore" detachable="true">
       <index name="UniqueNode" unique="true">
         <column name="NODE_ID"/>
         <column name="NODE_NAME"/>

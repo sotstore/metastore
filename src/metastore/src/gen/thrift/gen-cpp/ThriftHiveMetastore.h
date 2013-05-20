@@ -16,6 +16,22 @@ namespace Apache { namespace Hadoop { namespace Hive {
 class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookServiceIf {
  public:
   virtual ~ThriftHiveMetastoreIf() {}
+  virtual void create_datacenter(const Datacenter& datacenter) = 0;
+  virtual void get_center(Datacenter& _return, const std::string& name) = 0;
+  virtual void drop_center(const std::string& name, const bool deleteData, const bool cascade) = 0;
+  virtual void get_all_centers(std::vector<std::string> & _return) = 0;
+  virtual void get_local_center(Datacenter& _return) = 0;
+  virtual void get_lucene_index_names(std::vector<std::string> & _return, const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes) = 0;
+  virtual int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files) = 0;
+  virtual int32_t drop_partition_files(const Partition& part, const std::vector<SFile> & files) = 0;
+  virtual int32_t add_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files) = 0;
+  virtual int32_t drop_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files) = 0;
+  virtual bool add_partition_index(const Index& index, const Partition& part) = 0;
+  virtual bool drop_partition_index(const Index& index, const Partition& part) = 0;
+  virtual bool add_subpartition_index(const Index& index, const Partition& part) = 0;
+  virtual bool drop_subpartition_index(const Index& index, const Partition& part) = 0;
+  virtual int32_t add_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file) = 0;
+  virtual int32_t drop_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file) = 0;
   virtual void create_database(const Database& database) = 0;
   virtual void get_database(Database& _return, const std::string& name) = 0;
   virtual void drop_database(const std::string& name, const bool deleteData, const bool cascade) = 0;
@@ -102,6 +118,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual int32_t del_node(const std::string& node_name) = 0;
   virtual void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status) = 0;
   virtual void find_best_nodes(std::vector<Node> & _return, const int32_t nr) = 0;
+  virtual void get_all_nodes(std::vector<Node> & _return) = 0;
 };
 
 class ThriftHiveMetastoreIfFactory : virtual public  ::facebook::fb303::FacebookServiceIfFactory {
@@ -131,6 +148,64 @@ class ThriftHiveMetastoreIfSingletonFactory : virtual public ThriftHiveMetastore
 class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual public  ::facebook::fb303::FacebookServiceNull {
  public:
   virtual ~ThriftHiveMetastoreNull() {}
+  void create_datacenter(const Datacenter& /* datacenter */) {
+    return;
+  }
+  void get_center(Datacenter& /* _return */, const std::string& /* name */) {
+    return;
+  }
+  void drop_center(const std::string& /* name */, const bool /* deleteData */, const bool /* cascade */) {
+    return;
+  }
+  void get_all_centers(std::vector<std::string> & /* _return */) {
+    return;
+  }
+  void get_local_center(Datacenter& /* _return */) {
+    return;
+  }
+  void get_lucene_index_names(std::vector<std::string> & /* _return */, const std::string& /* db_name */, const std::string& /* tbl_name */, const int16_t /* max_indexes */) {
+    return;
+  }
+  int32_t add_partition_files(const Partition& /* part */, const std::vector<SFile> & /* files */) {
+    int32_t _return = 0;
+    return _return;
+  }
+  int32_t drop_partition_files(const Partition& /* part */, const std::vector<SFile> & /* files */) {
+    int32_t _return = 0;
+    return _return;
+  }
+  int32_t add_subpartition_files(const Subpartition& /* subpart */, const std::vector<SFile> & /* files */) {
+    int32_t _return = 0;
+    return _return;
+  }
+  int32_t drop_subpartition_files(const Subpartition& /* subpart */, const std::vector<SFile> & /* files */) {
+    int32_t _return = 0;
+    return _return;
+  }
+  bool add_partition_index(const Index& /* index */, const Partition& /* part */) {
+    bool _return = false;
+    return _return;
+  }
+  bool drop_partition_index(const Index& /* index */, const Partition& /* part */) {
+    bool _return = false;
+    return _return;
+  }
+  bool add_subpartition_index(const Index& /* index */, const Partition& /* part */) {
+    bool _return = false;
+    return _return;
+  }
+  bool drop_subpartition_index(const Index& /* index */, const Partition& /* part */) {
+    bool _return = false;
+    return _return;
+  }
+  int32_t add_partition_index_files(const Index& /* index */, const Partition& /* part */, const std::vector<SFile> & /* file */) {
+    int32_t _return = 0;
+    return _return;
+  }
+  int32_t drop_partition_index_files(const Index& /* index */, const Partition& /* part */, const std::vector<SFile> & /* file */) {
+    int32_t _return = 0;
+    return _return;
+  }
   void create_database(const Database& /* database */) {
     return;
   }
@@ -412,6 +487,1943 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void find_best_nodes(std::vector<Node> & /* _return */, const int32_t /* nr */) {
     return;
   }
+  void get_all_nodes(std::vector<Node> & /* _return */) {
+    return;
+  }
+};
+
+typedef struct _ThriftHiveMetastore_create_datacenter_args__isset {
+  _ThriftHiveMetastore_create_datacenter_args__isset() : datacenter(false) {}
+  bool datacenter;
+} _ThriftHiveMetastore_create_datacenter_args__isset;
+
+class ThriftHiveMetastore_create_datacenter_args {
+ public:
+
+  ThriftHiveMetastore_create_datacenter_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_create_datacenter_args() throw() {}
+
+  Datacenter datacenter;
+
+  _ThriftHiveMetastore_create_datacenter_args__isset __isset;
+
+  void __set_datacenter(const Datacenter& val) {
+    datacenter = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_create_datacenter_args & rhs) const
+  {
+    if (!(datacenter == rhs.datacenter))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_create_datacenter_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_create_datacenter_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_create_datacenter_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_create_datacenter_pargs() throw() {}
+
+  const Datacenter* datacenter;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_create_datacenter_result__isset {
+  _ThriftHiveMetastore_create_datacenter_result__isset() : o1(false), o2(false), o3(false) {}
+  bool o1;
+  bool o2;
+  bool o3;
+} _ThriftHiveMetastore_create_datacenter_result__isset;
+
+class ThriftHiveMetastore_create_datacenter_result {
+ public:
+
+  ThriftHiveMetastore_create_datacenter_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_create_datacenter_result() throw() {}
+
+  AlreadyExistsException o1;
+  InvalidObjectException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_create_datacenter_result__isset __isset;
+
+  void __set_o1(const AlreadyExistsException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const InvalidObjectException& val) {
+    o2 = val;
+  }
+
+  void __set_o3(const MetaException& val) {
+    o3 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_create_datacenter_result & rhs) const
+  {
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    if (!(o3 == rhs.o3))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_create_datacenter_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_create_datacenter_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_create_datacenter_presult__isset {
+  _ThriftHiveMetastore_create_datacenter_presult__isset() : o1(false), o2(false), o3(false) {}
+  bool o1;
+  bool o2;
+  bool o3;
+} _ThriftHiveMetastore_create_datacenter_presult__isset;
+
+class ThriftHiveMetastore_create_datacenter_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_create_datacenter_presult() throw() {}
+
+  AlreadyExistsException o1;
+  InvalidObjectException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_create_datacenter_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_get_center_args__isset {
+  _ThriftHiveMetastore_get_center_args__isset() : name(false) {}
+  bool name;
+} _ThriftHiveMetastore_get_center_args__isset;
+
+class ThriftHiveMetastore_get_center_args {
+ public:
+
+  ThriftHiveMetastore_get_center_args() : name() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_center_args() throw() {}
+
+  std::string name;
+
+  _ThriftHiveMetastore_get_center_args__isset __isset;
+
+  void __set_name(const std::string& val) {
+    name = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_center_args & rhs) const
+  {
+    if (!(name == rhs.name))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_center_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_center_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_get_center_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_center_pargs() throw() {}
+
+  const std::string* name;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_center_result__isset {
+  _ThriftHiveMetastore_get_center_result__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_get_center_result__isset;
+
+class ThriftHiveMetastore_get_center_result {
+ public:
+
+  ThriftHiveMetastore_get_center_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_center_result() throw() {}
+
+  Datacenter success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_get_center_result__isset __isset;
+
+  void __set_success(const Datacenter& val) {
+    success = val;
+  }
+
+  void __set_o1(const NoSuchObjectException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const MetaException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_center_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_center_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_center_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_center_presult__isset {
+  _ThriftHiveMetastore_get_center_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_get_center_presult__isset;
+
+class ThriftHiveMetastore_get_center_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_center_presult() throw() {}
+
+  Datacenter* success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_get_center_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_center_args__isset {
+  _ThriftHiveMetastore_drop_center_args__isset() : name(false), deleteData(false), cascade(false) {}
+  bool name;
+  bool deleteData;
+  bool cascade;
+} _ThriftHiveMetastore_drop_center_args__isset;
+
+class ThriftHiveMetastore_drop_center_args {
+ public:
+
+  ThriftHiveMetastore_drop_center_args() : name(), deleteData(0), cascade(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_center_args() throw() {}
+
+  std::string name;
+  bool deleteData;
+  bool cascade;
+
+  _ThriftHiveMetastore_drop_center_args__isset __isset;
+
+  void __set_name(const std::string& val) {
+    name = val;
+  }
+
+  void __set_deleteData(const bool val) {
+    deleteData = val;
+  }
+
+  void __set_cascade(const bool val) {
+    cascade = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_center_args & rhs) const
+  {
+    if (!(name == rhs.name))
+      return false;
+    if (!(deleteData == rhs.deleteData))
+      return false;
+    if (!(cascade == rhs.cascade))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_center_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_center_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_drop_center_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_center_pargs() throw() {}
+
+  const std::string* name;
+  const bool* deleteData;
+  const bool* cascade;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_center_result__isset {
+  _ThriftHiveMetastore_drop_center_result__isset() : o1(false), o2(false), o3(false) {}
+  bool o1;
+  bool o2;
+  bool o3;
+} _ThriftHiveMetastore_drop_center_result__isset;
+
+class ThriftHiveMetastore_drop_center_result {
+ public:
+
+  ThriftHiveMetastore_drop_center_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_center_result() throw() {}
+
+  NoSuchObjectException o1;
+  InvalidOperationException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_drop_center_result__isset __isset;
+
+  void __set_o1(const NoSuchObjectException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const InvalidOperationException& val) {
+    o2 = val;
+  }
+
+  void __set_o3(const MetaException& val) {
+    o3 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_center_result & rhs) const
+  {
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    if (!(o3 == rhs.o3))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_center_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_center_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_center_presult__isset {
+  _ThriftHiveMetastore_drop_center_presult__isset() : o1(false), o2(false), o3(false) {}
+  bool o1;
+  bool o2;
+  bool o3;
+} _ThriftHiveMetastore_drop_center_presult__isset;
+
+class ThriftHiveMetastore_drop_center_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_center_presult() throw() {}
+
+  NoSuchObjectException o1;
+  InvalidOperationException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_drop_center_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class ThriftHiveMetastore_get_all_centers_args {
+ public:
+
+  ThriftHiveMetastore_get_all_centers_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_all_centers_args() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_get_all_centers_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_all_centers_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_all_centers_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_get_all_centers_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_all_centers_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_all_centers_result__isset {
+  _ThriftHiveMetastore_get_all_centers_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_get_all_centers_result__isset;
+
+class ThriftHiveMetastore_get_all_centers_result {
+ public:
+
+  ThriftHiveMetastore_get_all_centers_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_all_centers_result() throw() {}
+
+  std::vector<std::string>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_get_all_centers_result__isset __isset;
+
+  void __set_success(const std::vector<std::string> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_all_centers_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_all_centers_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_all_centers_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_all_centers_presult__isset {
+  _ThriftHiveMetastore_get_all_centers_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_get_all_centers_presult__isset;
+
+class ThriftHiveMetastore_get_all_centers_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_all_centers_presult() throw() {}
+
+  std::vector<std::string> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_get_all_centers_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class ThriftHiveMetastore_get_local_center_args {
+ public:
+
+  ThriftHiveMetastore_get_local_center_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_local_center_args() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_get_local_center_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_local_center_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_local_center_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_get_local_center_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_local_center_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_local_center_result__isset {
+  _ThriftHiveMetastore_get_local_center_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_get_local_center_result__isset;
+
+class ThriftHiveMetastore_get_local_center_result {
+ public:
+
+  ThriftHiveMetastore_get_local_center_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_local_center_result() throw() {}
+
+  Datacenter success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_get_local_center_result__isset __isset;
+
+  void __set_success(const Datacenter& val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_local_center_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_local_center_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_local_center_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_local_center_presult__isset {
+  _ThriftHiveMetastore_get_local_center_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_get_local_center_presult__isset;
+
+class ThriftHiveMetastore_get_local_center_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_local_center_presult() throw() {}
+
+  Datacenter* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_get_local_center_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_get_lucene_index_names_args__isset {
+  _ThriftHiveMetastore_get_lucene_index_names_args__isset() : db_name(false), tbl_name(false), max_indexes(true) {}
+  bool db_name;
+  bool tbl_name;
+  bool max_indexes;
+} _ThriftHiveMetastore_get_lucene_index_names_args__isset;
+
+class ThriftHiveMetastore_get_lucene_index_names_args {
+ public:
+
+  ThriftHiveMetastore_get_lucene_index_names_args() : db_name(), tbl_name(), max_indexes(-1) {
+  }
+
+  virtual ~ThriftHiveMetastore_get_lucene_index_names_args() throw() {}
+
+  std::string db_name;
+  std::string tbl_name;
+  int16_t max_indexes;
+
+  _ThriftHiveMetastore_get_lucene_index_names_args__isset __isset;
+
+  void __set_db_name(const std::string& val) {
+    db_name = val;
+  }
+
+  void __set_tbl_name(const std::string& val) {
+    tbl_name = val;
+  }
+
+  void __set_max_indexes(const int16_t val) {
+    max_indexes = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_lucene_index_names_args & rhs) const
+  {
+    if (!(db_name == rhs.db_name))
+      return false;
+    if (!(tbl_name == rhs.tbl_name))
+      return false;
+    if (!(max_indexes == rhs.max_indexes))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_lucene_index_names_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_lucene_index_names_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_get_lucene_index_names_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_lucene_index_names_pargs() throw() {}
+
+  const std::string* db_name;
+  const std::string* tbl_name;
+  const int16_t* max_indexes;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_lucene_index_names_result__isset {
+  _ThriftHiveMetastore_get_lucene_index_names_result__isset() : success(false), o2(false) {}
+  bool success;
+  bool o2;
+} _ThriftHiveMetastore_get_lucene_index_names_result__isset;
+
+class ThriftHiveMetastore_get_lucene_index_names_result {
+ public:
+
+  ThriftHiveMetastore_get_lucene_index_names_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_lucene_index_names_result() throw() {}
+
+  std::vector<std::string>  success;
+  MetaException o2;
+
+  _ThriftHiveMetastore_get_lucene_index_names_result__isset __isset;
+
+  void __set_success(const std::vector<std::string> & val) {
+    success = val;
+  }
+
+  void __set_o2(const MetaException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_lucene_index_names_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_lucene_index_names_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_lucene_index_names_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_lucene_index_names_presult__isset {
+  _ThriftHiveMetastore_get_lucene_index_names_presult__isset() : success(false), o2(false) {}
+  bool success;
+  bool o2;
+} _ThriftHiveMetastore_get_lucene_index_names_presult__isset;
+
+class ThriftHiveMetastore_get_lucene_index_names_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_lucene_index_names_presult() throw() {}
+
+  std::vector<std::string> * success;
+  MetaException o2;
+
+  _ThriftHiveMetastore_get_lucene_index_names_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_add_partition_files_args__isset {
+  _ThriftHiveMetastore_add_partition_files_args__isset() : part(false), files(false) {}
+  bool part;
+  bool files;
+} _ThriftHiveMetastore_add_partition_files_args__isset;
+
+class ThriftHiveMetastore_add_partition_files_args {
+ public:
+
+  ThriftHiveMetastore_add_partition_files_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_add_partition_files_args() throw() {}
+
+  Partition part;
+  std::vector<SFile>  files;
+
+  _ThriftHiveMetastore_add_partition_files_args__isset __isset;
+
+  void __set_part(const Partition& val) {
+    part = val;
+  }
+
+  void __set_files(const std::vector<SFile> & val) {
+    files = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_partition_files_args & rhs) const
+  {
+    if (!(part == rhs.part))
+      return false;
+    if (!(files == rhs.files))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_partition_files_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_partition_files_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_add_partition_files_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_partition_files_pargs() throw() {}
+
+  const Partition* part;
+  const std::vector<SFile> * files;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_partition_files_result__isset {
+  _ThriftHiveMetastore_add_partition_files_result__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_add_partition_files_result__isset;
+
+class ThriftHiveMetastore_add_partition_files_result {
+ public:
+
+  ThriftHiveMetastore_add_partition_files_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_add_partition_files_result() throw() {}
+
+  int32_t success;
+
+  _ThriftHiveMetastore_add_partition_files_result__isset __isset;
+
+  void __set_success(const int32_t val) {
+    success = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_partition_files_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_partition_files_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_partition_files_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_partition_files_presult__isset {
+  _ThriftHiveMetastore_add_partition_files_presult__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_add_partition_files_presult__isset;
+
+class ThriftHiveMetastore_add_partition_files_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_partition_files_presult() throw() {}
+
+  int32_t* success;
+
+  _ThriftHiveMetastore_add_partition_files_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_partition_files_args__isset {
+  _ThriftHiveMetastore_drop_partition_files_args__isset() : part(false), files(false) {}
+  bool part;
+  bool files;
+} _ThriftHiveMetastore_drop_partition_files_args__isset;
+
+class ThriftHiveMetastore_drop_partition_files_args {
+ public:
+
+  ThriftHiveMetastore_drop_partition_files_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_partition_files_args() throw() {}
+
+  Partition part;
+  std::vector<SFile>  files;
+
+  _ThriftHiveMetastore_drop_partition_files_args__isset __isset;
+
+  void __set_part(const Partition& val) {
+    part = val;
+  }
+
+  void __set_files(const std::vector<SFile> & val) {
+    files = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_partition_files_args & rhs) const
+  {
+    if (!(part == rhs.part))
+      return false;
+    if (!(files == rhs.files))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_partition_files_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_partition_files_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_drop_partition_files_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_partition_files_pargs() throw() {}
+
+  const Partition* part;
+  const std::vector<SFile> * files;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_partition_files_result__isset {
+  _ThriftHiveMetastore_drop_partition_files_result__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_drop_partition_files_result__isset;
+
+class ThriftHiveMetastore_drop_partition_files_result {
+ public:
+
+  ThriftHiveMetastore_drop_partition_files_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_partition_files_result() throw() {}
+
+  int32_t success;
+
+  _ThriftHiveMetastore_drop_partition_files_result__isset __isset;
+
+  void __set_success(const int32_t val) {
+    success = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_partition_files_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_partition_files_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_partition_files_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_partition_files_presult__isset {
+  _ThriftHiveMetastore_drop_partition_files_presult__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_drop_partition_files_presult__isset;
+
+class ThriftHiveMetastore_drop_partition_files_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_partition_files_presult() throw() {}
+
+  int32_t* success;
+
+  _ThriftHiveMetastore_drop_partition_files_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_add_subpartition_files_args__isset {
+  _ThriftHiveMetastore_add_subpartition_files_args__isset() : subpart(false), files(false) {}
+  bool subpart;
+  bool files;
+} _ThriftHiveMetastore_add_subpartition_files_args__isset;
+
+class ThriftHiveMetastore_add_subpartition_files_args {
+ public:
+
+  ThriftHiveMetastore_add_subpartition_files_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_add_subpartition_files_args() throw() {}
+
+  Subpartition subpart;
+  std::vector<SFile>  files;
+
+  _ThriftHiveMetastore_add_subpartition_files_args__isset __isset;
+
+  void __set_subpart(const Subpartition& val) {
+    subpart = val;
+  }
+
+  void __set_files(const std::vector<SFile> & val) {
+    files = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_subpartition_files_args & rhs) const
+  {
+    if (!(subpart == rhs.subpart))
+      return false;
+    if (!(files == rhs.files))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_subpartition_files_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_subpartition_files_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_add_subpartition_files_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_subpartition_files_pargs() throw() {}
+
+  const Subpartition* subpart;
+  const std::vector<SFile> * files;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_subpartition_files_result__isset {
+  _ThriftHiveMetastore_add_subpartition_files_result__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_add_subpartition_files_result__isset;
+
+class ThriftHiveMetastore_add_subpartition_files_result {
+ public:
+
+  ThriftHiveMetastore_add_subpartition_files_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_add_subpartition_files_result() throw() {}
+
+  int32_t success;
+
+  _ThriftHiveMetastore_add_subpartition_files_result__isset __isset;
+
+  void __set_success(const int32_t val) {
+    success = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_subpartition_files_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_subpartition_files_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_subpartition_files_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_subpartition_files_presult__isset {
+  _ThriftHiveMetastore_add_subpartition_files_presult__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_add_subpartition_files_presult__isset;
+
+class ThriftHiveMetastore_add_subpartition_files_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_subpartition_files_presult() throw() {}
+
+  int32_t* success;
+
+  _ThriftHiveMetastore_add_subpartition_files_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_subpartition_files_args__isset {
+  _ThriftHiveMetastore_drop_subpartition_files_args__isset() : subpart(false), files(false) {}
+  bool subpart;
+  bool files;
+} _ThriftHiveMetastore_drop_subpartition_files_args__isset;
+
+class ThriftHiveMetastore_drop_subpartition_files_args {
+ public:
+
+  ThriftHiveMetastore_drop_subpartition_files_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_subpartition_files_args() throw() {}
+
+  Subpartition subpart;
+  std::vector<SFile>  files;
+
+  _ThriftHiveMetastore_drop_subpartition_files_args__isset __isset;
+
+  void __set_subpart(const Subpartition& val) {
+    subpart = val;
+  }
+
+  void __set_files(const std::vector<SFile> & val) {
+    files = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_subpartition_files_args & rhs) const
+  {
+    if (!(subpart == rhs.subpart))
+      return false;
+    if (!(files == rhs.files))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_subpartition_files_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_subpartition_files_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_drop_subpartition_files_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_subpartition_files_pargs() throw() {}
+
+  const Subpartition* subpart;
+  const std::vector<SFile> * files;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_subpartition_files_result__isset {
+  _ThriftHiveMetastore_drop_subpartition_files_result__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_drop_subpartition_files_result__isset;
+
+class ThriftHiveMetastore_drop_subpartition_files_result {
+ public:
+
+  ThriftHiveMetastore_drop_subpartition_files_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_subpartition_files_result() throw() {}
+
+  int32_t success;
+
+  _ThriftHiveMetastore_drop_subpartition_files_result__isset __isset;
+
+  void __set_success(const int32_t val) {
+    success = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_subpartition_files_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_subpartition_files_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_subpartition_files_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_subpartition_files_presult__isset {
+  _ThriftHiveMetastore_drop_subpartition_files_presult__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_drop_subpartition_files_presult__isset;
+
+class ThriftHiveMetastore_drop_subpartition_files_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_subpartition_files_presult() throw() {}
+
+  int32_t* success;
+
+  _ThriftHiveMetastore_drop_subpartition_files_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_add_partition_index_args__isset {
+  _ThriftHiveMetastore_add_partition_index_args__isset() : index(false), part(false) {}
+  bool index;
+  bool part;
+} _ThriftHiveMetastore_add_partition_index_args__isset;
+
+class ThriftHiveMetastore_add_partition_index_args {
+ public:
+
+  ThriftHiveMetastore_add_partition_index_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_add_partition_index_args() throw() {}
+
+  Index index;
+  Partition part;
+
+  _ThriftHiveMetastore_add_partition_index_args__isset __isset;
+
+  void __set_index(const Index& val) {
+    index = val;
+  }
+
+  void __set_part(const Partition& val) {
+    part = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_partition_index_args & rhs) const
+  {
+    if (!(index == rhs.index))
+      return false;
+    if (!(part == rhs.part))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_partition_index_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_partition_index_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_add_partition_index_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_partition_index_pargs() throw() {}
+
+  const Index* index;
+  const Partition* part;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_partition_index_result__isset {
+  _ThriftHiveMetastore_add_partition_index_result__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_add_partition_index_result__isset;
+
+class ThriftHiveMetastore_add_partition_index_result {
+ public:
+
+  ThriftHiveMetastore_add_partition_index_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_add_partition_index_result() throw() {}
+
+  bool success;
+
+  _ThriftHiveMetastore_add_partition_index_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_partition_index_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_partition_index_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_partition_index_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_partition_index_presult__isset {
+  _ThriftHiveMetastore_add_partition_index_presult__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_add_partition_index_presult__isset;
+
+class ThriftHiveMetastore_add_partition_index_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_partition_index_presult() throw() {}
+
+  bool* success;
+
+  _ThriftHiveMetastore_add_partition_index_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_partition_index_args__isset {
+  _ThriftHiveMetastore_drop_partition_index_args__isset() : index(false), part(false) {}
+  bool index;
+  bool part;
+} _ThriftHiveMetastore_drop_partition_index_args__isset;
+
+class ThriftHiveMetastore_drop_partition_index_args {
+ public:
+
+  ThriftHiveMetastore_drop_partition_index_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_partition_index_args() throw() {}
+
+  Index index;
+  Partition part;
+
+  _ThriftHiveMetastore_drop_partition_index_args__isset __isset;
+
+  void __set_index(const Index& val) {
+    index = val;
+  }
+
+  void __set_part(const Partition& val) {
+    part = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_partition_index_args & rhs) const
+  {
+    if (!(index == rhs.index))
+      return false;
+    if (!(part == rhs.part))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_partition_index_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_partition_index_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_drop_partition_index_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_partition_index_pargs() throw() {}
+
+  const Index* index;
+  const Partition* part;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_partition_index_result__isset {
+  _ThriftHiveMetastore_drop_partition_index_result__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_drop_partition_index_result__isset;
+
+class ThriftHiveMetastore_drop_partition_index_result {
+ public:
+
+  ThriftHiveMetastore_drop_partition_index_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_partition_index_result() throw() {}
+
+  bool success;
+
+  _ThriftHiveMetastore_drop_partition_index_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_partition_index_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_partition_index_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_partition_index_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_partition_index_presult__isset {
+  _ThriftHiveMetastore_drop_partition_index_presult__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_drop_partition_index_presult__isset;
+
+class ThriftHiveMetastore_drop_partition_index_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_partition_index_presult() throw() {}
+
+  bool* success;
+
+  _ThriftHiveMetastore_drop_partition_index_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_add_subpartition_index_args__isset {
+  _ThriftHiveMetastore_add_subpartition_index_args__isset() : index(false), part(false) {}
+  bool index;
+  bool part;
+} _ThriftHiveMetastore_add_subpartition_index_args__isset;
+
+class ThriftHiveMetastore_add_subpartition_index_args {
+ public:
+
+  ThriftHiveMetastore_add_subpartition_index_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_add_subpartition_index_args() throw() {}
+
+  Index index;
+  Partition part;
+
+  _ThriftHiveMetastore_add_subpartition_index_args__isset __isset;
+
+  void __set_index(const Index& val) {
+    index = val;
+  }
+
+  void __set_part(const Partition& val) {
+    part = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_subpartition_index_args & rhs) const
+  {
+    if (!(index == rhs.index))
+      return false;
+    if (!(part == rhs.part))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_subpartition_index_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_subpartition_index_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_add_subpartition_index_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_subpartition_index_pargs() throw() {}
+
+  const Index* index;
+  const Partition* part;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_subpartition_index_result__isset {
+  _ThriftHiveMetastore_add_subpartition_index_result__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_add_subpartition_index_result__isset;
+
+class ThriftHiveMetastore_add_subpartition_index_result {
+ public:
+
+  ThriftHiveMetastore_add_subpartition_index_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_add_subpartition_index_result() throw() {}
+
+  bool success;
+
+  _ThriftHiveMetastore_add_subpartition_index_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_subpartition_index_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_subpartition_index_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_subpartition_index_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_subpartition_index_presult__isset {
+  _ThriftHiveMetastore_add_subpartition_index_presult__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_add_subpartition_index_presult__isset;
+
+class ThriftHiveMetastore_add_subpartition_index_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_subpartition_index_presult() throw() {}
+
+  bool* success;
+
+  _ThriftHiveMetastore_add_subpartition_index_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_subpartition_index_args__isset {
+  _ThriftHiveMetastore_drop_subpartition_index_args__isset() : index(false), part(false) {}
+  bool index;
+  bool part;
+} _ThriftHiveMetastore_drop_subpartition_index_args__isset;
+
+class ThriftHiveMetastore_drop_subpartition_index_args {
+ public:
+
+  ThriftHiveMetastore_drop_subpartition_index_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_subpartition_index_args() throw() {}
+
+  Index index;
+  Partition part;
+
+  _ThriftHiveMetastore_drop_subpartition_index_args__isset __isset;
+
+  void __set_index(const Index& val) {
+    index = val;
+  }
+
+  void __set_part(const Partition& val) {
+    part = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_subpartition_index_args & rhs) const
+  {
+    if (!(index == rhs.index))
+      return false;
+    if (!(part == rhs.part))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_subpartition_index_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_subpartition_index_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_drop_subpartition_index_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_subpartition_index_pargs() throw() {}
+
+  const Index* index;
+  const Partition* part;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_subpartition_index_result__isset {
+  _ThriftHiveMetastore_drop_subpartition_index_result__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_drop_subpartition_index_result__isset;
+
+class ThriftHiveMetastore_drop_subpartition_index_result {
+ public:
+
+  ThriftHiveMetastore_drop_subpartition_index_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_subpartition_index_result() throw() {}
+
+  bool success;
+
+  _ThriftHiveMetastore_drop_subpartition_index_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_subpartition_index_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_subpartition_index_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_subpartition_index_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_subpartition_index_presult__isset {
+  _ThriftHiveMetastore_drop_subpartition_index_presult__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_drop_subpartition_index_presult__isset;
+
+class ThriftHiveMetastore_drop_subpartition_index_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_subpartition_index_presult() throw() {}
+
+  bool* success;
+
+  _ThriftHiveMetastore_drop_subpartition_index_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_add_partition_index_files_args__isset {
+  _ThriftHiveMetastore_add_partition_index_files_args__isset() : index(false), part(false), file(false) {}
+  bool index;
+  bool part;
+  bool file;
+} _ThriftHiveMetastore_add_partition_index_files_args__isset;
+
+class ThriftHiveMetastore_add_partition_index_files_args {
+ public:
+
+  ThriftHiveMetastore_add_partition_index_files_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_add_partition_index_files_args() throw() {}
+
+  Index index;
+  Partition part;
+  std::vector<SFile>  file;
+
+  _ThriftHiveMetastore_add_partition_index_files_args__isset __isset;
+
+  void __set_index(const Index& val) {
+    index = val;
+  }
+
+  void __set_part(const Partition& val) {
+    part = val;
+  }
+
+  void __set_file(const std::vector<SFile> & val) {
+    file = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_partition_index_files_args & rhs) const
+  {
+    if (!(index == rhs.index))
+      return false;
+    if (!(part == rhs.part))
+      return false;
+    if (!(file == rhs.file))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_partition_index_files_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_partition_index_files_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_add_partition_index_files_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_partition_index_files_pargs() throw() {}
+
+  const Index* index;
+  const Partition* part;
+  const std::vector<SFile> * file;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_partition_index_files_result__isset {
+  _ThriftHiveMetastore_add_partition_index_files_result__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_add_partition_index_files_result__isset;
+
+class ThriftHiveMetastore_add_partition_index_files_result {
+ public:
+
+  ThriftHiveMetastore_add_partition_index_files_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_add_partition_index_files_result() throw() {}
+
+  int32_t success;
+
+  _ThriftHiveMetastore_add_partition_index_files_result__isset __isset;
+
+  void __set_success(const int32_t val) {
+    success = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_partition_index_files_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_partition_index_files_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_partition_index_files_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_partition_index_files_presult__isset {
+  _ThriftHiveMetastore_add_partition_index_files_presult__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_add_partition_index_files_presult__isset;
+
+class ThriftHiveMetastore_add_partition_index_files_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_partition_index_files_presult() throw() {}
+
+  int32_t* success;
+
+  _ThriftHiveMetastore_add_partition_index_files_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_partition_index_files_args__isset {
+  _ThriftHiveMetastore_drop_partition_index_files_args__isset() : index(false), part(false), file(false) {}
+  bool index;
+  bool part;
+  bool file;
+} _ThriftHiveMetastore_drop_partition_index_files_args__isset;
+
+class ThriftHiveMetastore_drop_partition_index_files_args {
+ public:
+
+  ThriftHiveMetastore_drop_partition_index_files_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_partition_index_files_args() throw() {}
+
+  Index index;
+  Partition part;
+  std::vector<SFile>  file;
+
+  _ThriftHiveMetastore_drop_partition_index_files_args__isset __isset;
+
+  void __set_index(const Index& val) {
+    index = val;
+  }
+
+  void __set_part(const Partition& val) {
+    part = val;
+  }
+
+  void __set_file(const std::vector<SFile> & val) {
+    file = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_partition_index_files_args & rhs) const
+  {
+    if (!(index == rhs.index))
+      return false;
+    if (!(part == rhs.part))
+      return false;
+    if (!(file == rhs.file))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_partition_index_files_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_partition_index_files_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_drop_partition_index_files_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_partition_index_files_pargs() throw() {}
+
+  const Index* index;
+  const Partition* part;
+  const std::vector<SFile> * file;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_partition_index_files_result__isset {
+  _ThriftHiveMetastore_drop_partition_index_files_result__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_drop_partition_index_files_result__isset;
+
+class ThriftHiveMetastore_drop_partition_index_files_result {
+ public:
+
+  ThriftHiveMetastore_drop_partition_index_files_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_partition_index_files_result() throw() {}
+
+  int32_t success;
+
+  _ThriftHiveMetastore_drop_partition_index_files_result__isset __isset;
+
+  void __set_success(const int32_t val) {
+    success = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_partition_index_files_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_partition_index_files_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_partition_index_files_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_partition_index_files_presult__isset {
+  _ThriftHiveMetastore_drop_partition_index_files_presult__isset() : success(false) {}
+  bool success;
+} _ThriftHiveMetastore_drop_partition_index_files_presult__isset;
+
+class ThriftHiveMetastore_drop_partition_index_files_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_partition_index_files_presult() throw() {}
+
+  int32_t* success;
+
+  _ThriftHiveMetastore_drop_partition_index_files_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
 };
 
 typedef struct _ThriftHiveMetastore_create_database_args__isset {
@@ -12394,6 +14406,110 @@ class ThriftHiveMetastore_find_best_nodes_presult {
 
 };
 
+
+class ThriftHiveMetastore_get_all_nodes_args {
+ public:
+
+  ThriftHiveMetastore_get_all_nodes_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_all_nodes_args() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_get_all_nodes_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_all_nodes_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_all_nodes_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_get_all_nodes_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_all_nodes_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_all_nodes_result__isset {
+  _ThriftHiveMetastore_get_all_nodes_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_get_all_nodes_result__isset;
+
+class ThriftHiveMetastore_get_all_nodes_result {
+ public:
+
+  ThriftHiveMetastore_get_all_nodes_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_all_nodes_result() throw() {}
+
+  std::vector<Node>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_get_all_nodes_result__isset __isset;
+
+  void __set_success(const std::vector<Node> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_all_nodes_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_all_nodes_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_all_nodes_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_all_nodes_presult__isset {
+  _ThriftHiveMetastore_get_all_nodes_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_get_all_nodes_presult__isset;
+
+class ThriftHiveMetastore_get_all_nodes_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_all_nodes_presult() throw() {}
+
+  std::vector<Node> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_get_all_nodes_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  ::facebook::fb303::FacebookServiceClient {
  public:
   ThriftHiveMetastoreClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -12406,6 +14522,54 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
+  void create_datacenter(const Datacenter& datacenter);
+  void send_create_datacenter(const Datacenter& datacenter);
+  void recv_create_datacenter();
+  void get_center(Datacenter& _return, const std::string& name);
+  void send_get_center(const std::string& name);
+  void recv_get_center(Datacenter& _return);
+  void drop_center(const std::string& name, const bool deleteData, const bool cascade);
+  void send_drop_center(const std::string& name, const bool deleteData, const bool cascade);
+  void recv_drop_center();
+  void get_all_centers(std::vector<std::string> & _return);
+  void send_get_all_centers();
+  void recv_get_all_centers(std::vector<std::string> & _return);
+  void get_local_center(Datacenter& _return);
+  void send_get_local_center();
+  void recv_get_local_center(Datacenter& _return);
+  void get_lucene_index_names(std::vector<std::string> & _return, const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes);
+  void send_get_lucene_index_names(const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes);
+  void recv_get_lucene_index_names(std::vector<std::string> & _return);
+  int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files);
+  void send_add_partition_files(const Partition& part, const std::vector<SFile> & files);
+  int32_t recv_add_partition_files();
+  int32_t drop_partition_files(const Partition& part, const std::vector<SFile> & files);
+  void send_drop_partition_files(const Partition& part, const std::vector<SFile> & files);
+  int32_t recv_drop_partition_files();
+  int32_t add_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files);
+  void send_add_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files);
+  int32_t recv_add_subpartition_files();
+  int32_t drop_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files);
+  void send_drop_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files);
+  int32_t recv_drop_subpartition_files();
+  bool add_partition_index(const Index& index, const Partition& part);
+  void send_add_partition_index(const Index& index, const Partition& part);
+  bool recv_add_partition_index();
+  bool drop_partition_index(const Index& index, const Partition& part);
+  void send_drop_partition_index(const Index& index, const Partition& part);
+  bool recv_drop_partition_index();
+  bool add_subpartition_index(const Index& index, const Partition& part);
+  void send_add_subpartition_index(const Index& index, const Partition& part);
+  bool recv_add_subpartition_index();
+  bool drop_subpartition_index(const Index& index, const Partition& part);
+  void send_drop_subpartition_index(const Index& index, const Partition& part);
+  bool recv_drop_subpartition_index();
+  int32_t add_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file);
+  void send_add_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file);
+  int32_t recv_add_partition_index_files();
+  int32_t drop_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file);
+  void send_drop_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file);
+  int32_t recv_drop_partition_index_files();
   void create_database(const Database& database);
   void send_create_database(const Database& database);
   void recv_create_database();
@@ -12664,6 +14828,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void find_best_nodes(std::vector<Node> & _return, const int32_t nr);
   void send_find_best_nodes(const int32_t nr);
   void recv_find_best_nodes(std::vector<Node> & _return);
+  void get_all_nodes(std::vector<Node> & _return);
+  void send_get_all_nodes();
+  void recv_get_all_nodes(std::vector<Node> & _return);
 };
 
 class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceProcessor {
@@ -12674,6 +14841,22 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   typedef  void (ThriftHiveMetastoreProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
   typedef std::map<std::string, ProcessFunction> ProcessMap;
   ProcessMap processMap_;
+  void process_create_datacenter(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_center(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_drop_center(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_all_centers(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_local_center(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_lucene_index_names(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_add_partition_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_drop_partition_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_add_subpartition_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_drop_subpartition_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_add_partition_index(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_drop_partition_index(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_add_subpartition_index(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_drop_subpartition_index(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_add_partition_index_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_drop_partition_index_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_create_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_drop_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -12760,10 +14943,27 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_del_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_alter_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_find_best_nodes(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_all_nodes(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   ThriftHiveMetastoreProcessor(boost::shared_ptr<ThriftHiveMetastoreIf> iface) :
      ::facebook::fb303::FacebookServiceProcessor(iface),
     iface_(iface) {
+    processMap_["create_datacenter"] = &ThriftHiveMetastoreProcessor::process_create_datacenter;
+    processMap_["get_center"] = &ThriftHiveMetastoreProcessor::process_get_center;
+    processMap_["drop_center"] = &ThriftHiveMetastoreProcessor::process_drop_center;
+    processMap_["get_all_centers"] = &ThriftHiveMetastoreProcessor::process_get_all_centers;
+    processMap_["get_local_center"] = &ThriftHiveMetastoreProcessor::process_get_local_center;
+    processMap_["get_lucene_index_names"] = &ThriftHiveMetastoreProcessor::process_get_lucene_index_names;
+    processMap_["add_partition_files"] = &ThriftHiveMetastoreProcessor::process_add_partition_files;
+    processMap_["drop_partition_files"] = &ThriftHiveMetastoreProcessor::process_drop_partition_files;
+    processMap_["add_subpartition_files"] = &ThriftHiveMetastoreProcessor::process_add_subpartition_files;
+    processMap_["drop_subpartition_files"] = &ThriftHiveMetastoreProcessor::process_drop_subpartition_files;
+    processMap_["add_partition_index"] = &ThriftHiveMetastoreProcessor::process_add_partition_index;
+    processMap_["drop_partition_index"] = &ThriftHiveMetastoreProcessor::process_drop_partition_index;
+    processMap_["add_subpartition_index"] = &ThriftHiveMetastoreProcessor::process_add_subpartition_index;
+    processMap_["drop_subpartition_index"] = &ThriftHiveMetastoreProcessor::process_drop_subpartition_index;
+    processMap_["add_partition_index_files"] = &ThriftHiveMetastoreProcessor::process_add_partition_index_files;
+    processMap_["drop_partition_index_files"] = &ThriftHiveMetastoreProcessor::process_drop_partition_index_files;
     processMap_["create_database"] = &ThriftHiveMetastoreProcessor::process_create_database;
     processMap_["get_database"] = &ThriftHiveMetastoreProcessor::process_get_database;
     processMap_["drop_database"] = &ThriftHiveMetastoreProcessor::process_drop_database;
@@ -12850,6 +15050,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["del_node"] = &ThriftHiveMetastoreProcessor::process_del_node;
     processMap_["alter_node"] = &ThriftHiveMetastoreProcessor::process_alter_node;
     processMap_["find_best_nodes"] = &ThriftHiveMetastoreProcessor::process_find_best_nodes;
+    processMap_["get_all_nodes"] = &ThriftHiveMetastoreProcessor::process_get_all_nodes;
   }
 
   virtual ~ThriftHiveMetastoreProcessor() {}
@@ -12883,6 +15084,154 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     ifaces_.push_back(iface);
   }
  public:
+  void create_datacenter(const Datacenter& datacenter) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->create_datacenter(datacenter);
+    }
+    ifaces_[i]->create_datacenter(datacenter);
+  }
+
+  void get_center(Datacenter& _return, const std::string& name) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->get_center(_return, name);
+    }
+    ifaces_[i]->get_center(_return, name);
+    return;
+  }
+
+  void drop_center(const std::string& name, const bool deleteData, const bool cascade) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->drop_center(name, deleteData, cascade);
+    }
+    ifaces_[i]->drop_center(name, deleteData, cascade);
+  }
+
+  void get_all_centers(std::vector<std::string> & _return) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->get_all_centers(_return);
+    }
+    ifaces_[i]->get_all_centers(_return);
+    return;
+  }
+
+  void get_local_center(Datacenter& _return) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->get_local_center(_return);
+    }
+    ifaces_[i]->get_local_center(_return);
+    return;
+  }
+
+  void get_lucene_index_names(std::vector<std::string> & _return, const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->get_lucene_index_names(_return, db_name, tbl_name, max_indexes);
+    }
+    ifaces_[i]->get_lucene_index_names(_return, db_name, tbl_name, max_indexes);
+    return;
+  }
+
+  int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->add_partition_files(part, files);
+    }
+    return ifaces_[i]->add_partition_files(part, files);
+  }
+
+  int32_t drop_partition_files(const Partition& part, const std::vector<SFile> & files) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->drop_partition_files(part, files);
+    }
+    return ifaces_[i]->drop_partition_files(part, files);
+  }
+
+  int32_t add_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->add_subpartition_files(subpart, files);
+    }
+    return ifaces_[i]->add_subpartition_files(subpart, files);
+  }
+
+  int32_t drop_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->drop_subpartition_files(subpart, files);
+    }
+    return ifaces_[i]->drop_subpartition_files(subpart, files);
+  }
+
+  bool add_partition_index(const Index& index, const Partition& part) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->add_partition_index(index, part);
+    }
+    return ifaces_[i]->add_partition_index(index, part);
+  }
+
+  bool drop_partition_index(const Index& index, const Partition& part) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->drop_partition_index(index, part);
+    }
+    return ifaces_[i]->drop_partition_index(index, part);
+  }
+
+  bool add_subpartition_index(const Index& index, const Partition& part) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->add_subpartition_index(index, part);
+    }
+    return ifaces_[i]->add_subpartition_index(index, part);
+  }
+
+  bool drop_subpartition_index(const Index& index, const Partition& part) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->drop_subpartition_index(index, part);
+    }
+    return ifaces_[i]->drop_subpartition_index(index, part);
+  }
+
+  int32_t add_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->add_partition_index_files(index, part, file);
+    }
+    return ifaces_[i]->add_partition_index_files(index, part, file);
+  }
+
+  int32_t drop_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->drop_partition_index_files(index, part, file);
+    }
+    return ifaces_[i]->drop_partition_index_files(index, part, file);
+  }
+
   void create_database(const Database& database) {
     size_t sz = ifaces_.size();
     size_t i = 0;
@@ -13702,6 +16051,16 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->find_best_nodes(_return, nr);
     }
     ifaces_[i]->find_best_nodes(_return, nr);
+    return;
+  }
+
+  void get_all_nodes(std::vector<Node> & _return) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->get_all_nodes(_return);
+    }
+    ifaces_[i]->get_all_nodes(_return);
     return;
   }
 

@@ -12,6 +12,255 @@ module ThriftHiveMetastore
   class Client < ::FacebookService::Client 
     include ::Thrift::Client
 
+    def create_datacenter(datacenter)
+      send_create_datacenter(datacenter)
+      recv_create_datacenter()
+    end
+
+    def send_create_datacenter(datacenter)
+      send_message('create_datacenter', Create_datacenter_args, :datacenter => datacenter)
+    end
+
+    def recv_create_datacenter()
+      result = receive_message(Create_datacenter_result)
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise result.o3 unless result.o3.nil?
+      return
+    end
+
+    def get_center(name)
+      send_get_center(name)
+      return recv_get_center()
+    end
+
+    def send_get_center(name)
+      send_message('get_center', Get_center_args, :name => name)
+    end
+
+    def recv_get_center()
+      result = receive_message(Get_center_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_center failed: unknown result')
+    end
+
+    def drop_center(name, deleteData, cascade)
+      send_drop_center(name, deleteData, cascade)
+      recv_drop_center()
+    end
+
+    def send_drop_center(name, deleteData, cascade)
+      send_message('drop_center', Drop_center_args, :name => name, :deleteData => deleteData, :cascade => cascade)
+    end
+
+    def recv_drop_center()
+      result = receive_message(Drop_center_result)
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise result.o3 unless result.o3.nil?
+      return
+    end
+
+    def get_all_centers()
+      send_get_all_centers()
+      return recv_get_all_centers()
+    end
+
+    def send_get_all_centers()
+      send_message('get_all_centers', Get_all_centers_args)
+    end
+
+    def recv_get_all_centers()
+      result = receive_message(Get_all_centers_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_all_centers failed: unknown result')
+    end
+
+    def get_local_center()
+      send_get_local_center()
+      return recv_get_local_center()
+    end
+
+    def send_get_local_center()
+      send_message('get_local_center', Get_local_center_args)
+    end
+
+    def recv_get_local_center()
+      result = receive_message(Get_local_center_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_local_center failed: unknown result')
+    end
+
+    def get_lucene_index_names(db_name, tbl_name, max_indexes)
+      send_get_lucene_index_names(db_name, tbl_name, max_indexes)
+      return recv_get_lucene_index_names()
+    end
+
+    def send_get_lucene_index_names(db_name, tbl_name, max_indexes)
+      send_message('get_lucene_index_names', Get_lucene_index_names_args, :db_name => db_name, :tbl_name => tbl_name, :max_indexes => max_indexes)
+    end
+
+    def recv_get_lucene_index_names()
+      result = receive_message(Get_lucene_index_names_result)
+      return result.success unless result.success.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_lucene_index_names failed: unknown result')
+    end
+
+    def add_partition_files(part, files)
+      send_add_partition_files(part, files)
+      return recv_add_partition_files()
+    end
+
+    def send_add_partition_files(part, files)
+      send_message('add_partition_files', Add_partition_files_args, :part => part, :files => files)
+    end
+
+    def recv_add_partition_files()
+      result = receive_message(Add_partition_files_result)
+      return result.success unless result.success.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_partition_files failed: unknown result')
+    end
+
+    def drop_partition_files(part, files)
+      send_drop_partition_files(part, files)
+      return recv_drop_partition_files()
+    end
+
+    def send_drop_partition_files(part, files)
+      send_message('drop_partition_files', Drop_partition_files_args, :part => part, :files => files)
+    end
+
+    def recv_drop_partition_files()
+      result = receive_message(Drop_partition_files_result)
+      return result.success unless result.success.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_partition_files failed: unknown result')
+    end
+
+    def add_subpartition_files(subpart, files)
+      send_add_subpartition_files(subpart, files)
+      return recv_add_subpartition_files()
+    end
+
+    def send_add_subpartition_files(subpart, files)
+      send_message('add_subpartition_files', Add_subpartition_files_args, :subpart => subpart, :files => files)
+    end
+
+    def recv_add_subpartition_files()
+      result = receive_message(Add_subpartition_files_result)
+      return result.success unless result.success.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_subpartition_files failed: unknown result')
+    end
+
+    def drop_subpartition_files(subpart, files)
+      send_drop_subpartition_files(subpart, files)
+      return recv_drop_subpartition_files()
+    end
+
+    def send_drop_subpartition_files(subpart, files)
+      send_message('drop_subpartition_files', Drop_subpartition_files_args, :subpart => subpart, :files => files)
+    end
+
+    def recv_drop_subpartition_files()
+      result = receive_message(Drop_subpartition_files_result)
+      return result.success unless result.success.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_subpartition_files failed: unknown result')
+    end
+
+    def add_partition_index(index, part)
+      send_add_partition_index(index, part)
+      return recv_add_partition_index()
+    end
+
+    def send_add_partition_index(index, part)
+      send_message('add_partition_index', Add_partition_index_args, :index => index, :part => part)
+    end
+
+    def recv_add_partition_index()
+      result = receive_message(Add_partition_index_result)
+      return result.success unless result.success.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_partition_index failed: unknown result')
+    end
+
+    def drop_partition_index(index, part)
+      send_drop_partition_index(index, part)
+      return recv_drop_partition_index()
+    end
+
+    def send_drop_partition_index(index, part)
+      send_message('drop_partition_index', Drop_partition_index_args, :index => index, :part => part)
+    end
+
+    def recv_drop_partition_index()
+      result = receive_message(Drop_partition_index_result)
+      return result.success unless result.success.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_partition_index failed: unknown result')
+    end
+
+    def add_subpartition_index(index, part)
+      send_add_subpartition_index(index, part)
+      return recv_add_subpartition_index()
+    end
+
+    def send_add_subpartition_index(index, part)
+      send_message('add_subpartition_index', Add_subpartition_index_args, :index => index, :part => part)
+    end
+
+    def recv_add_subpartition_index()
+      result = receive_message(Add_subpartition_index_result)
+      return result.success unless result.success.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_subpartition_index failed: unknown result')
+    end
+
+    def drop_subpartition_index(index, part)
+      send_drop_subpartition_index(index, part)
+      return recv_drop_subpartition_index()
+    end
+
+    def send_drop_subpartition_index(index, part)
+      send_message('drop_subpartition_index', Drop_subpartition_index_args, :index => index, :part => part)
+    end
+
+    def recv_drop_subpartition_index()
+      result = receive_message(Drop_subpartition_index_result)
+      return result.success unless result.success.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_subpartition_index failed: unknown result')
+    end
+
+    def add_partition_index_files(index, part, file)
+      send_add_partition_index_files(index, part, file)
+      return recv_add_partition_index_files()
+    end
+
+    def send_add_partition_index_files(index, part, file)
+      send_message('add_partition_index_files', Add_partition_index_files_args, :index => index, :part => part, :file => file)
+    end
+
+    def recv_add_partition_index_files()
+      result = receive_message(Add_partition_index_files_result)
+      return result.success unless result.success.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_partition_index_files failed: unknown result')
+    end
+
+    def drop_partition_index_files(index, part, file)
+      send_drop_partition_index_files(index, part, file)
+      return recv_drop_partition_index_files()
+    end
+
+    def send_drop_partition_index_files(index, part, file)
+      send_message('drop_partition_index_files', Drop_partition_index_files_args, :index => index, :part => part, :file => file)
+    end
+
+    def recv_drop_partition_index_files()
+      result = receive_message(Drop_partition_index_files_result)
+      return result.success unless result.success.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_partition_index_files failed: unknown result')
+    end
+
     def create_database(database)
       send_create_database(database)
       recv_create_database()
@@ -1466,10 +1715,172 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'find_best_nodes failed: unknown result')
     end
 
+    def get_all_nodes()
+      send_get_all_nodes()
+      return recv_get_all_nodes()
+    end
+
+    def send_get_all_nodes()
+      send_message('get_all_nodes', Get_all_nodes_args)
+    end
+
+    def recv_get_all_nodes()
+      result = receive_message(Get_all_nodes_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_all_nodes failed: unknown result')
+    end
+
   end
 
   class Processor < ::FacebookService::Processor 
     include ::Thrift::Processor
+
+    def process_create_datacenter(seqid, iprot, oprot)
+      args = read_args(iprot, Create_datacenter_args)
+      result = Create_datacenter_result.new()
+      begin
+        @handler.create_datacenter(args.datacenter)
+      rescue ::AlreadyExistsException => o1
+        result.o1 = o1
+      rescue ::InvalidObjectException => o2
+        result.o2 = o2
+      rescue ::MetaException => o3
+        result.o3 = o3
+      end
+      write_result(result, oprot, 'create_datacenter', seqid)
+    end
+
+    def process_get_center(seqid, iprot, oprot)
+      args = read_args(iprot, Get_center_args)
+      result = Get_center_result.new()
+      begin
+        result.success = @handler.get_center(args.name)
+      rescue ::NoSuchObjectException => o1
+        result.o1 = o1
+      rescue ::MetaException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'get_center', seqid)
+    end
+
+    def process_drop_center(seqid, iprot, oprot)
+      args = read_args(iprot, Drop_center_args)
+      result = Drop_center_result.new()
+      begin
+        @handler.drop_center(args.name, args.deleteData, args.cascade)
+      rescue ::NoSuchObjectException => o1
+        result.o1 = o1
+      rescue ::InvalidOperationException => o2
+        result.o2 = o2
+      rescue ::MetaException => o3
+        result.o3 = o3
+      end
+      write_result(result, oprot, 'drop_center', seqid)
+    end
+
+    def process_get_all_centers(seqid, iprot, oprot)
+      args = read_args(iprot, Get_all_centers_args)
+      result = Get_all_centers_result.new()
+      begin
+        result.success = @handler.get_all_centers()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'get_all_centers', seqid)
+    end
+
+    def process_get_local_center(seqid, iprot, oprot)
+      args = read_args(iprot, Get_local_center_args)
+      result = Get_local_center_result.new()
+      begin
+        result.success = @handler.get_local_center()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'get_local_center', seqid)
+    end
+
+    def process_get_lucene_index_names(seqid, iprot, oprot)
+      args = read_args(iprot, Get_lucene_index_names_args)
+      result = Get_lucene_index_names_result.new()
+      begin
+        result.success = @handler.get_lucene_index_names(args.db_name, args.tbl_name, args.max_indexes)
+      rescue ::MetaException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'get_lucene_index_names', seqid)
+    end
+
+    def process_add_partition_files(seqid, iprot, oprot)
+      args = read_args(iprot, Add_partition_files_args)
+      result = Add_partition_files_result.new()
+      result.success = @handler.add_partition_files(args.part, args.files)
+      write_result(result, oprot, 'add_partition_files', seqid)
+    end
+
+    def process_drop_partition_files(seqid, iprot, oprot)
+      args = read_args(iprot, Drop_partition_files_args)
+      result = Drop_partition_files_result.new()
+      result.success = @handler.drop_partition_files(args.part, args.files)
+      write_result(result, oprot, 'drop_partition_files', seqid)
+    end
+
+    def process_add_subpartition_files(seqid, iprot, oprot)
+      args = read_args(iprot, Add_subpartition_files_args)
+      result = Add_subpartition_files_result.new()
+      result.success = @handler.add_subpartition_files(args.subpart, args.files)
+      write_result(result, oprot, 'add_subpartition_files', seqid)
+    end
+
+    def process_drop_subpartition_files(seqid, iprot, oprot)
+      args = read_args(iprot, Drop_subpartition_files_args)
+      result = Drop_subpartition_files_result.new()
+      result.success = @handler.drop_subpartition_files(args.subpart, args.files)
+      write_result(result, oprot, 'drop_subpartition_files', seqid)
+    end
+
+    def process_add_partition_index(seqid, iprot, oprot)
+      args = read_args(iprot, Add_partition_index_args)
+      result = Add_partition_index_result.new()
+      result.success = @handler.add_partition_index(args.index, args.part)
+      write_result(result, oprot, 'add_partition_index', seqid)
+    end
+
+    def process_drop_partition_index(seqid, iprot, oprot)
+      args = read_args(iprot, Drop_partition_index_args)
+      result = Drop_partition_index_result.new()
+      result.success = @handler.drop_partition_index(args.index, args.part)
+      write_result(result, oprot, 'drop_partition_index', seqid)
+    end
+
+    def process_add_subpartition_index(seqid, iprot, oprot)
+      args = read_args(iprot, Add_subpartition_index_args)
+      result = Add_subpartition_index_result.new()
+      result.success = @handler.add_subpartition_index(args.index, args.part)
+      write_result(result, oprot, 'add_subpartition_index', seqid)
+    end
+
+    def process_drop_subpartition_index(seqid, iprot, oprot)
+      args = read_args(iprot, Drop_subpartition_index_args)
+      result = Drop_subpartition_index_result.new()
+      result.success = @handler.drop_subpartition_index(args.index, args.part)
+      write_result(result, oprot, 'drop_subpartition_index', seqid)
+    end
+
+    def process_add_partition_index_files(seqid, iprot, oprot)
+      args = read_args(iprot, Add_partition_index_files_args)
+      result = Add_partition_index_files_result.new()
+      result.success = @handler.add_partition_index_files(args.index, args.part, args.file)
+      write_result(result, oprot, 'add_partition_index_files', seqid)
+    end
+
+    def process_drop_partition_index_files(seqid, iprot, oprot)
+      args = read_args(iprot, Drop_partition_index_files_args)
+      result = Drop_partition_index_files_result.new()
+      result.success = @handler.drop_partition_index_files(args.index, args.part, args.file)
+      write_result(result, oprot, 'drop_partition_index_files', seqid)
+    end
 
     def process_create_database(seqid, iprot, oprot)
       args = read_args(iprot, Create_database_args)
@@ -2603,9 +3014,580 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'find_best_nodes', seqid)
     end
 
+    def process_get_all_nodes(seqid, iprot, oprot)
+      args = read_args(iprot, Get_all_nodes_args)
+      result = Get_all_nodes_result.new()
+      begin
+        result.success = @handler.get_all_nodes()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'get_all_nodes', seqid)
+    end
+
   end
 
   # HELPER FUNCTIONS AND STRUCTURES
+
+  class Create_datacenter_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DATACENTER = 1
+
+    FIELDS = {
+      DATACENTER => {:type => ::Thrift::Types::STRUCT, :name => 'datacenter', :class => ::Datacenter}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Create_datacenter_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    O1 = 1
+    O2 = 2
+    O3 = 3
+
+    FIELDS = {
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::AlreadyExistsException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::InvalidObjectException},
+      O3 => {:type => ::Thrift::Types::STRUCT, :name => 'o3', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_center_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NAME = 1
+
+    FIELDS = {
+      NAME => {:type => ::Thrift::Types::STRING, :name => 'name'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_center_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Datacenter},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::NoSuchObjectException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_center_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NAME = 1
+    DELETEDATA = 2
+    CASCADE = 3
+
+    FIELDS = {
+      NAME => {:type => ::Thrift::Types::STRING, :name => 'name'},
+      DELETEDATA => {:type => ::Thrift::Types::BOOL, :name => 'deleteData'},
+      CASCADE => {:type => ::Thrift::Types::BOOL, :name => 'cascade'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_center_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    O1 = 1
+    O2 = 2
+    O3 = 3
+
+    FIELDS = {
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::NoSuchObjectException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::InvalidOperationException},
+      O3 => {:type => ::Thrift::Types::STRUCT, :name => 'o3', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_all_centers_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_all_centers_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRING}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_local_center_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_local_center_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Datacenter},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_lucene_index_names_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DB_NAME = 1
+    TBL_NAME = 2
+    MAX_INDEXES = 3
+
+    FIELDS = {
+      DB_NAME => {:type => ::Thrift::Types::STRING, :name => 'db_name'},
+      TBL_NAME => {:type => ::Thrift::Types::STRING, :name => 'tbl_name'},
+      MAX_INDEXES => {:type => ::Thrift::Types::I16, :name => 'max_indexes', :default => -1}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_lucene_index_names_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O2 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRING}},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_partition_files_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    PART = 1
+    FILES = 2
+
+    FIELDS = {
+      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition},
+      FILES => {:type => ::Thrift::Types::LIST, :name => 'files', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_partition_files_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_partition_files_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    PART = 1
+    FILES = 2
+
+    FIELDS = {
+      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition},
+      FILES => {:type => ::Thrift::Types::LIST, :name => 'files', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_partition_files_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_subpartition_files_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUBPART = 1
+    FILES = 2
+
+    FIELDS = {
+      SUBPART => {:type => ::Thrift::Types::STRUCT, :name => 'subpart', :class => ::Subpartition},
+      FILES => {:type => ::Thrift::Types::LIST, :name => 'files', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_subpartition_files_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_subpartition_files_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUBPART = 1
+    FILES = 2
+
+    FIELDS = {
+      SUBPART => {:type => ::Thrift::Types::STRUCT, :name => 'subpart', :class => ::Subpartition},
+      FILES => {:type => ::Thrift::Types::LIST, :name => 'files', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_subpartition_files_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_partition_index_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    INDEX = 1
+    PART = 2
+
+    FIELDS = {
+      INDEX => {:type => ::Thrift::Types::STRUCT, :name => 'index', :class => ::Index},
+      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_partition_index_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_partition_index_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    INDEX = 1
+    PART = 2
+
+    FIELDS = {
+      INDEX => {:type => ::Thrift::Types::STRUCT, :name => 'index', :class => ::Index},
+      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_partition_index_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_subpartition_index_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    INDEX = 1
+    PART = 2
+
+    FIELDS = {
+      INDEX => {:type => ::Thrift::Types::STRUCT, :name => 'index', :class => ::Index},
+      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_subpartition_index_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_subpartition_index_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    INDEX = 1
+    PART = 2
+
+    FIELDS = {
+      INDEX => {:type => ::Thrift::Types::STRUCT, :name => 'index', :class => ::Index},
+      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_subpartition_index_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_partition_index_files_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    INDEX = 1
+    PART = 2
+    FILE = 3
+
+    FIELDS = {
+      INDEX => {:type => ::Thrift::Types::STRUCT, :name => 'index', :class => ::Index},
+      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition},
+      FILE => {:type => ::Thrift::Types::LIST, :name => 'file', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_partition_index_files_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_partition_index_files_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    INDEX = 1
+    PART = 2
+    FILE = 3
+
+    FIELDS = {
+      INDEX => {:type => ::Thrift::Types::STRUCT, :name => 'index', :class => ::Index},
+      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition},
+      FILE => {:type => ::Thrift::Types::LIST, :name => 'file', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_partition_index_files_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
 
   class Create_database_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
@@ -5929,6 +6911,39 @@ module ThriftHiveMetastore
   end
 
   class Find_best_nodes_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Node}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_all_nodes_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_all_nodes_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1

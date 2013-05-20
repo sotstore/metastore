@@ -18,13 +18,8 @@
 
 package org.apache.hadoop.hive.ql.parse;
 
-import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_CASCADE;
-import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_DATABASECOMMENT;
 import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_DATABASELOCATION;
 import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_DATABASEPROPERTIES;
-import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_IFEXISTS;
-import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_IFNOTEXISTS;
-import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_SHOWDATABASES;
 
 import java.io.Serializable;
 import java.net.URI;
@@ -83,12 +78,14 @@ import org.apache.hadoop.hive.ql.plan.AlterTableDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
+import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DDLWork;
 import org.apache.hadoop.hive.ql.plan.DescDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.DescFunctionDesc;
 import org.apache.hadoop.hive.ql.plan.DescTableDesc;
 import org.apache.hadoop.hive.ql.plan.DropDatabaseDesc;
+import org.apache.hadoop.hive.ql.plan.DropDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropTableDesc;
 import org.apache.hadoop.hive.ql.plan.FetchWork;
@@ -119,6 +116,7 @@ import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
 import org.apache.hadoop.hive.ql.plan.StatsWork;
 import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
+import org.apache.hadoop.hive.ql.plan.SwitchDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.TableDesc;
 import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
@@ -392,9 +390,234 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     case HiveParser.TOK_ALTERTABLE_SKEWED:
       analyzeAltertableSkewedby(ast);
       break;
+    // added by zjw for additional DDL
+
+    case HiveParser.TOK_CREATEDATACENTER:
+      analyzeCreateDatacenter(ast);
+      break;
+    case HiveParser.TOK_SWITCHDATACENTER:
+      analyzeSwitchDatacenter(ast);
+      break;
+    case HiveParser.TOK_DROPDATACENTER:
+      analyzeDropDatacenter(ast);
+      break;
+    case HiveParser.TOK_ADDNODE:
+      analyzeAddNode(ast);
+      break;
+    case HiveParser.TOK_DROPNODE:
+      analyzeDropNode(ast);
+      break;
+    case HiveParser.TOK_MODIFYNODE:
+      analyzeModifyNode(ast);
+      break;
+    case HiveParser.TOK_ALTERTABLE_DROP_PARTITION:
+      analyzeAlterTableDropPartition(ast);
+      break;
+    case HiveParser.TOK_ALTERTABLE_DROP_SUBPARTITION:
+      analyzeAlterTableDropSubpartition(ast);
+      break;
+    case HiveParser.TOK_ALTERTABLE_ADD_PARTITION:
+      analyzeAlterTableAddPartition(ast);
+      break;
+    case HiveParser.TOK_ALTERTABLE_ADD_SUBPARTITION:
+      analyzeAlterTableAddSubpartition(ast);
+      break;
+    case HiveParser.TOK_ALTERTABLE_MODIFY_PARTITION_ADD_FILE:
+      analyzeAlterTableModifyPartitionAddFile(ast);
+      break;
+    case HiveParser.TOK_ALTERTABLE_MODIFY_PARTITION_DROP_FILE:
+      analyzeAlterTableModifyPartitionDropFile(ast);
+      break;
+    case HiveParser.TOK_ALTERTABLE_MODIFY_SUBPARTITION_ADD_FILE:
+      analyzeAlterTableModifySubpartitionAddFile(ast);
+      break;
+    case HiveParser.TOK_ALTERTABLE_MODIFY_SUBPARTITION_DROP_FILE:
+      analyzeAlterTableModifySubpartitionDropFile(ast);
+      break;
+    case HiveParser.TOK_ALTERINDEX_DROP_PARTINDEXS:
+      analyzeAlterIndexDropPartIndexs(ast);
+      break;
+    case HiveParser.TOK_ALTERINDEX_DROP_SUBPARTINDEXS:
+      analyzeAlterIndexDropSubpartIndexs(ast);
+      break;
+    case HiveParser.TOK_ALTERINDEX_ADD_PARTINDEXS:
+      analyzeAlterIndexAddPartIndexs(ast);
+      break;
+    case HiveParser.TOK_ALTERINDEX_ADD_SUBPARTINDEXS:
+      analyzeAlterIndexAddSubpartIndexs(ast);
+      break;
+    case HiveParser.TOK_ALTERINDEX_MODIFY_PARTITION_ADD_FILE:
+      analyzeAlterIndexModifyPartIndexAddFile(ast);
+      break;
+    case HiveParser.TOK_ALTERINDEX_MODIFY_SUBPARTITION_ADD_FILE:
+      analyzeAlterIndexModifySubpartIndexAddFile(ast);
+      break;
+    case HiveParser.TOK_ALTERINDEX_MODIFY_PARTINDEX_DROP_FILE:
+      analyzeAlterIndexModifyPartIndexDropFile(ast);
+      break;
+    case HiveParser.TOK_ALTERINDEX_MODIFY_SUBPARTINDEX_DROP_FILE:
+      analyzeAlterIndexModifySubpartIndexDropFile(ast);
+      break;
     default:
       throw new SemanticException("Unsupported command.");
     }
+  }
+
+
+
+  private void analyzeModifyNode(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeDropNode(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAddNode(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterIndexModifySubpartIndexDropFile(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterIndexModifyPartIndexDropFile(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterIndexModifySubpartIndexAddFile(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterIndexModifyPartIndexAddFile(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterIndexAddSubpartIndexs(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterIndexAddPartIndexs(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterIndexDropSubpartIndexs(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterIndexDropPartIndexs(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterTableModifySubpartitionDropFile(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterTableModifySubpartitionAddFile(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterTableModifyPartitionDropFile(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterTableModifyPartitionAddFile(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterTableAddSubpartition(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterTableAddPartition(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterTableDropSubpartition(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeAlterTableDropPartition(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+  private void analyzeSwitchDatacenter(ASTNode ast) {
+
+    String dcName = unescapeIdentifier(ast.getChild(0).getText());
+    SwitchDatacenterDesc switchDatacenterDesc = new SwitchDatacenterDesc(dcName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        switchDatacenterDesc), conf));
+  }
+
+  private void analyzeCreateDatacenter(ASTNode ast) throws SemanticException {
+    String dbName = unescapeIdentifier(ast.getChild(0).getText());
+    boolean ifNotExists = false;
+    String dcComment = null;
+    String dcLocation = null;
+    Map<String, String> dcProps = null;
+
+    for (int i = 1; i < ast.getChildCount(); i++) {
+      ASTNode childNode = (ASTNode) ast.getChild(i);
+      switch (childNode.getToken().getType()) {
+      case HiveParser.TOK_IFNOTEXISTS:
+        ifNotExists = true;
+        break;
+      case HiveParser.TOK_DATACENTERCOMMENT:
+        dcComment = unescapeSQLString(childNode.getChild(0).getText());
+        break;
+      case HiveParser.TOK_DATACENTERPROPERTIES:
+        dcProps = DDLSemanticAnalyzer.getProps((ASTNode) childNode.getChild(0));
+        break;
+      default:
+        throw new SemanticException("Unrecognized token in CREATE DATACENTER statement");
+      }
+    }
+
+    CreateDatacenterDesc createDatacenterDesc =
+        new CreateDatacenterDesc(dbName, dcComment, dcLocation, ifNotExists);
+    if (dcProps != null) {
+      createDatacenterDesc.setDatacenterProperties(dcProps);
+    }
+
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        createDatacenterDesc), conf));
+
+  }
+
+  private void analyzeDropDatacenter(ASTNode ast) throws SemanticException {
+    String dbName = unescapeIdentifier(ast.getChild(0).getText());
+    boolean ifExists = false;
+    boolean ifCascade = false;
+
+    if (null != ast.getFirstChildWithType(HiveParser.TOK_IFEXISTS)) {
+      ifExists = true;
+    }
+
+    if (null != ast.getFirstChildWithType(HiveParser.TOK_CASCADE)) {
+      ifCascade = true;
+    }
+
+    DropDatacenterDesc dropDatacenterDesc = new DropDatacenterDesc(dbName, ifExists, ifCascade);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), dropDatacenterDesc), conf));
   }
 
   private void analyzeGrantRevokeRole(boolean grant, ASTNode ast) {

@@ -81,6 +81,14 @@ public class DDLWork implements Serializable {
   protected HashSet<WriteEntity> outputs;
   private AlterTablePartMergeFilesDesc mergeFilesDesc;
 
+
+  // added by zjw
+  private CreateDatacenterDesc createDatacenterDesc;
+  private SwitchDatacenterDesc switchDatacenterDesc;
+  private DropDatacenterDesc dropDatacenterDesc;
+
+
+
   public DDLWork() {
   }
 
@@ -433,6 +441,24 @@ public class DDLWork implements Serializable {
       AlterTablePartMergeFilesDesc mergeDesc) {
     this(inputs, outputs);
     this.mergeFilesDesc = mergeDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      CreateDatacenterDesc createDatacenterDesc) {
+    this(inputs, outputs);
+    this.createDatacenterDesc = createDatacenterDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      SwitchDatacenterDesc switchDatacenterDesc) {
+    this(inputs, outputs);
+    this.switchDatacenterDesc = switchDatacenterDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DropDatacenterDesc dropDatacenterDesc) {
+    this(inputs, outputs);
+    this.dropDatacenterDesc = dropDatacenterDesc;
   }
 
   /**
@@ -987,5 +1013,31 @@ public class DDLWork implements Serializable {
   public void setNeedLock(boolean needLock) {
     this.needLock = needLock;
   }
+
+  public CreateDatacenterDesc getCreateDatacenterDesc() {
+    return createDatacenterDesc;
+  }
+
+  public void setCreateDatacenterDesc(CreateDatacenterDesc createDatacenterDesc) {
+    this.createDatacenterDesc = createDatacenterDesc;
+  }
+
+  public SwitchDatacenterDesc getSwitchDatacenterDesc() {
+    return switchDatacenterDesc;
+  }
+
+  public void setSwitchDatacenterDesc(SwitchDatacenterDesc switchDatacenterDesc) {
+    this.switchDatacenterDesc = switchDatacenterDesc;
+  }
+
+  public DropDatacenterDesc getDropDatacenterDesc() {
+    return dropDatacenterDesc;
+  }
+
+  public void setDropDatacenterDesc(DropDatacenterDesc dropDatacenterDesc) {
+    this.dropDatacenterDesc = dropDatacenterDesc;
+  }
+
+
 
 }

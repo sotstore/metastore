@@ -949,14 +949,14 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
           case 8: // LOCATIONS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list252 = iprot.readListBegin();
-                struct.locations = new ArrayList<SFileLocation>(_list252.size);
-                for (int _i253 = 0; _i253 < _list252.size; ++_i253)
+                org.apache.thrift.protocol.TList _list262 = iprot.readListBegin();
+                struct.locations = new ArrayList<SFileLocation>(_list262.size);
+                for (int _i263 = 0; _i263 < _list262.size; ++_i263)
                 {
-                  SFileLocation _elem254; // required
-                  _elem254 = new SFileLocation();
-                  _elem254.read(iprot);
-                  struct.locations.add(_elem254);
+                  SFileLocation _elem264; // required
+                  _elem264 = new SFileLocation();
+                  _elem264.read(iprot);
+                  struct.locations.add(_elem264);
                 }
                 iprot.readListEnd();
               }
@@ -1005,9 +1005,9 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
         oprot.writeFieldBegin(LOCATIONS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.locations.size()));
-          for (SFileLocation _iter255 : struct.locations)
+          for (SFileLocation _iter265 : struct.locations)
           {
-            _iter255.write(oprot);
+            _iter265.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -1080,9 +1080,9 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
       if (struct.isSetLocations()) {
         {
           oprot.writeI32(struct.locations.size());
-          for (SFileLocation _iter256 : struct.locations)
+          for (SFileLocation _iter266 : struct.locations)
           {
-            _iter256.write(oprot);
+            _iter266.write(oprot);
           }
         }
       }
@@ -1122,14 +1122,14 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
       }
       if (incoming.get(7)) {
         {
-          org.apache.thrift.protocol.TList _list257 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.locations = new ArrayList<SFileLocation>(_list257.size);
-          for (int _i258 = 0; _i258 < _list257.size; ++_i258)
+          org.apache.thrift.protocol.TList _list267 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.locations = new ArrayList<SFileLocation>(_list267.size);
+          for (int _i268 = 0; _i268 < _list267.size; ++_i268)
           {
-            SFileLocation _elem259; // required
-            _elem259 = new SFileLocation();
-            _elem259.read(iprot);
-            struct.locations.add(_elem259);
+            SFileLocation _elem269; // required
+            _elem269 = new SFileLocation();
+            _elem269.read(iprot);
+            struct.locations.add(_elem269);
           }
         }
         struct.setLocationsIsSet(true);
