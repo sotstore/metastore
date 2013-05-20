@@ -27,17 +27,16 @@ import java.util.Map;
  * Storage Class representing the Hive MDatabase in a rdbms
  *
  */
-public class MDatabase {
+public class MDatacenter {
   private String name;
   private String locationUri;
   private String description;
-  private MDatacenter datacenter;
   private Map<String, String> parameters;
 
   /**
    * Default construction to keep jpox/jdo happy
    */
-  public MDatabase() {}
+  public MDatacenter() {}
 
   /**
    * To create a database object
@@ -45,7 +44,7 @@ public class MDatabase {
    * @param locationUri Location of the database in the warehouse
    * @param description Comment describing the database
    */
-  public MDatabase(String name, String locationUri, String description,
+  public MDatacenter(String name, String locationUri, String description,
       Map<String, String> parameters) {
     this.name = name;
     this.locationUri = locationUri;
@@ -108,14 +107,4 @@ public class MDatabase {
   public void setParameters(Map<String, String> parameters) {
     this.parameters = parameters;
   }
-
-  public MDatacenter getDatacenter() {
-    return datacenter;
-  }
-
-  public void setDatacenter(MDatacenter datacenter) {
-    this.datacenter = datacenter;
-  }
-
-
 }

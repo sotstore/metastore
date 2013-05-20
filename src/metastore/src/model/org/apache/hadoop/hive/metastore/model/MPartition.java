@@ -18,22 +18,26 @@
 
 package org.apache.hadoop.hive.metastore.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class MPartition {
 
   private String partitionName; // partitionname ==>  (key=value/)*(key=value)
-  private MTable table; 
+  private MTable table;
   private List<String> values;
   private int createTime;
   private int lastAccessTime;
   private MStorageDescriptor sd;
   private Map<String, String> parameters;
-  
-  
+  private int partition_level;
+  private int version;
+  private MPartition parent;
+  private List<MPartition> subPartitions = new ArrayList<MPartition>();
+
   public MPartition() {}
-  
+
   /**
    * @param partitionName
    * @param table
@@ -151,5 +155,39 @@ public class MPartition {
   public void setCreateTime(int createTime) {
     this.createTime = createTime;
   }
+
+  public int getPartition_level() {
+    return partition_level;
+  }
+
+  public void setPartition_level(int partition_level) {
+    this.partition_level = partition_level;
+  }
+
+  public int getVersion() {
+    return version;
+  }
+
+  public void setVersion(int version) {
+    this.version = version;
+  }
+
+
+  public MPartition getParent() {
+    return parent;
+  }
+
+  public void setParent(MPartition parent) {
+    this.parent = parent;
+  }
+
+  public List<MPartition> getSubPartitions() {
+    return subPartitions;
+  }
+
+  public void setSubPartitions(List<MPartition> subPartitions) {
+    this.subPartitions = subPartitions;
+  }
+
 
 }

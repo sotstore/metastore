@@ -25,24 +25,42 @@ package org.apache.hadoop.hive.metastore.model;
 /**
  * Represent a column or a type of a table or object
  */
-public class MFieldSchema {
+public class MSubPartitionFieldSchema {
   private String name;
   private String type;
   private String comment;
 
-  public MFieldSchema() {}
+  private int part_num;
+  private int part_level;
+  private String part_type;
+  private String part_type_param;
+//  private List<MSubPartitionFieldSchema> subPartitionKeys;
+  public MSubPartitionFieldSchema() {}
 
   /**
    * @param comment
    * @param name
    * @param type
    */
-  public MFieldSchema(String name, String type, String comment) {
+  public MSubPartitionFieldSchema(String name, String type, String comment) {
     this.comment = comment;
     this.name = name;
     this.type = type;
   }
 
+  public MSubPartitionFieldSchema(String name, String type, String comment,int part_num,
+      int part_level,String part_type,String part_type_param
+//      ,List<MSubPartitionFieldSchema> subPartitionKeys
+      ) {
+    this.comment = comment;
+    this.name = name;
+    this.type = type;
+    this.part_num = part_num;
+    this.part_level = part_level;
+    this.part_type = part_type;
+    this.part_type_param = part_type_param;
+//    this.subPartitionKeys = subPartitionKeys;
+  }
   /**
    * @return the name
    */
@@ -79,6 +97,46 @@ public class MFieldSchema {
   public void setType(String field) {
     this.type = field;
   }
+
+  public int getPart_num() {
+    return part_num;
+  }
+
+  public void setPart_num(int part_num) {
+    this.part_num = part_num;
+  }
+
+  public int getPart_level() {
+    return part_level;
+  }
+
+  public void setPart_level(int part_level) {
+    this.part_level = part_level;
+  }
+
+  public String getPart_type() {
+    return part_type;
+  }
+
+  public void setPart_type(String part_type) {
+    this.part_type = part_type;
+  }
+
+  public String getPart_type_param() {
+    return part_type_param;
+  }
+
+  public void setPart_type_param(String part_type_param) {
+    this.part_type_param = part_type_param;
+  }
+
+//  public List<MSubPartitionFieldSchema> getSubPartitionKeys() {
+//    return subPartitionKeys;
+//  }
+//
+//  public void setSubPartitionKeys(List<MSubPartitionFieldSchema> subPartitionKeys) {
+//    this.subPartitionKeys = subPartitionKeys;
+//  }
 
 
 }

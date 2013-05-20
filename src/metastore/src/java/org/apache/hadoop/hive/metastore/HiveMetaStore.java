@@ -1091,6 +1091,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         final EnvironmentContext envContext) throws AlreadyExistsException,
         MetaException, InvalidObjectException {
       startFunction("create_table", ": " + tbl.toString());
+
+      LOG.warn("----zjw--creating table");
       boolean success = false;
       Exception ex = null;
       try {
@@ -2330,6 +2332,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public List<String> get_tables(final String dbname, final String pattern)
         throws MetaException {
       startFunction("get_tables", ": db=" + dbname + " pat=" + pattern);
+
+      LOG.warn("-----zjw--haha ");
 
       List<String> ret = null;
       Exception ex = null;

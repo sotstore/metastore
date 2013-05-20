@@ -1009,8 +1009,267 @@ class StorageDescriptor {
 
 void swap(StorageDescriptor &a, StorageDescriptor &b);
 
+typedef struct _Subpartition__isset {
+  _Subpartition__isset() : values(false), dbName(false), tableName(false), createTime(false), lastAccessTime(false), sd(false), parameters(false), partitionName(false), version(false), privileges(false) {}
+  bool values;
+  bool dbName;
+  bool tableName;
+  bool createTime;
+  bool lastAccessTime;
+  bool sd;
+  bool parameters;
+  bool partitionName;
+  bool version;
+  bool privileges;
+} _Subpartition__isset;
+
+class Subpartition {
+ public:
+
+  static const char* ascii_fingerprint; // = "2F47496125A3286F70618FA3C48EFF6C";
+  static const uint8_t binary_fingerprint[16]; // = {0x2F,0x47,0x49,0x61,0x25,0xA3,0x28,0x6F,0x70,0x61,0x8F,0xA3,0xC4,0x8E,0xFF,0x6C};
+
+  Subpartition() : dbName(), tableName(), createTime(0), lastAccessTime(0), partitionName(), version(0) {
+  }
+
+  virtual ~Subpartition() throw() {}
+
+  std::vector<std::string>  values;
+  std::string dbName;
+  std::string tableName;
+  int32_t createTime;
+  int32_t lastAccessTime;
+  StorageDescriptor sd;
+  std::map<std::string, std::string>  parameters;
+  std::string partitionName;
+  int32_t version;
+  PrincipalPrivilegeSet privileges;
+
+  _Subpartition__isset __isset;
+
+  void __set_values(const std::vector<std::string> & val) {
+    values = val;
+  }
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_tableName(const std::string& val) {
+    tableName = val;
+  }
+
+  void __set_createTime(const int32_t val) {
+    createTime = val;
+  }
+
+  void __set_lastAccessTime(const int32_t val) {
+    lastAccessTime = val;
+  }
+
+  void __set_sd(const StorageDescriptor& val) {
+    sd = val;
+  }
+
+  void __set_parameters(const std::map<std::string, std::string> & val) {
+    parameters = val;
+  }
+
+  void __set_partitionName(const std::string& val) {
+    partitionName = val;
+    __isset.partitionName = true;
+  }
+
+  void __set_version(const int32_t val) {
+    version = val;
+    __isset.version = true;
+  }
+
+  void __set_privileges(const PrincipalPrivilegeSet& val) {
+    privileges = val;
+    __isset.privileges = true;
+  }
+
+  bool operator == (const Subpartition & rhs) const
+  {
+    if (!(values == rhs.values))
+      return false;
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(tableName == rhs.tableName))
+      return false;
+    if (!(createTime == rhs.createTime))
+      return false;
+    if (!(lastAccessTime == rhs.lastAccessTime))
+      return false;
+    if (!(sd == rhs.sd))
+      return false;
+    if (!(parameters == rhs.parameters))
+      return false;
+    if (__isset.partitionName != rhs.__isset.partitionName)
+      return false;
+    else if (__isset.partitionName && !(partitionName == rhs.partitionName))
+      return false;
+    if (__isset.version != rhs.__isset.version)
+      return false;
+    else if (__isset.version && !(version == rhs.version))
+      return false;
+    if (__isset.privileges != rhs.__isset.privileges)
+      return false;
+    else if (__isset.privileges && !(privileges == rhs.privileges))
+      return false;
+    return true;
+  }
+  bool operator != (const Subpartition &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Subpartition & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(Subpartition &a, Subpartition &b);
+
+typedef struct _Partition__isset {
+  _Partition__isset() : values(false), dbName(false), tableName(false), createTime(false), lastAccessTime(false), sd(false), parameters(false), partitionName(false), subpartitions(false), version(false), privileges(false) {}
+  bool values;
+  bool dbName;
+  bool tableName;
+  bool createTime;
+  bool lastAccessTime;
+  bool sd;
+  bool parameters;
+  bool partitionName;
+  bool subpartitions;
+  bool version;
+  bool privileges;
+} _Partition__isset;
+
+class Partition {
+ public:
+
+  static const char* ascii_fingerprint; // = "C458933CCC83FC63D81CEE7A67A04330";
+  static const uint8_t binary_fingerprint[16]; // = {0xC4,0x58,0x93,0x3C,0xCC,0x83,0xFC,0x63,0xD8,0x1C,0xEE,0x7A,0x67,0xA0,0x43,0x30};
+
+  Partition() : dbName(), tableName(), createTime(0), lastAccessTime(0), partitionName(), version(0) {
+  }
+
+  virtual ~Partition() throw() {}
+
+  std::vector<std::string>  values;
+  std::string dbName;
+  std::string tableName;
+  int32_t createTime;
+  int32_t lastAccessTime;
+  StorageDescriptor sd;
+  std::map<std::string, std::string>  parameters;
+  std::string partitionName;
+  std::vector<Subpartition>  subpartitions;
+  int32_t version;
+  PrincipalPrivilegeSet privileges;
+
+  _Partition__isset __isset;
+
+  void __set_values(const std::vector<std::string> & val) {
+    values = val;
+  }
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_tableName(const std::string& val) {
+    tableName = val;
+  }
+
+  void __set_createTime(const int32_t val) {
+    createTime = val;
+  }
+
+  void __set_lastAccessTime(const int32_t val) {
+    lastAccessTime = val;
+  }
+
+  void __set_sd(const StorageDescriptor& val) {
+    sd = val;
+  }
+
+  void __set_parameters(const std::map<std::string, std::string> & val) {
+    parameters = val;
+  }
+
+  void __set_partitionName(const std::string& val) {
+    partitionName = val;
+    __isset.partitionName = true;
+  }
+
+  void __set_subpartitions(const std::vector<Subpartition> & val) {
+    subpartitions = val;
+    __isset.subpartitions = true;
+  }
+
+  void __set_version(const int32_t val) {
+    version = val;
+    __isset.version = true;
+  }
+
+  void __set_privileges(const PrincipalPrivilegeSet& val) {
+    privileges = val;
+    __isset.privileges = true;
+  }
+
+  bool operator == (const Partition & rhs) const
+  {
+    if (!(values == rhs.values))
+      return false;
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(tableName == rhs.tableName))
+      return false;
+    if (!(createTime == rhs.createTime))
+      return false;
+    if (!(lastAccessTime == rhs.lastAccessTime))
+      return false;
+    if (!(sd == rhs.sd))
+      return false;
+    if (!(parameters == rhs.parameters))
+      return false;
+    if (__isset.partitionName != rhs.__isset.partitionName)
+      return false;
+    else if (__isset.partitionName && !(partitionName == rhs.partitionName))
+      return false;
+    if (__isset.subpartitions != rhs.__isset.subpartitions)
+      return false;
+    else if (__isset.subpartitions && !(subpartitions == rhs.subpartitions))
+      return false;
+    if (__isset.version != rhs.__isset.version)
+      return false;
+    else if (__isset.version && !(version == rhs.version))
+      return false;
+    if (__isset.privileges != rhs.__isset.privileges)
+      return false;
+    else if (__isset.privileges && !(privileges == rhs.privileges))
+      return false;
+    return true;
+  }
+  bool operator != (const Partition &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Partition & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(Partition &a, Partition &b);
+
 typedef struct _Table__isset {
-  _Table__isset() : tableName(false), dbName(false), owner(false), createTime(false), lastAccessTime(false), retention(false), sd(false), partitionKeys(false), parameters(false), viewOriginalText(false), viewExpandedText(false), tableType(false), privileges(false) {}
+  _Table__isset() : tableName(false), dbName(false), owner(false), createTime(false), lastAccessTime(false), retention(false), sd(false), partitionKeys(false), parameters(false), viewOriginalText(false), viewExpandedText(false), tableType(false), privileges(false), partitions(false) {}
   bool tableName;
   bool dbName;
   bool owner;
@@ -1024,13 +1283,14 @@ typedef struct _Table__isset {
   bool viewExpandedText;
   bool tableType;
   bool privileges;
+  bool partitions;
 } _Table__isset;
 
 class Table {
  public:
 
-  static const char* ascii_fingerprint; // = "68640B4B66B355CF317429AF70D2C260";
-  static const uint8_t binary_fingerprint[16]; // = {0x68,0x64,0x0B,0x4B,0x66,0xB3,0x55,0xCF,0x31,0x74,0x29,0xAF,0x70,0xD2,0xC2,0x60};
+  static const char* ascii_fingerprint; // = "1A9A0352D145B57684489F31B004E3C0";
+  static const uint8_t binary_fingerprint[16]; // = {0x1A,0x9A,0x03,0x52,0xD1,0x45,0xB5,0x76,0x84,0x48,0x9F,0x31,0xB0,0x04,0xE3,0xC0};
 
   Table() : tableName(), dbName(), owner(), createTime(0), lastAccessTime(0), retention(0), viewOriginalText(), viewExpandedText(), tableType() {
   }
@@ -1050,6 +1310,7 @@ class Table {
   std::string viewExpandedText;
   std::string tableType;
   PrincipalPrivilegeSet privileges;
+  std::vector<Partition>  partitions;
 
   _Table__isset __isset;
 
@@ -1106,6 +1367,11 @@ class Table {
     __isset.privileges = true;
   }
 
+  void __set_partitions(const std::vector<Partition> & val) {
+    partitions = val;
+    __isset.partitions = true;
+  }
+
   bool operator == (const Table & rhs) const
   {
     if (!(tableName == rhs.tableName))
@@ -1135,6 +1401,10 @@ class Table {
     if (__isset.privileges != rhs.__isset.privileges)
       return false;
     else if (__isset.privileges && !(privileges == rhs.privileges))
+      return false;
+    if (__isset.partitions != rhs.__isset.partitions)
+      return false;
+    else if (__isset.partitions && !(partitions == rhs.partitions))
       return false;
     return true;
   }
@@ -1407,108 +1677,6 @@ class SFile {
 };
 
 void swap(SFile &a, SFile &b);
-
-typedef struct _Partition__isset {
-  _Partition__isset() : values(false), dbName(false), tableName(false), createTime(false), lastAccessTime(false), sd(false), parameters(false), privileges(false) {}
-  bool values;
-  bool dbName;
-  bool tableName;
-  bool createTime;
-  bool lastAccessTime;
-  bool sd;
-  bool parameters;
-  bool privileges;
-} _Partition__isset;
-
-class Partition {
- public:
-
-  static const char* ascii_fingerprint; // = "31A52241B88A426C34087FE38343FF51";
-  static const uint8_t binary_fingerprint[16]; // = {0x31,0xA5,0x22,0x41,0xB8,0x8A,0x42,0x6C,0x34,0x08,0x7F,0xE3,0x83,0x43,0xFF,0x51};
-
-  Partition() : dbName(), tableName(), createTime(0), lastAccessTime(0) {
-  }
-
-  virtual ~Partition() throw() {}
-
-  std::vector<std::string>  values;
-  std::string dbName;
-  std::string tableName;
-  int32_t createTime;
-  int32_t lastAccessTime;
-  StorageDescriptor sd;
-  std::map<std::string, std::string>  parameters;
-  PrincipalPrivilegeSet privileges;
-
-  _Partition__isset __isset;
-
-  void __set_values(const std::vector<std::string> & val) {
-    values = val;
-  }
-
-  void __set_dbName(const std::string& val) {
-    dbName = val;
-  }
-
-  void __set_tableName(const std::string& val) {
-    tableName = val;
-  }
-
-  void __set_createTime(const int32_t val) {
-    createTime = val;
-  }
-
-  void __set_lastAccessTime(const int32_t val) {
-    lastAccessTime = val;
-  }
-
-  void __set_sd(const StorageDescriptor& val) {
-    sd = val;
-  }
-
-  void __set_parameters(const std::map<std::string, std::string> & val) {
-    parameters = val;
-  }
-
-  void __set_privileges(const PrincipalPrivilegeSet& val) {
-    privileges = val;
-    __isset.privileges = true;
-  }
-
-  bool operator == (const Partition & rhs) const
-  {
-    if (!(values == rhs.values))
-      return false;
-    if (!(dbName == rhs.dbName))
-      return false;
-    if (!(tableName == rhs.tableName))
-      return false;
-    if (!(createTime == rhs.createTime))
-      return false;
-    if (!(lastAccessTime == rhs.lastAccessTime))
-      return false;
-    if (!(sd == rhs.sd))
-      return false;
-    if (!(parameters == rhs.parameters))
-      return false;
-    if (__isset.privileges != rhs.__isset.privileges)
-      return false;
-    else if (__isset.privileges && !(privileges == rhs.privileges))
-      return false;
-    return true;
-  }
-  bool operator != (const Partition &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Partition & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(Partition &a, Partition &b);
 
 typedef struct _Index__isset {
   _Index__isset() : indexName(false), indexHandlerClass(false), dbName(false), origTableName(false), createTime(false), lastAccessTime(false), indexTableName(false), sd(false), parameters(false), deferredRebuild(false) {}

@@ -3694,8 +3694,29 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       return rc;
     }
 
+
+
+    if(crtTbl.getPartitions() != null){
+      tbl.setPartitions(crtTbl.getPartitions());
+      LOG.warn("---zjw--sub size:"+tbl.getPartitions().get(0).getSubpartitionsSize());
+    }
+
     // create the table
     db.createTable(tbl, crtTbl.getIfNotExists());
+//    if(crtTbl.getPartitions() != null){
+//      for(org.apache.hadoop.hive.metastore.api.Partition p : crtTbl.getPartitions()){
+//
+//        HashMap<String, String> part_spec = new HashMap<String, String>();
+//        part_spec.put(p.getPartitionName(), PartitionFactory.arrayToJson(p.getValues()));
+//        db.createPartition(tbl, part_spec);
+//        for(org.apache.hadoop.hive.metastore.api.Subpartition sub_p : p.getSubpartitions()){
+//          HashMap<String, String> sub_part_value = new HashMap<String, String>();
+//          sub_part_value.put(sub_p.getPartitionName(), PartitionFactory.arrayToJson(sub_p.getValues()));
+//          db.createPartition(tbl, sub_part_value);
+//        }
+//      }
+//    }
+
     work.getOutputs().add(new WriteEntity(tbl));
     return 0;
   }

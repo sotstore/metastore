@@ -41,6 +41,7 @@ import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Order;
+import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
@@ -209,9 +210,13 @@ public class Table implements Serializable {
       Iterator<FieldSchema> partColsIter = getPartCols().iterator();
       while (partColsIter.hasNext()) {
         String partCol = partColsIter.next().getName();
-        if (colNames.contains(partCol.toLowerCase())) {
-          throw new HiveException("Partition column name " + partCol
-              + " conflicts with table columns.");
+//        if (colNames.contains(partCol.toLowerCase())) {
+//          throw new HiveException("Partition column name " + partCol
+//              + " conflicts with table columns.");
+//        }
+        if (!colNames.contains(partCol.toLowerCase())) {
+        throw new HiveException("Partition column name " + partCol
+            + " not exist in table columns.");
         }
       }
     }
@@ -849,6 +854,14 @@ public class Table implements Serializable {
 
   public void setLastAccessTime(int lastAccessTime) {
     tTable.setLastAccessTime(lastAccessTime);
+  }
+
+  public List<Partition> getPartitions() {
+    return tTable.getPartitions();
+  }
+
+  public void setPartitions(List<Partition> partitions) {
+    tTable.setPartitions(partitions);
   }
 
   public boolean isNonNative() {
