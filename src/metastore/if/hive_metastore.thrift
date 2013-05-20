@@ -396,6 +396,44 @@ exception FileOperationException {
 */
 service ThriftHiveMetastore extends fb303.FacebookService
 {
+//added by zjw
+  void create_datacenter(1:Datacenter datacenter) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
+  Datacenter get_center(1:string name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
+  void drop_center(1:string name, 2:bool deleteData, 3:bool cascade) throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)
+  list<string> get_all_centers() throws(1:MetaException o1)
+  Datacenter get_local_center() throws(1:MetaException o1)
+  list<string> get_lucene_index_names(1:string db_name, 2:string tbl_name, 3:i16 max_indexes=-1)
+                       throws(1:MetaException o2)
+                       
+  //start of partition,RPC for now is enough,subparttion operation can be done within partition rpc
+  //end of partiton
+  
+  
+  //start of partition file
+  i32 add_partition_files(1:Partition part, 2:list<SFile> files)
+  i32 drop_partition_files(1:Partition part, 2:list<SFile> files)
+  i32 add_subpartition_files(1:Subpartition subpart, 2:list<SFile> files)
+  i32 drop_subpartition_files(1:Subpartition subpart, 2:list<SFile> files)
+  
+  //start of partition index
+  bool add_partition_index(1:Index index, 2:Partition part)
+  bool drop_partition_index(1:Index index, 2:Partition part)
+  
+  bool add_subpartition_index(1:Index index, 2:Partition part)
+  bool drop_subpartition_index(1:Index index, 2:Partition part)
+  
+ 
+  //start of partition index file
+  i32 add_partition_index_files(1:Index index, 2: Partition part,3:list<SFile> file)
+  i32 drop_partition_index_files(1:Index index, 2: Partition part,3:list<SFile> file)
+  
+  void add_node(1:Node node) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
+  void update_node(1:Node node) throws(1:InvalidObjectException o1, 2:MetaException o2)
+  Node get_node(1:string name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
+  list<Node> get_all_nodes() throws(1:NoSuchObjectException o1, 2:MetaException o2)
+  void drop_node(1:string name) throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)
+
+//end of zjw
   void create_database(1:Database database) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
   Database get_database(1:string name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
   void drop_database(1:string name, 2:bool deleteData, 3:bool cascade) throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)

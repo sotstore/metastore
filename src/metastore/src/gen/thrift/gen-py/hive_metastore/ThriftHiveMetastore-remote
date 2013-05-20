@@ -23,6 +23,27 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print 'Usage: ' + sys.argv[0] + ' [-h host[:port]] [-u url] [-f[ramed]] function [arg1 [arg2...]]'
   print ''
   print 'Functions:'
+  print '  void create_datacenter(Datacenter datacenter)'
+  print '  Datacenter get_center(string name)'
+  print '  void drop_center(string name, bool deleteData, bool cascade)'
+  print '   get_all_centers()'
+  print '  Datacenter get_local_center()'
+  print '   get_lucene_index_names(string db_name, string tbl_name, i16 max_indexes)'
+  print '  i32 add_partition_files(Partition part,  files)'
+  print '  i32 drop_partition_files(Partition part,  files)'
+  print '  i32 add_subpartition_files(Subpartition subpart,  files)'
+  print '  i32 drop_subpartition_files(Subpartition subpart,  files)'
+  print '  bool add_partition_index(Index index, Partition part)'
+  print '  bool drop_partition_index(Index index, Partition part)'
+  print '  bool add_subpartition_index(Index index, Partition part)'
+  print '  bool drop_subpartition_index(Index index, Partition part)'
+  print '  i32 add_partition_index_files(Index index, Partition part,  file)'
+  print '  i32 drop_partition_index_files(Index index, Partition part,  file)'
+  print '  void add_node(Node node)'
+  print '  void update_node(Node node)'
+  print '  Node get_node(string name)'
+  print '   get_all_nodes()'
+  print '  void drop_node(string name)'
   print '  void create_database(Database database)'
   print '  Database get_database(string name)'
   print '  void drop_database(string name, bool deleteData, bool cascade)'
@@ -155,7 +176,133 @@ protocol = TBinaryProtocol.TBinaryProtocol(transport)
 client = ThriftHiveMetastore.Client(protocol)
 transport.open()
 
-if cmd == 'create_database':
+if cmd == 'create_datacenter':
+  if len(args) != 1:
+    print 'create_datacenter requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.create_datacenter(eval(args[0]),))
+
+elif cmd == 'get_center':
+  if len(args) != 1:
+    print 'get_center requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.get_center(args[0],))
+
+elif cmd == 'drop_center':
+  if len(args) != 3:
+    print 'drop_center requires 3 args'
+    sys.exit(1)
+  pp.pprint(client.drop_center(args[0],eval(args[1]),eval(args[2]),))
+
+elif cmd == 'get_all_centers':
+  if len(args) != 0:
+    print 'get_all_centers requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.get_all_centers())
+
+elif cmd == 'get_local_center':
+  if len(args) != 0:
+    print 'get_local_center requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.get_local_center())
+
+elif cmd == 'get_lucene_index_names':
+  if len(args) != 3:
+    print 'get_lucene_index_names requires 3 args'
+    sys.exit(1)
+  pp.pprint(client.get_lucene_index_names(args[0],args[1],eval(args[2]),))
+
+elif cmd == 'add_partition_files':
+  if len(args) != 2:
+    print 'add_partition_files requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.add_partition_files(eval(args[0]),eval(args[1]),))
+
+elif cmd == 'drop_partition_files':
+  if len(args) != 2:
+    print 'drop_partition_files requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.drop_partition_files(eval(args[0]),eval(args[1]),))
+
+elif cmd == 'add_subpartition_files':
+  if len(args) != 2:
+    print 'add_subpartition_files requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.add_subpartition_files(eval(args[0]),eval(args[1]),))
+
+elif cmd == 'drop_subpartition_files':
+  if len(args) != 2:
+    print 'drop_subpartition_files requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.drop_subpartition_files(eval(args[0]),eval(args[1]),))
+
+elif cmd == 'add_partition_index':
+  if len(args) != 2:
+    print 'add_partition_index requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.add_partition_index(eval(args[0]),eval(args[1]),))
+
+elif cmd == 'drop_partition_index':
+  if len(args) != 2:
+    print 'drop_partition_index requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.drop_partition_index(eval(args[0]),eval(args[1]),))
+
+elif cmd == 'add_subpartition_index':
+  if len(args) != 2:
+    print 'add_subpartition_index requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.add_subpartition_index(eval(args[0]),eval(args[1]),))
+
+elif cmd == 'drop_subpartition_index':
+  if len(args) != 2:
+    print 'drop_subpartition_index requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.drop_subpartition_index(eval(args[0]),eval(args[1]),))
+
+elif cmd == 'add_partition_index_files':
+  if len(args) != 3:
+    print 'add_partition_index_files requires 3 args'
+    sys.exit(1)
+  pp.pprint(client.add_partition_index_files(eval(args[0]),eval(args[1]),eval(args[2]),))
+
+elif cmd == 'drop_partition_index_files':
+  if len(args) != 3:
+    print 'drop_partition_index_files requires 3 args'
+    sys.exit(1)
+  pp.pprint(client.drop_partition_index_files(eval(args[0]),eval(args[1]),eval(args[2]),))
+
+elif cmd == 'add_node':
+  if len(args) != 1:
+    print 'add_node requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.add_node(eval(args[0]),))
+
+elif cmd == 'update_node':
+  if len(args) != 1:
+    print 'update_node requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.update_node(eval(args[0]),))
+
+elif cmd == 'get_node':
+  if len(args) != 1:
+    print 'get_node requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.get_node(args[0],))
+
+elif cmd == 'get_all_nodes':
+  if len(args) != 0:
+    print 'get_all_nodes requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.get_all_nodes())
+
+elif cmd == 'drop_node':
+  if len(args) != 1:
+    print 'drop_node requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.drop_node(args[0],))
+
+elif cmd == 'create_database':
   if len(args) != 1:
     print 'create_database requires 1 args'
     sys.exit(1)

@@ -22,6 +22,111 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     // Your initialization goes here
   }
 
+  void create_datacenter(const Datacenter& datacenter) {
+    // Your implementation goes here
+    printf("create_datacenter\n");
+  }
+
+  void get_center(Datacenter& _return, const std::string& name) {
+    // Your implementation goes here
+    printf("get_center\n");
+  }
+
+  void drop_center(const std::string& name, const bool deleteData, const bool cascade) {
+    // Your implementation goes here
+    printf("drop_center\n");
+  }
+
+  void get_all_centers(std::vector<std::string> & _return) {
+    // Your implementation goes here
+    printf("get_all_centers\n");
+  }
+
+  void get_local_center(Datacenter& _return) {
+    // Your implementation goes here
+    printf("get_local_center\n");
+  }
+
+  void get_lucene_index_names(std::vector<std::string> & _return, const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes) {
+    // Your implementation goes here
+    printf("get_lucene_index_names\n");
+  }
+
+  int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files) {
+    // Your implementation goes here
+    printf("add_partition_files\n");
+  }
+
+  int32_t drop_partition_files(const Partition& part, const std::vector<SFile> & files) {
+    // Your implementation goes here
+    printf("drop_partition_files\n");
+  }
+
+  int32_t add_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files) {
+    // Your implementation goes here
+    printf("add_subpartition_files\n");
+  }
+
+  int32_t drop_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files) {
+    // Your implementation goes here
+    printf("drop_subpartition_files\n");
+  }
+
+  bool add_partition_index(const Index& index, const Partition& part) {
+    // Your implementation goes here
+    printf("add_partition_index\n");
+  }
+
+  bool drop_partition_index(const Index& index, const Partition& part) {
+    // Your implementation goes here
+    printf("drop_partition_index\n");
+  }
+
+  bool add_subpartition_index(const Index& index, const Partition& part) {
+    // Your implementation goes here
+    printf("add_subpartition_index\n");
+  }
+
+  bool drop_subpartition_index(const Index& index, const Partition& part) {
+    // Your implementation goes here
+    printf("drop_subpartition_index\n");
+  }
+
+  int32_t add_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file) {
+    // Your implementation goes here
+    printf("add_partition_index_files\n");
+  }
+
+  int32_t drop_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file) {
+    // Your implementation goes here
+    printf("drop_partition_index_files\n");
+  }
+
+  void add_node(const Node& node) {
+    // Your implementation goes here
+    printf("add_node\n");
+  }
+
+  void update_node(const Node& node) {
+    // Your implementation goes here
+    printf("update_node\n");
+  }
+
+  void get_node(Node& _return, const std::string& name) {
+    // Your implementation goes here
+    printf("get_node\n");
+  }
+
+  void get_all_nodes(std::vector<Node> & _return) {
+    // Your implementation goes here
+    printf("get_all_nodes\n");
+  }
+
+  void drop_node(const std::string& name) {
+    // Your implementation goes here
+    printf("drop_node\n");
+  }
+
   void create_database(const Database& database) {
     // Your implementation goes here
     printf("create_database\n");

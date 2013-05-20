@@ -60,6 +60,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
@@ -74,6 +75,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
@@ -82,6 +84,7 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -4038,6 +4041,140 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         TException {
       // TODO Auto-generated method stub
       return 0;
+    }
+
+    @Override
+    public void create_datacenter(Datacenter datacenter) throws AlreadyExistsException,
+        InvalidObjectException, MetaException, TException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public Datacenter get_center(String name) throws NoSuchObjectException, MetaException,
+        TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public void drop_center(String name, boolean deleteData, boolean cascade)
+        throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public List<String> get_all_centers() throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public Datacenter get_local_center() throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public List<String> get_lucene_index_names(String db_name, String tbl_name, short max_indexes)
+        throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public int add_partition_files(Partition part, List<SFile> files) throws TException {
+      // TODO Auto-generated method stub
+      return 0;
+    }
+
+    @Override
+    public int drop_partition_files(Partition part, List<SFile> files) throws TException {
+      // TODO Auto-generated method stub
+      return 0;
+    }
+
+    @Override
+    public int add_subpartition_files(Subpartition subpart, List<SFile> files) throws TException {
+      // TODO Auto-generated method stub
+      return 0;
+    }
+
+    @Override
+    public int drop_subpartition_files(Subpartition subpart, List<SFile> files) throws TException {
+      // TODO Auto-generated method stub
+      return 0;
+    }
+
+    @Override
+    public boolean add_partition_index(Index index, Partition part) throws TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public boolean drop_partition_index(Index index, Partition part) throws TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public boolean add_subpartition_index(Index index, Partition part) throws TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public boolean drop_subpartition_index(Index index, Partition part) throws TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public int add_partition_index_files(Index index, Partition part, List<SFile> file)
+        throws TException {
+      // TODO Auto-generated method stub
+      return 0;
+    }
+
+    @Override
+    public int drop_partition_index_files(Index index, Partition part, List<SFile> file)
+        throws TException {
+      // TODO Auto-generated method stub
+      return 0;
+    }
+
+    @Override
+    public void add_node(Node node) throws AlreadyExistsException, InvalidObjectException,
+        MetaException, TException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void update_node(Node node) throws InvalidObjectException, MetaException, TException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public Node get_node(String name) throws NoSuchObjectException, MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public List<Node> get_all_nodes() throws NoSuchObjectException, MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public void drop_node(String name) throws NoSuchObjectException, InvalidOperationException,
+        MetaException, TException {
+      // TODO Auto-generated method stub
+
     }
   }
 

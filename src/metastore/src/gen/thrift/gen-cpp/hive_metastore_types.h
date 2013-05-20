@@ -623,20 +623,99 @@ class Role {
 
 void swap(Role &a, Role &b);
 
-typedef struct _Database__isset {
-  _Database__isset() : name(false), description(false), locationUri(false), parameters(false), privileges(false) {}
+typedef struct _Datacenter__isset {
+  _Datacenter__isset() : name(false), description(false), locationUri(false), parameters(false), privileges(false) {}
   bool name;
   bool description;
   bool locationUri;
   bool parameters;
   bool privileges;
+} _Datacenter__isset;
+
+class Datacenter {
+ public:
+
+  static const char* ascii_fingerprint; // = "213967572143E49C9F1A23F7A866E2F5";
+  static const uint8_t binary_fingerprint[16]; // = {0x21,0x39,0x67,0x57,0x21,0x43,0xE4,0x9C,0x9F,0x1A,0x23,0xF7,0xA8,0x66,0xE2,0xF5};
+
+  Datacenter() : name(), description(), locationUri() {
+  }
+
+  virtual ~Datacenter() throw() {}
+
+  std::string name;
+  std::string description;
+  std::string locationUri;
+  std::map<std::string, std::string>  parameters;
+  PrincipalPrivilegeSet privileges;
+
+  _Datacenter__isset __isset;
+
+  void __set_name(const std::string& val) {
+    name = val;
+  }
+
+  void __set_description(const std::string& val) {
+    description = val;
+  }
+
+  void __set_locationUri(const std::string& val) {
+    locationUri = val;
+  }
+
+  void __set_parameters(const std::map<std::string, std::string> & val) {
+    parameters = val;
+  }
+
+  void __set_privileges(const PrincipalPrivilegeSet& val) {
+    privileges = val;
+    __isset.privileges = true;
+  }
+
+  bool operator == (const Datacenter & rhs) const
+  {
+    if (!(name == rhs.name))
+      return false;
+    if (!(description == rhs.description))
+      return false;
+    if (!(locationUri == rhs.locationUri))
+      return false;
+    if (!(parameters == rhs.parameters))
+      return false;
+    if (__isset.privileges != rhs.__isset.privileges)
+      return false;
+    else if (__isset.privileges && !(privileges == rhs.privileges))
+      return false;
+    return true;
+  }
+  bool operator != (const Datacenter &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Datacenter & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(Datacenter &a, Datacenter &b);
+
+typedef struct _Database__isset {
+  _Database__isset() : name(false), description(false), locationUri(false), parameters(false), privileges(false), datacenter(false) {}
+  bool name;
+  bool description;
+  bool locationUri;
+  bool parameters;
+  bool privileges;
+  bool datacenter;
 } _Database__isset;
 
 class Database {
  public:
 
-  static const char* ascii_fingerprint; // = "213967572143E49C9F1A23F7A866E2F5";
-  static const uint8_t binary_fingerprint[16]; // = {0x21,0x39,0x67,0x57,0x21,0x43,0xE4,0x9C,0x9F,0x1A,0x23,0xF7,0xA8,0x66,0xE2,0xF5};
+  static const char* ascii_fingerprint; // = "36BDAA0C78A7BCB4FF0F4C4A5901C8D3";
+  static const uint8_t binary_fingerprint[16]; // = {0x36,0xBD,0xAA,0x0C,0x78,0xA7,0xBC,0xB4,0xFF,0x0F,0x4C,0x4A,0x59,0x01,0xC8,0xD3};
 
   Database() : name(), description(), locationUri() {
   }
@@ -648,6 +727,7 @@ class Database {
   std::string locationUri;
   std::map<std::string, std::string>  parameters;
   PrincipalPrivilegeSet privileges;
+  Datacenter datacenter;
 
   _Database__isset __isset;
 
@@ -672,6 +752,11 @@ class Database {
     __isset.privileges = true;
   }
 
+  void __set_datacenter(const Datacenter& val) {
+    datacenter = val;
+    __isset.datacenter = true;
+  }
+
   bool operator == (const Database & rhs) const
   {
     if (!(name == rhs.name))
@@ -685,6 +770,10 @@ class Database {
     if (__isset.privileges != rhs.__isset.privileges)
       return false;
     else if (__isset.privileges && !(privileges == rhs.privileges))
+      return false;
+    if (__isset.datacenter != rhs.__isset.datacenter)
+      return false;
+    else if (__isset.datacenter && !(datacenter == rhs.datacenter))
       return false;
     return true;
   }
