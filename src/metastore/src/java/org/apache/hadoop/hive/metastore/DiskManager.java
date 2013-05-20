@@ -413,6 +413,8 @@ public class DiskManager {
       if (ni == null) {
         ni = new NodeInfo(ndi);
         ni = ndmap.put(node.getNode_name(), ni);
+      } else {
+        ni.lastRptTs = System.currentTimeMillis();
       }
 
       // check if we can leave safe mode
@@ -450,7 +452,7 @@ public class DiskManager {
         if (ni.toDelete.size() == 0 && ni.toRep.size() == 0) {
           ni = ndmap.remove(node);
           if (ni.toDelete.size() > 0 || ni.toRep.size() > 0) {
-            LOG.warn("Missing entries ...");
+            LOG.warn("Might miss entries here ...");
           }
         }
       }
