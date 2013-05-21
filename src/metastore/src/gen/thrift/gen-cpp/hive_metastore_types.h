@@ -1099,7 +1099,7 @@ class StorageDescriptor {
 void swap(StorageDescriptor &a, StorageDescriptor &b);
 
 typedef struct _Subpartition__isset {
-  _Subpartition__isset() : values(false), dbName(false), tableName(false), createTime(false), lastAccessTime(false), sd(false), parameters(false), partitionName(false), version(false), privileges(false) {}
+  _Subpartition__isset() : values(false), dbName(false), tableName(false), createTime(false), lastAccessTime(false), sd(false), parameters(false), files(false), partitionName(false), version(false), privileges(false) {}
   bool values;
   bool dbName;
   bool tableName;
@@ -1107,6 +1107,7 @@ typedef struct _Subpartition__isset {
   bool lastAccessTime;
   bool sd;
   bool parameters;
+  bool files;
   bool partitionName;
   bool version;
   bool privileges;
@@ -1115,8 +1116,8 @@ typedef struct _Subpartition__isset {
 class Subpartition {
  public:
 
-  static const char* ascii_fingerprint; // = "2F47496125A3286F70618FA3C48EFF6C";
-  static const uint8_t binary_fingerprint[16]; // = {0x2F,0x47,0x49,0x61,0x25,0xA3,0x28,0x6F,0x70,0x61,0x8F,0xA3,0xC4,0x8E,0xFF,0x6C};
+  static const char* ascii_fingerprint; // = "5E14B7D697E9830C2EBE14229B67F381";
+  static const uint8_t binary_fingerprint[16]; // = {0x5E,0x14,0xB7,0xD6,0x97,0xE9,0x83,0x0C,0x2E,0xBE,0x14,0x22,0x9B,0x67,0xF3,0x81};
 
   Subpartition() : dbName(), tableName(), createTime(0), lastAccessTime(0), partitionName(), version(0) {
   }
@@ -1130,6 +1131,7 @@ class Subpartition {
   int32_t lastAccessTime;
   StorageDescriptor sd;
   std::map<std::string, std::string>  parameters;
+  std::vector<int64_t>  files;
   std::string partitionName;
   int32_t version;
   PrincipalPrivilegeSet privileges;
@@ -1164,6 +1166,10 @@ class Subpartition {
     parameters = val;
   }
 
+  void __set_files(const std::vector<int64_t> & val) {
+    files = val;
+  }
+
   void __set_partitionName(const std::string& val) {
     partitionName = val;
     __isset.partitionName = true;
@@ -1195,6 +1201,8 @@ class Subpartition {
       return false;
     if (!(parameters == rhs.parameters))
       return false;
+    if (!(files == rhs.files))
+      return false;
     if (__isset.partitionName != rhs.__isset.partitionName)
       return false;
     else if (__isset.partitionName && !(partitionName == rhs.partitionName))
@@ -1223,7 +1231,7 @@ class Subpartition {
 void swap(Subpartition &a, Subpartition &b);
 
 typedef struct _Partition__isset {
-  _Partition__isset() : values(false), dbName(false), tableName(false), createTime(false), lastAccessTime(false), sd(false), parameters(false), partitionName(false), subpartitions(false), version(false), privileges(false) {}
+  _Partition__isset() : values(false), dbName(false), tableName(false), createTime(false), lastAccessTime(false), sd(false), parameters(false), files(false), partitionName(false), subpartitions(false), version(false), privileges(false) {}
   bool values;
   bool dbName;
   bool tableName;
@@ -1231,6 +1239,7 @@ typedef struct _Partition__isset {
   bool lastAccessTime;
   bool sd;
   bool parameters;
+  bool files;
   bool partitionName;
   bool subpartitions;
   bool version;
@@ -1240,8 +1249,8 @@ typedef struct _Partition__isset {
 class Partition {
  public:
 
-  static const char* ascii_fingerprint; // = "C458933CCC83FC63D81CEE7A67A04330";
-  static const uint8_t binary_fingerprint[16]; // = {0xC4,0x58,0x93,0x3C,0xCC,0x83,0xFC,0x63,0xD8,0x1C,0xEE,0x7A,0x67,0xA0,0x43,0x30};
+  static const char* ascii_fingerprint; // = "D84F7D1325F7F2EFEF519502732AE04A";
+  static const uint8_t binary_fingerprint[16]; // = {0xD8,0x4F,0x7D,0x13,0x25,0xF7,0xF2,0xEF,0xEF,0x51,0x95,0x02,0x73,0x2A,0xE0,0x4A};
 
   Partition() : dbName(), tableName(), createTime(0), lastAccessTime(0), partitionName(), version(0) {
   }
@@ -1255,6 +1264,7 @@ class Partition {
   int32_t lastAccessTime;
   StorageDescriptor sd;
   std::map<std::string, std::string>  parameters;
+  std::vector<int64_t>  files;
   std::string partitionName;
   std::vector<Subpartition>  subpartitions;
   int32_t version;
@@ -1288,6 +1298,10 @@ class Partition {
 
   void __set_parameters(const std::map<std::string, std::string> & val) {
     parameters = val;
+  }
+
+  void __set_files(const std::vector<int64_t> & val) {
+    files = val;
   }
 
   void __set_partitionName(const std::string& val) {
@@ -1325,6 +1339,8 @@ class Partition {
     if (!(sd == rhs.sd))
       return false;
     if (!(parameters == rhs.parameters))
+      return false;
+    if (!(files == rhs.files))
       return false;
     if (__isset.partitionName != rhs.__isset.partitionName)
       return false;
@@ -1378,8 +1394,8 @@ typedef struct _Table__isset {
 class Table {
  public:
 
-  static const char* ascii_fingerprint; // = "1A9A0352D145B57684489F31B004E3C0";
-  static const uint8_t binary_fingerprint[16]; // = {0x1A,0x9A,0x03,0x52,0xD1,0x45,0xB5,0x76,0x84,0x48,0x9F,0x31,0xB0,0x04,0xE3,0xC0};
+  static const char* ascii_fingerprint; // = "F28A70F6571CDAEFDA4B1A57B0E0D5D5";
+  static const uint8_t binary_fingerprint[16]; // = {0xF2,0x8A,0x70,0xF6,0x57,0x1C,0xDA,0xEF,0xDA,0x4B,0x1A,0x57,0xB0,0xE0,0xD5,0xD5};
 
   Table() : tableName(), dbName(), owner(), createTime(0), lastAccessTime(0), retention(0), viewOriginalText(), viewExpandedText(), tableType() {
   }

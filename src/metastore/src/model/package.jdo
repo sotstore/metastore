@@ -387,6 +387,13 @@
         </join>
         <element column="PART_KEY_VAL"/>
       </field>
+      <field name="files" table="PARTITION_FILES">
+        <collection element-type="java.lang.Long"/>
+        <join>
+          <column name="PART_ID"/>
+        </join>
+        <element column="FID"/>
+      </field>
       <field name="sd" dependent="true">
         <column name="SD_ID"/>
       </field>
@@ -1046,6 +1053,6 @@
         <column name="DIGEST" length="256" jdbc-type="VARCHAR"/>
       </field>
     </class>
-
+    
   </package>
 </jdo>

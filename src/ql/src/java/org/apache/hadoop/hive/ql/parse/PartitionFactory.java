@@ -304,7 +304,7 @@ public class PartitionFactory {
         parts = new ArrayList<Partition>();
         for(PartitionDefinition pd : partitions){
           List<Subpartition> subParts =  pd.toSubpartitionList();
-          Partition part =  new Partition(pd.getValues(), dbName,tableName,now,now,null,null) ;
+          Partition part =  new Partition(pd.getValues(), dbName,tableName,now,now,null,null,null) ;
           part.setPartitionName(pd.getPart_name());
           part.setSubpartitions(subParts);
           parts.add(part);
@@ -321,7 +321,7 @@ public class PartitionFactory {
         int now = (int)(System.currentTimeMillis()/1000);
         parts = new ArrayList<Subpartition>();
         for(PartitionDefinition pd : partitions){
-          Subpartition p =  new Subpartition(pd.getValues(), dbName,tableName,now,now,null,null) ;
+          Subpartition p =  new Subpartition(pd.getValues(), dbName,tableName,now,now,null,null,null) ;
           p.setPartitionName(pd.getPart_name());
           parts.add(p);
         }

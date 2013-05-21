@@ -516,13 +516,13 @@ public class Node implements org.apache.thrift.TBase<Node, Node._Fields>, java.i
           case 2: // IPS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list254 = iprot.readListBegin();
-                struct.ips = new ArrayList<String>(_list254.size);
-                for (int _i255 = 0; _i255 < _list254.size; ++_i255)
+                org.apache.thrift.protocol.TList _list270 = iprot.readListBegin();
+                struct.ips = new ArrayList<String>(_list270.size);
+                for (int _i271 = 0; _i271 < _list270.size; ++_i271)
                 {
-                  String _elem256; // required
-                  _elem256 = iprot.readString();
-                  struct.ips.add(_elem256);
+                  String _elem272; // required
+                  _elem272 = iprot.readString();
+                  struct.ips.add(_elem272);
                 }
                 iprot.readListEnd();
               }
@@ -561,9 +561,9 @@ public class Node implements org.apache.thrift.TBase<Node, Node._Fields>, java.i
         oprot.writeFieldBegin(IPS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.ips.size()));
-          for (String _iter257 : struct.ips)
+          for (String _iter273 : struct.ips)
           {
-            oprot.writeString(_iter257);
+            oprot.writeString(_iter273);
           }
           oprot.writeListEnd();
         }
@@ -606,9 +606,9 @@ public class Node implements org.apache.thrift.TBase<Node, Node._Fields>, java.i
       if (struct.isSetIps()) {
         {
           oprot.writeI32(struct.ips.size());
-          for (String _iter258 : struct.ips)
+          for (String _iter274 : struct.ips)
           {
-            oprot.writeString(_iter258);
+            oprot.writeString(_iter274);
           }
         }
       }
@@ -627,13 +627,13 @@ public class Node implements org.apache.thrift.TBase<Node, Node._Fields>, java.i
       }
       if (incoming.get(1)) {
         {
-          org.apache.thrift.protocol.TList _list259 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.ips = new ArrayList<String>(_list259.size);
-          for (int _i260 = 0; _i260 < _list259.size; ++_i260)
+          org.apache.thrift.protocol.TList _list275 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.ips = new ArrayList<String>(_list275.size);
+          for (int _i276 = 0; _i276 < _list275.size; ++_i276)
           {
-            String _elem261; // required
-            _elem261 = iprot.readString();
-            struct.ips.add(_elem261);
+            String _elem277; // required
+            _elem277 = iprot.readString();
+            struct.ips.add(_elem277);
           }
         }
         struct.setIpsIsSet(true);

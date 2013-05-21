@@ -394,9 +394,10 @@ class Subpartition
   LASTACCESSTIME = 5
   SD = 6
   PARAMETERS = 7
-  PARTITIONNAME = 8
-  VERSION = 9
-  PRIVILEGES = 10
+  FILES = 8
+  PARTITIONNAME = 9
+  VERSION = 10
+  PRIVILEGES = 11
 
   FIELDS = {
     VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRING}},
@@ -406,6 +407,7 @@ class Subpartition
     LASTACCESSTIME => {:type => ::Thrift::Types::I32, :name => 'lastAccessTime'},
     SD => {:type => ::Thrift::Types::STRUCT, :name => 'sd', :class => ::StorageDescriptor},
     PARAMETERS => {:type => ::Thrift::Types::MAP, :name => 'parameters', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}},
+    FILES => {:type => ::Thrift::Types::LIST, :name => 'files', :element => {:type => ::Thrift::Types::I64}},
     PARTITIONNAME => {:type => ::Thrift::Types::STRING, :name => 'partitionName', :optional => true},
     VERSION => {:type => ::Thrift::Types::I32, :name => 'version', :optional => true},
     PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true}
@@ -428,10 +430,11 @@ class Partition
   LASTACCESSTIME = 5
   SD = 6
   PARAMETERS = 7
-  PARTITIONNAME = 8
-  SUBPARTITIONS = 9
-  VERSION = 10
-  PRIVILEGES = 11
+  FILES = 8
+  PARTITIONNAME = 9
+  SUBPARTITIONS = 10
+  VERSION = 11
+  PRIVILEGES = 12
 
   FIELDS = {
     VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRING}},
@@ -441,6 +444,7 @@ class Partition
     LASTACCESSTIME => {:type => ::Thrift::Types::I32, :name => 'lastAccessTime'},
     SD => {:type => ::Thrift::Types::STRUCT, :name => 'sd', :class => ::StorageDescriptor},
     PARAMETERS => {:type => ::Thrift::Types::MAP, :name => 'parameters', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}},
+    FILES => {:type => ::Thrift::Types::LIST, :name => 'files', :element => {:type => ::Thrift::Types::I64}},
     PARTITIONNAME => {:type => ::Thrift::Types::STRING, :name => 'partitionName', :optional => true},
     SUBPARTITIONS => {:type => ::Thrift::Types::LIST, :name => 'subpartitions', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Subpartition}, :optional => true},
     VERSION => {:type => ::Thrift::Types::I32, :name => 'version', :optional => true},

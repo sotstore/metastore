@@ -23,6 +23,7 @@ import static org.apache.commons.lang.StringUtils.join;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,7 +31,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
@@ -1137,6 +1137,28 @@ public class ObjectStore implements RawStore, Configurable {
     return r;
   }
 
+  public List<Node> getAllNodes() throws MetaException {
+    List<Node> ln = new ArrayList<Node>();
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      Query q = pm.newQuery(MNode.class);
+      Collection allNodes = (Collection)q.execute();
+      Iterator iter = allNodes.iterator();
+      while (iter.hasNext()) {
+        Node n = convertToNode((MNode)iter.next());
+        ln.add(n);
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return ln;
+  }
+
   public Node getNode(String node_name) throws MetaException {
     boolean commited = false;
     Node n = null;
@@ -1911,20 +1933,17 @@ public class ObjectStore implements RawStore, Configurable {
   }
 
   public Partition getPartition(String dbName, String tableName,
-      List<String> part_vals) throws NoSuchObjectException, MetaException {
+      String part_name) throws NoSuchObjectException, MetaException {
     openTransaction();
-    Partition part = convertToPart(getMPartition(dbName, tableName, part_vals));
+    Partition part = convertToPart(getMPartition(dbName, tableName, part_name));
     commitTransaction();
     if(part == null) {
-      throw new NoSuchObjectException("partition values="
-          + part_vals.toString());
+      throw new NoSuchObjectException("partition values=" + part_name);
     }
-    part.setValues(part_vals);
     return part;
   }
 
-  private MPartition getMPartition(String dbName, String tableName,
-      List<String> part_vals) throws MetaException {
+  private MPartition getMPartition(String dbName, String tableName, String partName) throws MetaException {
     MPartition mpart = null;
     boolean commited = false;
     try {
@@ -1938,13 +1957,11 @@ public class ObjectStore implements RawStore, Configurable {
       }
       // Change the query to use part_vals instead of the name which is
       // redundant
-      String name = Warehouse.makePartName(convertToFieldSchemas(mtbl
-          .getPartitionKeys()), part_vals);
       Query query = pm.newQuery(MPartition.class,
           "table.tableName == t1 && table.database.name == t2 && partitionName == t3");
       query.declareParameters("java.lang.String t1, java.lang.String t2, java.lang.String t3");
       query.setUnique(true);
-      mpart = (MPartition) query.execute(tableName, dbName, name);
+      mpart = (MPartition) query.execute(tableName, dbName, partName);
       pm.retrieve(mpart);
       commited = commitTransaction();
     } finally {
@@ -1996,7 +2013,7 @@ public class ObjectStore implements RawStore, Configurable {
 //        .getPartitionKeys()), part.getValues()), mt, part.getValues(), part
 //        .getCreateTime(), part.getLastAccessTime(),
 //        msd, part.getParameters());
-    return new MPartition(part.getPartitionName(), mt, part.getValues(), part
+    return new MPartition(part.getPartitionName(), mt, part.getValues(), part.getFiles(), part
         .getCreateTime(), part.getLastAccessTime(),
         msd, part.getParameters());
   }
@@ -2031,7 +2048,7 @@ public class ObjectStore implements RawStore, Configurable {
 //        .getPartitionKeys()), part.getValues()), mt, part.getValues(), part
 //        .getCreateTime(), part.getLastAccessTime(),
 //        msd, part.getParameters());
-    return new MPartition(part.getPartitionName(), mt, part.getValues(), part
+    return new MPartition(part.getPartitionName(), mt, part.getValues(), part.getFiles(), part
         .getCreateTime(), part.getLastAccessTime(),
         msd, part.getParameters());
   }
@@ -2066,10 +2083,12 @@ public class ObjectStore implements RawStore, Configurable {
     if (mpart == null) {
       return null;
     }
-    return new Partition(mpart.getValues(), mpart.getTable().getDatabase()
+    Partition p = new Partition(mpart.getValues(), mpart.getTable().getDatabase()
         .getName(), mpart.getTable().getTableName(), mpart.getCreateTime(),
         mpart.getLastAccessTime(), convertToStorageDescriptor(mpart.getSd()),
-        mpart.getParameters());
+        mpart.getParameters(), mpart.getFiles());
+    p.setPartitionName(mpart.getPartitionName());
+    return p;
   }
 
   private Partition convertToPart(String dbName, String tblName, MPartition mpart)
@@ -2079,7 +2098,7 @@ public class ObjectStore implements RawStore, Configurable {
     }
     return new Partition(mpart.getValues(), dbName, tblName, mpart.getCreateTime(),
         mpart.getLastAccessTime(), convertToStorageDescriptor(mpart.getSd(), true),
-        mpart.getParameters());
+        mpart.getParameters(), mpart.getFiles());
   }
 
   @Override
@@ -2089,7 +2108,8 @@ public class ObjectStore implements RawStore, Configurable {
     boolean success = false;
     try {
       openTransaction();
-      MPartition part = getMPartition(dbName, tableName, part_vals);
+      // TODO: fix it
+      MPartition part = getMPartition(dbName, tableName, part_vals.toString());
       dropPartitionCommon(part);
       success = commitTransaction();
     } finally {
@@ -2210,7 +2230,8 @@ public class ObjectStore implements RawStore, Configurable {
     boolean success = false;
     try {
       openTransaction();
-      MPartition mpart = getMPartition(dbName, tblName, partVals);
+      // TODO: fix it
+      MPartition mpart = getMPartition(dbName, tblName, partVals.toString());
       if (mpart == null) {
         commitTransaction();
         throw new NoSuchObjectException("partition values="
@@ -2809,17 +2830,19 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
-  private void alterPartitionNoTxn(String dbname, String name, List<String> part_vals,
+  private void alterPartitionNoTxn(String dbname, String name, String partName, List<String> part_vals,
       Partition newPart) throws InvalidObjectException, MetaException {
     name = name.toLowerCase();
     dbname = dbname.toLowerCase();
-    MPartition oldp = getMPartition(dbname, name, part_vals);
+    // TODO: fix it
+    MPartition oldp = getMPartition(dbname, name, partName);
     MPartition newp = convertToMPart(newPart, false);
     if (oldp == null || newp == null) {
       throw new InvalidObjectException("partition does not exist.");
     }
     oldp.setValues(newp.getValues());
     oldp.setPartitionName(newp.getPartitionName());
+    LOG.info("-----> Set partition name to: " + newp.getPartitionName());
     oldp.setParameters(newPart.getParameters());
     copyMSD(newp.getSd(), oldp.getSd());
     if (newp.getCreateTime() != oldp.getCreateTime()) {
@@ -2830,12 +2853,12 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
-  public void alterPartition(String dbname, String name, List<String> part_vals, Partition newPart)
+  public void alterPartition(String dbname, String name, String partName, List<String> part_vals, Partition newPart)
       throws InvalidObjectException, MetaException {
     boolean success = false;
     try {
       openTransaction();
-      alterPartitionNoTxn(dbname, name, part_vals, newPart);
+      alterPartitionNoTxn(dbname, name, partName, part_vals, newPart);
       // commit the changes
       success = commitTransaction();
     } finally {
@@ -2847,15 +2870,33 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
-  public void alterPartitions(String dbname, String name, List<List<String>> part_vals,
+  public void updatePartition(Partition newPart) throws InvalidObjectException, MetaException {
+    boolean success = false;
+    try {
+      openTransaction();
+      MPartition oldp = getMPartition(newPart.getDbName(), newPart.getTableName(), newPart.getPartitionName());
+      // update the files list!
+      oldp.setFiles(newPart.getFiles());
+      pm.makePersistent(oldp);
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+        throw new MetaException("Update partition did not commit successfully.");
+      }
+    }
+  }
+
+  public void alterPartitions(String dbname, String name, List<String> partNames, List<List<String>> part_vals,
       List<Partition> newParts) throws InvalidObjectException, MetaException {
     boolean success = false;
     try {
       openTransaction();
       Iterator<List<String>> part_val_itr = part_vals.iterator();
-      for (Partition tmpPart: newParts) {
+      for (int i = 0; i < newParts.size(); i++) {
+        Partition tmpPart = newParts.get(i);
         List<String> tmpPartVals = part_val_itr.next();
-        alterPartitionNoTxn(dbname, name, tmpPartVals, tmpPart);
+        alterPartitionNoTxn(dbname, name, partNames.get(i), tmpPartVals, tmpPart);
       }
       // commit the changes
       success = commitTransaction();
@@ -3903,8 +3944,9 @@ public class ObjectStore implements RawStore, Configurable {
               }
             }
           } else if (hiveObject.getObjectType() == HiveObjectType.PARTITION) {
+            // TODO: fix it
             MPartition partObj = this.getMPartition(hiveObject.getDbName(),
-                hiveObject.getObjectName(), hiveObject.getPartValues());
+                hiveObject.getObjectName(), hiveObject.getPartValues().toString());
             String partName = null;
             if (partObj != null) {
               partName = partObj.getPartitionName();
@@ -3940,8 +3982,9 @@ public class ObjectStore implements RawStore, Configurable {
               if (hiveObject.getPartValues() != null) {
                 MPartition partObj = null;
                 List<MPartitionColumnPrivilege> colPrivs = null;
+                // TODO: fix it
                 partObj = this.getMPartition(hiveObject.getDbName(), hiveObject
-                    .getObjectName(), hiveObject.getPartValues());
+                    .getObjectName(), hiveObject.getPartValues().toString());
                 if (partObj == null) {
                   continue;
                 }
@@ -5413,7 +5456,8 @@ public class ObjectStore implements RawStore, Configurable {
       return null;
     }
 
-    MPartition partition  = getMPartition(statsDesc.getDbName(), statsDesc.getTableName(), partVal);
+    // TODO: fix it
+    MPartition partition  = getMPartition(statsDesc.getDbName(), statsDesc.getTableName(), partVal.toString());
 
     if (partition == null) {
       throw new NoSuchObjectException("Partition for which stats is gathered doesn't exist.");
@@ -5586,8 +5630,9 @@ public class ObjectStore implements RawStore, Configurable {
         " for which stats gathering is requested doesn't exist.");
     }
 
+    // TODO: fix it
     MPartition mPartition =
-                 getMPartition(mStatsObj.getDbName(), mStatsObj.getTableName(), partVal);
+                 getMPartition(mStatsObj.getDbName(), mStatsObj.getTableName(), partVal.toString());
 
     if (mPartition == null) {
       throw new
@@ -5811,8 +5856,9 @@ public class ObjectStore implements RawStore, Configurable {
           " for which stats is requested doesn't exist.");
       }
 
+      // TODO: fix it
       MPartition mPartition =
-                  getMPartition(dbName, tableName, partVal);
+                  getMPartition(dbName, tableName, partVal.toString());
 
       if (mPartition == null) {
         throw new
@@ -5883,8 +5929,9 @@ public class ObjectStore implements RawStore, Configurable {
           "  for which stats deletion is requested doesn't exist");
       }
 
+      // TODO: fix it
       MPartition mPartition =
-          getMPartition(dbName, tableName, partVals);
+          getMPartition(dbName, tableName, partVals.toString());
 
       if (mPartition == null) {
         throw new

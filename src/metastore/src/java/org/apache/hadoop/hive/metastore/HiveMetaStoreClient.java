@@ -1426,4 +1426,24 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     return client.alter_node(node_name, ipl, status);
   }
 
+  @Override
+  public int add_partition_files(Partition part, List<SFile> files) throws TException {
+    assert part != null;
+    assert files != null;
+    return client.add_partition_files(part, files);
+  }
+
+  @Override
+  public int drop_partition_files(Partition part, List<SFile> files) throws TException {
+    assert part != null;
+    assert files != null;
+    return client.drop_partition_files(part, files);
+  }
+
+  @Override
+  public List<String> get_partition_names(String db_name, String tbl_name, short max_parts)
+      throws MetaException, TException {
+      return client.get_partition_names(db_name, tbl_name, max_parts);
+  }
+
 }

@@ -1498,8 +1498,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
         Partition old_part = null;
         try {
+          // TODO: fix it
           old_part = ms.getPartition(part.getDbName(), part
-              .getTableName(), part.getValues());
+              .getTableName(), part.getValues().toString());
         } catch (NoSuchObjectException e) {
           // this means there is no existing partition
           old_part = null;
@@ -1674,8 +1675,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
         Partition old_part = null;
         try {
+          // TODO: fix it
           old_part = ms.getPartition(part.getDbName(), part
-              .getTableName(), part.getValues());
+              .getTableName(), part.getValues().toString());
         } catch (NoSuchObjectException e) {
           // this means there is no existing partition
           old_part = null;
@@ -1845,7 +1847,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
       try {
         ms.openTransaction();
-        part = ms.getPartition(db_name, tbl_name, part_vals);
+        // TODO: fix it
+        part = ms.getPartition(db_name, tbl_name, part_vals.toString());
 
         firePreEvent(new PreDropPartitionEvent(part, this));
 
@@ -1940,7 +1943,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Partition ret = null;
       Exception ex = null;
       try {
-        ret = getMS().getPartition(db_name, tbl_name, part_vals);
+        // TODO: fix it
+        ret = getMS().getPartition(db_name, tbl_name, part_vals.toString());
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -2121,7 +2125,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         firePreEvent(new PreAlterPartitionEvent(db_name, tbl_name, part_vals, new_part, this));
 
-        oldPart = alterHandler.alterPartition(getMS(), wh, db_name, tbl_name, part_vals, new_part);
+        Table table = getMS().getTable(db_name, tbl_name);
+        String partName = Warehouse
+              .makePartName(table.getPartitionKeys(), part_vals);
+
+        oldPart = alterHandler.alterPartition(getMS(), wh, db_name, tbl_name, partName, part_vals, new_part);
 
         for (MetaStoreEventListener listener : listeners) {
           AlterPartitionEvent alterPartitionEvent =
@@ -2567,13 +2575,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     private Partition get_partition_by_name_core(final RawStore ms, final String db_name,
         final String tbl_name, final String part_name)
         throws MetaException, NoSuchObjectException, TException {
-      List<String> partVals = null;
-      try {
-        partVals = getPartValsFromName(ms, db_name, tbl_name, part_name);
-      } catch (InvalidObjectException e) {
-        throw new NoSuchObjectException(e.getMessage());
-      }
-      Partition p = ms.getPartition(db_name, tbl_name, partVals);
+      Partition p = ms.getPartition(db_name, tbl_name, part_name);
 
       if (p == null) {
         throw new NoSuchObjectException(db_name + "." + tbl_name
@@ -4223,8 +4225,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public List<Node> get_all_nodes() throws MetaException, TException {
-      // TODO xxxxx
-      return null;	
+      return getMS().getAllNodes();
     }
 
     @Override
@@ -4269,13 +4270,30 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public int add_partition_files(Partition part, List<SFile> files) throws TException {
-      // TODO Auto-generated method stub
+      Partition p = getMS().getPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
+      List<Long> nl = new ArrayList<Long>();
+
+      for (SFile f : files) {
+        nl.add(new Long(f.getFid()));
+      }
+      if (p.getFiles() != null) {
+        for (Long l : p.getFiles()) {
+          nl.add(l);
+        }
+      }
+      p.setFiles(nl);
+
+      LOG.info("Begin update.");
+      getMS().updatePartition(p);
       return 0;
     }
 
     @Override
     public int drop_partition_files(Partition part, List<SFile> files) throws TException {
-      // TODO Auto-generated method stub
+      List<Long> new_files = part.getFiles();
+      new_files.removeAll(files);
+      part.setFiles(new_files);
+      getMS().alterPartition(part.getDbName(), part.getTableName(), part.getPartitionName(), part.getValues(), part);
       return 0;
     }
 

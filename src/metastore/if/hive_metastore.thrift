@@ -186,9 +186,10 @@ struct Subpartition {
   5: i32          lastAccessTime,
   6: StorageDescriptor   sd,
   7: map<string, string> parameters,
-  8: optional string       partitionName,
-  9: optional i32 version,
-  10: optional PrincipalPrivilegeSet privileges
+  8: list<i64>    files,
+  9: optional string       partitionName,
+  10: optional i32 version,
+  11: optional PrincipalPrivilegeSet privileges
 }
 
 struct Partition {
@@ -199,10 +200,11 @@ struct Partition {
   5: i32          lastAccessTime,
   6: StorageDescriptor   sd,
   7: map<string, string> parameters,
-  8: optional string       partitionName,
-  9: optional list<Subpartition> subpartitions,
-  10: optional i32 version,
-  11: optional PrincipalPrivilegeSet privileges
+  8: list<i64>    files,
+  9: optional string       partitionName,
+  10: optional list<Subpartition> subpartitions,
+  11: optional i32 version,
+  12: optional PrincipalPrivilegeSet privileges
 }
 
 // table information

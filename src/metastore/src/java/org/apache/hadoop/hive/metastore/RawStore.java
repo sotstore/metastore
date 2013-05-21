@@ -113,6 +113,8 @@ public interface RawStore extends Configurable {
 
   public abstract Node getNode(String node_name) throws MetaException;
 
+  public List<Node> getAllNodes() throws MetaException;
+
   public long countNode() throws MetaException;
 
   public void createFile(SFile file) throws InvalidObjectException, MetaException;
@@ -147,7 +149,9 @@ public interface RawStore extends Configurable {
       throws InvalidObjectException, MetaException;
 
   public abstract Partition getPartition(String dbName, String tableName,
-      List<String> part_vals) throws MetaException, NoSuchObjectException;
+      String partName) throws MetaException, NoSuchObjectException;
+
+  public void updatePartition(Partition newPart) throws InvalidObjectException, MetaException;
 
   public abstract boolean dropPartition(String dbName, String tableName,
       List<String> part_vals) throws MetaException, NoSuchObjectException, InvalidObjectException,
@@ -198,10 +202,10 @@ public interface RawStore extends Configurable {
   public abstract List<String> listPartitionNamesByFilter(String db_name,
       String tbl_name, String filter, short max_parts) throws MetaException;
 
-  public abstract void alterPartition(String db_name, String tbl_name, List<String> part_vals,
+  public abstract void alterPartition(String db_name, String tbl_name, String partName, List<String> part_vals,
       Partition new_part) throws InvalidObjectException, MetaException;
 
-  public abstract void alterPartitions(String db_name, String tbl_name,
+  public abstract void alterPartitions(String db_name, String tbl_name, List<String> partNames,
       List<List<String>> part_vals_list, List<Partition> new_parts)
       throws InvalidObjectException, MetaException;
 
