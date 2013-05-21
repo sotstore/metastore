@@ -2539,11 +2539,12 @@ public class ObjectStore implements RawStore, Configurable {
           "Original table does not exist for the given index.");
     }
 
-    MTable indexTable = getMTable(index.getDbName(), index.getIndexTableName());
-    if (indexTable == null) {
-      throw new InvalidObjectException(
-          "Underlying index table does not exist for the given index.");
-    }
+    MTable indexTable = null;
+//    MTable indexTable = getMTable(index.getDbName(), index.getIndexTableName());
+//    if (indexTable == null) {
+//      throw new InvalidObjectException(
+//          "Underlying index table does not exist for the given index.");
+//    }
 
     return new MIndex(index.getIndexName(), origTable, index.getCreateTime(),
         index.getLastAccessTime(), index.getParameters(), indexTable, msd,

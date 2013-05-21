@@ -28,8 +28,8 @@ interface ThriftHiveMetastoreIf extends \FacebookServiceIf {
   public function drop_subpartition_files(\metastore\Subpartition $subpart, $files);
   public function add_partition_index(\metastore\Index $index, \metastore\Partition $part);
   public function drop_partition_index(\metastore\Index $index, \metastore\Partition $part);
-  public function add_subpartition_index(\metastore\Index $index, \metastore\Partition $part);
-  public function drop_subpartition_index(\metastore\Index $index, \metastore\Partition $part);
+  public function add_subpartition_index(\metastore\Index $index, \metastore\Subpartition $part);
+  public function drop_subpartition_index(\metastore\Index $index, \metastore\Subpartition $part);
   public function add_partition_index_files(\metastore\Index $index, \metastore\Partition $part, $file);
   public function drop_partition_index_files(\metastore\Index $index, \metastore\Partition $part, $file);
   public function add_node(\metastore\Node $node);
@@ -772,13 +772,13 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
     throw new \Exception("drop_partition_index failed: unknown result");
   }
 
-  public function add_subpartition_index(\metastore\Index $index, \metastore\Partition $part)
+  public function add_subpartition_index(\metastore\Index $index, \metastore\Subpartition $part)
   {
     $this->send_add_subpartition_index($index, $part);
     return $this->recv_add_subpartition_index();
   }
 
-  public function send_add_subpartition_index(\metastore\Index $index, \metastore\Partition $part)
+  public function send_add_subpartition_index(\metastore\Index $index, \metastore\Subpartition $part)
   {
     $args = new \metastore\ThriftHiveMetastore_add_subpartition_index_args();
     $args->index = $index;
@@ -824,13 +824,13 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
     throw new \Exception("add_subpartition_index failed: unknown result");
   }
 
-  public function drop_subpartition_index(\metastore\Index $index, \metastore\Partition $part)
+  public function drop_subpartition_index(\metastore\Index $index, \metastore\Subpartition $part)
   {
     $this->send_drop_subpartition_index($index, $part);
     return $this->recv_drop_subpartition_index();
   }
 
-  public function send_drop_subpartition_index(\metastore\Index $index, \metastore\Partition $part)
+  public function send_drop_subpartition_index(\metastore\Index $index, \metastore\Subpartition $part)
   {
     $args = new \metastore\ThriftHiveMetastore_drop_subpartition_index_args();
     $args->index = $index;
@@ -8312,7 +8312,7 @@ class ThriftHiveMetastore_add_subpartition_index_args {
         2 => array(
           'var' => 'part',
           'type' => TType::STRUCT,
-          'class' => '\metastore\Partition',
+          'class' => '\metastore\Subpartition',
           ),
         );
     }
@@ -8355,7 +8355,7 @@ class ThriftHiveMetastore_add_subpartition_index_args {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->part = new \metastore\Partition();
+            $this->part = new \metastore\Subpartition();
             $xfer += $this->part->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -8486,7 +8486,7 @@ class ThriftHiveMetastore_drop_subpartition_index_args {
         2 => array(
           'var' => 'part',
           'type' => TType::STRUCT,
-          'class' => '\metastore\Partition',
+          'class' => '\metastore\Subpartition',
           ),
         );
     }
@@ -8529,7 +8529,7 @@ class ThriftHiveMetastore_drop_subpartition_index_args {
           break;
         case 2:
           if ($ftype == TType::STRUCT) {
-            $this->part = new \metastore\Partition();
+            $this->part = new \metastore\Subpartition();
             $xfer += $this->part->read($input);
           } else {
             $xfer += $input->skip($ftype);

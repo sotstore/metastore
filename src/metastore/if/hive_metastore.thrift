@@ -419,8 +419,8 @@ service ThriftHiveMetastore extends fb303.FacebookService
   bool add_partition_index(1:Index index, 2:Partition part)
   bool drop_partition_index(1:Index index, 2:Partition part)
   
-  bool add_subpartition_index(1:Index index, 2:Partition part)
-  bool drop_subpartition_index(1:Index index, 2:Partition part)
+  bool add_subpartition_index(1:Index index, 2:Subpartition part)
+  bool drop_subpartition_index(1:Index index, 2:Subpartition part)
   
  
   //start of partition index file
@@ -755,6 +755,11 @@ const string META_TABLE_PARTITION_COLUMNS = "partition_columns",
 const string FILE_INPUT_FORMAT    = "file.inputformat",
 const string FILE_OUTPUT_FORMAT   = "file.outputformat",
 const string META_TABLE_STORAGE   = "storage_handler",
+
+//added by zjw
+const string META_LUCENE_INDEX   = "lucene.stored",
+const string META_LUCENE_ANALYZE   = "lucene.analyzed",
+const string META_LUCENE_STORE   = "lucene.indexd",
 
 
 

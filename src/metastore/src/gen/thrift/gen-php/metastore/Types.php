@@ -7158,4 +7158,10 @@ $GLOBALS['hive_metastore_CONSTANTS']['FILE_OUTPUT_FORMAT'] = "file.outputformat"
 
 $GLOBALS['hive_metastore_CONSTANTS']['META_TABLE_STORAGE'] = "storage_handler";
 
+$GLOBALS['hive_metastore_CONSTANTS']['META_LUCENE_INDEX'] = "lucene.stored";
+
+$GLOBALS['hive_metastore_CONSTANTS']['META_LUCENE_ANALYZE'] = "lucene.analyzed";
+
+$GLOBALS['hive_metastore_CONSTANTS']['META_LUCENE_STORE'] = "lucene.indexd";
+
 

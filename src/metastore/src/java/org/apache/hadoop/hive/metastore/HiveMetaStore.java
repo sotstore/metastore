@@ -2804,7 +2804,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public Index add_index(final Index newIndex, final Table indexTable)
         throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
-      startFunction("add_index", ": " + newIndex.toString() + " " + indexTable.toString());
+      startFunction("add_index", ": " + newIndex.toString() + " " );
       Index ret = null;
       Exception ex = null;
       try {
@@ -2854,19 +2854,24 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
         // set create time
         long time = System.currentTimeMillis() / 1000;
-        Table indexTbl = indexTable;
-        if (indexTbl != null) {
-          try {
-            indexTbl = ms.getTable(index.getDbName(), index.getIndexTableName());
-          } catch (Exception e) {
-          }
-          if (indexTbl != null) {
-            throw new InvalidObjectException(
-                "Unable to add index because index table already exists");
-          }
-          this.create_table(indexTable);
-          indexTableCreated = true;
-        }
+
+        //removed by zjw
+
+//        Table indexTbl = indexTable;
+//        if (indexTbl != null) {
+//          try {
+//            indexTbl = ms.getTable(index.getDbName(), index.getIndexTableName());
+//          } catch (Exception e) {
+//          }
+//          if (indexTbl != null) {
+//            throw new InvalidObjectException(
+//                "Unable to add index because index table already exists");
+//          }
+//          this.create_table(indexTable);
+//          indexTableCreated = true;
+//        }
+
+        LOG.warn("---zjw-- creating index"+index.getIndexName());
 
         index.setCreateTime((int) time);
         index.putToParameters(hive_metastoreConstants.DDL_TIME, Long.toString(time));
@@ -4120,18 +4125,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public boolean add_subpartition_index(Index index, Partition part) throws TException {
-      // TODO Auto-generated method stub
-      return false;
-    }
-
-    @Override
-    public boolean drop_subpartition_index(Index index, Partition part) throws TException {
-      // TODO Auto-generated method stub
-      return false;
-    }
-
-    @Override
     public int add_partition_index_files(Index index, Partition part, List<SFile> file)
         throws TException {
       // TODO Auto-generated method stub
@@ -4175,6 +4168,18 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         MetaException, TException {
       // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public boolean add_subpartition_index(Index index, Subpartition part) throws TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public boolean drop_subpartition_index(Index index, Subpartition part) throws TException {
+      // TODO Auto-generated method stub
+      return false;
     }
   }
 

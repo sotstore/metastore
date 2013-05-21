@@ -97,7 +97,6 @@ import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveMetaStoreChecker;
 import org.apache.hadoop.hive.ql.metadata.HiveStorageHandler;
-import org.apache.hadoop.hive.ql.metadata.HiveUtils;
 import org.apache.hadoop.hive.ql.metadata.InvalidTableException;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
@@ -882,14 +881,15 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         crtIndex.getSerdeProps(), crtIndex.getCollItemDelim(), crtIndex.getFieldDelim(), crtIndex.getFieldEscape(),
         crtIndex.getLineDelim(), crtIndex.getMapKeyDelim(), crtIndex.getIndexComment()
         );
-    if (HiveUtils.getIndexHandler(conf, crtIndex.getIndexTypeHandlerClass()).usesIndexTable()) {
-        String indexTableName =
-            crtIndex.getIndexTableName() != null ? crtIndex.getIndexTableName() :
-            MetaStoreUtils.getIndexTableName(db.getCurrentDatabase(),
-            crtIndex.getTableName(), crtIndex.getIndexName());
-        Table indexTable = db.getTable(indexTableName);
-        work.getOutputs().add(new WriteEntity(indexTable));
-    }
+    //remove by zjw
+//    if (HiveUtils.getIndexHandler(conf, crtIndex.getIndexTypeHandlerClass()).usesIndexTable()) {
+//        String indexTableName =
+//            crtIndex.getIndexTableName() != null ? crtIndex.getIndexTableName() :
+//            MetaStoreUtils.getIndexTableName(db.getCurrentDatabase(),
+//            crtIndex.getTableName(), crtIndex.getIndexName());
+//        Table indexTable = db.getTable(indexTableName);
+//        work.getOutputs().add(new WriteEntity(indexTable));
+//    }
     return 0;
   }
 

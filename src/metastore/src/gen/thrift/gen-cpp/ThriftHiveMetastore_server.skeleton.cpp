@@ -82,12 +82,12 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("drop_partition_index\n");
   }
 
-  bool add_subpartition_index(const Index& index, const Partition& part) {
+  bool add_subpartition_index(const Index& index, const Subpartition& part) {
     // Your implementation goes here
     printf("add_subpartition_index\n");
   }
 
-  bool drop_subpartition_index(const Index& index, const Partition& part) {
+  bool drop_subpartition_index(const Index& index, const Subpartition& part) {
     // Your implementation goes here
     printf("drop_subpartition_index\n");
   }

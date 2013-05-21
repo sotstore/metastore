@@ -24456,13 +24456,13 @@ bool ThriftHiveMetastoreClient::recv_drop_partition_index()
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "drop_partition_index failed: unknown result");
 }
 
-bool ThriftHiveMetastoreClient::add_subpartition_index(const Index& index, const Partition& part)
+bool ThriftHiveMetastoreClient::add_subpartition_index(const Index& index, const Subpartition& part)
 {
   send_add_subpartition_index(index, part);
   return recv_add_subpartition_index();
 }
 
-void ThriftHiveMetastoreClient::send_add_subpartition_index(const Index& index, const Partition& part)
+void ThriftHiveMetastoreClient::send_add_subpartition_index(const Index& index, const Subpartition& part)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("add_subpartition_index", ::apache::thrift::protocol::T_CALL, cseqid);
@@ -24515,13 +24515,13 @@ bool ThriftHiveMetastoreClient::recv_add_subpartition_index()
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "add_subpartition_index failed: unknown result");
 }
 
-bool ThriftHiveMetastoreClient::drop_subpartition_index(const Index& index, const Partition& part)
+bool ThriftHiveMetastoreClient::drop_subpartition_index(const Index& index, const Subpartition& part)
 {
   send_drop_subpartition_index(index, part);
   return recv_drop_subpartition_index();
 }
 
-void ThriftHiveMetastoreClient::send_drop_subpartition_index(const Index& index, const Partition& part)
+void ThriftHiveMetastoreClient::send_drop_subpartition_index(const Index& index, const Subpartition& part)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("drop_subpartition_index", ::apache::thrift::protocol::T_CALL, cseqid);

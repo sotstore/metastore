@@ -62,9 +62,9 @@ public class ThriftHiveMetastore {
 
     public boolean drop_partition_index(Index index, Partition part) throws org.apache.thrift.TException;
 
-    public boolean add_subpartition_index(Index index, Partition part) throws org.apache.thrift.TException;
+    public boolean add_subpartition_index(Index index, Subpartition part) throws org.apache.thrift.TException;
 
-    public boolean drop_subpartition_index(Index index, Partition part) throws org.apache.thrift.TException;
+    public boolean drop_subpartition_index(Index index, Subpartition part) throws org.apache.thrift.TException;
 
     public int add_partition_index_files(Index index, Partition part, List<SFile> file) throws org.apache.thrift.TException;
 
@@ -270,9 +270,9 @@ public class ThriftHiveMetastore {
 
     public void drop_partition_index(Index index, Partition part, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.drop_partition_index_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void add_subpartition_index(Index index, Partition part, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.add_subpartition_index_call> resultHandler) throws org.apache.thrift.TException;
+    public void add_subpartition_index(Index index, Subpartition part, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.add_subpartition_index_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void drop_subpartition_index(Index index, Partition part, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.drop_subpartition_index_call> resultHandler) throws org.apache.thrift.TException;
+    public void drop_subpartition_index(Index index, Subpartition part, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.drop_subpartition_index_call> resultHandler) throws org.apache.thrift.TException;
 
     public void add_partition_index_files(Index index, Partition part, List<SFile> file, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.add_partition_index_files_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -783,13 +783,13 @@ public class ThriftHiveMetastore {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "drop_partition_index failed: unknown result");
     }
 
-    public boolean add_subpartition_index(Index index, Partition part) throws org.apache.thrift.TException
+    public boolean add_subpartition_index(Index index, Subpartition part) throws org.apache.thrift.TException
     {
       send_add_subpartition_index(index, part);
       return recv_add_subpartition_index();
     }
 
-    public void send_add_subpartition_index(Index index, Partition part) throws org.apache.thrift.TException
+    public void send_add_subpartition_index(Index index, Subpartition part) throws org.apache.thrift.TException
     {
       add_subpartition_index_args args = new add_subpartition_index_args();
       args.setIndex(index);
@@ -807,13 +807,13 @@ public class ThriftHiveMetastore {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "add_subpartition_index failed: unknown result");
     }
 
-    public boolean drop_subpartition_index(Index index, Partition part) throws org.apache.thrift.TException
+    public boolean drop_subpartition_index(Index index, Subpartition part) throws org.apache.thrift.TException
     {
       send_drop_subpartition_index(index, part);
       return recv_drop_subpartition_index();
     }
 
-    public void send_drop_subpartition_index(Index index, Partition part) throws org.apache.thrift.TException
+    public void send_drop_subpartition_index(Index index, Subpartition part) throws org.apache.thrift.TException
     {
       drop_subpartition_index_args args = new drop_subpartition_index_args();
       args.setIndex(index);
@@ -3903,7 +3903,7 @@ public class ThriftHiveMetastore {
       }
     }
 
-    public void add_subpartition_index(Index index, Partition part, org.apache.thrift.async.AsyncMethodCallback<add_subpartition_index_call> resultHandler) throws org.apache.thrift.TException {
+    public void add_subpartition_index(Index index, Subpartition part, org.apache.thrift.async.AsyncMethodCallback<add_subpartition_index_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
       add_subpartition_index_call method_call = new add_subpartition_index_call(index, part, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
@@ -3912,8 +3912,8 @@ public class ThriftHiveMetastore {
 
     public static class add_subpartition_index_call extends org.apache.thrift.async.TAsyncMethodCall {
       private Index index;
-      private Partition part;
-      public add_subpartition_index_call(Index index, Partition part, org.apache.thrift.async.AsyncMethodCallback<add_subpartition_index_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private Subpartition part;
+      public add_subpartition_index_call(Index index, Subpartition part, org.apache.thrift.async.AsyncMethodCallback<add_subpartition_index_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.index = index;
         this.part = part;
@@ -3938,7 +3938,7 @@ public class ThriftHiveMetastore {
       }
     }
 
-    public void drop_subpartition_index(Index index, Partition part, org.apache.thrift.async.AsyncMethodCallback<drop_subpartition_index_call> resultHandler) throws org.apache.thrift.TException {
+    public void drop_subpartition_index(Index index, Subpartition part, org.apache.thrift.async.AsyncMethodCallback<drop_subpartition_index_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
       drop_subpartition_index_call method_call = new drop_subpartition_index_call(index, part, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
@@ -3947,8 +3947,8 @@ public class ThriftHiveMetastore {
 
     public static class drop_subpartition_index_call extends org.apache.thrift.async.TAsyncMethodCall {
       private Index index;
-      private Partition part;
-      public drop_subpartition_index_call(Index index, Partition part, org.apache.thrift.async.AsyncMethodCallback<drop_subpartition_index_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private Subpartition part;
+      public drop_subpartition_index_call(Index index, Subpartition part, org.apache.thrift.async.AsyncMethodCallback<drop_subpartition_index_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.index = index;
         this.part = part;
@@ -20659,7 +20659,7 @@ public class ThriftHiveMetastore {
     }
 
     private Index index; // required
-    private Partition part; // required
+    private Subpartition part; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -20729,7 +20729,7 @@ public class ThriftHiveMetastore {
       tmpMap.put(_Fields.INDEX, new org.apache.thrift.meta_data.FieldMetaData("index", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Index.class)));
       tmpMap.put(_Fields.PART, new org.apache.thrift.meta_data.FieldMetaData("part", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Partition.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Subpartition.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(add_subpartition_index_args.class, metaDataMap);
     }
@@ -20739,7 +20739,7 @@ public class ThriftHiveMetastore {
 
     public add_subpartition_index_args(
       Index index,
-      Partition part)
+      Subpartition part)
     {
       this();
       this.index = index;
@@ -20754,7 +20754,7 @@ public class ThriftHiveMetastore {
         this.index = new Index(other.index);
       }
       if (other.isSetPart()) {
-        this.part = new Partition(other.part);
+        this.part = new Subpartition(other.part);
       }
     }
 
@@ -20791,11 +20791,11 @@ public class ThriftHiveMetastore {
       }
     }
 
-    public Partition getPart() {
+    public Subpartition getPart() {
       return this.part;
     }
 
-    public void setPart(Partition part) {
+    public void setPart(Subpartition part) {
       this.part = part;
     }
 
@@ -20828,7 +20828,7 @@ public class ThriftHiveMetastore {
         if (value == null) {
           unsetPart();
         } else {
-          setPart((Partition)value);
+          setPart((Subpartition)value);
         }
         break;
 
@@ -21036,7 +21036,7 @@ public class ThriftHiveMetastore {
               break;
             case 2: // PART
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.part = new Partition();
+                struct.part = new Subpartition();
                 struct.part.read(iprot);
                 struct.setPartIsSet(true);
               } else { 
@@ -21109,7 +21109,7 @@ public class ThriftHiveMetastore {
           struct.setIndexIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.part = new Partition();
+          struct.part = new Subpartition();
           struct.part.read(iprot);
           struct.setPartIsSet(true);
         }
@@ -21489,7 +21489,7 @@ public class ThriftHiveMetastore {
     }
 
     private Index index; // required
-    private Partition part; // required
+    private Subpartition part; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -21559,7 +21559,7 @@ public class ThriftHiveMetastore {
       tmpMap.put(_Fields.INDEX, new org.apache.thrift.meta_data.FieldMetaData("index", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Index.class)));
       tmpMap.put(_Fields.PART, new org.apache.thrift.meta_data.FieldMetaData("part", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Partition.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Subpartition.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(drop_subpartition_index_args.class, metaDataMap);
     }
@@ -21569,7 +21569,7 @@ public class ThriftHiveMetastore {
 
     public drop_subpartition_index_args(
       Index index,
-      Partition part)
+      Subpartition part)
     {
       this();
       this.index = index;
@@ -21584,7 +21584,7 @@ public class ThriftHiveMetastore {
         this.index = new Index(other.index);
       }
       if (other.isSetPart()) {
-        this.part = new Partition(other.part);
+        this.part = new Subpartition(other.part);
       }
     }
 
@@ -21621,11 +21621,11 @@ public class ThriftHiveMetastore {
       }
     }
 
-    public Partition getPart() {
+    public Subpartition getPart() {
       return this.part;
     }
 
-    public void setPart(Partition part) {
+    public void setPart(Subpartition part) {
       this.part = part;
     }
 
@@ -21658,7 +21658,7 @@ public class ThriftHiveMetastore {
         if (value == null) {
           unsetPart();
         } else {
-          setPart((Partition)value);
+          setPart((Subpartition)value);
         }
         break;
 
@@ -21866,7 +21866,7 @@ public class ThriftHiveMetastore {
               break;
             case 2: // PART
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.part = new Partition();
+                struct.part = new Subpartition();
                 struct.part.read(iprot);
                 struct.setPartIsSet(true);
               } else { 
@@ -21939,7 +21939,7 @@ public class ThriftHiveMetastore {
           struct.setIndexIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.part = new Partition();
+          struct.part = new Subpartition();
           struct.part.read(iprot);
           struct.setPartIsSet(true);
         }
