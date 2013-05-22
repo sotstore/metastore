@@ -623,7 +623,7 @@ TOK_PARTITION_EXPER--text:TOK_PARTITION_EXPER--tokenType:255
       return colList;
   }
 
-  private static void createSubPartition(List<FieldSchema> colList,
+  protected static void createSubPartition(List<FieldSchema> colList,
       PartitionDefinition global_sub_pd) {
     if(global_sub_pd.getPartitions() != null && !global_sub_pd.getPartitions().isEmpty()){
       return;
@@ -682,7 +682,7 @@ TOK_PARTITION_EXPER--text:TOK_PARTITION_EXPER--tokenType:255
    * @param pd
    * @throws SemanticException
    */
-  private static void getPartitionType(ASTNode p_child,List<FieldSchema> colList,PartitionDefinition pd) throws SemanticException{
+  protected static void getPartitionType(ASTNode p_child,List<FieldSchema> colList,PartitionDefinition pd) throws SemanticException{
     ASTNode func_child = (ASTNode) p_child.getChild(0);
     String func_name = func_child.getChild(0).getText().toLowerCase();
     if(!PartitionFactory.PartitionType.validate(func_name)){
@@ -721,7 +721,7 @@ TOK_PARTITION_EXPER--text:TOK_PARTITION_EXPER--tokenType:255
    * @param p_child
    * @return
    */
-  private static List<PartitionDefinition> getPartitionDef(ASTNode p_child,PartitionDefinition global_sub_pd){
+  protected static List<PartitionDefinition> getPartitionDef(ASTNode p_child,PartitionDefinition global_sub_pd){
     List<PartitionDefinition> parts = new ArrayList<PartitionDefinition>();
     String last_part_min_value = PartitionConstants.MINVALUE;
     String last_part_max_value = PartitionConstants.MAXVALUE;

@@ -34,6 +34,7 @@ public class AddPartitionDesc extends DDLDesc implements Serializable {
 
   String tableName;
   String dbName;
+  String partitionName;
   String location;
   boolean ifNotExists;
   boolean expectView;
@@ -68,7 +69,12 @@ public class AddPartitionDesc extends DDLDesc implements Serializable {
    */
   public AddPartitionDesc(String dbName, String tableName,
       Map<String, String> partSpec, String location, Map<String, String> params) {
-    this(dbName, tableName, partSpec, location, true, false);
+    this(dbName, tableName,"", partSpec, location, true, false);
+    this.partParams = params;
+  }
+  public AddPartitionDesc(String dbName, String tableName, String partitionName,
+      Map<String, String> partSpec, String location, Map<String, String> params) {
+    this(dbName, tableName, partitionName, partSpec, location, true, false);
     this.partParams = params;
   }
 
@@ -86,16 +92,23 @@ public class AddPartitionDesc extends DDLDesc implements Serializable {
    * @param expectView
    *          true for ALTER VIEW, false for ALTER TABLE
    */
-  public AddPartitionDesc(String dbName, String tableName,
+  public AddPartitionDesc(String dbName, String tableName, String partitionName,
       Map<String, String> partSpec, String location, boolean ifNotExists,
       boolean expectView) {
     super();
     this.dbName = dbName;
     this.tableName = tableName;
+    this.partitionName  = partitionName;
     this.partSpec = new LinkedHashMap<String,String>(partSpec);
     this.location = location;
     this.ifNotExists = ifNotExists;
     this.expectView = expectView;
+  }
+
+  public AddPartitionDesc(String dbName, String tableName,
+      Map<String, String> partSpec, String location, boolean ifNotExists,
+      boolean expectView) {
+    this(dbName, tableName, "", partSpec, location, true, false);
   }
 
   /**

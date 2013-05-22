@@ -70,7 +70,14 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveUtils;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
+import org.apache.hadoop.hive.ql.parse.PartitionFactory.PartitionDefinition;
+import org.apache.hadoop.hive.ql.parse.PartitionFactory.PartitionInfo;
+import org.apache.hadoop.hive.ql.parse.PartitionFactory.PartitionType;
+import org.apache.hadoop.hive.ql.plan.AddNodeDesc;
+import org.apache.hadoop.hive.ql.plan.AddPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
+import org.apache.hadoop.hive.ql.plan.AddSubpartIndexDesc;
+import org.apache.hadoop.hive.ql.plan.AddSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.AlterDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.AlterIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AlterIndexDesc.AlterIndexTypes;
@@ -87,12 +94,26 @@ import org.apache.hadoop.hive.ql.plan.DescTableDesc;
 import org.apache.hadoop.hive.ql.plan.DropDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.DropDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
+import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
+import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
+import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
+import org.apache.hadoop.hive.ql.plan.DropSubpartIndexDesc;
+import org.apache.hadoop.hive.ql.plan.DropSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.DropTableDesc;
 import org.apache.hadoop.hive.ql.plan.FetchWork;
 import org.apache.hadoop.hive.ql.plan.GrantDesc;
 import org.apache.hadoop.hive.ql.plan.GrantRevokeRoleDDL;
 import org.apache.hadoop.hive.ql.plan.LoadTableDesc;
 import org.apache.hadoop.hive.ql.plan.LockTableDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyNodeDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyPartIndexAddFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyPartIndexDropFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyPartitionAddFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyPartitionDropFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexAddFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexDropFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifySubpartitionAddFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifySubpartitionDropFileDesc;
 import org.apache.hadoop.hive.ql.plan.MoveWork;
 import org.apache.hadoop.hive.ql.plan.MsckDesc;
 import org.apache.hadoop.hive.ql.plan.PartitionSpec;
@@ -435,16 +456,16 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       analyzeAlterTableModifySubpartitionDropFile(ast);
       break;
     case HiveParser.TOK_ALTERINDEX_DROP_PARTINDEXS:
-      analyzeAlterIndexDropPartIndexs(ast);
+      analyzeAlterIndexDropPartIndex(ast);
       break;
     case HiveParser.TOK_ALTERINDEX_DROP_SUBPARTINDEXS:
-      analyzeAlterIndexDropSubpartIndexs(ast);
+      analyzeAlterIndexDropSubpartIndex(ast);
       break;
     case HiveParser.TOK_ALTERINDEX_ADD_PARTINDEXS:
-      analyzeAlterIndexAddPartIndexs(ast);
+      analyzeAlterIndexAddPartIndex(ast);
       break;
     case HiveParser.TOK_ALTERINDEX_ADD_SUBPARTINDEXS:
-      analyzeAlterIndexAddSubpartIndexs(ast);
+      analyzeAlterIndexAddSubpartIndex(ast);
       break;
     case HiveParser.TOK_ALTERINDEX_MODIFY_PARTITION_ADD_FILE:
       analyzeAlterIndexModifyPartIndexAddFile(ast);
@@ -466,98 +487,354 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
 
 
   private void analyzeModifyNode(ASTNode ast) {
-    // TODO Auto-generated method stub
+    String nodeName = unescapeIdentifier(ast.getChild(0).getText());
+    String status_str = unescapeIdentifier(ast.getChild(1).getText());
+    Integer status = Integer.parseInt(status_str);
+    String ip = unescapeIdentifier(ast.getChild(2).getText());
+    ModifyNodeDesc modifyNodeDesc = new ModifyNodeDesc(nodeName,status,ip);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        modifyNodeDesc), conf));
 
   }
 
   private void analyzeDropNode(ASTNode ast) {
-    // TODO Auto-generated method stub
+    String nodeName = unescapeIdentifier(ast.getChild(0).getText());
+    DropNodeDesc dropNodeDesc = new DropNodeDesc(nodeName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        dropNodeDesc), conf));
 
   }
 
   private void analyzeAddNode(ASTNode ast) {
-    // TODO Auto-generated method stub
+    String nodeName = unescapeIdentifier(ast.getChild(0).getText());
+    String status_str = unescapeIdentifier(ast.getChild(1).getText());
+    Integer status = Integer.parseInt(status_str);
+    String ip = unescapeIdentifier(ast.getChild(2).getText());
+    AddNodeDesc addNodeDesc = new AddNodeDesc(nodeName,status,ip);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        addNodeDesc), conf));
 
   }
 
-  private void analyzeAlterIndexModifySubpartIndexDropFile(ASTNode ast) {
-    // TODO Auto-generated method stub
+  private void analyzeAlterIndexModifySubpartIndexDropFile(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    String indexName = getUnescapedName((ASTNode) ast.getChild(1));
+    Table tab = this.validateAndGetTable(tblName);
+    Index idx = this.validateAndGetIndex(tblName,indexName);
+
+    List<Long> fids = new ArrayList<Long>();
+    String subpartitionName = unescapeIdentifier(((ASTNode)ast.getChild(1)).getText());
+
+    ModifySubpartIndexDropFileDesc modifySubpartIndexDropFileDesc = new ModifySubpartIndexDropFileDesc(tab.getDbName(),tblName,subpartitionName, indexName ,fids);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        modifySubpartIndexDropFileDesc), conf));
+  }
+
+  private void analyzeAlterIndexModifyPartIndexDropFile(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    String indexName = getUnescapedName((ASTNode) ast.getChild(1));
+    Table tab = this.validateAndGetTable(tblName);
+    Index idx = this.validateAndGetIndex(tblName,indexName);
+
+    List<Long> fids = new ArrayList<Long>();
+    ASTNode child = (ASTNode) ast.getChild(1);
+    String partitionName = unescapeIdentifier(((ASTNode)ast.getChild(1)).getText());
+    ModifyPartIndexDropFileDesc modifyPartIndexDropFileDesc = new ModifyPartIndexDropFileDesc(tab.getDbName(),tblName,partitionName, indexName ,fids);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        modifyPartIndexDropFileDesc), conf));
+  }
+
+  private void analyzeAlterIndexModifySubpartIndexAddFile(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    String indexName = getUnescapedName((ASTNode) ast.getChild(1));
+    Table tab = this.validateAndGetTable(tblName);
+    Index idx = this.validateAndGetIndex(tblName,indexName);
+
+    List<Long> fids = new ArrayList<Long>();
+    String subpartitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
+    ModifySubpartIndexAddFileDesc modifySubpartIndexAddFileDesc = new ModifySubpartIndexAddFileDesc(tab.getDbName(),tblName,subpartitionName, indexName ,fids);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        modifySubpartIndexAddFileDesc), conf));
+  }
+
+  private void analyzeAlterIndexModifyPartIndexAddFile(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    String indexName = getUnescapedName((ASTNode) ast.getChild(1));
+    Table tab = this.validateAndGetTable(tblName);
+    Index idx = this.validateAndGetIndex(tblName,indexName);
+
+    List<Long> fids = new ArrayList<Long>();
+    String partitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
+    ModifyPartIndexAddFileDesc modifyPartIndexAddFileDesc = new ModifyPartIndexAddFileDesc(tab.getDbName(),tblName,partitionName, indexName ,fids);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        modifyPartIndexAddFileDesc), conf));
+  }
+
+  private void analyzeAlterIndexAddSubpartIndex(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    String indexName = getUnescapedName((ASTNode) ast.getChild(1));
+    Table tab = this.validateAndGetTable(tblName);
+    Index idx = this.validateAndGetIndex(tblName,indexName);
+
+    String subpartitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
+    AddSubpartIndexDesc addSubpartIndexsDesc = new AddSubpartIndexDesc(tab.getDbName(),tblName,subpartitionName, indexName  );
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        addSubpartIndexsDesc), conf));
+  }
+
+  private void analyzeAlterIndexAddPartIndex(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    String indexName = getUnescapedName((ASTNode) ast.getChild(1));
+    Table tab = this.validateAndGetTable(tblName);
+    Index idx = this.validateAndGetIndex(tblName,indexName);
+
+    String partitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
+    AddPartIndexDesc addPartIndexsDesc = new AddPartIndexDesc(tab.getDbName(),tblName,partitionName, indexName  );
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        addPartIndexsDesc), conf));
+  }
+
+  private void analyzeAlterIndexDropSubpartIndex(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    String indexName = getUnescapedName((ASTNode) ast.getChild(1));
+    Table tab = this.validateAndGetTable(tblName);
+    Index idx = this.validateAndGetIndex(tblName,indexName);
+
+    String subpartitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
+    DropSubpartIndexDesc dropSubpartIndexsDesc = new DropSubpartIndexDesc(tab.getDbName(),tblName,subpartitionName, indexName  );
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        dropSubpartIndexsDesc), conf));
+  }
+
+  private void analyzeAlterIndexDropPartIndex(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    String indexName = getUnescapedName((ASTNode) ast.getChild(1));
+    Table tab = this.validateAndGetTable(tblName);
+    Index idx = this.validateAndGetIndex(tblName,indexName);
+
+    String partitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
+
+    DropPartIndexDesc dropPartIndexsDesc = new DropPartIndexDesc(tab.getDbName(),tblName,partitionName, indexName  );
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        dropPartIndexsDesc), conf));
+  }
+
+  private void analyzeAlterTableModifySubpartitionDropFile(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    Table tab = this.validateAndGetTable(tblName);
+
+    List<Long> fids = new ArrayList<Long>();
+    ASTNode child = (ASTNode) ast.getChild(1);
+    String subpartitionName = unescapeIdentifier(child.getChild(0).getText());
+    String id_str = unescapeIdentifier(child.getChild(1).getText());
+    Long id = Long.parseLong(id_str);
+    fids.add(id);
+
+    ModifySubpartitionDropFileDesc modifySubpartitionDropFileDesc = new ModifySubpartitionDropFileDesc(tab.getDbName(), tblName ,subpartitionName , fids);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        modifySubpartitionDropFileDesc), conf));
+  }
+
+  private void analyzeAlterTableModifySubpartitionAddFile(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    Table tab = this.validateAndGetTable(tblName);
+
+    List<Long> fids = new ArrayList<Long>();
+    ASTNode child = (ASTNode) ast.getChild(1);
+    String subpartitionName = unescapeIdentifier(child.getChild(0).getText());
+    String id_str = unescapeIdentifier(child.getChild(1).getText());
+    Long id = Long.parseLong(id_str);
+    fids.add(id);
+
+    ModifySubpartitionAddFileDesc modifySubpartitionAddFileDesc = new ModifySubpartitionAddFileDesc(tab.getDbName(), tblName ,subpartitionName , fids);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        modifySubpartitionAddFileDesc), conf));
+  }
+
+  private void analyzeAlterTableModifyPartitionDropFile(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    Table tab = this.validateAndGetTable(tblName);
+
+    List<Long> fids = new ArrayList<Long>();
+    ASTNode child = (ASTNode) ast.getChild(1);
+    String partitionName = unescapeIdentifier(child.getChild(0).getText());
+    String id_str = unescapeIdentifier(child.getChild(1).getText());
+    Long id = Long.parseLong(id_str);
+    fids.add(id);
+
+    ModifyPartitionDropFileDesc modifyPartitionDropFileDesc = new ModifyPartitionDropFileDesc(tab.getDbName(), tblName ,partitionName , fids);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        modifyPartitionDropFileDesc), conf));
+  }
+
+  private void analyzeAlterTableModifyPartitionAddFile(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    Table tab = this.validateAndGetTable(tblName);
+
+    List<Long> fids = new ArrayList<Long>();
+    ASTNode child = (ASTNode) ast.getChild(1);
+    String partitionName = unescapeIdentifier(child.getChild(0).getText());
+    String id_str = unescapeIdentifier(child.getChild(1).getText());
+    Long id = Long.parseLong(id_str);
+    fids.add(id);
+
+    ModifyPartitionAddFileDesc modifyPartitionAddFileDesc = new ModifyPartitionAddFileDesc(tab.getDbName(), tblName ,partitionName , fids);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        modifyPartitionAddFileDesc), conf));
+  }
+
+  private void analyzeAlterTableAddSubpartition(ASTNode ast) throws SemanticException {
+
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    Table tab = this.validateAndGetTable(tblName);
+
+
+    List<PartitionInfo> pis = tab.getPartitionInfo();
+    if( pis != null && pis.size() > 0){
+      if(pis.get(0).getP_type() != PartitionType.interval){
+        throw new SemanticException("Add subpartition operation only supprots interval subpartition.");
+      }
+    }
+
+    ASTNode child = (ASTNode) ast.getChild(1);//interval 增加分区的格式为 alter table tab1 add subpartition ( subpartition p1 values(UNIX_TIMESTAMP('2013-05-20 22:23:00')) )
+    List<PartitionDefinition> pds = getPartitionDef(child, null);
+
+
+    List<AddSubpartitionDesc> addSubpartDescs = new ArrayList<AddSubpartitionDesc> ();
+    for(PartitionDefinition pd : pds){
+      Map<String, String> subpartSpec = new LinkedHashMap<String, String>();//subpartition values
+      subpartSpec.put(pis.get(0).getP_col(), PartitionFactory.arrayToJson(pd.getValues()));//set partition values,which can be extracted from ast parser
+      AddSubpartitionDesc addsubpartitionDesc = new AddSubpartitionDesc(tab.getDbName(), tblName,
+          pd.getPart_name(), subpartSpec, null, null);
+      addSubpartDescs.add(addsubpartitionDesc);
+    }
+    for(AddSubpartitionDesc addsubpartitionDesc: addSubpartDescs){
+      rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+          addsubpartitionDesc), conf));
+    }
 
   }
 
-  private void analyzeAlterIndexModifyPartIndexDropFile(ASTNode ast) {
-    // TODO Auto-generated method stub
+  /**
+   * create partition,infact,when subpartition number is constant.
+   * we do not need to create subpartitions ,we will create recursively instead.
+   * 目前，数据平台分区支持多版本管理，如果对分区进行分区规则的修改,那么分区规则和所有相关分区的Version字段都会自增
+   * 目前对于分区的增加/修改和删除，都是再不改变分区规则的前提下完成的，也就是，如果分区个数是建表时确定而且都已经建立完成，
+   * 不再通过本API支持增/减分区的个数。
+   * 由于除包含interval（一级或者二级）分区的规则外，其他分区方式都是可以确定分区个数的，增减分区需要用修改分区规则的API（DDL）进行
+   * 换句话说，一般情况下，本API仅支持interval分区的增加或者删除。
+   * 特别地，如果是一级分区是interval，二级分区是hash/list/range等分区，那么二级分区在一级分区建立的时候，会自动建立。
+   *
+   * @param ast
+   * @throws SemanticException
+   */
+  private void analyzeAlterTableAddPartition(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    Table tab = this.validateAndGetTable(tblName);
+
+
+    List<PartitionInfo> pis = tab.getPartitionInfo();
+    PartitionDefinition global_sub_pd = null;
+    if( pis != null && pis.size() > 0){
+      if(pis.get(0).getP_type() != PartitionType.interval){
+        throw new SemanticException("Add partition operation only supprots interval partition.");
+      }
+      if(pis.size() == 2 ){
+        global_sub_pd = new PartitionDefinition();
+        global_sub_pd.setPi(pis.get(1));
+        global_sub_pd.setDbName(tab.getDbName());
+        global_sub_pd.setTableName(tblName);
+        global_sub_pd.getPi().setP_level(2);//设为2级分区
+        createSubPartition(tab.getPartCols(),global_sub_pd);
+      }
+    }
+
+   ASTNode child = (ASTNode) ast.getChild(1);//interval 增加分区的格式为 alter table tab1 add partition ( partition p1 values(UNIX_TIMESTAMP('2013-05-20 22:23:00')) )
+   List<PartitionDefinition> pds = getPartitionDef(child, global_sub_pd);
+
+
+   List<AddPartitionDesc> addPartDescs = new ArrayList<AddPartitionDesc> ();
+
+    for(PartitionDefinition pd : pds){
+      Map<String, String> partSpec = new LinkedHashMap<String, String>();
+      partSpec.put(pis.get(0).getP_col(), PartitionFactory.arrayToJson(pd.getValues()));//set partition values,which can be extracted from ast parser
+      AddPartitionDesc addPartitionDesc = new AddPartitionDesc(tab.getDbName(), tblName,
+          pd.getPart_name(), partSpec, null, null);
+      addPartDescs.add(addPartitionDesc);
+    }
+    for(AddPartitionDesc addPartitionDesc: addPartDescs){
+      rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+          addPartitionDesc), conf));
+    }
+  }
+
+  private void analyzeAlterTableDropSubpartition(ASTNode ast) throws SemanticException {
+
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    Table tab = this.validateAndGetTable(tblName);
+
+    List<PartitionInfo> pis = tab.getPartitionInfo();
+    if( pis != null && pis.size() == 2){
+      if(pis.get(1).getP_type() != PartitionType.interval){
+        throw new SemanticException("Drop subpartition operation only supprots interval partition.");
+      }
+    }else{
+      throw new SemanticException("Drop subpartition operation invalid, table:"+tblName+" does not hava subpartitions");
+    }
+
+    ASTNode child = (ASTNode) ast.getChild(1);
+    String subpartitionName = getUnescapedName((ASTNode) child.getChild(0));
+
+    DropSubpartitionDesc dropSubpartitionDesc = new DropSubpartitionDesc(tab.getDbName(), tblName, subpartitionName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        dropSubpartitionDesc), conf));
 
   }
 
-  private void analyzeAlterIndexModifySubpartIndexAddFile(ASTNode ast) {
-    // TODO Auto-generated method stub
+  private void analyzeAlterTableDropPartition(ASTNode ast) throws SemanticException {
+    String tblName = getUnescapedName((ASTNode) ast.getChild(0));
+    Table tab = this.validateAndGetTable(tblName);
+
+    List<PartitionInfo> pis = tab.getPartitionInfo();
+    if( pis != null && pis.size() > 0){
+      if(pis.get(0).getP_type() != PartitionType.interval){
+        throw new SemanticException("Drop partition operation only supprots interval partition.");
+      }
+    }else{
+      throw new SemanticException("Drop partition operation invalid, table:"+tblName+" does not hava partitions");
+    }
+
+    ASTNode child = (ASTNode) ast.getChild(1);
+    String partitionName = unescapeIdentifier(child.getChild(0).getText());
+    DropPartitionDesc dropPartitionDesc = new DropPartitionDesc(tab.getTableName(), tblName, partitionName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        dropPartitionDesc), conf));
 
   }
 
-  private void analyzeAlterIndexModifyPartIndexAddFile(ASTNode ast) {
-    // TODO Auto-generated method stub
-
+  private Table validateAndGetTable(String tblName) throws SemanticException{
+    boolean isView = false;
+    Table tab = null;
+    try {
+      tab = db.getTable(db.getCurrentDatabase(), tblName, false);
+      if (tab != null) {
+        inputs.add(new ReadEntity(tab));
+        isView = tab.isView();
+      }
+    } catch (HiveException e) {
+      throw new SemanticException(ErrorMsg.INVALID_TABLE.getMsg(tblName));
+    }
+    return tab;
   }
 
-  private void analyzeAlterIndexAddSubpartIndexs(ASTNode ast) {
-    // TODO Auto-generated method stub
-
-  }
-
-  private void analyzeAlterIndexAddPartIndexs(ASTNode ast) {
-    // TODO Auto-generated method stub
-
-  }
-
-  private void analyzeAlterIndexDropSubpartIndexs(ASTNode ast) {
-    // TODO Auto-generated method stub
-
-  }
-
-  private void analyzeAlterIndexDropPartIndexs(ASTNode ast) {
-    // TODO Auto-generated method stub
-
-  }
-
-  private void analyzeAlterTableModifySubpartitionDropFile(ASTNode ast) {
-    // TODO Auto-generated method stub
-
-  }
-
-  private void analyzeAlterTableModifySubpartitionAddFile(ASTNode ast) {
-    // TODO Auto-generated method stub
-
-  }
-
-  private void analyzeAlterTableModifyPartitionDropFile(ASTNode ast) {
-    // TODO Auto-generated method stub
-
-  }
-
-  private void analyzeAlterTableModifyPartitionAddFile(ASTNode ast) {
-    // TODO Auto-generated method stub
-
-  }
-
-  private void analyzeAlterTableAddSubpartition(ASTNode ast) {
-    // TODO Auto-generated method stub
-
-  }
-
-  private void analyzeAlterTableAddPartition(ASTNode ast) {
-    // TODO Auto-generated method stub
-
-  }
-
-  private void analyzeAlterTableDropSubpartition(ASTNode ast) {
-    // TODO Auto-generated method stub
-
-  }
-
-  private void analyzeAlterTableDropPartition(ASTNode ast) {
-    // TODO Auto-generated method stub
-
+  private Index validateAndGetIndex(String baseTableName,String indexName) throws SemanticException{
+    Index idx = null;
+    try {
+      idx = db.getIndex(baseTableName, indexName);
+    } catch (HiveException e) {
+      throw new SemanticException(ErrorMsg.INVALID_INDEX.getMsg(indexName));
+    }
+    return idx;
   }
 
   private void analyzeSwitchDatacenter(ASTNode ast) {

@@ -205,9 +205,9 @@ public class PartitionFactory {
     List<PartitionDefinition> partitions = new ArrayList<PartitionDefinition>();
 
 
-    PartitionDefinition(){}
+    public PartitionDefinition(){}
 
-    PartitionDefinition(PartitionDefinition other){
+    public PartitionDefinition(PartitionDefinition other){
       this.pi  = new PartitionInfo(other.getPi());
       this.part_name = other.getPart_name();
       this.dbName = other.getDbName();
@@ -258,6 +258,20 @@ public class PartitionFactory {
     }
 
     public FieldSchema toFieldSchema(){
+      List<FieldSchema> subFields = null;
+      if(partitions != null && !partitions.isEmpty()){
+        subFields = new ArrayList<FieldSchema>();
+
+        for(PartitionDefinition p : partitions){
+          FieldSchema subField =  p.toFieldSchema();
+          subFields.add(subField);
+        }
+      }
+      FieldSchema field =  new FieldSchema(pi.getP_col(), pi.getP_type().toString(), pi.toJson()) ;
+      return field;
+    }
+
+    public FieldSchema fromFieldSchema(){
       List<FieldSchema> subFields = null;
       if(partitions != null && !partitions.isEmpty()){
         subFields = new ArrayList<FieldSchema>();
