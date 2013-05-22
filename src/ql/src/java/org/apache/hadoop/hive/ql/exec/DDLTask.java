@@ -557,6 +557,8 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     return 0;
   }
 
+  /////start of zjw need to implement
+
   private int dropPartition(Hive db, DropPartitionDesc dropPartitionDesc) {
     // TODO Auto-generated method stub
     return 0;
@@ -667,6 +669,9 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     // TODO Auto-generated method stub
     return 0;
   }
+
+
+  /////end of zjw need to implement
 
   /**
    * First, make sure the source table/partition is not

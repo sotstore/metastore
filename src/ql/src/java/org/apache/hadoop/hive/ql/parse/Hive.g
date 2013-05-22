@@ -902,9 +902,12 @@ alterStatementSuffixDropPartitions
 alterStatementSuffixAddPartitions
 @init { msgs.push("add partition statement"); }
 @after { msgs.pop(); }
-    : Identifier KW_ADD ifNotExists? partitionSpec partitionLocation? (partitionSpec partitionLocation?)*
+    :
+    /*
+     Identifier KW_ADD ifNotExists? partitionSpec partitionLocation? (partitionSpec partitionLocation?)*
     -> ^(TOK_ALTERTABLE_ADDPARTS Identifier ifNotExists? (partitionSpec partitionLocation?)+)
-    
+    |
+    */
     /*
     | Identifier KW_ADD KW_PARTITION partition_name=partitionName  partitionValuesExper  subPartitionTemplate?
     -> ^(TOK_ALTERTABLE_ADD_PARTITION Identifier $partition_name partitionValuesExper subPartitionTemplate?)
@@ -912,7 +915,7 @@ alterStatementSuffixAddPartitions
     -> ^(TOK_ALTERTABLE_ADD_SUBPARTITION Identifier $partition_name partitionValuesExper)
     */
     
-    | Identifier KW_ADD KW_PARTITION partitionTemplate 
+     Identifier KW_ADD KW_PARTITION partitionTemplate 
     -> ^(TOK_ALTERTABLE_ADD_PARTITION Identifier  partitionTemplate )
     | Identifier KW_ADD KW_SUBPARTITION subPartitionTemplate   
     -> ^(TOK_ALTERTABLE_ADD_SUBPARTITION Identifier subPartitionTemplate )
