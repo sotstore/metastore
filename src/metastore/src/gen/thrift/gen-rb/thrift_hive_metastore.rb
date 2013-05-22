@@ -3456,7 +3456,7 @@ module ThriftHiveMetastore
 
     FIELDS = {
       INDEX => {:type => ::Thrift::Types::STRUCT, :name => 'index', :class => ::Index},
-      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition}
+      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Subpartition}
     }
 
     def struct_fields; FIELDS; end
@@ -3490,7 +3490,7 @@ module ThriftHiveMetastore
 
     FIELDS = {
       INDEX => {:type => ::Thrift::Types::STRUCT, :name => 'index', :class => ::Index},
-      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition}
+      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Subpartition}
     }
 
     def struct_fields; FIELDS; end

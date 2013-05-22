@@ -40,6 +40,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.Timer;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import org.apache.commons.cli.OptionBuilder;
@@ -2813,7 +2814,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public Index add_index(final Index newIndex, final Table indexTable)
         throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
-      startFunction("add_index", ": " + newIndex.toString() + " " + indexTable.toString());
+      startFunction("add_index", ": " + newIndex.toString() + " " );
       Index ret = null;
       Exception ex = null;
       try {
@@ -2863,19 +2864,24 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
         // set create time
         long time = System.currentTimeMillis() / 1000;
-        Table indexTbl = indexTable;
-        if (indexTbl != null) {
-          try {
-            indexTbl = ms.getTable(index.getDbName(), index.getIndexTableName());
-          } catch (Exception e) {
-          }
-          if (indexTbl != null) {
-            throw new InvalidObjectException(
-                "Unable to add index because index table already exists");
-          }
-          this.create_table(indexTable);
-          indexTableCreated = true;
-        }
+
+        //removed by zjw
+
+//        Table indexTbl = indexTable;
+//        if (indexTbl != null) {
+//          try {
+//            indexTbl = ms.getTable(index.getDbName(), index.getIndexTableName());
+//          } catch (Exception e) {
+//          }
+//          if (indexTbl != null) {
+//            throw new InvalidObjectException(
+//                "Unable to add index because index table already exists");
+//          }
+//          this.create_table(indexTable);
+//          indexTableCreated = true;
+//        }
+
+        LOG.warn("---zjw-- creating index"+index.getIndexName());
 
         index.setCreateTime((int) time);
         index.putToParameters(hive_metastoreConstants.DDL_TIME, Long.toString(time));
@@ -4272,18 +4278,20 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public int add_partition_files(Partition part, List<SFile> files) throws TException {
       Partition p = getMS().getPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
       List<Long> nl = new ArrayList<Long>();
+      Set<Long> tmp = new TreeSet<Long>();
 
       for (SFile f : files) {
-        nl.add(new Long(f.getFid()));
+        tmp.add(new Long(f.getFid()));
       }
       if (p.getFiles() != null) {
-        for (Long l : p.getFiles()) {
-          nl.add(l);
-        }
+        tmp.addAll(p.getFiles());
+      }
+      for (Long l : tmp) {
+        nl.add(l);
       }
       p.setFiles(nl);
 
-      LOG.info("Begin update.");
+      LOG.info("Begin update partition " + part.getPartitionName() + " fileset's size " + files.size());
       getMS().updatePartition(p);
       return 0;
     }
@@ -4322,18 +4330,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public boolean add_subpartition_index(Index index, Partition part) throws TException {
-      // TODO Auto-generated method stub
-      return false;
-    }
-
-    @Override
-    public boolean drop_subpartition_index(Index index, Partition part) throws TException {
-      // TODO Auto-generated method stub
-      return false;
-    }
-
-    @Override
     public int add_partition_index_files(Index index, Partition part, List<SFile> file)
         throws TException {
       // TODO Auto-generated method stub
@@ -4347,6 +4343,17 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return 0;
     }
 
+    @Override
+    public boolean add_subpartition_index(Index index, Subpartition part) throws TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public boolean drop_subpartition_index(Index index, Subpartition part) throws TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {

@@ -7992,7 +7992,7 @@ class add_subpartition_index_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRUCT, 'index', (Index, Index.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'part', (Partition, Partition.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'part', (Subpartition, Subpartition.thrift_spec), None, ), # 2
   )
 
   def __init__(self, index=None, part=None,):
@@ -8016,7 +8016,7 @@ class add_subpartition_index_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.part = Partition()
+          self.part = Subpartition()
           self.part.read(iprot)
         else:
           iprot.skip(ftype)
@@ -8125,7 +8125,7 @@ class drop_subpartition_index_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRUCT, 'index', (Index, Index.thrift_spec), None, ), # 1
-    (2, TType.STRUCT, 'part', (Partition, Partition.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'part', (Subpartition, Subpartition.thrift_spec), None, ), # 2
   )
 
   def __init__(self, index=None, part=None,):
@@ -8149,7 +8149,7 @@ class drop_subpartition_index_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.part = Partition()
+          self.part = Subpartition()
           self.part.read(iprot)
         else:
           iprot.skip(ftype)

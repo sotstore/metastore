@@ -57,6 +57,7 @@ import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
+import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -74,7 +75,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
 import org.apache.hadoop.hive.ql.exec.Utilities;
-import org.apache.hadoop.hive.ql.index.HiveIndexHandler;
+import org.apache.hadoop.hive.ql.index.HiveIndex.IndexType;
 import org.apache.hadoop.hive.ql.session.CreateTableAutomaticGrant;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.hive.serde2.Deserializer;
@@ -636,18 +637,20 @@ public class Hive {
         throw new HiveException("tableName="+ tableName +" is a VIRTUAL VIEW. Index on VIRTUAL VIEW is not supported.");
       }
 
-      if (indexTblName == null) {
-        indexTblName = MetaStoreUtils.getIndexTableName(dbName, tableName, indexName);
-      } else {
-        org.apache.hadoop.hive.metastore.api.Table temp = null;
-        try {
-          temp = getMSC().getTable(dbName, indexTblName);
-        } catch (Exception e) {
-        }
-        if (temp != null) {
-          throw new HiveException("Table name " + indexTblName + " already exists. Choose another name.");
-        }
-      }
+
+      //removed by zjw , do not store index as an additional talbe
+//      if (indexTblName == null) {
+//        indexTblName = MetaStoreUtils.getIndexTableName(dbName, tableName, indexName);
+//      } else {
+//        org.apache.hadoop.hive.metastore.api.Table temp = null;
+//        try {
+//          temp = getMSC().getTable(dbName, indexTblName);
+//        } catch (Exception e) {
+//        }
+//        if (temp != null) {
+//          throw new HiveException("Table name " + indexTblName + " already exists. Choose another name.");
+//        }
+//      }
 
       org.apache.hadoop.hive.metastore.api.StorageDescriptor storageDescriptor = baseTbl.getSd().deepCopy();
       SerDeInfo serdeInfo = storageDescriptor.getSerdeInfo();
@@ -720,19 +723,20 @@ public class Hive {
 
       int time = (int) (System.currentTimeMillis() / 1000);
       org.apache.hadoop.hive.metastore.api.Table tt = null;
-      HiveIndexHandler indexHandler = HiveUtils.getIndexHandler(this.getConf(), indexHandlerClass);
+    //removed by zjw , do not store index as an additional talbe
 
-      if (indexHandler.usesIndexTable()) {
-        tt = new org.apache.hadoop.hive.ql.metadata.Table(dbName, indexTblName).getTTable();
-        List<FieldSchema> partKeys = baseTbl.getPartitionKeys();
-        tt.setPartitionKeys(partKeys);
-        tt.setTableType(TableType.INDEX_TABLE.toString());
-        if (tblProps != null) {
-          for (Entry<String, String> prop : tblProps.entrySet()) {
-            tt.putToParameters(prop.getKey(), prop.getValue());
-          }
-        }
-      }
+//      HiveIndexHandler indexHandler = HiveUtils.getIndexHandler(this.getConf(), indexHandlerClass);
+//      if (indexHandler.usesIndexTable()) {
+//        tt = new org.apache.hadoop.hive.ql.metadata.Table(dbName, indexTblName).getTTable();
+//        List<FieldSchema> partKeys = baseTbl.getPartitionKeys();
+//        tt.setPartitionKeys(partKeys);
+//        tt.setTableType(TableType.INDEX_TABLE.toString());
+//        if (tblProps != null) {
+//          for (Entry<String, String> prop : tblProps.entrySet()) {
+//            tt.putToParameters(prop.getKey(), prop.getValue());
+//          }
+//        }
+//      }
 
       if(!deferredRebuild) {
         throw new RuntimeException("Please specify deferred rebuild using \" WITH DEFERRED REBUILD \".");
@@ -749,13 +753,34 @@ public class Hive {
         indexDesc.getParameters().putAll(idxProps);
       }
 
-      indexHandler.analyzeIndexDefinition(baseTbl, indexDesc, tt);
+//      indexHandler.analyzeIndexDefinition(baseTbl, indexDesc, tt);
+      //added by zjw
+      analyzeValidIndexDefinition(baseTbl, indexDesc, tt);
 
       this.getMSC().createIndex(indexDesc, tt);
 
     } catch (Exception e) {
       throw new HiveException(e);
     }
+  }
+
+  private void analyzeValidIndexDefinition(org.apache.hadoop.hive.metastore.api.Table baseTable,
+      org.apache.hadoop.hive.metastore.api.Index index,
+      org.apache.hadoop.hive.metastore.api.Table indexTable)
+      throws HiveException{
+      if(IndexType.LUCENE_TABLE.getHandlerClsName()
+          .equals(index.getIndexHandlerClass())){
+        Map<String, String> params = index.getParameters();
+        for(String key:params.keySet()){
+          LOG.warn("---jzw--lucene.prop.name:"+key);
+        }
+
+        if( !params.containsKey(Constants.META_LUCENE_ANALYZE)
+            || !params.containsKey(Constants.META_LUCENE_ANALYZE)
+            || !params.containsKey(Constants.META_LUCENE_ANALYZE)){
+          throw new HiveException("Lucene properties have to be setted.");
+        }
+      }
   }
 
   public Index getIndex(String qualifiedIndexName) throws HiveException {

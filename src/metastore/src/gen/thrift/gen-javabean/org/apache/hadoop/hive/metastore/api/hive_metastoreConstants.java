@@ -71,4 +71,10 @@ public class hive_metastoreConstants {
 
   public static final String META_TABLE_STORAGE = "storage_handler";
 
+  public static final String META_LUCENE_INDEX = "lucene.stored";
+
+  public static final String META_LUCENE_ANALYZE = "lucene.analyzed";
+
+  public static final String META_LUCENE_STORE = "lucene.indexd";
+
 }

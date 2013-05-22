@@ -964,16 +964,24 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
         dropTblDesc), conf));
   }
 
+  /**
+   *modified by zjw,added 6XX lucene/bloolfilter index, and store index_type instead of handler class
+   * @param ast
+   * @throws SemanticException
+   */
   private void analyzeCreateIndex(ASTNode ast) throws SemanticException {
     String indexName = unescapeIdentifier(ast.getChild(0).getText());
     String typeName = unescapeSQLString(ast.getChild(1).getText());
     String tableName = getUnescapedName((ASTNode) ast.getChild(2));
     List<String> indexedCols = getColumnNames((ASTNode) ast.getChild(3));
 
+    //modified by zjw,added 6XX lucene/bloolfilter index, and store index_type instead of handler class
     IndexType indexType = HiveIndex.getIndexType(typeName);
     if (indexType != null) {
+      LOG.warn("--zjw--index_type:"+typeName);
       typeName = indexType.getHandlerClsName();
     } else {
+      LOG.warn("--zjw--did not find index_type:"+typeName);
       try {
         Class.forName(typeName);
       } catch (Exception e) {

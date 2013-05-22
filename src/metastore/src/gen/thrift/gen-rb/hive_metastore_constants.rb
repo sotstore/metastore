@@ -45,3 +45,9 @@ FILE_OUTPUT_FORMAT = %q"file.outputformat"
 
 META_TABLE_STORAGE = %q"storage_handler"
 
+META_LUCENE_INDEX = %q"lucene.stored"
+
+META_LUCENE_ANALYZE = %q"lucene.analyzed"
+
+META_LUCENE_STORE = %q"lucene.indexd"
+
