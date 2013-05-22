@@ -38,6 +38,19 @@ public class MNode {
   public void setIps(String ips) {
     this.ips = ips;
   }
+  public void setIpList(List<String> ips) {
+    String ipv = "";
+    int idx = 0;
+
+    for (String s : ips) {
+      ipv += s;
+      if (idx < ips.size() - 1) {
+        ipv += ",";
+      }
+      idx++;
+    }
+    this.ips = ipv;
+  }
   public int getStatus() {
     return status;
   }

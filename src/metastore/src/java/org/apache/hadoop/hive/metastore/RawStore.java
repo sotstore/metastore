@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configurable;
+import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -37,6 +38,8 @@ import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
+import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
@@ -99,17 +102,56 @@ public interface RawStore extends Configurable {
   public abstract void createTable(Table tbl) throws InvalidObjectException,
       MetaException;
 
+  public abstract void createOrUpdateDevice(DeviceInfo di, Node node) throws
+      InvalidObjectException, MetaException;
+
+  public abstract void createNode(Node node) throws InvalidObjectException, MetaException;
+
+  public boolean updateNode(Node node) throws MetaException;
+
+  public boolean delNode(String node_name) throws MetaException;
+
+  public abstract Node getNode(String node_name) throws MetaException;
+
+  public List<Node> getAllNodes() throws MetaException;
+
+  public long countNode() throws MetaException;
+
+  public void createFile(SFile file) throws InvalidObjectException, MetaException;
+
+  public SFile getSFile(long fid) throws MetaException;
+
+  public boolean delSFile(long fid) throws MetaException;
+
+  public SFile updateSFile(SFile newfile) throws MetaException;
+
+  public boolean createFileLocation(SFileLocation location) throws InvalidObjectException, MetaException;
+
+  public List<SFileLocation> getSFileLocations(long fid) throws MetaException;
+
+  public SFileLocation getSFileLocation(String node, String devid, String location) throws MetaException;
+
+  public SFileLocation updateSFileLocation(SFileLocation newsfl) throws MetaException;
+
+  public boolean delSFileLocation(String node, String devid, String location) throws MetaException;
+
   public abstract boolean dropTable(String dbName, String tableName)
       throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException;
 
   public abstract Table getTable(String dbName, String tableName)
       throws MetaException;
 
+  public abstract Table getTableByID(long id) throws MetaException;
+
+  public long getTableOID(String dbName, String tableName) throws MetaException;
+
   public abstract boolean addPartition(Partition part)
       throws InvalidObjectException, MetaException;
 
   public abstract Partition getPartition(String dbName, String tableName,
-      List<String> part_vals) throws MetaException, NoSuchObjectException;
+      String partName) throws MetaException, NoSuchObjectException;
+
+  public void updatePartition(Partition newPart) throws InvalidObjectException, MetaException;
 
   public abstract boolean dropPartition(String dbName, String tableName,
       List<String> part_vals) throws MetaException, NoSuchObjectException, InvalidObjectException,
@@ -160,10 +202,10 @@ public interface RawStore extends Configurable {
   public abstract List<String> listPartitionNamesByFilter(String db_name,
       String tbl_name, String filter, short max_parts) throws MetaException;
 
-  public abstract void alterPartition(String db_name, String tbl_name, List<String> part_vals,
+  public abstract void alterPartition(String db_name, String tbl_name, String partName, List<String> part_vals,
       Partition new_part) throws InvalidObjectException, MetaException;
 
-  public abstract void alterPartitions(String db_name, String tbl_name,
+  public abstract void alterPartitions(String db_name, String tbl_name, List<String> partNames,
       List<List<String>> part_vals_list, List<Partition> new_parts)
       throws InvalidObjectException, MetaException;
 
@@ -418,8 +460,14 @@ public interface RawStore extends Configurable {
     String colName)
     throws NoSuchObjectException, MetaException, InvalidObjectException, InvalidInputException;
 
- public abstract long cleanupEvents();
+  public abstract long cleanupEvents();
 
   public abstract Node findNode(String ip) throws MetaException;
+
+  public List<SFile> findUnderReplicatedFiles() throws MetaException;
+
+  public List<SFile> findOverReplicatedFiles() throws MetaException;
+
+  public List<SFile> findLingeringFiles() throws MetaException;
 
 }

@@ -39,11 +39,6 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  bool drop_subpartition_index(Index index, Subpartition part)'
   print '  i32 add_partition_index_files(Index index, Partition part,  file)'
   print '  i32 drop_partition_index_files(Index index, Partition part,  file)'
-  print '  void add_node(Node node)'
-  print '  void update_node(Node node)'
-  print '  Node get_node(string name)'
-  print '   get_all_nodes()'
-  print '  void drop_node(string name)'
   print '  void create_database(Database database)'
   print '  Database get_database(string name)'
   print '  void drop_database(string name, bool deleteData, bool cascade)'
@@ -119,12 +114,18 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  string get_delegation_token(string token_owner, string renewer_kerberos_principal_name)'
   print '  i64 renew_delegation_token(string token_str_form)'
   print '  void cancel_delegation_token(string token_str_form)'
-  print '  SFile create_file(string node_name, i32 repnr, string table_name)'
+  print '  SFile create_file(string node_name, i32 repnr, i64 table_id)'
   print '  i32 close_file(SFile file)'
   print '  SFile get_file_by_id(i64 fid)'
   print '  i32 rm_file_logical(SFile file)'
   print '  i32 restore_file(SFile file)'
   print '  i32 rm_file_physical(SFile file)'
+  print '  Node get_node(string node_name)'
+  print '  Node add_node(string node_name,  ipl)'
+  print '  i32 del_node(string node_name)'
+  print '  Node alter_node(string node_name,  ipl, i32 status)'
+  print '   find_best_nodes(i32 nr)'
+  print '   get_all_nodes()'
   print ''
   sys.exit(0)
 
@@ -271,36 +272,6 @@ elif cmd == 'drop_partition_index_files':
     print 'drop_partition_index_files requires 3 args'
     sys.exit(1)
   pp.pprint(client.drop_partition_index_files(eval(args[0]),eval(args[1]),eval(args[2]),))
-
-elif cmd == 'add_node':
-  if len(args) != 1:
-    print 'add_node requires 1 args'
-    sys.exit(1)
-  pp.pprint(client.add_node(eval(args[0]),))
-
-elif cmd == 'update_node':
-  if len(args) != 1:
-    print 'update_node requires 1 args'
-    sys.exit(1)
-  pp.pprint(client.update_node(eval(args[0]),))
-
-elif cmd == 'get_node':
-  if len(args) != 1:
-    print 'get_node requires 1 args'
-    sys.exit(1)
-  pp.pprint(client.get_node(args[0],))
-
-elif cmd == 'get_all_nodes':
-  if len(args) != 0:
-    print 'get_all_nodes requires 0 args'
-    sys.exit(1)
-  pp.pprint(client.get_all_nodes())
-
-elif cmd == 'drop_node':
-  if len(args) != 1:
-    print 'drop_node requires 1 args'
-    sys.exit(1)
-  pp.pprint(client.drop_node(args[0],))
 
 elif cmd == 'create_database':
   if len(args) != 1:
@@ -756,7 +727,7 @@ elif cmd == 'create_file':
   if len(args) != 3:
     print 'create_file requires 3 args'
     sys.exit(1)
-  pp.pprint(client.create_file(args[0],eval(args[1]),args[2],))
+  pp.pprint(client.create_file(args[0],eval(args[1]),eval(args[2]),))
 
 elif cmd == 'close_file':
   if len(args) != 1:
@@ -787,6 +758,42 @@ elif cmd == 'rm_file_physical':
     print 'rm_file_physical requires 1 args'
     sys.exit(1)
   pp.pprint(client.rm_file_physical(eval(args[0]),))
+
+elif cmd == 'get_node':
+  if len(args) != 1:
+    print 'get_node requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.get_node(args[0],))
+
+elif cmd == 'add_node':
+  if len(args) != 2:
+    print 'add_node requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.add_node(args[0],eval(args[1]),))
+
+elif cmd == 'del_node':
+  if len(args) != 1:
+    print 'del_node requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.del_node(args[0],))
+
+elif cmd == 'alter_node':
+  if len(args) != 3:
+    print 'alter_node requires 3 args'
+    sys.exit(1)
+  pp.pprint(client.alter_node(args[0],eval(args[1]),eval(args[2]),))
+
+elif cmd == 'find_best_nodes':
+  if len(args) != 1:
+    print 'find_best_nodes requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.find_best_nodes(eval(args[0]),))
+
+elif cmd == 'get_all_nodes':
+  if len(args) != 0:
+    print 'get_all_nodes requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.get_all_nodes())
 
 else:
   print 'Unrecognized method %s' % cmd

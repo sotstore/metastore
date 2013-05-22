@@ -27,6 +27,7 @@ public class MPartition {
   private String partitionName; // partitionname ==>  (key=value/)*(key=value)
   private MTable table;
   private List<String> values;
+  private List<Long> files;
   private int createTime;
   private int lastAccessTime;
   private MStorageDescriptor sd;
@@ -47,11 +48,12 @@ public class MPartition {
    * @param sd
    * @param parameters
    */
-  public MPartition(String partitionName, MTable table, List<String> values, int createTime,
+  public MPartition(String partitionName, MTable table, List<String> values, List<Long> files, int createTime,
       int lastAccessTime, MStorageDescriptor sd, Map<String, String> parameters) {
     this.partitionName = partitionName;
     this.table = table;
     this.values = values;
+    this.files = files;
     this.createTime = createTime;
     this.lastAccessTime = lastAccessTime;
     this.sd = sd;
@@ -187,6 +189,14 @@ public class MPartition {
 
   public void setSubPartitions(List<MPartition> subPartitions) {
     this.subPartitions = subPartitions;
+  }
+
+  public List<Long> getFiles() {
+    return files;
+  }
+
+  public void setFiles(List<Long> files) {
+    this.files = files;
   }
 
 

@@ -78,6 +78,9 @@ enum FOFailReason {
   
   NOSPACE = 10,
   NOTEXIST = 11,
+  
+  SAFEMODE = 12,
+  INVALID_STATE = 13,
 }
 
 struct HiveObjectRef{
@@ -183,9 +186,10 @@ struct Subpartition {
   5: i32          lastAccessTime,
   6: StorageDescriptor   sd,
   7: map<string, string> parameters,
-  8: optional string       partitionName,
-  9: optional i32 version,
-  10: optional PrincipalPrivilegeSet privileges
+  8: list<i64>    files,
+  9: optional string       partitionName,
+  10: optional i32 version,
+  11: optional PrincipalPrivilegeSet privileges
 }
 
 struct Partition {
@@ -196,10 +200,11 @@ struct Partition {
   5: i32          lastAccessTime,
   6: StorageDescriptor   sd,
   7: map<string, string> parameters,
-  8: optional string       partitionName,
-  9: optional list<Subpartition> subpartitions,
-  10: optional i32 version,
-  11: optional PrincipalPrivilegeSet privileges
+  8: list<i64>    files,
+  9: optional string       partitionName,
+  10: optional list<Subpartition> subpartitions,
+  11: optional i32 version,
+  12: optional PrincipalPrivilegeSet privileges
 }
 
 // table information
@@ -427,12 +432,6 @@ service ThriftHiveMetastore extends fb303.FacebookService
   i32 add_partition_index_files(1:Index index, 2: Partition part,3:list<SFile> file)
   i32 drop_partition_index_files(1:Index index, 2: Partition part,3:list<SFile> file)
   
-  void add_node(1:Node node) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
-  void update_node(1:Node node) throws(1:InvalidObjectException o1, 2:MetaException o2)
-  Node get_node(1:string name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
-  list<Node> get_all_nodes() throws(1:NoSuchObjectException o1, 2:MetaException o2)
-  void drop_node(1:string name) throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)
-
 //end of zjw
   void create_database(1:Database database) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
   Database get_database(1:string name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
@@ -716,7 +715,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   void cancel_delegation_token(1:string token_str_form) throws (1:MetaException o1)
   
   // method for file operations
-  SFile create_file(1:string node_name, 2:i32 repnr, 3:string table_name) throws (1:FileOperationException o1)
+  SFile create_file(1:string node_name, 2:i32 repnr, 3:i64 table_id) throws (1:FileOperationException o1)
   
   i32 close_file(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
   
@@ -727,6 +726,19 @@ service ThriftHiveMetastore extends fb303.FacebookService
   i32 restore_file(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
   
   i32 rm_file_physical(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
+  
+  // method for node operations
+  Node get_node(1:string node_name) throws (1:MetaException o1)
+  
+  Node add_node(1:string node_name, 2:list<string> ipl) throws (1:MetaException o1)
+  
+  i32 del_node(1:string node_name) throws (1:MetaException o1)
+  
+  Node alter_node(1:string node_name, 2:list<string> ipl, 3:i32 status) throws (1:MetaException o1)
+  
+  list<Node> find_best_nodes(1:i32 nr) throws (1:MetaException o1)
+
+  list<Node> get_all_nodes() throws(1:MetaException o1)
 }
 
 // * Note about the DDL_TIME: When creating or altering a table or a partition,

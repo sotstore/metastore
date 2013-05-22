@@ -41,9 +41,10 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
   private static final org.apache.thrift.protocol.TField LAST_ACCESS_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("lastAccessTime", org.apache.thrift.protocol.TType.I32, (short)5);
   private static final org.apache.thrift.protocol.TField SD_FIELD_DESC = new org.apache.thrift.protocol.TField("sd", org.apache.thrift.protocol.TType.STRUCT, (short)6);
   private static final org.apache.thrift.protocol.TField PARAMETERS_FIELD_DESC = new org.apache.thrift.protocol.TField("parameters", org.apache.thrift.protocol.TType.MAP, (short)7);
-  private static final org.apache.thrift.protocol.TField PARTITION_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("partitionName", org.apache.thrift.protocol.TType.STRING, (short)8);
-  private static final org.apache.thrift.protocol.TField VERSION_FIELD_DESC = new org.apache.thrift.protocol.TField("version", org.apache.thrift.protocol.TType.I32, (short)9);
-  private static final org.apache.thrift.protocol.TField PRIVILEGES_FIELD_DESC = new org.apache.thrift.protocol.TField("privileges", org.apache.thrift.protocol.TType.STRUCT, (short)10);
+  private static final org.apache.thrift.protocol.TField FILES_FIELD_DESC = new org.apache.thrift.protocol.TField("files", org.apache.thrift.protocol.TType.LIST, (short)8);
+  private static final org.apache.thrift.protocol.TField PARTITION_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("partitionName", org.apache.thrift.protocol.TType.STRING, (short)9);
+  private static final org.apache.thrift.protocol.TField VERSION_FIELD_DESC = new org.apache.thrift.protocol.TField("version", org.apache.thrift.protocol.TType.I32, (short)10);
+  private static final org.apache.thrift.protocol.TField PRIVILEGES_FIELD_DESC = new org.apache.thrift.protocol.TField("privileges", org.apache.thrift.protocol.TType.STRUCT, (short)11);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -58,6 +59,7 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
   private int lastAccessTime; // required
   private StorageDescriptor sd; // required
   private Map<String,String> parameters; // required
+  private List<Long> files; // required
   private String partitionName; // optional
   private int version; // optional
   private PrincipalPrivilegeSet privileges; // optional
@@ -71,9 +73,10 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
     LAST_ACCESS_TIME((short)5, "lastAccessTime"),
     SD((short)6, "sd"),
     PARAMETERS((short)7, "parameters"),
-    PARTITION_NAME((short)8, "partitionName"),
-    VERSION((short)9, "version"),
-    PRIVILEGES((short)10, "privileges");
+    FILES((short)8, "files"),
+    PARTITION_NAME((short)9, "partitionName"),
+    VERSION((short)10, "version"),
+    PRIVILEGES((short)11, "privileges");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -102,11 +105,13 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
           return SD;
         case 7: // PARAMETERS
           return PARAMETERS;
-        case 8: // PARTITION_NAME
+        case 8: // FILES
+          return FILES;
+        case 9: // PARTITION_NAME
           return PARTITION_NAME;
-        case 9: // VERSION
+        case 10: // VERSION
           return VERSION;
-        case 10: // PRIVILEGES
+        case 11: // PRIVILEGES
           return PRIVILEGES;
         default:
           return null;
@@ -173,6 +178,9 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
+    tmpMap.put(_Fields.FILES, new org.apache.thrift.meta_data.FieldMetaData("files", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
     tmpMap.put(_Fields.PARTITION_NAME, new org.apache.thrift.meta_data.FieldMetaData("partitionName", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.VERSION, new org.apache.thrift.meta_data.FieldMetaData("version", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
@@ -193,7 +201,8 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
     int createTime,
     int lastAccessTime,
     StorageDescriptor sd,
-    Map<String,String> parameters)
+    Map<String,String> parameters,
+    List<Long> files)
   {
     this();
     this.values = values;
@@ -205,6 +214,7 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
     setLastAccessTimeIsSet(true);
     this.sd = sd;
     this.parameters = parameters;
+    this.files = files;
   }
 
   /**
@@ -245,6 +255,13 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
       }
       this.parameters = __this__parameters;
     }
+    if (other.isSetFiles()) {
+      List<Long> __this__files = new ArrayList<Long>();
+      for (Long other_element : other.files) {
+        __this__files.add(other_element);
+      }
+      this.files = __this__files;
+    }
     if (other.isSetPartitionName()) {
       this.partitionName = other.partitionName;
     }
@@ -269,6 +286,7 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
     this.lastAccessTime = 0;
     this.sd = null;
     this.parameters = null;
+    this.files = null;
     this.partitionName = null;
     setVersionIsSet(false);
     this.version = 0;
@@ -460,6 +478,44 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
     }
   }
 
+  public int getFilesSize() {
+    return (this.files == null) ? 0 : this.files.size();
+  }
+
+  public java.util.Iterator<Long> getFilesIterator() {
+    return (this.files == null) ? null : this.files.iterator();
+  }
+
+  public void addToFiles(long elem) {
+    if (this.files == null) {
+      this.files = new ArrayList<Long>();
+    }
+    this.files.add(elem);
+  }
+
+  public List<Long> getFiles() {
+    return this.files;
+  }
+
+  public void setFiles(List<Long> files) {
+    this.files = files;
+  }
+
+  public void unsetFiles() {
+    this.files = null;
+  }
+
+  /** Returns true if field files is set (has been assigned a value) and false otherwise */
+  public boolean isSetFiles() {
+    return this.files != null;
+  }
+
+  public void setFilesIsSet(boolean value) {
+    if (!value) {
+      this.files = null;
+    }
+  }
+
   public String getPartitionName() {
     return this.partitionName;
   }
@@ -586,6 +642,14 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
       }
       break;
 
+    case FILES:
+      if (value == null) {
+        unsetFiles();
+      } else {
+        setFiles((List<Long>)value);
+      }
+      break;
+
     case PARTITION_NAME:
       if (value == null) {
         unsetPartitionName();
@@ -636,6 +700,9 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
     case PARAMETERS:
       return getParameters();
 
+    case FILES:
+      return getFiles();
+
     case PARTITION_NAME:
       return getPartitionName();
 
@@ -670,6 +737,8 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
       return isSetSd();
     case PARAMETERS:
       return isSetParameters();
+    case FILES:
+      return isSetFiles();
     case PARTITION_NAME:
       return isSetPartitionName();
     case VERSION:
@@ -756,6 +825,15 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
         return false;
     }
 
+    boolean this_present_files = true && this.isSetFiles();
+    boolean that_present_files = true && that.isSetFiles();
+    if (this_present_files || that_present_files) {
+      if (!(this_present_files && that_present_files))
+        return false;
+      if (!this.files.equals(that.files))
+        return false;
+    }
+
     boolean this_present_partitionName = true && this.isSetPartitionName();
     boolean that_present_partitionName = true && that.isSetPartitionName();
     if (this_present_partitionName || that_present_partitionName) {
@@ -824,6 +902,11 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
     builder.append(present_parameters);
     if (present_parameters)
       builder.append(parameters);
+
+    boolean present_files = true && (isSetFiles());
+    builder.append(present_files);
+    if (present_files)
+      builder.append(files);
 
     boolean present_partitionName = true && (isSetPartitionName());
     builder.append(present_partitionName);
@@ -917,6 +1000,16 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
     }
     if (isSetParameters()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.parameters, typedOther.parameters);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetFiles()).compareTo(typedOther.isSetFiles());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetFiles()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.files, typedOther.files);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -1016,6 +1109,14 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
       sb.append("null");
     } else {
       sb.append(this.parameters);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("files:");
+    if (this.files == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.files);
     }
     first = false;
     if (isSetPartitionName()) {
@@ -1174,7 +1275,25 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 8: // PARTITION_NAME
+          case 8: // FILES
+            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              {
+                org.apache.thrift.protocol.TList _list191 = iprot.readListBegin();
+                struct.files = new ArrayList<Long>(_list191.size);
+                for (int _i192 = 0; _i192 < _list191.size; ++_i192)
+                {
+                  long _elem193; // required
+                  _elem193 = iprot.readI64();
+                  struct.files.add(_elem193);
+                }
+                iprot.readListEnd();
+              }
+              struct.setFilesIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 9: // PARTITION_NAME
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.partitionName = iprot.readString();
               struct.setPartitionNameIsSet(true);
@@ -1182,7 +1301,7 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 9: // VERSION
+          case 10: // VERSION
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.version = iprot.readI32();
               struct.setVersionIsSet(true);
@@ -1190,7 +1309,7 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 10: // PRIVILEGES
+          case 11: // PRIVILEGES
             if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
               struct.privileges = new PrincipalPrivilegeSet();
               struct.privileges.read(iprot);
@@ -1216,9 +1335,9 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
         oprot.writeFieldBegin(VALUES_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.values.size()));
-          for (String _iter191 : struct.values)
+          for (String _iter194 : struct.values)
           {
-            oprot.writeString(_iter191);
+            oprot.writeString(_iter194);
           }
           oprot.writeListEnd();
         }
@@ -1249,12 +1368,24 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
         oprot.writeFieldBegin(PARAMETERS_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.parameters.size()));
-          for (Map.Entry<String, String> _iter192 : struct.parameters.entrySet())
+          for (Map.Entry<String, String> _iter195 : struct.parameters.entrySet())
           {
-            oprot.writeString(_iter192.getKey());
-            oprot.writeString(_iter192.getValue());
+            oprot.writeString(_iter195.getKey());
+            oprot.writeString(_iter195.getValue());
           }
           oprot.writeMapEnd();
+        }
+        oprot.writeFieldEnd();
+      }
+      if (struct.files != null) {
+        oprot.writeFieldBegin(FILES_FIELD_DESC);
+        {
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.files.size()));
+          for (long _iter196 : struct.files)
+          {
+            oprot.writeI64(_iter196);
+          }
+          oprot.writeListEnd();
         }
         oprot.writeFieldEnd();
       }
@@ -1316,22 +1447,25 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
       if (struct.isSetParameters()) {
         optionals.set(6);
       }
-      if (struct.isSetPartitionName()) {
+      if (struct.isSetFiles()) {
         optionals.set(7);
       }
-      if (struct.isSetVersion()) {
+      if (struct.isSetPartitionName()) {
         optionals.set(8);
       }
-      if (struct.isSetPrivileges()) {
+      if (struct.isSetVersion()) {
         optionals.set(9);
       }
-      oprot.writeBitSet(optionals, 10);
+      if (struct.isSetPrivileges()) {
+        optionals.set(10);
+      }
+      oprot.writeBitSet(optionals, 11);
       if (struct.isSetValues()) {
         {
           oprot.writeI32(struct.values.size());
-          for (String _iter193 : struct.values)
+          for (String _iter197 : struct.values)
           {
-            oprot.writeString(_iter193);
+            oprot.writeString(_iter197);
           }
         }
       }
@@ -1353,10 +1487,19 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
       if (struct.isSetParameters()) {
         {
           oprot.writeI32(struct.parameters.size());
-          for (Map.Entry<String, String> _iter194 : struct.parameters.entrySet())
+          for (Map.Entry<String, String> _iter198 : struct.parameters.entrySet())
           {
-            oprot.writeString(_iter194.getKey());
-            oprot.writeString(_iter194.getValue());
+            oprot.writeString(_iter198.getKey());
+            oprot.writeString(_iter198.getValue());
+          }
+        }
+      }
+      if (struct.isSetFiles()) {
+        {
+          oprot.writeI32(struct.files.size());
+          for (long _iter199 : struct.files)
+          {
+            oprot.writeI64(_iter199);
           }
         }
       }
@@ -1374,16 +1517,16 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, Subpartition struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(10);
+      BitSet incoming = iprot.readBitSet(11);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TList _list195 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.values = new ArrayList<String>(_list195.size);
-          for (int _i196 = 0; _i196 < _list195.size; ++_i196)
+          org.apache.thrift.protocol.TList _list200 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.values = new ArrayList<String>(_list200.size);
+          for (int _i201 = 0; _i201 < _list200.size; ++_i201)
           {
-            String _elem197; // required
-            _elem197 = iprot.readString();
-            struct.values.add(_elem197);
+            String _elem202; // required
+            _elem202 = iprot.readString();
+            struct.values.add(_elem202);
           }
         }
         struct.setValuesIsSet(true);
@@ -1411,28 +1554,41 @@ public class Subpartition implements org.apache.thrift.TBase<Subpartition, Subpa
       }
       if (incoming.get(6)) {
         {
-          org.apache.thrift.protocol.TMap _map198 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.parameters = new HashMap<String,String>(2*_map198.size);
-          for (int _i199 = 0; _i199 < _map198.size; ++_i199)
+          org.apache.thrift.protocol.TMap _map203 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.parameters = new HashMap<String,String>(2*_map203.size);
+          for (int _i204 = 0; _i204 < _map203.size; ++_i204)
           {
-            String _key200; // required
-            String _val201; // required
-            _key200 = iprot.readString();
-            _val201 = iprot.readString();
-            struct.parameters.put(_key200, _val201);
+            String _key205; // required
+            String _val206; // required
+            _key205 = iprot.readString();
+            _val206 = iprot.readString();
+            struct.parameters.put(_key205, _val206);
           }
         }
         struct.setParametersIsSet(true);
       }
       if (incoming.get(7)) {
+        {
+          org.apache.thrift.protocol.TList _list207 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.files = new ArrayList<Long>(_list207.size);
+          for (int _i208 = 0; _i208 < _list207.size; ++_i208)
+          {
+            long _elem209; // required
+            _elem209 = iprot.readI64();
+            struct.files.add(_elem209);
+          }
+        }
+        struct.setFilesIsSet(true);
+      }
+      if (incoming.get(8)) {
         struct.partitionName = iprot.readString();
         struct.setPartitionNameIsSet(true);
       }
-      if (incoming.get(8)) {
+      if (incoming.get(9)) {
         struct.version = iprot.readI32();
         struct.setVersionIsSet(true);
       }
-      if (incoming.get(9)) {
+      if (incoming.get(10)) {
         struct.privileges = new PrincipalPrivilegeSet();
         struct.privileges.read(iprot);
         struct.setPrivilegesIsSet(true);

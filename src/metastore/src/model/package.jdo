@@ -387,6 +387,13 @@
         </join>
         <element column="PART_KEY_VAL"/>
       </field>
+      <field name="files" table="PARTITION_FILES">
+        <collection element-type="java.lang.Long"/>
+        <join>
+          <column name="PART_ID"/>
+        </join>
+        <element column="FID"/>
+      </field>
       <field name="sd" dependent="true">
         <column name="SD_ID"/>
       </field>
@@ -940,6 +947,27 @@
       </field>
     </class>
     
+    <class name="MDataCenter" table="DataCenter" identity-type="datastore" detachable="true">
+      <index name="UniqueDC" unique="true">
+        <column name="DC_ID"/>
+        <column name="NAME"/>
+      </index>
+      
+      <datastore-identity>
+      	<column name="DC_ID"/>
+      </datastore-identity>
+      
+      <field name="name">
+      	<column name="NAME"/>
+      </field>
+      <field name="ms_ip">
+      	<column name="MS_IP"/>
+      </field>
+      <field name="ms_port">
+      	<column name="MS_PORT"/>
+      </field>
+    </class>
+    
     <class name="MDevice" table="DEVICES" identity-type="datastore" detachable="true">
       <index name="UniqueDevice" unique="true">
         <column name="DEV_ID"/>
@@ -1025,6 +1053,6 @@
         <column name="DIGEST" length="256" jdbc-type="VARCHAR"/>
       </field>
     </class>
-
+    
   </package>
 </jdo>

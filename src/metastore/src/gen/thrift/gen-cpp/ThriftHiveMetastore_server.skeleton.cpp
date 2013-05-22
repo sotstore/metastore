@@ -102,31 +102,6 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("drop_partition_index_files\n");
   }
 
-  void add_node(const Node& node) {
-    // Your implementation goes here
-    printf("add_node\n");
-  }
-
-  void update_node(const Node& node) {
-    // Your implementation goes here
-    printf("update_node\n");
-  }
-
-  void get_node(Node& _return, const std::string& name) {
-    // Your implementation goes here
-    printf("get_node\n");
-  }
-
-  void get_all_nodes(std::vector<Node> & _return) {
-    // Your implementation goes here
-    printf("get_all_nodes\n");
-  }
-
-  void drop_node(const std::string& name) {
-    // Your implementation goes here
-    printf("drop_node\n");
-  }
-
   void create_database(const Database& database) {
     // Your implementation goes here
     printf("create_database\n");
@@ -502,7 +477,7 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("cancel_delegation_token\n");
   }
 
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& table_name) {
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const int64_t table_id) {
     // Your implementation goes here
     printf("create_file\n");
   }
@@ -530,6 +505,36 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
   int32_t rm_file_physical(const SFile& file) {
     // Your implementation goes here
     printf("rm_file_physical\n");
+  }
+
+  void get_node(Node& _return, const std::string& node_name) {
+    // Your implementation goes here
+    printf("get_node\n");
+  }
+
+  void add_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl) {
+    // Your implementation goes here
+    printf("add_node\n");
+  }
+
+  int32_t del_node(const std::string& node_name) {
+    // Your implementation goes here
+    printf("del_node\n");
+  }
+
+  void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status) {
+    // Your implementation goes here
+    printf("alter_node\n");
+  }
+
+  void find_best_nodes(std::vector<Node> & _return, const int32_t nr) {
+    // Your implementation goes here
+    printf("find_best_nodes\n");
+  }
+
+  void get_all_nodes(std::vector<Node> & _return) {
+    // Your implementation goes here
+    printf("get_all_nodes\n");
   }
 
 };
