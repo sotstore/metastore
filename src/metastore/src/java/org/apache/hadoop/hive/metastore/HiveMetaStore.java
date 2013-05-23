@@ -4329,12 +4329,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return false;
     }
 
-    @Override
-    public int add_partition_index_files(Index index, Partition part, List<SFile> file)
-        throws TException {
-      // TODO Auto-generated method stub
-      return 0;
-    }
 
     @Override
     public int drop_partition_index_files(Index index, Partition part, List<SFile> file)
@@ -4353,6 +4347,27 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public boolean drop_subpartition_index(Index index, Subpartition part) throws TException {
       // TODO Auto-generated method stub
       return false;
+    }
+
+    @Override
+    public boolean add_subpartition(String dbname, String tbl_name, List<String> part_vals,
+        Subpartition sub_part) throws TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public List<Subpartition> subpartition(String dbname, String tbl_name, Partition part)
+        throws TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public int add_partition_index_files(Index index, Partition part, List<SFile> file,
+        List<SFile> origin_file) throws TException {
+      // TODO Auto-generated method stub
+      return 0;
     }
   }
 

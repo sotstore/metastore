@@ -231,13 +231,43 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_subpartition_index failed: unknown result')
     end
 
-    def add_partition_index_files(index, part, file)
-      send_add_partition_index_files(index, part, file)
+    def add_subpartition(dbname, tbl_name, part_vals, sub_part)
+      send_add_subpartition(dbname, tbl_name, part_vals, sub_part)
+      return recv_add_subpartition()
+    end
+
+    def send_add_subpartition(dbname, tbl_name, part_vals, sub_part)
+      send_message('add_subpartition', Add_subpartition_args, :dbname => dbname, :tbl_name => tbl_name, :part_vals => part_vals, :sub_part => sub_part)
+    end
+
+    def recv_add_subpartition()
+      result = receive_message(Add_subpartition_result)
+      return result.success unless result.success.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_subpartition failed: unknown result')
+    end
+
+    def subpartition(dbname, tbl_name, part)
+      send_subpartition(dbname, tbl_name, part)
+      return recv_subpartition()
+    end
+
+    def send_subpartition(dbname, tbl_name, part)
+      send_message('subpartition', Subpartition_args, :dbname => dbname, :tbl_name => tbl_name, :part => part)
+    end
+
+    def recv_subpartition()
+      result = receive_message(Subpartition_result)
+      return result.success unless result.success.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'subpartition failed: unknown result')
+    end
+
+    def add_partition_index_files(index, part, file, origin_file)
+      send_add_partition_index_files(index, part, file, origin_file)
       return recv_add_partition_index_files()
     end
 
-    def send_add_partition_index_files(index, part, file)
-      send_message('add_partition_index_files', Add_partition_index_files_args, :index => index, :part => part, :file => file)
+    def send_add_partition_index_files(index, part, file, origin_file)
+      send_message('add_partition_index_files', Add_partition_index_files_args, :index => index, :part => part, :file => file, :origin_file => origin_file)
     end
 
     def recv_add_partition_index_files()
@@ -1868,10 +1898,24 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'drop_subpartition_index', seqid)
     end
 
+    def process_add_subpartition(seqid, iprot, oprot)
+      args = read_args(iprot, Add_subpartition_args)
+      result = Add_subpartition_result.new()
+      result.success = @handler.add_subpartition(args.dbname, args.tbl_name, args.part_vals, args.sub_part)
+      write_result(result, oprot, 'add_subpartition', seqid)
+    end
+
+    def process_subpartition(seqid, iprot, oprot)
+      args = read_args(iprot, Subpartition_args)
+      result = Subpartition_result.new()
+      result.success = @handler.subpartition(args.dbname, args.tbl_name, args.part)
+      write_result(result, oprot, 'subpartition', seqid)
+    end
+
     def process_add_partition_index_files(seqid, iprot, oprot)
       args = read_args(iprot, Add_partition_index_files_args)
       result = Add_partition_index_files_result.new()
-      result.success = @handler.add_partition_index_files(args.index, args.part, args.file)
+      result.success = @handler.add_partition_index_files(args.index, args.part, args.file, args.origin_file)
       write_result(result, oprot, 'add_partition_index_files', seqid)
     end
 
@@ -3517,16 +3561,92 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
+  class Add_subpartition_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    TBL_NAME = 2
+    PART_VALS = 3
+    SUB_PART = 4
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbname'},
+      TBL_NAME => {:type => ::Thrift::Types::STRING, :name => 'tbl_name'},
+      PART_VALS => {:type => ::Thrift::Types::LIST, :name => 'part_vals', :element => {:type => ::Thrift::Types::STRING}},
+      SUB_PART => {:type => ::Thrift::Types::STRUCT, :name => 'sub_part', :class => ::Subpartition}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_subpartition_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Subpartition_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    TBL_NAME = 2
+    PART = 3
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbname'},
+      TBL_NAME => {:type => ::Thrift::Types::STRING, :name => 'tbl_name'},
+      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Subpartition_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Subpartition}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class Add_partition_index_files_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     INDEX = 1
     PART = 2
     FILE = 3
+    ORIGIN_FILE = 4
 
     FIELDS = {
       INDEX => {:type => ::Thrift::Types::STRUCT, :name => 'index', :class => ::Index},
       PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition},
-      FILE => {:type => ::Thrift::Types::LIST, :name => 'file', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}}
+      FILE => {:type => ::Thrift::Types::LIST, :name => 'file', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}},
+      ORIGIN_FILE => {:type => ::Thrift::Types::LIST, :name => 'origin_file', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}}
     }
 
     def struct_fields; FIELDS; end

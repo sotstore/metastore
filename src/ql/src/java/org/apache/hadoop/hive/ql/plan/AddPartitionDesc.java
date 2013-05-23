@@ -280,4 +280,14 @@ public class AddPartitionDesc extends DDLDesc implements Serializable {
   public void setExpectView(boolean expectView) {
     this.expectView = expectView;
   }
+
+  public String getPartitionName() {
+    return partitionName;
+  }
+
+  public void setPartitionName(String partitionName) {
+    this.partitionName = partitionName;
+  }
+
+
 }

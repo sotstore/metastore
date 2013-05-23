@@ -2223,6 +2223,41 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
+  /**
+   * added by zjw ,for partition value specification getpartition
+   * @param dbName
+   * @param tableName
+   * @param partVals
+   * @return
+   * @throws MetaException
+   */
+  private MPartition getMPartition(String dbName, String tableName, List<String> partVals) throws MetaException {
+    boolean success = false;
+    List<MPartition> mparts = null;
+    try {
+      openTransaction();
+      LOG.debug("Executing listMPartitions");
+      dbName = dbName.toLowerCase().trim();
+      tableName = tableName.toLowerCase().trim();
+      String fisrt_value = partVals.get(0);
+      Query query = pm.newQuery(MPartition.class,
+          "table.tableName == t1 && table.database.name == t2 && values.contains(pkv) " +
+          "&& pkv.name == t3");
+      query.declareParameters("java.lang.String t1, java.lang.String t2, java.lang.String t3");
+      query.setOrdering("partitionName ascending");
+      mparts = (List<MPartition>) query.execute(tableName, dbName,fisrt_value);
+      LOG.debug("Done executing query for listMPartitions");
+      pm.retrieveAll(mparts);
+      success = commitTransaction();
+      LOG.debug("Done retrieving all objects for listMPartitions");
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return mparts.get(0);
+  }
+
   @Override
   public Partition getPartitionWithAuth(String dbName, String tblName,
       List<String> partVals, String user_name, List<String> group_names)

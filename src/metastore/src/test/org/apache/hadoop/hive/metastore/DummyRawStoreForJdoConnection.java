@@ -188,13 +188,6 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public Partition getPartition(String dbName, String tableName, List<String> part_vals)
-      throws MetaException, NoSuchObjectException {
-
-    return null;
-  }
-
-  @Override
   public boolean dropPartition(String dbName, String tableName, List<String> part_vals)
       throws MetaException {
 
@@ -253,20 +246,6 @@ public class DummyRawStoreForJdoConnection implements RawStore {
       short max_parts) throws MetaException {
 
     return null;
-  }
-
-  @Override
-  public void alterPartition(String db_name, String tbl_name, List<String> part_vals,
-      Partition new_part) throws InvalidObjectException, MetaException {
-
-
-  }
-
-  @Override
-  public void alterPartitions(String db_name, String tbl_name, List<List<String>> part_vals_list,
-      List<Partition> new_parts) throws InvalidObjectException, MetaException {
-
-
   }
 
 
@@ -668,6 +647,58 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   public boolean delSFileLocation(String node, String devid, String location) throws MetaException {
     // TODO Auto-generated method stub
     return false;
+  }
+
+  @Override
+  public List<Node> getAllNodes() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Partition getPartition(String dbName, String tableName, String partName)
+      throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void updatePartition(Partition newPart) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void alterPartition(String db_name, String tbl_name, String partName,
+      List<String> part_vals, Partition new_part) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void alterPartitions(String db_name, String tbl_name, List<String> partNames,
+      List<List<String>> part_vals_list, List<Partition> new_parts) throws InvalidObjectException,
+      MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public List<SFile> findUnderReplicatedFiles() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<SFile> findOverReplicatedFiles() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<SFile> findLingeringFiles() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
 
