@@ -1219,7 +1219,18 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
     // If the add partition was created with IF NOT EXISTS, then we should
     // not throw an error if the specified part does exist.
-    Partition checkPart = db.getPartition(tbl, addPartitionDesc.getPartSpec(), false);
+
+    //removed by zjw
+//    Partition checkPart = db.getPartition(tbl, addPartitionDesc.getPartSpec(), false);
+    ArrayList<String> partNames = new  ArrayList<String>();
+    partNames.add(addPartitionDesc.getPartitionName());
+    List<Partition> checkParts = db.getPartitionsByNames(tbl, partNames);
+    Partition checkPart = null;
+    if(checkParts !=  null && checkParts.size() >0) {
+      checkPart = checkParts.get(0);
+    }
+
+
     if (checkPart != null && addPartitionDesc.getIfNotExists()) {
       return 0;
     }
@@ -1227,7 +1238,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
 
     if (addPartitionDesc.getLocation() == null) {
-      db.createPartition(tbl, addPartitionDesc.getPartSpec(), null,
+      db.createPartition(tbl,null, addPartitionDesc.getPartSpec(), null,
           addPartitionDesc.getPartParams(),
                     addPartitionDesc.getInputFormat(),
                     addPartitionDesc.getOutputFormat(),
@@ -1243,7 +1254,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         throw new HiveException("LOCATION clause illegal for view partition");
       }
       // set partition path relative to table
-      db.createPartition(tbl, addPartitionDesc.getPartSpec(), new Path(tbl
+      db.createPartition(tbl,null, addPartitionDesc.getPartSpec(), new Path(tbl
                     .getPath(), addPartitionDesc.getLocation()), addPartitionDesc.getPartParams(),
                     addPartitionDesc.getInputFormat(),
                     addPartitionDesc.getOutputFormat(),

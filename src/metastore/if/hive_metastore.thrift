@@ -427,10 +427,12 @@ service ThriftHiveMetastore extends fb303.FacebookService
   bool add_subpartition_index(1:Index index, 2:Subpartition part)
   bool drop_subpartition_index(1:Index index, 2:Subpartition part)
   
+  bool add_subpartition(1:string dbname, 2:string tbl_name, 3:list<string> part_vals,4:Subpartition sub_part)
+  list<Subpartition> get_subpartition(1:string dbname, 2:string tbl_name, 3:Partition part)
  
   //start of partition index file
   bool add_partition_index_files(1:Index index, 2: Partition part,3:list<SFile> file, 4:list<i64> originfid) throws(1:MetaException o1)
-  bool drop_partition_index_files(1:Index index, 2: Partition part,3:list<SFile> file, 4:list<i64> originfid) throws(1:MetaException o1)
+  bool drop_partition_index_files(1:Index index, 2: Partition part,3:list<SFile> file) throws(1:MetaException o1)
   
 //end of zjw
   void create_database(1:Database database) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)

@@ -4349,11 +4349,19 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public boolean drop_partition_index_files(Index index, Partition part, List<SFile> file,
-        List<Long> originfid) throws MetaException, TException {
+    public boolean add_subpartition(String dbname, String tbl_name, List<String> part_vals,
+        Subpartition sub_part) throws TException {
       // TODO Auto-generated method stub
       return false;
     }
+
+    @Override
+    public boolean drop_partition_index_files(Index index, Partition part, List<SFile> file)
+        throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {

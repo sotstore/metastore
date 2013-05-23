@@ -1344,7 +1344,23 @@ public class Hive {
    */
   public Partition createPartition(Table tbl, Map<String, String> partSpec)
       throws HiveException {
-    return createPartition(tbl, partSpec, null, null, null, null, -1,
+    return createPartition(tbl, null ,partSpec);
+  }
+
+  /**
+   * Creates a partition.
+   *
+   * @param tbl
+   *          table for which partition needs to be created
+   * @param partSpec
+   *          partition keys and their values
+   * @return created partition object
+   * @throws HiveException
+   *           if table doesn't exist or partition already exists
+   */
+  public Partition createPartition(Table tbl, String partitionName ,Map<String, String> partSpec)
+      throws HiveException {
+    return createPartition(tbl, partitionName,partSpec, null, null, null, null, -1,
         null, null, null, null, null);
   }
 
@@ -1372,7 +1388,7 @@ public class Hive {
    * @throws HiveException
    *           if table doesn't exist or partition already exists
    */
-  public Partition createPartition(Table tbl, Map<String, String> partSpec,
+  public Partition createPartition(Table tbl, String partitionName, Map<String, String> partSpec,
       Path location, Map<String, String> partParams, String inputFormat, String outputFormat,
       int numBuckets, List<FieldSchema> cols,
       String serializationLib, Map<String, String> serdeParams,
