@@ -106,13 +106,18 @@ import org.apache.hadoop.hive.ql.metadata.formatting.MetaDataFormatter;
 import org.apache.hadoop.hive.ql.metadata.formatting.TextMetaDataFormatter;
 import org.apache.hadoop.hive.ql.parse.AlterTablePartMergeFilesDesc;
 import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
+import org.apache.hadoop.hive.ql.plan.AddNodeDesc;
+import org.apache.hadoop.hive.ql.plan.AddPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
+import org.apache.hadoop.hive.ql.plan.AddSubpartIndexDesc;
+import org.apache.hadoop.hive.ql.plan.AddSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.AlterDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.AlterIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
+import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableLikeDesc;
@@ -122,11 +127,26 @@ import org.apache.hadoop.hive.ql.plan.DescDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.DescFunctionDesc;
 import org.apache.hadoop.hive.ql.plan.DescTableDesc;
 import org.apache.hadoop.hive.ql.plan.DropDatabaseDesc;
+import org.apache.hadoop.hive.ql.plan.DropDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
+import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
+import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
+import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
+import org.apache.hadoop.hive.ql.plan.DropSubpartIndexDesc;
+import org.apache.hadoop.hive.ql.plan.DropSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.DropTableDesc;
 import org.apache.hadoop.hive.ql.plan.GrantDesc;
 import org.apache.hadoop.hive.ql.plan.GrantRevokeRoleDDL;
 import org.apache.hadoop.hive.ql.plan.LockTableDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyNodeDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyPartIndexAddFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyPartIndexDropFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyPartitionAddFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyPartitionDropFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexAddFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexDropFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifySubpartitionAddFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifySubpartitionDropFileDesc;
 import org.apache.hadoop.hive.ql.plan.MsckDesc;
 import org.apache.hadoop.hive.ql.plan.PartitionSpec;
 import org.apache.hadoop.hive.ql.plan.PrincipalDesc;
@@ -147,6 +167,7 @@ import org.apache.hadoop.hive.ql.plan.ShowTableStatusDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
 import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
+import org.apache.hadoop.hive.ql.plan.SwitchDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
 import org.apache.hadoop.hive.ql.plan.api.StageType;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
@@ -221,6 +242,97 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     Hive db;
     try {
       db = Hive.get(conf);
+
+      // added by zjw
+      /*********************added by zjw*******************************/
+      CreateDatacenterDesc createDatacenterDesc = work.getCreateDatacenterDesc();
+      if (null != createDatacenterDesc) {
+        return createDatacenter(db, createDatacenterDesc);
+      }
+      SwitchDatacenterDesc switchDatacenterDesc = work.getSwitchDatacenterDesc();
+      if (null != switchDatacenterDesc) {
+        return switchDatacenter(db, switchDatacenterDesc);
+      }
+      DropDatacenterDesc dropDatacenterDesc = work.getDropDatacenterDesc();
+      if (null != dropDatacenterDesc) {
+        return dropDatacenter(db, dropDatacenterDesc);
+      }
+      ModifyNodeDesc modifyNodeDesc = work.getModifyNodeDesc();
+      if (null != modifyNodeDesc) {
+        return modifyNode(db, modifyNodeDesc);
+      }
+      DropNodeDesc dropNodeDesc = work.getDropNodeDesc();
+      if (null != dropNodeDesc) {
+        return dropNode(db, dropNodeDesc);
+      }
+      AddNodeDesc addNodeDesc = work.getAddNodeDesc();
+      if (null != addNodeDesc) {
+        return addNode(db, addNodeDesc);
+      }
+
+      ModifySubpartIndexDropFileDesc modifySubpartIndexDropFileDesc = work.getModifySubpartIndexDropFileDesc();
+      if (null != modifySubpartIndexDropFileDesc) {
+        return modifySubpartIndexDropFile(db, modifySubpartIndexDropFileDesc);
+      }
+      ModifyPartIndexDropFileDesc modifyPartIndexDropFileDesc = work.getModifyPartIndexDropFileDesc();
+      if (null != modifyPartIndexDropFileDesc) {
+        return modifyPartIndexDropFile(db, modifyPartIndexDropFileDesc);
+      }
+      ModifySubpartIndexAddFileDesc modifySubpartIndexAddFileDesc = work.getModifySubpartIndexAddFileDesc();
+      if (null != modifySubpartIndexAddFileDesc) {
+        return modifySubpartIndexAddFile(db, modifySubpartIndexAddFileDesc);
+      }
+      ModifyPartIndexAddFileDesc modifyPartIndexAddFileDesc = work.getModifyPartIndexAddFileDesc();
+      if (null != modifyPartIndexAddFileDesc) {
+        return modifyPartIndexAddFile(db, modifyPartIndexAddFileDesc);
+      }
+      AddSubpartIndexDesc addSubpartIndexDesc = work.getAddSubpartIndexsDesc();
+      if (null != addSubpartIndexDesc) {
+        return addSubpartIndex(db, addSubpartIndexDesc);
+      }
+      AddPartIndexDesc addPartIndexDesc= work.getAddPartIndexsDesc();
+      if (null != addPartIndexDesc) {
+        return addPartIndex(db, addPartIndexDesc);
+      }
+      DropSubpartIndexDesc dropSubpartIndexDesc = work.getDropSubpartIndexsDesc();
+      if (null != dropSubpartIndexDesc) {
+        return dropSubpartIndex(db, dropSubpartIndexDesc);
+      }
+      DropPartIndexDesc dropPartIndexDesc= work.getDropPartIndexsDesc();
+      if (null != dropPartIndexDesc) {
+        return dropPartIndex(db, dropPartIndexDesc);
+      }
+      ModifySubpartitionDropFileDesc modifySubpartitionDropFileDesc= work.getModifySubpartitionDropFileDesc();
+      if (null != modifySubpartitionDropFileDesc) {
+        return modifySubpartitionDropFile(db, modifySubpartitionDropFileDesc);
+      }
+      ModifySubpartitionAddFileDesc modifySubpartitionAddFileDesc = work.getModifySubpartitionAddFileDesc();
+      if (null != modifySubpartitionAddFileDesc) {
+        return modifySubpartitionAddFile(db, modifySubpartitionAddFileDesc);
+      }
+      ModifyPartitionDropFileDesc modifyPartitionDropFileDesc= work.getModifyPartitionDropFileDesc();
+      if (null != modifyPartitionDropFileDesc) {
+        return modifyPartitionDropFile(db, modifyPartitionDropFileDesc);
+      }
+      ModifyPartitionAddFileDesc modifyPartitionAddFileDesc = work.getModifyPartitionAddFileDesc();
+      if (null != modifyPartitionAddFileDesc) {
+        return modifyPartitionAddFile(db, modifyPartitionAddFileDesc);
+      }
+      AddSubpartitionDesc addSubpartitionDesc = work.getAddSubpartitionDesc();
+      if (null != addSubpartitionDesc) {
+        return addSubpartition(db, addSubpartitionDesc);
+      }
+//      AddPartitionDesc addPartitionDesc
+      DropSubpartitionDesc dropSubpartitionDesc = work.getDropSubpartitionDesc();
+      if (null != dropSubpartitionDesc) {
+        return dropSubpartition(db, dropSubpartitionDesc);
+      }
+      DropPartitionDesc dropPartitionDesc = work.getDropPartitionDesc();
+      if (null != dropPartitionDesc) {
+        return dropPartition(db, dropPartitionDesc);
+      }
+      /**********************added by zjw******************************/
+
 
       CreateDatabaseDesc createDatabaseDesc = work.getCreateDatabaseDesc();
       if (null != createDatabaseDesc) {
@@ -444,6 +556,122 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     assert false;
     return 0;
   }
+
+  /////start of zjw need to implement
+
+  private int dropPartition(Hive db, DropPartitionDesc dropPartitionDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int dropSubpartition(Hive db, DropSubpartitionDesc dropSubpartitionDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int addSubpartition(Hive db, AddSubpartitionDesc addSubpartitionDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifyPartitionAddFile(Hive db, ModifyPartitionAddFileDesc modifyPartitionAddFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifyPartitionDropFile(Hive db,
+      ModifyPartitionDropFileDesc modifyPartitionDropFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifySubpartitionAddFile(Hive db,
+      ModifySubpartitionAddFileDesc modifySubpartitionAddFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifySubpartitionDropFile(Hive db,
+      ModifySubpartitionDropFileDesc modifySubpartitionDropFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int dropPartIndex(Hive db, DropPartIndexDesc dropPartIndexDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int dropSubpartIndex(Hive db, DropSubpartIndexDesc dropSubpartIndexDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int addPartIndex(Hive db, AddPartIndexDesc addPartIndexDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int addSubpartIndex(Hive db, AddSubpartIndexDesc addSubpartIndexDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifyPartIndexAddFile(Hive db, ModifyPartIndexAddFileDesc modifyPartIndexAddFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifySubpartIndexAddFile(Hive db,
+      ModifySubpartIndexAddFileDesc modifySubpartIndexAddFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifyPartIndexDropFile(Hive db,
+      ModifyPartIndexDropFileDesc modifyPartIndexDropFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifySubpartIndexDropFile(Hive db,
+      ModifySubpartIndexDropFileDesc modifySubpartIndexDropFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int addNode(Hive db, AddNodeDesc addNodeDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int dropNode(Hive db, DropNodeDesc dropNodeDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifyNode(Hive db, ModifyNodeDesc modifyNodeDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int dropDatacenter(Hive db, DropDatacenterDesc dropDatacenterDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int switchDatacenter(Hive db, SwitchDatacenterDesc switchDatacenterDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int createDatacenter(Hive db, CreateDatacenterDesc createDatacenterDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+
+  /////end of zjw need to implement
 
   /**
    * First, make sure the source table/partition is not
@@ -3941,4 +4169,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   protected void localizeMRTmpFilesImpl(Context ctx) {
     // no-op
   }
+
+
+
 }

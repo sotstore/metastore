@@ -87,6 +87,27 @@ public class DDLWork implements Serializable {
   private SwitchDatacenterDesc switchDatacenterDesc;
   private DropDatacenterDesc dropDatacenterDesc;
 
+  private ModifyNodeDesc modifyNodeDesc;
+  private DropNodeDesc dropNodeDesc;
+  private AddNodeDesc addNodeDesc;
+
+  private ModifySubpartIndexDropFileDesc modifySubpartIndexDropFileDesc;
+  private ModifyPartIndexDropFileDesc modifyPartIndexDropFileDesc;
+  private ModifySubpartIndexAddFileDesc modifySubpartIndexAddFileDesc;
+  private ModifyPartIndexAddFileDesc modifyPartIndexAddFileDesc;
+  private AddSubpartIndexDesc addSubpartIndexsDesc;
+  private AddPartIndexDesc addPartIndexsDesc;
+  private DropSubpartIndexDesc dropSubpartIndexsDesc;
+  private DropPartIndexDesc  dropPartIndexsDesc;
+  private ModifySubpartitionDropFileDesc modifySubpartitionDropFileDesc;
+  private ModifySubpartitionAddFileDesc modifySubpartitionAddFileDesc;
+  private ModifyPartitionDropFileDesc modifyPartitionDropFileDesc;
+  private ModifyPartitionAddFileDesc modifyPartitionAddFileDesc;
+  private AddSubpartitionDesc addSubpartitionDesc;
+//  private AddPartitionDesc addPartitionDesc;
+  private DropSubpartitionDesc dropSubpartitionDesc;
+  private DropPartitionDesc dropPartitionDesc;
+
 
 
   public DDLWork() {
@@ -459,6 +480,114 @@ public class DDLWork implements Serializable {
       DropDatacenterDesc dropDatacenterDesc) {
     this(inputs, outputs);
     this.dropDatacenterDesc = dropDatacenterDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DropNodeDesc dropNodeDesc) {
+    this(inputs, outputs);
+    this.dropNodeDesc = dropNodeDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ModifyNodeDesc modifyNodeDesc) {
+    this(inputs, outputs);
+    this.modifyNodeDesc = modifyNodeDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      AddNodeDesc addNodeDesc) {
+    this(inputs, outputs);
+    this.addNodeDesc = addNodeDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      AddSubpartitionDesc addSubpartitionDesc) {
+    this(inputs, outputs);
+    this.addSubpartitionDesc = addSubpartitionDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ModifyPartitionAddFileDesc modifyPartitionAddFileDesc) {
+    this(inputs, outputs);
+    this.modifyPartitionAddFileDesc = modifyPartitionAddFileDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DropPartitionDesc dropPartitionDesc) {
+    this(inputs, outputs);
+    this.dropPartitionDesc = dropPartitionDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DropSubpartitionDesc dropSubpartitionDesc) {
+    this(inputs, outputs);
+    this.dropSubpartitionDesc = dropSubpartitionDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ModifySubpartitionDropFileDesc modifySubpartitionDropFileDesc) {
+    this(inputs, outputs);
+    this.modifySubpartitionDropFileDesc = modifySubpartitionDropFileDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ModifySubpartitionAddFileDesc modifySubpartitionAddFileDesc) {
+    this(inputs, outputs);
+    this.modifySubpartitionAddFileDesc = modifySubpartitionAddFileDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ModifyPartitionDropFileDesc modifyPartitionDropFileDesc) {
+    this(inputs, outputs);
+    this.modifyPartitionDropFileDesc = modifyPartitionDropFileDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DropPartIndexDesc dropPartIndexsDesc) {
+    this(inputs, outputs);
+    this.dropPartIndexsDesc = dropPartIndexsDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DropSubpartIndexDesc dropSubpartIndexsDesc) {
+    this(inputs, outputs);
+    this.dropSubpartIndexsDesc = dropSubpartIndexsDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      AddPartIndexDesc addPartIndexsDesc) {
+    this(inputs, outputs);
+    this.addPartIndexsDesc = addPartIndexsDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      AddSubpartIndexDesc addSubpartIndexsDesc) {
+    this(inputs, outputs);
+    this.addSubpartIndexsDesc = addSubpartIndexsDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ModifyPartIndexAddFileDesc modifyPartIndexAddFileDesc) {
+    this(inputs, outputs);
+    this.modifyPartIndexAddFileDesc = modifyPartIndexAddFileDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ModifySubpartIndexAddFileDesc modifySubpartIndexAddFileDesc) {
+    this(inputs, outputs);
+    this.modifySubpartIndexAddFileDesc = modifySubpartIndexAddFileDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ModifyPartIndexDropFileDesc modifyPartIndexDropFileDesc) {
+    this(inputs, outputs);
+    this.modifyPartIndexDropFileDesc = modifyPartIndexDropFileDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ModifySubpartIndexDropFileDesc modifySubpartIndexDropFileDesc) {
+    this(inputs, outputs);
+    this.modifySubpartIndexDropFileDesc = modifySubpartIndexDropFileDesc;
   }
 
   /**
@@ -1037,6 +1166,156 @@ public class DDLWork implements Serializable {
   public void setDropDatacenterDesc(DropDatacenterDesc dropDatacenterDesc) {
     this.dropDatacenterDesc = dropDatacenterDesc;
   }
+
+  public ModifyNodeDesc getModifyNodeDesc() {
+    return modifyNodeDesc;
+  }
+
+  public void setModifyNodeDesc(ModifyNodeDesc modifyNodeDesc) {
+    this.modifyNodeDesc = modifyNodeDesc;
+  }
+
+  public DropNodeDesc getDropNodeDesc() {
+    return dropNodeDesc;
+  }
+
+  public void setDropNodeDesc(DropNodeDesc dropNodeDesc) {
+    this.dropNodeDesc = dropNodeDesc;
+  }
+
+  public AddNodeDesc getAddNodeDesc() {
+    return addNodeDesc;
+  }
+
+  public void setAddNodeDesc(AddNodeDesc addNodeDesc) {
+    this.addNodeDesc = addNodeDesc;
+  }
+
+  public ModifySubpartIndexDropFileDesc getModifySubpartIndexDropFileDesc() {
+    return modifySubpartIndexDropFileDesc;
+  }
+
+  public void setModifySubpartIndexDropFileDesc(
+      ModifySubpartIndexDropFileDesc modifySubpartIndexDropFileDesc) {
+    this.modifySubpartIndexDropFileDesc = modifySubpartIndexDropFileDesc;
+  }
+
+  public ModifyPartIndexDropFileDesc getModifyPartIndexDropFileDesc() {
+    return modifyPartIndexDropFileDesc;
+  }
+
+  public void setModifyPartIndexDropFileDesc(ModifyPartIndexDropFileDesc modifyPartIndexDropFileDesc) {
+    this.modifyPartIndexDropFileDesc = modifyPartIndexDropFileDesc;
+  }
+
+  public ModifySubpartIndexAddFileDesc getModifySubpartIndexAddFileDesc() {
+    return modifySubpartIndexAddFileDesc;
+  }
+
+  public void setModifySubpartIndexAddFileDesc(
+      ModifySubpartIndexAddFileDesc modifySubpartIndexAddFileDesc) {
+    this.modifySubpartIndexAddFileDesc = modifySubpartIndexAddFileDesc;
+  }
+
+  public ModifyPartIndexAddFileDesc getModifyPartIndexAddFileDesc() {
+    return modifyPartIndexAddFileDesc;
+  }
+
+  public void setModifyPartIndexAddFileDesc(ModifyPartIndexAddFileDesc modifyPartIndexAddFileDesc) {
+    this.modifyPartIndexAddFileDesc = modifyPartIndexAddFileDesc;
+  }
+
+  public AddSubpartIndexDesc getAddSubpartIndexsDesc() {
+    return addSubpartIndexsDesc;
+  }
+
+  public void setAddSubpartIndexsDesc(AddSubpartIndexDesc addSubpartIndexsDesc) {
+    this.addSubpartIndexsDesc = addSubpartIndexsDesc;
+  }
+
+  public AddPartIndexDesc getAddPartIndexsDesc() {
+    return addPartIndexsDesc;
+  }
+
+  public void setAddPartIndexsDesc(AddPartIndexDesc addPartIndexsDesc) {
+    this.addPartIndexsDesc = addPartIndexsDesc;
+  }
+
+  public DropSubpartIndexDesc getDropSubpartIndexsDesc() {
+    return dropSubpartIndexsDesc;
+  }
+
+  public void setDropSubpartIndexsDesc(DropSubpartIndexDesc dropSubpartIndexsDesc) {
+    this.dropSubpartIndexsDesc = dropSubpartIndexsDesc;
+  }
+
+  public DropPartIndexDesc getDropPartIndexsDesc() {
+    return dropPartIndexsDesc;
+  }
+
+  public void setDropPartIndexsDesc(DropPartIndexDesc dropPartIndexsDesc) {
+    this.dropPartIndexsDesc = dropPartIndexsDesc;
+  }
+
+  public ModifySubpartitionDropFileDesc getModifySubpartitionDropFileDesc() {
+    return modifySubpartitionDropFileDesc;
+  }
+
+  public void setModifySubpartitionDropFileDesc(
+      ModifySubpartitionDropFileDesc modifySubpartitionDropFileDesc) {
+    this.modifySubpartitionDropFileDesc = modifySubpartitionDropFileDesc;
+  }
+
+  public ModifySubpartitionAddFileDesc getModifySubpartitionAddFileDesc() {
+    return modifySubpartitionAddFileDesc;
+  }
+
+  public void setModifySubpartitionAddFileDesc(
+      ModifySubpartitionAddFileDesc modifySubpartitionAddFileDesc) {
+    this.modifySubpartitionAddFileDesc = modifySubpartitionAddFileDesc;
+  }
+
+  public ModifyPartitionDropFileDesc getModifyPartitionDropFileDesc() {
+    return modifyPartitionDropFileDesc;
+  }
+
+  public void setModifyPartitionDropFileDesc(ModifyPartitionDropFileDesc modifyPartitionDropFileDesc) {
+    this.modifyPartitionDropFileDesc = modifyPartitionDropFileDesc;
+  }
+
+  public ModifyPartitionAddFileDesc getModifyPartitionAddFileDesc() {
+    return modifyPartitionAddFileDesc;
+  }
+
+  public void setModifyPartitionAddFileDesc(ModifyPartitionAddFileDesc modifyPartitionAddFileDesc) {
+    this.modifyPartitionAddFileDesc = modifyPartitionAddFileDesc;
+  }
+
+  public AddSubpartitionDesc getAddSubpartitionDesc() {
+    return addSubpartitionDesc;
+  }
+
+  public void setAddSubpartitionDesc(AddSubpartitionDesc addSubpartitionDesc) {
+    this.addSubpartitionDesc = addSubpartitionDesc;
+  }
+
+  public DropSubpartitionDesc getDropSubpartitionDesc() {
+    return dropSubpartitionDesc;
+  }
+
+  public void setDropSubpartitionDesc(DropSubpartitionDesc dropSubpartitionDesc) {
+    this.dropSubpartitionDesc = dropSubpartitionDesc;
+  }
+
+  public DropPartitionDesc getDropPartitionDesc() {
+    return dropPartitionDesc;
+  }
+
+  public void setDropPartitionDesc(DropPartitionDesc dropPartitionDesc) {
+    this.dropPartitionDesc = dropPartitionDesc;
+  }
+
+
 
 
 

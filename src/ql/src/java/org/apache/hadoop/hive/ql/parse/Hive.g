@@ -779,13 +779,34 @@ alterIndexStatementSuffix
       KW_SET KW_IDXPROPERTIES
       indexProperties
       ->^(TOK_ALTERINDEX_PROPERTIES $tableNameId $indexName indexProperties)
-    )
+      
+    | KW_DROP KW_PARTITION partition_name=partitionName  
+    -> ^(TOK_ALTERINDEX_DROP_PARTINDEXS $tableNameId $partition_name )
+    |KW_DROP KW_SUBPARTITION partition_name=partitionName 
+    -> ^(TOK_ALTERINDEX_DROP_SUBPARTINDEXS $tableNameId $partition_name )
+    | KW_ADD KW_PARTITION partition_name=partitionName 
+    -> ^(TOK_ALTERINDEX_ADD_PARTINDEXS $tableNameId $partition_name )
+    |KW_ADD KW_SUBPARTITION partition_name=partitionName   
+    -> ^(TOK_ALTERINDEX_ADD_SUBPARTINDEXS $tableNameId $partition_name)
+    | KW_ADD KW_PARTITION KW_ADD partition_name=partitionName  KW_ADD KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERINDEX_MODIFY_PARTITION_ADD_FILE $tableNameId $partition_name $file_id)
+    |KW_MODIFY KW_SUBPARTITION partition_name=partitionName  KW_ADD KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERINDEX_MODIFY_SUBPARTITION_ADD_FILE $tableNameId $partition_name $file_id)
+    | KW_ON KW_PARTITION partition_name=partitionName  KW_DROP KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERINDEX_MODIFY_PARTINDEX_DROP_FILE $tableNameId $partition_name $file_id)
+    |KW_ON KW_SUBPARTITION partition_name=partitionName KW_DROP KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERINDEX_MODIFY_SUBPARTINDEX_DROP_FILE $tableNameId $partition_name $file_id)
+      
+    /*
     | alterStatementSuffixDropPartitionIndexs
     | alterStatementSuffixAddPartitionIndexs
     | alterStatementSuffixModiFyPartitionIndexDropFiles
-    | alterStatementSuffixModiFyPartitionIndexADDFiles
+    | alterStatementSuffixModiFyPartitionIndexADDFiles  
+    */
+    )
+    
     ;
-
+/*
  alterStatementSuffixDropPartitionIndexs
  @init { msgs.push("drop partition index statement"); }
  @after { msgs.pop(); }
@@ -821,7 +842,7 @@ alterIndexStatementSuffix
     |KW_ON KW_SUBPARTITION partition_name=partitionName KW_DROP KW_FILE file_id=Identifier
     -> ^(TOK_ALTERINDEX_MODIFY_SUBPARTINDEX_DROP_FILE $partition_name $file_id)
      ;
-
+*/
 
 alterDatabaseStatementSuffix
 @init { msgs.push("alter database statement"); }
@@ -865,33 +886,57 @@ alterStatementChangeColPosition
     ;
 
 //add 2-level  partition operations
+
+
+alterStatementSuffixDropPartitions
+@init { msgs.push("drop partition statement"); }
+@after { msgs.pop(); }
+    : Identifier KW_DROP ifExists? dropPartitionSpec (COMMA dropPartitionSpec)*
+    -> ^(TOK_ALTERTABLE_DROPPARTS Identifier dropPartitionSpec+ ifExists?)
+    | Identifier KW_DROP KW_PARTITION partition_name=partitionName  
+    -> ^(TOK_ALTERTABLE_DROP_PARTITION  Identifier $partition_name )
+    | Identifier KW_DROP KW_SUBPARTITION partition_name=partitionName 
+    -> ^(TOK_ALTERTABLE_DROP_SUBPARTITION  Identifier $partition_name )
+    ;
+    
 alterStatementSuffixAddPartitions
 @init { msgs.push("add partition statement"); }
 @after { msgs.pop(); }
-    : Identifier KW_ADD ifNotExists? partitionSpec partitionLocation? (partitionSpec partitionLocation?)*
+    :
+    /*
+     Identifier KW_ADD ifNotExists? partitionSpec partitionLocation? (partitionSpec partitionLocation?)*
     -> ^(TOK_ALTERTABLE_ADDPARTS Identifier ifNotExists? (partitionSpec partitionLocation?)+)
-    |KW_ADD KW_PARTITION partition_name=partitionName  partitionValuesExper  subPartitionTemplate?
-    -> ^(TOK_ALTERTABLE_ADD_PARTITION $partition_name partitionValuesExper subPartitionTemplate?)
-    |KW_ADD KW_SUBPARTITION partition_name=partitionName  partitionValuesExper 
-    -> ^(TOK_ALTERTABLE_ADD_SUBPARTITION $partition_name partitionValuesExper)
+    |
+    */
+    /*
+    | Identifier KW_ADD KW_PARTITION partition_name=partitionName  partitionValuesExper  subPartitionTemplate?
+    -> ^(TOK_ALTERTABLE_ADD_PARTITION Identifier $partition_name partitionValuesExper subPartitionTemplate?)
+    | Identifier KW_ADD KW_SUBPARTITION partition_name=partitionName  partitionValuesExper 
+    -> ^(TOK_ALTERTABLE_ADD_SUBPARTITION Identifier $partition_name partitionValuesExper)
+    */
+    
+     Identifier KW_ADD KW_PARTITION partitionTemplate 
+    -> ^(TOK_ALTERTABLE_ADD_PARTITION Identifier  partitionTemplate )
+    | Identifier KW_ADD KW_SUBPARTITION subPartitionTemplate   
+    -> ^(TOK_ALTERTABLE_ADD_SUBPARTITION Identifier subPartitionTemplate )
     ;
     
  alterStatementSuffixModiFyPartitionDropFiles
  @init { msgs.push("add partition file statement"); }
 @after { msgs.pop(); }
-    :KW_ADD KW_PARTITION KW_ADD partition_name=partitionName  KW_ADD KW_FILE file_id=Identifier
-    -> ^(TOK_ALTERTABLE_MODIFY_PARTITION_ADD_FILE $partition_name $file_id)
-    |KW_MODIFY KW_SUBPARTITION partition_name=partitionName  KW_ADD KW_FILE file_id=Identifier
-    -> ^(TOK_ALTERTABLE_MODIFY_SUBPARTITION_ADD_FILE $partition_name $file_id)
+    : Identifier KW_ADD KW_PARTITION KW_ADD partition_name=partitionName  KW_ADD KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERTABLE_MODIFY_PARTITION_ADD_FILE  Identifier $partition_name $file_id)
+    | Identifier KW_MODIFY KW_SUBPARTITION partition_name=partitionName  KW_ADD KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERTABLE_MODIFY_SUBPARTITION_ADD_FILE  Identifier $partition_name $file_id)
     ;
     
  alterStatementSuffixModiFyPartitionADDFiles
   @init { msgs.push("drop partition file statement"); }
   @after { msgs.pop(); }
-   : KW_MODIFY KW_PARTITION partition_name=partitionName  KW_DROP KW_FILE file_id=Identifier
-    -> ^(TOK_ALTERTABLE_MODIFY_PARTITION_DROP_FILE $partition_name $file_id)
-    |KW_MODIFY KW_SUBPARTITION partition_name=partitionName KW_DROP KW_FILE file_id=Identifier
-    -> ^(TOK_ALTERTABLE_MODIFY_SUBPARTITION_DROP_FILE $partition_name $file_id)
+   :  Identifier KW_MODIFY KW_PARTITION partition_name=partitionName  KW_DROP KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERTABLE_MODIFY_PARTITION_DROP_FILE  Identifier $partition_name $file_id)
+    | Identifier KW_MODIFY KW_SUBPARTITION partition_name=partitionName KW_DROP KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERTABLE_MODIFY_SUBPARTITION_DROP_FILE  Identifier $partition_name $file_id)
      ;
 	
 alterStatementSuffixTouch
@@ -922,16 +967,6 @@ partitionLocation
       KW_LOCATION locn=StringLiteral -> ^(TOK_PARTITIONLOCATION $locn)
     ;
 
-alterStatementSuffixDropPartitions
-@init { msgs.push("drop partition statement"); }
-@after { msgs.pop(); }
-    : Identifier KW_DROP ifExists? dropPartitionSpec (COMMA dropPartitionSpec)*
-    -> ^(TOK_ALTERTABLE_DROPPARTS Identifier dropPartitionSpec+ ifExists?)
-    |KW_DROP KW_PARTITION partition_name=partitionName  
-    -> ^(TOK_ALTERTABLE_DROP_PARTITION $partition_name )
-    |KW_DROP KW_SUBPARTITION partition_name=partitionName 
-    -> ^(TOK_ALTERTABLE_DROP_SUBPARTITION $partition_name )
-    ;
 
 alterStatementSuffixProperties
 @init { msgs.push("alter properties statement"); }

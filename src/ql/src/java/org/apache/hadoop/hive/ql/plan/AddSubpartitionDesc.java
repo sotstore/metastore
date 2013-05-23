@@ -26,15 +26,15 @@ import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Order;
 
 /**
- * Contains the information needed to add a partition.
+ * Contains the information needed to add a subpartition.
  */
-public class AddPartitionDesc extends DDLDesc implements Serializable {
+public class AddSubpartitionDesc extends DDLDesc implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   String tableName;
   String dbName;
-  String partitionName;
+  String subpartitionName;
   String location;
   boolean ifNotExists;
   boolean expectView;
@@ -52,7 +52,7 @@ public class AddPartitionDesc extends DDLDesc implements Serializable {
   /**
    * For serialization only.
    */
-  public AddPartitionDesc() {
+  public AddSubpartitionDesc() {
   }
 
   /**
@@ -67,14 +67,9 @@ public class AddPartitionDesc extends DDLDesc implements Serializable {
    * @param params
    *          partition parameters.
    */
-  public AddPartitionDesc(String dbName, String tableName,
+  public AddSubpartitionDesc(String dbName, String tableName, String subpartitionName,
       Map<String, String> partSpec, String location, Map<String, String> params) {
-    this(dbName, tableName,"", partSpec, location, true, false);
-    this.partParams = params;
-  }
-  public AddPartitionDesc(String dbName, String tableName, String partitionName,
-      Map<String, String> partSpec, String location, Map<String, String> params) {
-    this(dbName, tableName, partitionName, partSpec, location, true, false);
+    this(dbName, tableName, subpartitionName, partSpec, location, true, false);
     this.partParams = params;
   }
 
@@ -92,23 +87,17 @@ public class AddPartitionDesc extends DDLDesc implements Serializable {
    * @param expectView
    *          true for ALTER VIEW, false for ALTER TABLE
    */
-  public AddPartitionDesc(String dbName, String tableName, String partitionName,
+  public AddSubpartitionDesc(String dbName, String tableName, String subpartitionName,
       Map<String, String> partSpec, String location, boolean ifNotExists,
       boolean expectView) {
     super();
     this.dbName = dbName;
     this.tableName = tableName;
-    this.partitionName  = partitionName;
+    this.subpartitionName  = subpartitionName;
     this.partSpec = new LinkedHashMap<String,String>(partSpec);
     this.location = location;
     this.ifNotExists = ifNotExists;
     this.expectView = expectView;
-  }
-
-  public AddPartitionDesc(String dbName, String tableName,
-      Map<String, String> partSpec, String location, boolean ifNotExists,
-      boolean expectView) {
-    this(dbName, tableName, "", partSpec, location, true, false);
   }
 
   /**

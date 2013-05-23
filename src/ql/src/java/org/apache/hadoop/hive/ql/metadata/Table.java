@@ -48,6 +48,7 @@ import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.ql.io.HiveFileFormatUtils;
 import org.apache.hadoop.hive.ql.io.HiveOutputFormat;
 import org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat;
+import org.apache.hadoop.hive.ql.parse.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.Deserializer;
 import org.apache.hadoop.hive.serde2.MetadataTypedColumnsetSerDe;
@@ -937,5 +938,15 @@ public class Table implements Serializable {
   public List<Index> getAllIndexes(short max) throws HiveException {
     Hive hive = Hive.get();
     return hive.getIndexes(getTTable().getDbName(), getTTable().getTableName(), max);
+  }
+
+  public List<PartitionInfo> getPartitionInfo(){
+    List<PartitionInfo> pis = new ArrayList<PartitionInfo>();
+    int i = 0;
+    for(FieldSchema fs : this.getPartitionKeys()){
+      PartitionInfo pi = PartitionInfo.fromJson(fs.getComment());
+      pis.add(pi);
+    }
+    return pis;
   }
 };
