@@ -153,6 +153,37 @@ module ThriftHive
       return
     end
 
+    def doAuth(user, password)
+      send_doAuth(user, password)
+      return recv_doAuth()
+    end
+
+    def send_doAuth(user, password)
+      send_message('doAuth', DoAuth_args, :user => user, :password => password)
+    end
+
+    def recv_doAuth()
+      result = receive_message(DoAuth_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'doAuth failed: unknown result')
+    end
+
+    def execute2(query, user, token)
+      send_execute2(query, user, token)
+      recv_execute2()
+    end
+
+    def send_execute2(query, user, token)
+      send_message('execute2', Execute2_args, :query => query, :user => user, :token => token)
+    end
+
+    def recv_execute2()
+      result = receive_message(Execute2_result)
+      raise result.ex unless result.ex.nil?
+      return
+    end
+
   end
 
   class Processor < ::ThriftHiveMetastore::Processor 
@@ -251,6 +282,28 @@ module ThriftHive
       result = Clean_result.new()
       @handler.clean()
       write_result(result, oprot, 'clean', seqid)
+    end
+
+    def process_doAuth(seqid, iprot, oprot)
+      args = read_args(iprot, DoAuth_args)
+      result = DoAuth_result.new()
+      begin
+        result.success = @handler.doAuth(args.user, args.password)
+      rescue ::HiveServerException => ex
+        result.ex = ex
+      end
+      write_result(result, oprot, 'doAuth', seqid)
+    end
+
+    def process_execute2(seqid, iprot, oprot)
+      args = read_args(iprot, Execute2_args)
+      result = Execute2_result.new()
+      begin
+        @handler.execute2(args.query, args.user, args.token)
+      rescue ::HiveServerException => ex
+        result.ex = ex
+      end
+      write_result(result, oprot, 'execute2', seqid)
     end
 
   end
@@ -541,6 +594,78 @@ module ThriftHive
 
     FIELDS = {
 
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DoAuth_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    USER = 1
+    PASSWORD = 2
+
+    FIELDS = {
+      USER => {:type => ::Thrift::Types::STRING, :name => 'user'},
+      PASSWORD => {:type => ::Thrift::Types::STRING, :name => 'password'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DoAuth_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::HiveServerException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Execute2_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    QUERY = 1
+    USER = 2
+    TOKEN = 3
+
+    FIELDS = {
+      QUERY => {:type => ::Thrift::Types::STRING, :name => 'query'},
+      USER => {:type => ::Thrift::Types::STRING, :name => 'user'},
+      TOKEN => {:type => ::Thrift::Types::I32, :name => 'token'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Execute2_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    EX = 1
+
+    FIELDS = {
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::HiveServerException}
     }
 
     def struct_fields; FIELDS; end

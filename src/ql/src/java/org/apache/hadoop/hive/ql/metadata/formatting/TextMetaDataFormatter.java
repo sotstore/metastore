@@ -19,13 +19,14 @@
 package org.apache.hadoop.hive.ql.metadata.formatting;
 
 import java.io.DataOutputStream;
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileStatus;
@@ -117,6 +118,24 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
         } catch (IOException e) {
            throw new HiveException(e);
         }
+    }
+
+    //added by liulichao
+    @Override
+    public void showUserNames(DataOutputStream out, Set<String> users) throws HiveException {
+      // TODO Auto-generated method stub
+      Iterator<String> iterUsers = users.iterator();
+
+      try {
+          while (iterUsers.hasNext()) {
+              // create a row per table name
+              out.writeBytes(iterUsers.next());
+              out.write(terminator);
+              LOG.info("iterUsers");
+          }
+      } catch (IOException e) {
+         throw new HiveException(e);
+      }
     }
 
     public void describeTable(DataOutputStream outStream,
@@ -441,11 +460,13 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
         try {
             outStream.writeBytes(database);
             outStream.write(separator);
-            if (comment != null)
-                outStream.writeBytes(comment);
+            if (comment != null) {
+              outStream.writeBytes(comment);
+            }
             outStream.write(separator);
-            if (location != null)
-                outStream.writeBytes(location);
+            if (location != null) {
+              outStream.writeBytes(location);
+            }
             outStream.write(separator);
             if (params != null && !params.isEmpty()) {
                 outStream.writeBytes(params.toString());

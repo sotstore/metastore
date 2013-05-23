@@ -32,12 +32,12 @@ import java.util.Map;
 import java.util.Set;
 
 import jline.ArgumentCompletor;
+import jline.ArgumentCompletor.AbstractArgumentDelimiter;
+import jline.ArgumentCompletor.ArgumentDelimiter;
 import jline.Completor;
 import jline.ConsoleReader;
 import jline.History;
 import jline.SimpleCompletor;
-import jline.ArgumentCompletor.AbstractArgumentDelimiter;
-import jline.ArgumentCompletor.ArgumentDelimiter;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -88,10 +88,17 @@ public class CliDriver {
   private Configuration conf;
 
   public CliDriver() {
-    SessionState ss = SessionState.get();
-    conf = (ss != null) ? ss.getConf() : new Configuration();
     Log LOG = LogFactory.getLog("CliDriver");
     console = new LogHelper(LOG);
+
+    SessionState ss = SessionState.get();
+    conf = (ss != null) ? ss.getConf() : new Configuration();
+
+    //added by liulichao, default user in cli. just for test...
+    ss.setUser(conf.get(HiveConf.ConfVars.HIVE_USER.varname, "root"));
+    console.printInfo("ss.getuser: " +ss.getUser());//hiveconf.
+
+    console.printInfo("localname is: " +ss.getAuthenticator().getUserName());
   }
 
   public int processCmd(String cmd) {

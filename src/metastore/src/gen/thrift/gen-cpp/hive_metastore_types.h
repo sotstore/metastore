@@ -625,6 +625,73 @@ class Role {
 
 void swap(Role &a, Role &b);
 
+typedef struct _User__isset {
+  _User__isset() : userName(false), password(false), createTime(false), ownerName(false) {}
+  bool userName;
+  bool password;
+  bool createTime;
+  bool ownerName;
+} _User__isset;
+
+class User {
+ public:
+
+  static const char* ascii_fingerprint; // = "67CA7CC4061D5EB7B29D9595C88340E6";
+  static const uint8_t binary_fingerprint[16]; // = {0x67,0xCA,0x7C,0xC4,0x06,0x1D,0x5E,0xB7,0xB2,0x9D,0x95,0x95,0xC8,0x83,0x40,0xE6};
+
+  User() : userName(), password(), createTime(0), ownerName() {
+  }
+
+  virtual ~User() throw() {}
+
+  std::string userName;
+  std::string password;
+  int64_t createTime;
+  std::string ownerName;
+
+  _User__isset __isset;
+
+  void __set_userName(const std::string& val) {
+    userName = val;
+  }
+
+  void __set_password(const std::string& val) {
+    password = val;
+  }
+
+  void __set_createTime(const int64_t val) {
+    createTime = val;
+  }
+
+  void __set_ownerName(const std::string& val) {
+    ownerName = val;
+  }
+
+  bool operator == (const User & rhs) const
+  {
+    if (!(userName == rhs.userName))
+      return false;
+    if (!(password == rhs.password))
+      return false;
+    if (!(createTime == rhs.createTime))
+      return false;
+    if (!(ownerName == rhs.ownerName))
+      return false;
+    return true;
+  }
+  bool operator != (const User &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const User & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(User &a, User &b);
+
 typedef struct _Database__isset {
   _Database__isset() : name(false), description(false), locationUri(false), parameters(false), privileges(false) {}
   bool name;

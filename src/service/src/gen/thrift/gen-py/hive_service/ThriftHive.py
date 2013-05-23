@@ -54,6 +54,23 @@ class Iface(hive_metastore.ThriftHiveMetastore.Iface):
   def clean(self, ):
     pass
 
+  def doAuth(self, user, password):
+    """
+    Parameters:
+     - user
+     - password
+    """
+    pass
+
+  def execute2(self, query, user, token):
+    """
+    Parameters:
+     - query
+     - user
+     - token
+    """
+    pass
+
 
 class Client(hive_metastore.ThriftHiveMetastore.Client, Iface):
   def __init__(self, iprot, oprot=None):
@@ -306,6 +323,74 @@ class Client(hive_metastore.ThriftHiveMetastore.Client, Iface):
     self._iprot.readMessageEnd()
     return
 
+  def doAuth(self, user, password):
+    """
+    Parameters:
+     - user
+     - password
+    """
+    self.send_doAuth(user, password)
+    return self.recv_doAuth()
+
+  def send_doAuth(self, user, password):
+    self._oprot.writeMessageBegin('doAuth', TMessageType.CALL, self._seqid)
+    args = doAuth_args()
+    args.user = user
+    args.password = password
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_doAuth(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = doAuth_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "doAuth failed: unknown result");
+
+  def execute2(self, query, user, token):
+    """
+    Parameters:
+     - query
+     - user
+     - token
+    """
+    self.send_execute2(query, user, token)
+    self.recv_execute2()
+
+  def send_execute2(self, query, user, token):
+    self._oprot.writeMessageBegin('execute2', TMessageType.CALL, self._seqid)
+    args = execute2_args()
+    args.query = query
+    args.user = user
+    args.token = token
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_execute2(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = execute2_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.ex is not None:
+      raise result.ex
+    return
+
 
 class Processor(hive_metastore.ThriftHiveMetastore.Processor, Iface, TProcessor):
   def __init__(self, handler):
@@ -319,6 +404,8 @@ class Processor(hive_metastore.ThriftHiveMetastore.Processor, Iface, TProcessor)
     self._processMap["getClusterStatus"] = Processor.process_getClusterStatus
     self._processMap["getQueryPlan"] = Processor.process_getQueryPlan
     self._processMap["clean"] = Processor.process_clean
+    self._processMap["doAuth"] = Processor.process_doAuth
+    self._processMap["execute2"] = Processor.process_execute2
 
   def process(self, iprot, oprot):
     (name, type, seqid) = iprot.readMessageBegin()
@@ -454,6 +541,34 @@ class Processor(hive_metastore.ThriftHiveMetastore.Processor, Iface, TProcessor)
     result = clean_result()
     self._handler.clean()
     oprot.writeMessageBegin("clean", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_doAuth(self, seqid, iprot, oprot):
+    args = doAuth_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = doAuth_result()
+    try:
+      result.success = self._handler.doAuth(args.user, args.password)
+    except HiveServerException as ex:
+      result.ex = ex
+    oprot.writeMessageBegin("doAuth", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_execute2(self, seqid, iprot, oprot):
+    args = execute2_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = execute2_result()
+    try:
+      self._handler.execute2(args.query, args.user, args.token)
+    except HiveServerException as ex:
+      result.ex = ex
+    oprot.writeMessageBegin("execute2", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -1484,6 +1599,295 @@ class clean_result:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
     oprot.writeStructBegin('clean_result')
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class doAuth_args:
+  """
+  Attributes:
+   - user
+   - password
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'user', None, None, ), # 1
+    (2, TType.STRING, 'password', None, None, ), # 2
+  )
+
+  def __init__(self, user=None, password=None,):
+    self.user = user
+    self.password = password
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.user = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.password = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('doAuth_args')
+    if self.user is not None:
+      oprot.writeFieldBegin('user', TType.STRING, 1)
+      oprot.writeString(self.user)
+      oprot.writeFieldEnd()
+    if self.password is not None:
+      oprot.writeFieldBegin('password', TType.STRING, 2)
+      oprot.writeString(self.password)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class doAuth_result:
+  """
+  Attributes:
+   - success
+   - ex
+  """
+
+  thrift_spec = (
+    (0, TType.I32, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'ex', (HiveServerException, HiveServerException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, ex=None,):
+    self.success = success
+    self.ex = ex
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.I32:
+          self.success = iprot.readI32();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = HiveServerException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('doAuth_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.I32, 0)
+      oprot.writeI32(self.success)
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class execute2_args:
+  """
+  Attributes:
+   - query
+   - user
+   - token
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'query', None, None, ), # 1
+    (2, TType.STRING, 'user', None, None, ), # 2
+    (3, TType.I32, 'token', None, None, ), # 3
+  )
+
+  def __init__(self, query=None, user=None, token=None,):
+    self.query = query
+    self.user = user
+    self.token = token
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.query = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.user = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.I32:
+          self.token = iprot.readI32();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('execute2_args')
+    if self.query is not None:
+      oprot.writeFieldBegin('query', TType.STRING, 1)
+      oprot.writeString(self.query)
+      oprot.writeFieldEnd()
+    if self.user is not None:
+      oprot.writeFieldBegin('user', TType.STRING, 2)
+      oprot.writeString(self.user)
+      oprot.writeFieldEnd()
+    if self.token is not None:
+      oprot.writeFieldBegin('token', TType.I32, 3)
+      oprot.writeI32(self.token)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class execute2_result:
+  """
+  Attributes:
+   - ex
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRUCT, 'ex', (HiveServerException, HiveServerException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, ex=None,):
+    self.ex = ex
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = HiveServerException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('execute2_result')
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 

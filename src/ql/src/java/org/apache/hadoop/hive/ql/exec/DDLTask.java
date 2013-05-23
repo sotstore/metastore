@@ -149,8 +149,10 @@ import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
 import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
+import org.apache.hadoop.hive.ql.plan.UserDDLDesc;
 import org.apache.hadoop.hive.ql.plan.api.StageType;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
+import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.Deserializer;
 import org.apache.hadoop.hive.serde2.MetadataTypedColumnsetSerDe;
@@ -382,6 +384,12 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       RoleDDLDesc roleDDLDesc = work.getRoleDDLDesc();
       if (roleDDLDesc != null) {
         return roleDDL(roleDDLDesc);
+      }
+
+      //added by liulichao
+      UserDDLDesc userDDLDesc = work.getUserDDLDesc();
+      if (userDDLDesc != null) {
+        return userDDL(userDDLDesc);
       }
 
       GrantDesc grantDesc = work.getGrantDesc();
@@ -837,6 +845,93 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     }
 
     return 0;
+  }
+
+//added by liulichao
+  private int userDDL(UserDDLDesc userDDLDesc) {
+    UserDDLDesc.UserOperation operation = userDDLDesc.getOperation();
+    DataOutput outStream = null;
+    int ret = -1;
+
+    console.printInfo("userName:" + userDDLDesc.getName());
+    console.printInfo("pwd:" + userDDLDesc.getPasswd());
+    console.printInfo("ownerName:" + userDDLDesc.getUserOwnerName());
+    try {
+      if (operation.equals(UserDDLDesc.UserOperation.CREATE_USER)) {
+//        console.printInfo("create user start, ddlTask.");
+        ret = db.createUser(userDDLDesc.getName(), userDDLDesc.getPasswd(), userDDLDesc.getUserOwnerName());
+//        console.printInfo("create user end, ddlTask.");
+      } else if (operation.equals(UserDDLDesc.UserOperation.DROP_USER)) {
+        ret = db.dropUser(userDDLDesc.getName());
+      } else if (operation.equals(UserDDLDesc.UserOperation.CHANGE_PWD)) {
+        ret = db.setPasswd(userDDLDesc.getName(), userDDLDesc.getPasswd());
+      } else if (operation.equals(UserDDLDesc.UserOperation.AUTH_USER)) {
+        ret = db.authUser(userDDLDesc.getName(), userDDLDesc.getPasswd());
+      } else if (operation.equals(UserDDLDesc.UserOperation.SHOW_USER_NAME)) {
+        // write the results in the file
+        DataOutputStream  dos= null;
+        Path resFile = new Path(userDDLDesc.getResFile());
+        FileSystem fs = resFile.getFileSystem(conf);
+        dos = fs.create(resFile);
+        List<String> usernames = db.listUserNames();
+        SortedSet<String> sortedUsers = new TreeSet<String>(usernames);
+        formatter.showUserNames(dos, sortedUsers);
+        ((FSDataOutputStream) dos).close();
+        dos = null;
+
+        /*from show role, results follows below:
+         *user name:user1
+          user name:user2
+          user name:user3
+          user name:user3
+         *
+        List<String> usernames = db.listUserNames();
+        if (usernames != null && usernames.size() > 0) {
+          Path resFile = new Path(userDDLDesc.getResFile());
+
+          console.printInfo("ddlTask, resFile:" + resFile);//
+          FileSystem fs = resFile.getFileSystem(conf);
+
+          outStream = fs.create(resFile);
+          for (String user : usernames) {
+            outStream.writeBytes("user name:" + user);
+            outStream.write(terminator);
+          }
+          ((FSDataOutputStream) outStream).close();
+          outStream = null;
+        }*/
+
+        ret = 0;
+      } else {
+        throw new HiveException("Unkown user operation "
+            + operation.getOperationName());
+      }
+    } catch (HiveException e) {
+      console.printError("Error in user operation "
+          + operation.getOperationName() + " on user name "
+          + userDDLDesc.getName() + ", error message " + e.getMessage());
+      return 1;
+    } catch (IOException e) {
+      console.printError("Cant open the path of getResFile().");
+      console.printError("Error in user operation "
+          + operation.getOperationName() + " on user name "
+          + userDDLDesc.getName() + ", error message " + e.getMessage());
+      return 2;
+    }
+//    catch (IOException e) {
+//      LOG.info("user ddl exception: " + stringifyException(e));
+//      return 1;
+//    }
+    finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+
+    if (ret <0) {
+      return ret;
+    }
+    else {
+      return 0;   //successful state! added by liulichao
+    }
   }
 
   private int alterDatabase(AlterDatabaseDesc alterDbDesc) throws HiveException {
@@ -3881,8 +3976,9 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
   private int setGenericTableAttributes(Table tbl) {
     try {
-      tbl.setOwner(conf.getUser());
-    } catch (IOException e) {
+      //tbl.setOwner(conf.getUser());
+      tbl.setOwner(SessionState.get().getUser());       //added by liulichao,2013-05-15
+    } catch (Exception e) {
       formatter.consoleError(console,
                              "Unable to get current user: " + e.getMessage(),
                              stringifyException(e),

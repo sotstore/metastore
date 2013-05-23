@@ -681,6 +681,10 @@ public class HiveConf extends Configuration {
     SERVER_READ_SOCKET_TIMEOUT("hive.server.read.socket.timeout", 10),
     SERVER_TCP_KEEP_ALIVE("hive.server.tcp.keepalive", true),
 
+    //added by liulichao
+    HIVE_USER("hive.username", "root"),
+    HIVE_USERPWD("hive.hive.userpassword", "111111"),
+
     // Disk Manager
     DISKMANAGERLISTENPORT("hive.diskmanager.listen.port", 20202),
     ;

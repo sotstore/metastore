@@ -77,6 +77,11 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void get_partition_column_statistics(ColumnStatistics& _return, const std::string& db_name, const std::string& tbl_name, const std::string& part_name, const std::string& col_name) = 0;
   virtual bool delete_partition_column_statistics(const std::string& db_name, const std::string& tbl_name, const std::string& part_name, const std::string& col_name) = 0;
   virtual bool delete_table_column_statistics(const std::string& db_name, const std::string& tbl_name, const std::string& col_name) = 0;
+  virtual bool create_user(const User& user) = 0;
+  virtual bool drop_user(const std::string& user_name) = 0;
+  virtual bool setPasswd(const std::string& user_name, const std::string& passwd) = 0;
+  virtual void list_users_names(std::vector<std::string> & _return) = 0;
+  virtual bool authentication(const std::string& user_name, const std::string& passwd) = 0;
   virtual bool create_role(const Role& role) = 0;
   virtual bool drop_role(const std::string& role_name) = 0;
   virtual void get_role_names(std::vector<std::string> & _return) = 0;
@@ -322,6 +327,25 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return _return;
   }
   bool delete_table_column_statistics(const std::string& /* db_name */, const std::string& /* tbl_name */, const std::string& /* col_name */) {
+    bool _return = false;
+    return _return;
+  }
+  bool create_user(const User& /* user */) {
+    bool _return = false;
+    return _return;
+  }
+  bool drop_user(const std::string& /* user_name */) {
+    bool _return = false;
+    return _return;
+  }
+  bool setPasswd(const std::string& /* user_name */, const std::string& /* passwd */) {
+    bool _return = false;
+    return _return;
+  }
+  void list_users_names(std::vector<std::string> & /* _return */) {
+    return;
+  }
+  bool authentication(const std::string& /* user_name */, const std::string& /* passwd */) {
     bool _return = false;
     return _return;
   }
@@ -9247,6 +9271,640 @@ class ThriftHiveMetastore_delete_table_column_statistics_presult {
 
 };
 
+typedef struct _ThriftHiveMetastore_create_user_args__isset {
+  _ThriftHiveMetastore_create_user_args__isset() : user(false) {}
+  bool user;
+} _ThriftHiveMetastore_create_user_args__isset;
+
+class ThriftHiveMetastore_create_user_args {
+ public:
+
+  ThriftHiveMetastore_create_user_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_create_user_args() throw() {}
+
+  User user;
+
+  _ThriftHiveMetastore_create_user_args__isset __isset;
+
+  void __set_user(const User& val) {
+    user = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_create_user_args & rhs) const
+  {
+    if (!(user == rhs.user))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_create_user_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_create_user_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_create_user_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_create_user_pargs() throw() {}
+
+  const User* user;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_create_user_result__isset {
+  _ThriftHiveMetastore_create_user_result__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_create_user_result__isset;
+
+class ThriftHiveMetastore_create_user_result {
+ public:
+
+  ThriftHiveMetastore_create_user_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_create_user_result() throw() {}
+
+  bool success;
+  InvalidObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_create_user_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const InvalidObjectException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const MetaException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_create_user_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_create_user_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_create_user_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_create_user_presult__isset {
+  _ThriftHiveMetastore_create_user_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_create_user_presult__isset;
+
+class ThriftHiveMetastore_create_user_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_create_user_presult() throw() {}
+
+  bool* success;
+  InvalidObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_create_user_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_user_args__isset {
+  _ThriftHiveMetastore_drop_user_args__isset() : user_name(false) {}
+  bool user_name;
+} _ThriftHiveMetastore_drop_user_args__isset;
+
+class ThriftHiveMetastore_drop_user_args {
+ public:
+
+  ThriftHiveMetastore_drop_user_args() : user_name() {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_user_args() throw() {}
+
+  std::string user_name;
+
+  _ThriftHiveMetastore_drop_user_args__isset __isset;
+
+  void __set_user_name(const std::string& val) {
+    user_name = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_user_args & rhs) const
+  {
+    if (!(user_name == rhs.user_name))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_user_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_user_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_drop_user_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_user_pargs() throw() {}
+
+  const std::string* user_name;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_user_result__isset {
+  _ThriftHiveMetastore_drop_user_result__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_drop_user_result__isset;
+
+class ThriftHiveMetastore_drop_user_result {
+ public:
+
+  ThriftHiveMetastore_drop_user_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_user_result() throw() {}
+
+  bool success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_drop_user_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const NoSuchObjectException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const MetaException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_drop_user_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_user_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_user_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_user_presult__isset {
+  _ThriftHiveMetastore_drop_user_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_drop_user_presult__isset;
+
+class ThriftHiveMetastore_drop_user_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_user_presult() throw() {}
+
+  bool* success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_drop_user_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_setPasswd_args__isset {
+  _ThriftHiveMetastore_setPasswd_args__isset() : user_name(false), passwd(false) {}
+  bool user_name;
+  bool passwd;
+} _ThriftHiveMetastore_setPasswd_args__isset;
+
+class ThriftHiveMetastore_setPasswd_args {
+ public:
+
+  ThriftHiveMetastore_setPasswd_args() : user_name(), passwd() {
+  }
+
+  virtual ~ThriftHiveMetastore_setPasswd_args() throw() {}
+
+  std::string user_name;
+  std::string passwd;
+
+  _ThriftHiveMetastore_setPasswd_args__isset __isset;
+
+  void __set_user_name(const std::string& val) {
+    user_name = val;
+  }
+
+  void __set_passwd(const std::string& val) {
+    passwd = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_setPasswd_args & rhs) const
+  {
+    if (!(user_name == rhs.user_name))
+      return false;
+    if (!(passwd == rhs.passwd))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_setPasswd_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_setPasswd_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_setPasswd_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_setPasswd_pargs() throw() {}
+
+  const std::string* user_name;
+  const std::string* passwd;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_setPasswd_result__isset {
+  _ThriftHiveMetastore_setPasswd_result__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_setPasswd_result__isset;
+
+class ThriftHiveMetastore_setPasswd_result {
+ public:
+
+  ThriftHiveMetastore_setPasswd_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_setPasswd_result() throw() {}
+
+  bool success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_setPasswd_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const NoSuchObjectException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const MetaException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_setPasswd_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_setPasswd_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_setPasswd_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_setPasswd_presult__isset {
+  _ThriftHiveMetastore_setPasswd_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_setPasswd_presult__isset;
+
+class ThriftHiveMetastore_setPasswd_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_setPasswd_presult() throw() {}
+
+  bool* success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_setPasswd_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class ThriftHiveMetastore_list_users_names_args {
+ public:
+
+  ThriftHiveMetastore_list_users_names_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_list_users_names_args() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_list_users_names_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_list_users_names_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_list_users_names_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_list_users_names_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_list_users_names_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_list_users_names_result__isset {
+  _ThriftHiveMetastore_list_users_names_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_list_users_names_result__isset;
+
+class ThriftHiveMetastore_list_users_names_result {
+ public:
+
+  ThriftHiveMetastore_list_users_names_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_list_users_names_result() throw() {}
+
+  std::vector<std::string>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_list_users_names_result__isset __isset;
+
+  void __set_success(const std::vector<std::string> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_list_users_names_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_list_users_names_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_list_users_names_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_list_users_names_presult__isset {
+  _ThriftHiveMetastore_list_users_names_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_list_users_names_presult__isset;
+
+class ThriftHiveMetastore_list_users_names_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_list_users_names_presult() throw() {}
+
+  std::vector<std::string> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_list_users_names_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_authentication_args__isset {
+  _ThriftHiveMetastore_authentication_args__isset() : user_name(false), passwd(false) {}
+  bool user_name;
+  bool passwd;
+} _ThriftHiveMetastore_authentication_args__isset;
+
+class ThriftHiveMetastore_authentication_args {
+ public:
+
+  ThriftHiveMetastore_authentication_args() : user_name(), passwd() {
+  }
+
+  virtual ~ThriftHiveMetastore_authentication_args() throw() {}
+
+  std::string user_name;
+  std::string passwd;
+
+  _ThriftHiveMetastore_authentication_args__isset __isset;
+
+  void __set_user_name(const std::string& val) {
+    user_name = val;
+  }
+
+  void __set_passwd(const std::string& val) {
+    passwd = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_authentication_args & rhs) const
+  {
+    if (!(user_name == rhs.user_name))
+      return false;
+    if (!(passwd == rhs.passwd))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_authentication_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_authentication_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_authentication_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_authentication_pargs() throw() {}
+
+  const std::string* user_name;
+  const std::string* passwd;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_authentication_result__isset {
+  _ThriftHiveMetastore_authentication_result__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_authentication_result__isset;
+
+class ThriftHiveMetastore_authentication_result {
+ public:
+
+  ThriftHiveMetastore_authentication_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_authentication_result() throw() {}
+
+  bool success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_authentication_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const NoSuchObjectException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const MetaException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_authentication_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_authentication_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_authentication_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_authentication_presult__isset {
+  _ThriftHiveMetastore_authentication_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_authentication_presult__isset;
+
+class ThriftHiveMetastore_authentication_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_authentication_presult() throw() {}
+
+  bool* success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_authentication_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 typedef struct _ThriftHiveMetastore_create_role_args__isset {
   _ThriftHiveMetastore_create_role_args__isset() : role(false) {}
   bool role;
@@ -12589,6 +13247,21 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   bool delete_table_column_statistics(const std::string& db_name, const std::string& tbl_name, const std::string& col_name);
   void send_delete_table_column_statistics(const std::string& db_name, const std::string& tbl_name, const std::string& col_name);
   bool recv_delete_table_column_statistics();
+  bool create_user(const User& user);
+  void send_create_user(const User& user);
+  bool recv_create_user();
+  bool drop_user(const std::string& user_name);
+  void send_drop_user(const std::string& user_name);
+  bool recv_drop_user();
+  bool setPasswd(const std::string& user_name, const std::string& passwd);
+  void send_setPasswd(const std::string& user_name, const std::string& passwd);
+  bool recv_setPasswd();
+  void list_users_names(std::vector<std::string> & _return);
+  void send_list_users_names();
+  void recv_list_users_names(std::vector<std::string> & _return);
+  bool authentication(const std::string& user_name, const std::string& passwd);
+  void send_authentication(const std::string& user_name, const std::string& passwd);
+  bool recv_authentication();
   bool create_role(const Role& role);
   void send_create_role(const Role& role);
   bool recv_create_role();
@@ -12735,6 +13408,11 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_get_partition_column_statistics(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_delete_partition_column_statistics(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_delete_table_column_statistics(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_create_user(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_drop_user(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_setPasswd(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_list_users_names(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_authentication(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_create_role(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_drop_role(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_role_names(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -12825,6 +13503,11 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["get_partition_column_statistics"] = &ThriftHiveMetastoreProcessor::process_get_partition_column_statistics;
     processMap_["delete_partition_column_statistics"] = &ThriftHiveMetastoreProcessor::process_delete_partition_column_statistics;
     processMap_["delete_table_column_statistics"] = &ThriftHiveMetastoreProcessor::process_delete_table_column_statistics;
+    processMap_["create_user"] = &ThriftHiveMetastoreProcessor::process_create_user;
+    processMap_["drop_user"] = &ThriftHiveMetastoreProcessor::process_drop_user;
+    processMap_["setPasswd"] = &ThriftHiveMetastoreProcessor::process_setPasswd;
+    processMap_["list_users_names"] = &ThriftHiveMetastoreProcessor::process_list_users_names;
+    processMap_["authentication"] = &ThriftHiveMetastoreProcessor::process_authentication;
     processMap_["create_role"] = &ThriftHiveMetastoreProcessor::process_create_role;
     processMap_["drop_role"] = &ThriftHiveMetastoreProcessor::process_drop_role;
     processMap_["get_role_names"] = &ThriftHiveMetastoreProcessor::process_get_role_names;
@@ -13466,6 +14149,52 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->delete_table_column_statistics(db_name, tbl_name, col_name);
     }
     return ifaces_[i]->delete_table_column_statistics(db_name, tbl_name, col_name);
+  }
+
+  bool create_user(const User& user) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->create_user(user);
+    }
+    return ifaces_[i]->create_user(user);
+  }
+
+  bool drop_user(const std::string& user_name) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->drop_user(user_name);
+    }
+    return ifaces_[i]->drop_user(user_name);
+  }
+
+  bool setPasswd(const std::string& user_name, const std::string& passwd) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->setPasswd(user_name, passwd);
+    }
+    return ifaces_[i]->setPasswd(user_name, passwd);
+  }
+
+  void list_users_names(std::vector<std::string> & _return) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->list_users_names(_return);
+    }
+    ifaces_[i]->list_users_names(_return);
+    return;
+  }
+
+  bool authentication(const std::string& user_name, const std::string& passwd) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->authentication(user_name, passwd);
+    }
+    return ifaces_[i]->authentication(user_name, passwd);
   }
 
   bool create_role(const Role& role) {

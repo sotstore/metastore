@@ -48,6 +48,7 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.thrift.TException;
 
 /**
@@ -987,4 +988,51 @@ public interface IMetaStoreClient {
 
   public Node get_node(String node_name) throws MetaException, TException;
 
+//authentication and authorization with user by liulichao, begin
+  /**
+   * @param user
+   * @return true on success
+   * @throws InvalidObjectException
+   * @throws MetaException
+   * @throws TException
+   */
+  public boolean create_user(User user) throws InvalidObjectException, MetaException, TException;
+
+  /**
+   * @param user_name
+   * @return true on success
+   * @throws NoSuchObjectException
+   * @throws MetaException
+   * @throws TException
+   */
+  public boolean drop_user(String user_name) throws NoSuchObjectException, MetaException, TException;
+
+  /**
+   * @param user_name
+   * @param passwd
+   * @throws NoSuchObjectException
+   * @throws MetaException
+   * @throws TException
+   */
+  public boolean setPasswd(String user_name, String passwd) throws NoSuchObjectException, MetaException, TException;
+
+  /**
+   * @return names of all users
+   * @throws MetaException
+   * @throws TException
+   */
+  //public List<String> list_users_names() throws MetaException, TException;
+
+  /**
+   * @param user_name
+   * @param passwd
+   * @return true on success
+   * @throws NoSuchObjectException
+   * @throws MetaException
+   * @throws TException
+   */
+  public boolean authentication(String user_name, String passwd) throws NoSuchObjectException, MetaException, TException;
+
+  public List<String> list_users_names() throws MetaException, TException;
+  //authentication and authorization with user by liulichao, end
 }

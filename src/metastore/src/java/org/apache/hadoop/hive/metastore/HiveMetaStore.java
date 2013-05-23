@@ -93,6 +93,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
 import org.apache.hadoop.hive.metastore.events.AddPartitionEvent;
 import org.apache.hadoop.hive.metastore.events.AlterPartitionEvent;
@@ -184,6 +185,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
   public static class HMSHandler extends FacebookBase implements
       IHMSHandler {
     public static final Log LOG = HiveMetaStore.LOG;
+
     private static boolean createDefaultDB = false;
     private String rawStoreClassName;
     private final HiveConf hiveConf; // stores datastore (jpox) properties,
@@ -4215,6 +4217,89 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         throw new MetaException(e.getMessage());
       }
     }
+
+  //added by liulichao
+    @Override
+  public boolean create_user(User user) throws MetaException,
+      InvalidObjectException, TException {
+        incrementCounter("create_user");
+
+        Boolean ret = null;
+        try {
+//          LOG.info("create user start, HiveMetaStore.");
+          ret = getMS().addUser(user.getUserName(), user.getPassword(), user.getOwnerName());
+//          LOG.info("create user end, HiveMetaStore.");
+        } catch (InvalidObjectException e) {
+          throw e;
+        } catch (MetaException e) {
+          throw e;
+        }
+        return ret;
+  }
+
+  @Override
+  public boolean drop_user(String user_name) throws NoSuchObjectException,
+      MetaException, TException {
+        incrementCounter("drop_user");
+
+        Boolean ret = null;
+        try {
+          ret = getMS().removeUser(user_name);
+        } catch (NoSuchObjectException e) {
+          throw e;
+        } catch (MetaException e) {
+          throw e;
+        }
+        return ret;
+  }
+
+  @Override
+  public boolean setPasswd(String user_name, String passwd)
+      throws NoSuchObjectException, MetaException, TException {
+        incrementCounter("setPassword");
+
+        try {
+         return getMS().setPasswd(user_name, passwd);
+        } catch (NoSuchObjectException e) {
+          throw e;
+        } catch (MetaException e) {
+          throw e;
+        }
+  }
+
+  @Override
+  public List<String> list_users_names() {
+      incrementCounter("list_users_names");
+
+    List<String> ret = null;
+      try {
+      ret = getMS().listUsersNames();
+    } catch (MetaException e) {
+      e.printStackTrace();
+    }
+
+      return ret;
+  }
+
+  @Override
+  /*
+   * valid, return 1; or, 0.
+   */
+  public boolean authentication(String user_name, String passwd)
+      throws NoSuchObjectException, MetaException, TException {
+        incrementCounter("user_authentication");
+
+        Boolean ret = null;
+        try {
+          ret = getMS().authentication(user_name, passwd);
+        } catch (NoSuchObjectException e) {
+          throw e;
+        } catch (MetaException e) {
+          throw e;
+        }
+    return ret;
+  }
+   //added by liulichao
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {

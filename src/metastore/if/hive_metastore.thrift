@@ -121,6 +121,14 @@ struct Role {
   3: string ownerName,
 }
 
+//struct User, added by liulichao for authentication
+struct User {  
+  1: string userName,
+  2: string password,
+  3: i64 createTime,
+  4: string ownerName
+}
+
 // namespace for tables
 struct Database {
   1: string name,
@@ -613,6 +621,18 @@ service ThriftHiveMetastore extends fb303.FacebookService
   bool delete_table_column_statistics(1:string db_name, 2:string tbl_name, 3:string col_name) throws
               (1:NoSuchObjectException o1, 2:MetaException o2, 3:InvalidObjectException o3,
                4:InvalidInputException o4)
+
+//authentication and authorization with user by liulichao, begin
+
+  bool create_user(1:User user) throws(1:InvalidObjectException o1, 2:MetaException o2)
+  bool drop_user(1:string user_name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
+  bool setPasswd(1:string user_name, 2:string passwd) throws(1:NoSuchObjectException o1, 2:MetaException o2)
+  list<string> list_users_names() throws(1:MetaException o1)
+  bool authentication(1:string user_name, 2:string passwd) throws(1:NoSuchObjectException o1, 2:MetaException o2) //authenticate the userName and passwd.
+
+//  list<string> get_user_grants(1:string user_name) throws(1:MetaException o1, 2:NoSuchObjectException o2) //if there is no user_name, then show all users' grants.
+
+  //authentication and authorization with user by liulichao, end  
 
   //authorization privileges
                        

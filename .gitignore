@@ -1,1 +1,4 @@
 src/build/*
+src/service/src/gen/*
+src/metastore/src/gen/*
+src/serde/src/gen/*

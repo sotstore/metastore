@@ -52,6 +52,7 @@ import org.apache.hadoop.hive.metastore.model.MPartitionPrivilege;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
 import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
+import org.apache.hadoop.hive.metastore.model.MUser;
 
 public interface RawStore extends Configurable {
 
@@ -460,4 +461,18 @@ public interface RawStore extends Configurable {
 
   public abstract Node findNode(String ip) throws MetaException;
 
+//authentication  with user by liulichao, begin
+  public abstract boolean addUser(String userName, String passwd, String ownerName)
+        throws InvalidObjectException, MetaException;
+
+  public abstract boolean removeUser(String userName) throws MetaException, NoSuchObjectException;
+
+  public abstract boolean setPasswd(String userName, String passwd) throws MetaException, NoSuchObjectException;
+
+  public List<String> listUsersNames();
+
+  public abstract boolean authentication(String userName, String passwd) throws MetaException, NoSuchObjectException;
+  //authentication and authorization with user by liulichao, end
+
+  public abstract MUser getMUser(String user);  //added by liulichao
 }
