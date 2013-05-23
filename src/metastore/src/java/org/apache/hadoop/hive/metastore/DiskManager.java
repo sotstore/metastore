@@ -19,6 +19,9 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+
 import org.apache.commons.logging.Log;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -28,8 +31,6 @@ import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.util.ReflectionUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class DiskManager {
     public RawStore rs;
