@@ -68,7 +68,7 @@ public class ThriftHiveMetastore {
 
     public boolean add_subpartition(String dbname, String tbl_name, List<String> part_vals, Subpartition sub_part) throws org.apache.thrift.TException;
 
-    public List<Subpartition> subpartition(String dbname, String tbl_name, Partition part) throws org.apache.thrift.TException;
+    public List<Subpartition> get_subpartitions(String dbname, String tbl_name, Partition part) throws org.apache.thrift.TException;
 
     public int add_partition_index_files(Index index, Partition part, List<SFile> file, List<SFile> origin_file) throws org.apache.thrift.TException;
 
@@ -282,7 +282,7 @@ public class ThriftHiveMetastore {
 
     public void add_subpartition(String dbname, String tbl_name, List<String> part_vals, Subpartition sub_part, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.add_subpartition_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void subpartition(String dbname, String tbl_name, Partition part, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.subpartition_call> resultHandler) throws org.apache.thrift.TException;
+    public void get_subpartitions(String dbname, String tbl_name, Partition part, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.get_subpartitions_call> resultHandler) throws org.apache.thrift.TException;
 
     public void add_partition_index_files(Index index, Partition part, List<SFile> file, List<SFile> origin_file, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.add_partition_index_files_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -869,29 +869,29 @@ public class ThriftHiveMetastore {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "add_subpartition failed: unknown result");
     }
 
-    public List<Subpartition> subpartition(String dbname, String tbl_name, Partition part) throws org.apache.thrift.TException
+    public List<Subpartition> get_subpartitions(String dbname, String tbl_name, Partition part) throws org.apache.thrift.TException
     {
-      send_subpartition(dbname, tbl_name, part);
-      return recv_subpartition();
+      send_get_subpartitions(dbname, tbl_name, part);
+      return recv_get_subpartitions();
     }
 
-    public void send_subpartition(String dbname, String tbl_name, Partition part) throws org.apache.thrift.TException
+    public void send_get_subpartitions(String dbname, String tbl_name, Partition part) throws org.apache.thrift.TException
     {
-      subpartition_args args = new subpartition_args();
+      get_subpartitions_args args = new get_subpartitions_args();
       args.setDbname(dbname);
       args.setTbl_name(tbl_name);
       args.setPart(part);
-      sendBase("subpartition", args);
+      sendBase("get_subpartitions", args);
     }
 
-    public List<Subpartition> recv_subpartition() throws org.apache.thrift.TException
+    public List<Subpartition> recv_get_subpartitions() throws org.apache.thrift.TException
     {
-      subpartition_result result = new subpartition_result();
-      receiveBase(result, "subpartition");
+      get_subpartitions_result result = new get_subpartitions_result();
+      receiveBase(result, "get_subpartitions");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "subpartition failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "get_subpartitions failed: unknown result");
     }
 
     public int add_partition_index_files(Index index, Partition part, List<SFile> file, List<SFile> origin_file) throws org.apache.thrift.TException
@@ -4095,18 +4095,18 @@ public class ThriftHiveMetastore {
       }
     }
 
-    public void subpartition(String dbname, String tbl_name, Partition part, org.apache.thrift.async.AsyncMethodCallback<subpartition_call> resultHandler) throws org.apache.thrift.TException {
+    public void get_subpartitions(String dbname, String tbl_name, Partition part, org.apache.thrift.async.AsyncMethodCallback<get_subpartitions_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      subpartition_call method_call = new subpartition_call(dbname, tbl_name, part, resultHandler, this, ___protocolFactory, ___transport);
+      get_subpartitions_call method_call = new get_subpartitions_call(dbname, tbl_name, part, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class subpartition_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class get_subpartitions_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String dbname;
       private String tbl_name;
       private Partition part;
-      public subpartition_call(String dbname, String tbl_name, Partition part, org.apache.thrift.async.AsyncMethodCallback<subpartition_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public get_subpartitions_call(String dbname, String tbl_name, Partition part, org.apache.thrift.async.AsyncMethodCallback<get_subpartitions_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.dbname = dbname;
         this.tbl_name = tbl_name;
@@ -4114,8 +4114,8 @@ public class ThriftHiveMetastore {
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("subpartition", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        subpartition_args args = new subpartition_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("get_subpartitions", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        get_subpartitions_args args = new get_subpartitions_args();
         args.setDbname(dbname);
         args.setTbl_name(tbl_name);
         args.setPart(part);
@@ -4129,7 +4129,7 @@ public class ThriftHiveMetastore {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_subpartition();
+        return (new Client(prot)).recv_get_subpartitions();
       }
     }
 
@@ -7375,7 +7375,7 @@ public class ThriftHiveMetastore {
       processMap.put("add_subpartition_index", new add_subpartition_index());
       processMap.put("drop_subpartition_index", new drop_subpartition_index());
       processMap.put("add_subpartition", new add_subpartition());
-      processMap.put("subpartition", new subpartition());
+      processMap.put("get_subpartitions", new get_subpartitions());
       processMap.put("add_partition_index_files", new add_partition_index_files());
       processMap.put("drop_partition_index_files", new drop_partition_index_files());
       processMap.put("create_database", new create_database());
@@ -7811,22 +7811,22 @@ public class ThriftHiveMetastore {
       }
     }
 
-    public static class subpartition<I extends Iface> extends org.apache.thrift.ProcessFunction<I, subpartition_args> {
-      public subpartition() {
-        super("subpartition");
+    public static class get_subpartitions<I extends Iface> extends org.apache.thrift.ProcessFunction<I, get_subpartitions_args> {
+      public get_subpartitions() {
+        super("get_subpartitions");
       }
 
-      public subpartition_args getEmptyArgsInstance() {
-        return new subpartition_args();
+      public get_subpartitions_args getEmptyArgsInstance() {
+        return new get_subpartitions_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public subpartition_result getResult(I iface, subpartition_args args) throws org.apache.thrift.TException {
-        subpartition_result result = new subpartition_result();
-        result.success = iface.subpartition(args.dbname, args.tbl_name, args.part);
+      public get_subpartitions_result getResult(I iface, get_subpartitions_args args) throws org.apache.thrift.TException {
+        get_subpartitions_result result = new get_subpartitions_result();
+        result.success = iface.get_subpartitions(args.dbname, args.tbl_name, args.part);
         return result;
       }
     }
@@ -23650,8 +23650,8 @@ public class ThriftHiveMetastore {
 
   }
 
-  public static class subpartition_args implements org.apache.thrift.TBase<subpartition_args, subpartition_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("subpartition_args");
+  public static class get_subpartitions_args implements org.apache.thrift.TBase<get_subpartitions_args, get_subpartitions_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("get_subpartitions_args");
 
     private static final org.apache.thrift.protocol.TField DBNAME_FIELD_DESC = new org.apache.thrift.protocol.TField("dbname", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField TBL_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("tbl_name", org.apache.thrift.protocol.TType.STRING, (short)2);
@@ -23659,8 +23659,8 @@ public class ThriftHiveMetastore {
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new subpartition_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new subpartition_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new get_subpartitions_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new get_subpartitions_argsTupleSchemeFactory());
     }
 
     private String dbname; // required
@@ -23742,13 +23742,13 @@ public class ThriftHiveMetastore {
       tmpMap.put(_Fields.PART, new org.apache.thrift.meta_data.FieldMetaData("part", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Partition.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(subpartition_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(get_subpartitions_args.class, metaDataMap);
     }
 
-    public subpartition_args() {
+    public get_subpartitions_args() {
     }
 
-    public subpartition_args(
+    public get_subpartitions_args(
       String dbname,
       String tbl_name,
       Partition part)
@@ -23762,7 +23762,7 @@ public class ThriftHiveMetastore {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public subpartition_args(subpartition_args other) {
+    public get_subpartitions_args(get_subpartitions_args other) {
       if (other.isSetDbname()) {
         this.dbname = other.dbname;
       }
@@ -23774,8 +23774,8 @@ public class ThriftHiveMetastore {
       }
     }
 
-    public subpartition_args deepCopy() {
-      return new subpartition_args(this);
+    public get_subpartitions_args deepCopy() {
+      return new get_subpartitions_args(this);
     }
 
     @Override
@@ -23919,12 +23919,12 @@ public class ThriftHiveMetastore {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof subpartition_args)
-        return this.equals((subpartition_args)that);
+      if (that instanceof get_subpartitions_args)
+        return this.equals((get_subpartitions_args)that);
       return false;
     }
 
-    public boolean equals(subpartition_args that) {
+    public boolean equals(get_subpartitions_args that) {
       if (that == null)
         return false;
 
@@ -23980,13 +23980,13 @@ public class ThriftHiveMetastore {
       return builder.toHashCode();
     }
 
-    public int compareTo(subpartition_args other) {
+    public int compareTo(get_subpartitions_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      subpartition_args typedOther = (subpartition_args)other;
+      get_subpartitions_args typedOther = (get_subpartitions_args)other;
 
       lastComparison = Boolean.valueOf(isSetDbname()).compareTo(typedOther.isSetDbname());
       if (lastComparison != 0) {
@@ -24035,7 +24035,7 @@ public class ThriftHiveMetastore {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("subpartition_args(");
+      StringBuilder sb = new StringBuilder("get_subpartitions_args(");
       boolean first = true;
 
       sb.append("dbname:");
@@ -24089,15 +24089,15 @@ public class ThriftHiveMetastore {
       }
     }
 
-    private static class subpartition_argsStandardSchemeFactory implements SchemeFactory {
-      public subpartition_argsStandardScheme getScheme() {
-        return new subpartition_argsStandardScheme();
+    private static class get_subpartitions_argsStandardSchemeFactory implements SchemeFactory {
+      public get_subpartitions_argsStandardScheme getScheme() {
+        return new get_subpartitions_argsStandardScheme();
       }
     }
 
-    private static class subpartition_argsStandardScheme extends StandardScheme<subpartition_args> {
+    private static class get_subpartitions_argsStandardScheme extends StandardScheme<get_subpartitions_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, subpartition_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, get_subpartitions_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -24141,7 +24141,7 @@ public class ThriftHiveMetastore {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, subpartition_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, get_subpartitions_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -24166,16 +24166,16 @@ public class ThriftHiveMetastore {
 
     }
 
-    private static class subpartition_argsTupleSchemeFactory implements SchemeFactory {
-      public subpartition_argsTupleScheme getScheme() {
-        return new subpartition_argsTupleScheme();
+    private static class get_subpartitions_argsTupleSchemeFactory implements SchemeFactory {
+      public get_subpartitions_argsTupleScheme getScheme() {
+        return new get_subpartitions_argsTupleScheme();
       }
     }
 
-    private static class subpartition_argsTupleScheme extends TupleScheme<subpartition_args> {
+    private static class get_subpartitions_argsTupleScheme extends TupleScheme<get_subpartitions_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, subpartition_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, get_subpartitions_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetDbname()) {
@@ -24200,7 +24200,7 @@ public class ThriftHiveMetastore {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, subpartition_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, get_subpartitions_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
@@ -24221,15 +24221,15 @@ public class ThriftHiveMetastore {
 
   }
 
-  public static class subpartition_result implements org.apache.thrift.TBase<subpartition_result, subpartition_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("subpartition_result");
+  public static class get_subpartitions_result implements org.apache.thrift.TBase<get_subpartitions_result, get_subpartitions_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("get_subpartitions_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new subpartition_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new subpartition_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new get_subpartitions_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new get_subpartitions_resultTupleSchemeFactory());
     }
 
     private List<Subpartition> success; // required
@@ -24300,13 +24300,13 @@ public class ThriftHiveMetastore {
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Subpartition.class))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(subpartition_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(get_subpartitions_result.class, metaDataMap);
     }
 
-    public subpartition_result() {
+    public get_subpartitions_result() {
     }
 
-    public subpartition_result(
+    public get_subpartitions_result(
       List<Subpartition> success)
     {
       this();
@@ -24316,7 +24316,7 @@ public class ThriftHiveMetastore {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public subpartition_result(subpartition_result other) {
+    public get_subpartitions_result(get_subpartitions_result other) {
       if (other.isSetSuccess()) {
         List<Subpartition> __this__success = new ArrayList<Subpartition>();
         for (Subpartition other_element : other.success) {
@@ -24326,8 +24326,8 @@ public class ThriftHiveMetastore {
       }
     }
 
-    public subpartition_result deepCopy() {
-      return new subpartition_result(this);
+    public get_subpartitions_result deepCopy() {
+      return new get_subpartitions_result(this);
     }
 
     @Override
@@ -24412,12 +24412,12 @@ public class ThriftHiveMetastore {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof subpartition_result)
-        return this.equals((subpartition_result)that);
+      if (that instanceof get_subpartitions_result)
+        return this.equals((get_subpartitions_result)that);
       return false;
     }
 
-    public boolean equals(subpartition_result that) {
+    public boolean equals(get_subpartitions_result that) {
       if (that == null)
         return false;
 
@@ -24445,13 +24445,13 @@ public class ThriftHiveMetastore {
       return builder.toHashCode();
     }
 
-    public int compareTo(subpartition_result other) {
+    public int compareTo(get_subpartitions_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      subpartition_result typedOther = (subpartition_result)other;
+      get_subpartitions_result typedOther = (get_subpartitions_result)other;
 
       lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
       if (lastComparison != 0) {
@@ -24480,7 +24480,7 @@ public class ThriftHiveMetastore {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("subpartition_result(");
+      StringBuilder sb = new StringBuilder("get_subpartitions_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -24515,15 +24515,15 @@ public class ThriftHiveMetastore {
       }
     }
 
-    private static class subpartition_resultStandardSchemeFactory implements SchemeFactory {
-      public subpartition_resultStandardScheme getScheme() {
-        return new subpartition_resultStandardScheme();
+    private static class get_subpartitions_resultStandardSchemeFactory implements SchemeFactory {
+      public get_subpartitions_resultStandardScheme getScheme() {
+        return new get_subpartitions_resultStandardScheme();
       }
     }
 
-    private static class subpartition_resultStandardScheme extends StandardScheme<subpartition_result> {
+    private static class get_subpartitions_resultStandardScheme extends StandardScheme<get_subpartitions_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, subpartition_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, get_subpartitions_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -24561,7 +24561,7 @@ public class ThriftHiveMetastore {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, subpartition_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, get_subpartitions_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -24583,16 +24583,16 @@ public class ThriftHiveMetastore {
 
     }
 
-    private static class subpartition_resultTupleSchemeFactory implements SchemeFactory {
-      public subpartition_resultTupleScheme getScheme() {
-        return new subpartition_resultTupleScheme();
+    private static class get_subpartitions_resultTupleSchemeFactory implements SchemeFactory {
+      public get_subpartitions_resultTupleScheme getScheme() {
+        return new get_subpartitions_resultTupleScheme();
       }
     }
 
-    private static class subpartition_resultTupleScheme extends TupleScheme<subpartition_result> {
+    private static class get_subpartitions_resultTupleScheme extends TupleScheme<get_subpartitions_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, subpartition_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, get_subpartitions_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -24611,7 +24611,7 @@ public class ThriftHiveMetastore {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, subpartition_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, get_subpartitions_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {

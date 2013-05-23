@@ -428,7 +428,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   bool drop_subpartition_index(1:Index index, 2:Subpartition part)
   
   bool add_subpartition(1:string dbname, 2:string tbl_name, 3:list<string> part_vals,4:Subpartition sub_part)
-  list<Subpartition> subpartition(1:string dbname, 2:string tbl_name, 3:Partition part)
+  list<Subpartition> get_subpartitions(1:string dbname, 2:string tbl_name, 3:Partition part)
  
   //start of partition index file
   i32 add_partition_index_files(1:Index index, 2: Partition part,3:list<SFile> file,4:list<SFile> origin_file)

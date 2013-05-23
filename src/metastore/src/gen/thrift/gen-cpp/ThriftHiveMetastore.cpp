@@ -3020,7 +3020,7 @@ uint32_t ThriftHiveMetastore_add_subpartition_presult::read(::apache::thrift::pr
   return xfer;
 }
 
-uint32_t ThriftHiveMetastore_subpartition_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t ThriftHiveMetastore_get_subpartitions_args::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -3076,9 +3076,9 @@ uint32_t ThriftHiveMetastore_subpartition_args::read(::apache::thrift::protocol:
   return xfer;
 }
 
-uint32_t ThriftHiveMetastore_subpartition_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t ThriftHiveMetastore_get_subpartitions_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("ThriftHiveMetastore_subpartition_args");
+  xfer += oprot->writeStructBegin("ThriftHiveMetastore_get_subpartitions_args");
 
   xfer += oprot->writeFieldBegin("dbname", ::apache::thrift::protocol::T_STRING, 1);
   xfer += oprot->writeString(this->dbname);
@@ -3097,9 +3097,9 @@ uint32_t ThriftHiveMetastore_subpartition_args::write(::apache::thrift::protocol
   return xfer;
 }
 
-uint32_t ThriftHiveMetastore_subpartition_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t ThriftHiveMetastore_get_subpartitions_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("ThriftHiveMetastore_subpartition_pargs");
+  xfer += oprot->writeStructBegin("ThriftHiveMetastore_get_subpartitions_pargs");
 
   xfer += oprot->writeFieldBegin("dbname", ::apache::thrift::protocol::T_STRING, 1);
   xfer += oprot->writeString((*(this->dbname)));
@@ -3118,7 +3118,7 @@ uint32_t ThriftHiveMetastore_subpartition_pargs::write(::apache::thrift::protoco
   return xfer;
 }
 
-uint32_t ThriftHiveMetastore_subpartition_result::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t ThriftHiveMetastore_get_subpartitions_result::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -3170,11 +3170,11 @@ uint32_t ThriftHiveMetastore_subpartition_result::read(::apache::thrift::protoco
   return xfer;
 }
 
-uint32_t ThriftHiveMetastore_subpartition_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t ThriftHiveMetastore_get_subpartitions_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
 
   uint32_t xfer = 0;
 
-  xfer += oprot->writeStructBegin("ThriftHiveMetastore_subpartition_result");
+  xfer += oprot->writeStructBegin("ThriftHiveMetastore_get_subpartitions_result");
 
   if (this->__isset.success) {
     xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_LIST, 0);
@@ -3194,7 +3194,7 @@ uint32_t ThriftHiveMetastore_subpartition_result::write(::apache::thrift::protoc
   return xfer;
 }
 
-uint32_t ThriftHiveMetastore_subpartition_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t ThriftHiveMetastore_get_subpartitions_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -25381,18 +25381,18 @@ bool ThriftHiveMetastoreClient::recv_add_subpartition()
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "add_subpartition failed: unknown result");
 }
 
-void ThriftHiveMetastoreClient::subpartition(std::vector<Subpartition> & _return, const std::string& dbname, const std::string& tbl_name, const Partition& part)
+void ThriftHiveMetastoreClient::get_subpartitions(std::vector<Subpartition> & _return, const std::string& dbname, const std::string& tbl_name, const Partition& part)
 {
-  send_subpartition(dbname, tbl_name, part);
-  recv_subpartition(_return);
+  send_get_subpartitions(dbname, tbl_name, part);
+  recv_get_subpartitions(_return);
 }
 
-void ThriftHiveMetastoreClient::send_subpartition(const std::string& dbname, const std::string& tbl_name, const Partition& part)
+void ThriftHiveMetastoreClient::send_get_subpartitions(const std::string& dbname, const std::string& tbl_name, const Partition& part)
 {
   int32_t cseqid = 0;
-  oprot_->writeMessageBegin("subpartition", ::apache::thrift::protocol::T_CALL, cseqid);
+  oprot_->writeMessageBegin("get_subpartitions", ::apache::thrift::protocol::T_CALL, cseqid);
 
-  ThriftHiveMetastore_subpartition_pargs args;
+  ThriftHiveMetastore_get_subpartitions_pargs args;
   args.dbname = &dbname;
   args.tbl_name = &tbl_name;
   args.part = &part;
@@ -25403,7 +25403,7 @@ void ThriftHiveMetastoreClient::send_subpartition(const std::string& dbname, con
   oprot_->getTransport()->flush();
 }
 
-void ThriftHiveMetastoreClient::recv_subpartition(std::vector<Subpartition> & _return)
+void ThriftHiveMetastoreClient::recv_get_subpartitions(std::vector<Subpartition> & _return)
 {
 
   int32_t rseqid = 0;
@@ -25423,12 +25423,12 @@ void ThriftHiveMetastoreClient::recv_subpartition(std::vector<Subpartition> & _r
     iprot_->readMessageEnd();
     iprot_->getTransport()->readEnd();
   }
-  if (fname.compare("subpartition") != 0) {
+  if (fname.compare("get_subpartitions") != 0) {
     iprot_->skip(::apache::thrift::protocol::T_STRUCT);
     iprot_->readMessageEnd();
     iprot_->getTransport()->readEnd();
   }
-  ThriftHiveMetastore_subpartition_presult result;
+  ThriftHiveMetastore_get_subpartitions_presult result;
   result.success = &_return;
   result.read(iprot_);
   iprot_->readMessageEnd();
@@ -25438,7 +25438,7 @@ void ThriftHiveMetastoreClient::recv_subpartition(std::vector<Subpartition> & _r
     // _return pointer has now been filled
     return;
   }
-  throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "subpartition failed: unknown result");
+  throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "get_subpartitions failed: unknown result");
 }
 
 int32_t ThriftHiveMetastoreClient::add_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file, const std::vector<SFile> & origin_file)
@@ -32041,38 +32041,38 @@ void ThriftHiveMetastoreProcessor::process_add_subpartition(int32_t seqid, ::apa
   }
 }
 
-void ThriftHiveMetastoreProcessor::process_subpartition(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
+void ThriftHiveMetastoreProcessor::process_get_subpartitions(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
 {
   void* ctx = NULL;
   if (this->eventHandler_.get() != NULL) {
-    ctx = this->eventHandler_->getContext("ThriftHiveMetastore.subpartition", callContext);
+    ctx = this->eventHandler_->getContext("ThriftHiveMetastore.get_subpartitions", callContext);
   }
-  ::apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "ThriftHiveMetastore.subpartition");
+  ::apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "ThriftHiveMetastore.get_subpartitions");
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preRead(ctx, "ThriftHiveMetastore.subpartition");
+    this->eventHandler_->preRead(ctx, "ThriftHiveMetastore.get_subpartitions");
   }
 
-  ThriftHiveMetastore_subpartition_args args;
+  ThriftHiveMetastore_get_subpartitions_args args;
   args.read(iprot);
   iprot->readMessageEnd();
   uint32_t bytes = iprot->getTransport()->readEnd();
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postRead(ctx, "ThriftHiveMetastore.subpartition", bytes);
+    this->eventHandler_->postRead(ctx, "ThriftHiveMetastore.get_subpartitions", bytes);
   }
 
-  ThriftHiveMetastore_subpartition_result result;
+  ThriftHiveMetastore_get_subpartitions_result result;
   try {
-    iface_->subpartition(result.success, args.dbname, args.tbl_name, args.part);
+    iface_->get_subpartitions(result.success, args.dbname, args.tbl_name, args.part);
     result.__isset.success = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
-      this->eventHandler_->handlerError(ctx, "ThriftHiveMetastore.subpartition");
+      this->eventHandler_->handlerError(ctx, "ThriftHiveMetastore.get_subpartitions");
     }
 
     ::apache::thrift::TApplicationException x(e.what());
-    oprot->writeMessageBegin("subpartition", ::apache::thrift::protocol::T_EXCEPTION, seqid);
+    oprot->writeMessageBegin("get_subpartitions", ::apache::thrift::protocol::T_EXCEPTION, seqid);
     x.write(oprot);
     oprot->writeMessageEnd();
     oprot->getTransport()->writeEnd();
@@ -32081,17 +32081,17 @@ void ThriftHiveMetastoreProcessor::process_subpartition(int32_t seqid, ::apache:
   }
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preWrite(ctx, "ThriftHiveMetastore.subpartition");
+    this->eventHandler_->preWrite(ctx, "ThriftHiveMetastore.get_subpartitions");
   }
 
-  oprot->writeMessageBegin("subpartition", ::apache::thrift::protocol::T_REPLY, seqid);
+  oprot->writeMessageBegin("get_subpartitions", ::apache::thrift::protocol::T_REPLY, seqid);
   result.write(oprot);
   oprot->writeMessageEnd();
   bytes = oprot->getTransport()->writeEnd();
   oprot->getTransport()->flush();
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postWrite(ctx, "ThriftHiveMetastore.subpartition", bytes);
+    this->eventHandler_->postWrite(ctx, "ThriftHiveMetastore.get_subpartitions", bytes);
   }
 }
 
