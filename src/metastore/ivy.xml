@@ -63,6 +63,8 @@
 
     <dependency org="asm" name="asm" rev="${asm.version}"/>
 
+    <dependency org="org.json" name="json" rev="${json.version}"/>
+
     <!-- Test Dependencies -->
     <dependency org="junit" name="junit" rev="${junit.version}" conf="test->default" />
 
