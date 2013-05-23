@@ -2089,7 +2089,7 @@ public class MegaStruct implements org.apache.thrift.TBase<MegaStruct, MegaStruc
                 for (int _i1 = 0; _i1 < _map0.size; ++_i1)
                 {
                   String _key2; // required
-                  String _val3; // required
+                  String _val3; // optional
                   _key2 = iprot.readString();
                   _val3 = iprot.readString();
                   struct.my_string_string_map.put(_key2, _val3);
@@ -2109,7 +2109,7 @@ public class MegaStruct implements org.apache.thrift.TBase<MegaStruct, MegaStruc
                 for (int _i5 = 0; _i5 < _map4.size; ++_i5)
                 {
                   String _key6; // required
-                  MyEnum _val7; // required
+                  MyEnum _val7; // optional
                   _key6 = iprot.readString();
                   _val7 = MyEnum.findByValue(iprot.readI32());
                   struct.my_string_enum_map.put(_key6, _val7);
@@ -2129,7 +2129,7 @@ public class MegaStruct implements org.apache.thrift.TBase<MegaStruct, MegaStruc
                 for (int _i9 = 0; _i9 < _map8.size; ++_i9)
                 {
                   MyEnum _key10; // required
-                  String _val11; // required
+                  String _val11; // optional
                   _key10 = MyEnum.findByValue(iprot.readI32());
                   _val11 = iprot.readString();
                   struct.my_enum_string_map.put(_key10, _val11);

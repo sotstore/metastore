@@ -18,13 +18,8 @@
 
 package org.apache.hadoop.hive.ql.parse;
 
-import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_CASCADE;
-import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_DATABASECOMMENT;
 import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_DATABASELOCATION;
 import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_DATABASEPROPERTIES;
-import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_IFEXISTS;
-import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_IFNOTEXISTS;
-import static org.apache.hadoop.hive.ql.parse.HiveParser.TOK_SHOWDATABASES;
 
 import java.io.Serializable;
 import java.net.URI;
@@ -121,6 +116,7 @@ import org.apache.hadoop.hive.ql.plan.StatsWork;
 import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.TableDesc;
 import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
+import org.apache.hadoop.hive.ql.plan.UserDDLDesc;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
 import org.apache.hadoop.hive.ql.security.authorization.PrivilegeRegistry;
 import org.apache.hadoop.hive.ql.session.SessionState;
@@ -392,10 +388,101 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     case HiveParser.TOK_ALTERTABLE_SKEWED:
       analyzeAltertableSkewedby(ast);
       break;
+    //added by liulichao for authentification and authorization, begin.
+    case HiveParser.TOK_CREATEUSER:
+        analyzeCreateUser(ast);
+    break;
+    case HiveParser.TOK_AUTHENTICATION:
+        analyzeAuthenticateUser(ast);
+    break;
+    case HiveParser.TOK_DROPUSER:
+        analyzeDropUser(ast);
+    break;
+    case HiveParser.TOK_SHOW_USERNAMES:
+        ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+        analyzeShowUserName(ast);
+    break;
+    case HiveParser.TOK_CHANGE_PWD:
+        analyzeChangePassword(ast);
+    break;
+    //added by liulichao for authentification and authorization, end.
     default:
       throw new SemanticException("Unsupported command.");
     }
   }
+
+//added by liulichao
+private void analyzeChangePassword(ASTNode ast) {
+    String userName = null;
+    String passwd = null;
+
+    SessionState ss = SessionState.get();
+    if (ast.getChildCount() == 1) {
+      userName = ss.getAuthenticator().getUserName();
+      passwd = unescapeIdentifier(ast.getChild(0).getText());
+      LOG.info("getChildCount=1");
+    } else if (ast.getChildCount() == 2) {
+      userName = unescapeIdentifier(ast.getChild(0).getText());
+      passwd = unescapeIdentifier(ast.getChild(1).getText());
+      LOG.info("getChildCount=2");
+    } else {
+      //can't be here, do nothing.
+      LOG.info("getChildCount=*");
+    }
+
+    for(int i = 0; i < ast.getChildCount(); i++) {
+      LOG.info("child(i)="+ast.getChild(0).getText());
+    }
+
+    UserDDLDesc chgUserPwdDesc = new UserDDLDesc(userName, passwd,
+        UserDDLDesc.UserOperation.CHANGE_PWD);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        chgUserPwdDesc), conf));
+}
+
+private void analyzeShowUserName(ASTNode ast) {
+    UserDDLDesc showUserNamesDesc = new UserDDLDesc(null,
+        UserDDLDesc.UserOperation.SHOW_USER_NAME, ctx.getResFile().toString());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showUserNamesDesc), conf));
+
+    setFetchTask(createFetchTask(showUserNamesDesc.getSchema()));
+}
+
+private void analyzeDropUser(ASTNode ast) {
+    String userName = unescapeIdentifier(ast.getChild(0).getText());
+    UserDDLDesc dropUserDesc = new UserDDLDesc(userName,
+        UserDDLDesc.UserOperation.DROP_USER);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        dropUserDesc), conf));
+}
+
+private void analyzeAuthenticateUser(ASTNode ast) {
+    String userName = unescapeIdentifier(ast.getChild(0).getText());
+    String passwd = unescapeIdentifier(ast.getChild(1).getText());
+    UserDDLDesc authUserDesc = new UserDDLDesc(userName, passwd,
+        UserDDLDesc.UserOperation.AUTH_USER);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        authUserDesc), conf));
+}
+
+private void analyzeCreateUser(ASTNode ast) {
+    LOG.info("DDL.analyzeCreateUser");
+    String userName = unescapeIdentifier(ast.getChild(0).getText());
+    String passwd = unescapeIdentifier(ast.getChild(1).getText());
+
+    String userOwnerName = "";
+    if (SessionState.get() != null
+        && SessionState.get().getAuthenticator() != null) {
+      userOwnerName = SessionState.get().getAuthenticator().getUserName();
+    }
+
+    UserDDLDesc createUserDesc = new UserDDLDesc(userName, passwd, userOwnerName,
+        UserDDLDesc.UserOperation.CREATE_USER);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        createUserDesc), conf));
+}
+//added by liulichao
 
   private void analyzeGrantRevokeRole(boolean grant, ASTNode ast) {
     List<PrincipalDesc> principalDesc = analyzePrincipalListDef(

@@ -84,6 +84,11 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  ColumnStatistics get_partition_column_statistics(string db_name, string tbl_name, string part_name, string col_name)'
   print '  bool delete_partition_column_statistics(string db_name, string tbl_name, string part_name, string col_name)'
   print '  bool delete_table_column_statistics(string db_name, string tbl_name, string col_name)'
+  print '  bool create_user(User user)'
+  print '  bool drop_user(string user_name)'
+  print '  bool setPasswd(string user_name, string passwd)'
+  print '   list_users_names()'
+  print '  bool authentication(string user_name, string passwd)'
   print '  bool create_role(Role role)'
   print '  bool drop_role(string role_name)'
   print '   get_role_names()'
@@ -98,12 +103,17 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  string get_delegation_token(string token_owner, string renewer_kerberos_principal_name)'
   print '  i64 renew_delegation_token(string token_str_form)'
   print '  void cancel_delegation_token(string token_str_form)'
-  print '  SFile create_file(string node_name, i32 repnr, string table_name)'
+  print '  SFile create_file(string node_name, i32 repnr, i64 table_id)'
   print '  i32 close_file(SFile file)'
   print '  SFile get_file_by_id(i64 fid)'
   print '  i32 rm_file_logical(SFile file)'
   print '  i32 restore_file(SFile file)'
   print '  i32 rm_file_physical(SFile file)'
+  print '  Node get_node(string node_name)'
+  print '  Node add_node(string node_name,  ipl)'
+  print '  i32 del_node(string node_name)'
+  print '  Node alter_node(string node_name,  ipl, i32 status)'
+  print '   find_best_nodes(i32 nr)'
   print ''
   sys.exit(0)
 
@@ -521,6 +531,36 @@ elif cmd == 'delete_table_column_statistics':
     sys.exit(1)
   pp.pprint(client.delete_table_column_statistics(args[0],args[1],args[2],))
 
+elif cmd == 'create_user':
+  if len(args) != 1:
+    print 'create_user requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.create_user(eval(args[0]),))
+
+elif cmd == 'drop_user':
+  if len(args) != 1:
+    print 'drop_user requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.drop_user(args[0],))
+
+elif cmd == 'setPasswd':
+  if len(args) != 2:
+    print 'setPasswd requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.setPasswd(args[0],args[1],))
+
+elif cmd == 'list_users_names':
+  if len(args) != 0:
+    print 'list_users_names requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.list_users_names())
+
+elif cmd == 'authentication':
+  if len(args) != 2:
+    print 'authentication requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.authentication(args[0],args[1],))
+
 elif cmd == 'create_role':
   if len(args) != 1:
     print 'create_role requires 1 args'
@@ -609,7 +649,7 @@ elif cmd == 'create_file':
   if len(args) != 3:
     print 'create_file requires 3 args'
     sys.exit(1)
-  pp.pprint(client.create_file(args[0],eval(args[1]),args[2],))
+  pp.pprint(client.create_file(args[0],eval(args[1]),eval(args[2]),))
 
 elif cmd == 'close_file':
   if len(args) != 1:
@@ -640,6 +680,36 @@ elif cmd == 'rm_file_physical':
     print 'rm_file_physical requires 1 args'
     sys.exit(1)
   pp.pprint(client.rm_file_physical(eval(args[0]),))
+
+elif cmd == 'get_node':
+  if len(args) != 1:
+    print 'get_node requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.get_node(args[0],))
+
+elif cmd == 'add_node':
+  if len(args) != 2:
+    print 'add_node requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.add_node(args[0],eval(args[1]),))
+
+elif cmd == 'del_node':
+  if len(args) != 1:
+    print 'del_node requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.del_node(args[0],))
+
+elif cmd == 'alter_node':
+  if len(args) != 3:
+    print 'alter_node requires 3 args'
+    sys.exit(1)
+  pp.pprint(client.alter_node(args[0],eval(args[1]),eval(args[2]),))
+
+elif cmd == 'find_best_nodes':
+  if len(args) != 1:
+    print 'find_best_nodes requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.find_best_nodes(eval(args[0]),))
 
 else:
   print 'Unrecognized method %s' % cmd

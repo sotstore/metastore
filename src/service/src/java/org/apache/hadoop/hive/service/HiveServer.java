@@ -27,22 +27,25 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.hive.common.ServerUtils;
 import org.apache.hadoop.hive.common.LogUtils;
 import org.apache.hadoop.hive.common.LogUtils.LogInitializationException;
+import org.apache.hadoop.hive.common.ServerUtils;
 import org.apache.hadoop.hive.common.cli.CommonCliOptions;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStore;
+import org.apache.hadoop.hive.metastore.TServerSocketKeepAlive;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Schema;
-import org.apache.hadoop.hive.metastore.TServerSocketKeepAlive;
+import org.apache.hadoop.hive.metastore.model.MUser;
 import org.apache.hadoop.hive.ql.CommandNeedRetryException;
 import org.apache.hadoop.hive.ql.Driver;
 import org.apache.hadoop.hive.ql.plan.api.QueryPlan;
@@ -62,8 +65,7 @@ import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+
 import com.facebook.fb303.fb_status;
 
 /**
@@ -112,6 +114,9 @@ public class HiveServer extends ThriftHive {
     private boolean isHiveQuery;
 
     public static final Log LOG = LogFactory.getLog(HiveServer.class.getName());
+
+    private HashMap<String, Integer> authedSessions = null;
+    private final Random generator = new Random(13455137);
 
     /**
      * Construct a new handler.
@@ -168,57 +173,7 @@ public class HiveServer extends ThriftHive {
      *          HiveQL query to execute
      */
     public void execute(String cmd) throws HiveServerException, TException {
-      HiveServerHandler.LOG.info("Running the query: " + cmd);
-      SessionState session = SessionState.get();
-
-      String cmd_trimmed = cmd.trim();
-      String[] tokens = cmd_trimmed.split("\\s");
-      String cmd_1 = cmd_trimmed.substring(tokens[0].length()).trim();
-
-      int ret = 0;
-      String errorMessage = "";
-      String SQLState = null;
-
-      try {
-        // Close the existing driver object (CommandProcessor) before creating
-        // the new driver (CommandProcessor) object to clean-up the resources
-        if (driver != null) {
-          driver.close();
-          driver = null;
-        }
-        CommandProcessor proc = CommandProcessorFactory.get(tokens[0]);
-        if (proc != null) {
-          if (proc instanceof Driver) {
-            isHiveQuery = true;
-            driver = (Driver) proc;
-            // In Hive server mode, we are not able to retry in the FetchTask
-            // case, when calling fetch quueries since execute() has returned.
-            // For now, we disable the test attempts.
-            driver.setTryCount(Integer.MAX_VALUE);
-            response = driver.run(cmd);
-          } else {
-            isHiveQuery = false;
-            driver = null;
-            // need to reset output for each non-Hive query
-            setupSessionIO(session);
-            response = proc.run(cmd_1);
-          }
-
-          ret = response.getResponseCode();
-          SQLState = response.getSQLState();
-          errorMessage = response.getErrorMessage();
-        }
-      } catch (Exception e) {
-        HiveServerException ex = new HiveServerException();
-        ex.setMessage("Error running query: " + e.toString());
-        ex.setErrorCode(ret == 0? -10000: ret);
-        throw ex;
-      }
-
-      if (ret != 0) {
-        throw new HiveServerException("Query returned non-zero code: " + ret
-            + ", cause: " + errorMessage, ret, SQLState);
-      }
+      execute2(cmd,"root",1);
     }
 
     /**
@@ -537,6 +492,102 @@ public class HiveServer extends ThriftHive {
       return qp;
     }
 
+    @Override
+    /*
+     * return token, valid; -1, invalid
+     *
+     */
+    public int doAuth(String user, String password) throws HiveServerException, TException {
+      boolean ret = false;
+      try {
+
+        if (user.equals("root")) {
+          MUser nameCheck = getMS().getMUser(user);
+          if (nameCheck == null ) {
+            getMS().addUser("root", password, "root");//default design, the first root and pwd is the default properties of user root.
+          }
+        }
+
+        password = "'" + password + "'";
+        ret = this.authentication(user, password);//true then ret = 0; authenticated user.
+        if (ret == false) {
+          LOG.info(user+ "with pwd='"+ password+ "' is invalid!");
+          return -1;
+        } else {
+          LOG.info(user+ "with pwd='"+ password+ "' is valid.");
+        }
+
+      } catch (Exception e) {
+        e.printStackTrace();
+        return -1;
+      }
+
+      int token;
+      // if internal auth success, insert <current user,seed> pair to hashmap
+      if (authedSessions == null) {
+        authedSessions = new HashMap<String, Integer>();
+      }
+      token = generator.nextInt();
+      if (token < 0) {
+        token = -token;
+      }
+      authedSessions.put(user, new Integer(token));
+
+      return token;
+    }
+
+    @Override
+    public void execute2(String query, String user, int token) throws HiveServerException,
+        TException {
+      // TODO Auto-generated method stub
+      //authedSessions.get(user) == token, check
+      HiveServerHandler.LOG.info("Running the query: " + query);
+      SessionState session = SessionState.get();
+      session.setUser(user);
+
+      String cmd_trimmed = query.trim();
+      String[] tokens = cmd_trimmed.split("\\s");
+      String cmd_1 = cmd_trimmed.substring(tokens[0].length()).trim();
+
+      int ret = 0;
+      String errorMessage = "";
+      String SQLState = null;
+
+      try {
+        CommandProcessor proc = CommandProcessorFactory.get(tokens[0]);
+        if (proc != null) {
+          if (proc instanceof Driver) {
+            isHiveQuery = true;
+            driver = (Driver) proc;
+            // In Hive server mode, we are not able to retry in the FetchTask
+            // case, when calling fetch quueries since execute() has returned.
+            // For now, we disable the test attempts.
+            driver.setTryCount(Integer.MAX_VALUE);
+            response = driver.run(query);
+          } else {
+            isHiveQuery = false;
+            driver = null;
+            // need to reset output for each non-Hive query
+            setupSessionIO(session);
+            response = proc.run(cmd_1);
+          }
+
+          ret = response.getResponseCode();
+          SQLState = response.getSQLState();
+          errorMessage = response.getErrorMessage();
+        }
+      } catch (Exception e) {
+        HiveServerException ex = new HiveServerException();
+        ex.setMessage("Error running query: " + e.toString());
+        ex.setErrorCode(ret == 0? -10000: ret);
+        throw ex;
+      }
+
+      if (ret != 0) {
+        throw new HiveServerException("Query returned non-zero code: " + ret
+            + ", cause: " + errorMessage, ret, SQLState);
+      }
+    }
   }
 
   /**

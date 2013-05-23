@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.ql.metadata.Hive;
@@ -87,6 +88,13 @@ public interface MetaDataFormatter {
      */
     public void showTables(DataOutputStream out, Set<String> tables)
         throws HiveException;
+
+    /**
+     * Show a list of userNames. added by liulichao
+     */
+    public void showUserNames(DataOutputStream out, Set<String> tables)
+        throws HiveException;
+
 
     /**
      * Describe table.

@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
 import java.util.Timer;
 import java.util.regex.Pattern;
@@ -54,6 +55,7 @@ import org.apache.hadoop.hive.common.cli.CommonCliOptions;
 import org.apache.hadoop.hive.common.metrics.Metrics;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
+import org.apache.hadoop.hive.metastore.DiskManager.DMRequest;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
@@ -61,6 +63,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
+import org.apache.hadoop.hive.metastore.api.FOFailReason;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -74,6 +77,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
@@ -82,12 +86,14 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
 import org.apache.hadoop.hive.metastore.events.AddPartitionEvent;
 import org.apache.hadoop.hive.metastore.events.AlterPartitionEvent;
@@ -111,6 +117,7 @@ import org.apache.hadoop.hive.metastore.events.PreEventContext;
 import org.apache.hadoop.hive.metastore.events.PreLoadPartitionDoneEvent;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
+import org.apache.hadoop.hive.metastore.model.MNode.NodeStatus;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MPartitionPrivilege;
 import org.apache.hadoop.hive.metastore.model.MRole;
@@ -172,9 +179,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
   }
 
+  public static DiskManager dm = null;
+  public static Random rand = new Random();
+
   public static class HMSHandler extends FacebookBase implements
       IHMSHandler {
     public static final Log LOG = HiveMetaStore.LOG;
+
     private static boolean createDefaultDB = false;
     private String rawStoreClassName;
     private final HiveConf hiveConf; // stores datastore (jpox) properties,
@@ -3999,42 +4010,296 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public SFile create_file(String node_name, int repnr, String table_name)
+    public SFile create_file(String node_name, int repnr, long table_id)
         throws FileOperationException, TException {
-      // TODO Auto-generated method stub
-      return null;
+
+      if (node_name == null) {
+        // this means we should select Best Available Node and Best Available Device;
+        try {
+          node_name = dm.findBestNode();
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+          throw new FileOperationException("Can not find any Best Available Node now, please retry", FOFailReason.SAFEMODE);
+        }
+      }
+
+      SFile cfile = null;
+
+      // Step 1: find best device to put a file
+      if (dm == null) {
+        return null;
+      }
+      try {
+        String devid = dm.findBestDevice(node_name);
+        String table_name = null;
+
+        // try to parse table_name
+        if (table_id >= 0) {
+          Table tbl;
+          try {
+            tbl = getMS().getTableByID(table_id);
+          } catch (MetaException me) {
+            throw new FileOperationException("Invalid Table ID:" + table_id, FOFailReason.INVALID_TABLE);
+          }
+          table_name = tbl.getDbName() + "/" + tbl.getTableName();
+        }
+
+        // how to convert table_name to tbl_id?
+        cfile = new SFile(0, table_id, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
+            "SFILE_DEFALUT", 0, 0, null);
+        getMS().createFile(cfile);
+        cfile = getMS().getSFile(cfile.getFid());
+
+        do {
+          String location = "/data/";
+
+          if (table_name == null) {
+            location += "UNNAMED-DB/UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
+          } else {
+            location += table_name + "/" + rand.nextInt(Integer.MAX_VALUE);
+          }
+          SFileLocation sfloc = new SFileLocation(node_name, cfile.getFid(), devid, location, 0, System.currentTimeMillis(),
+              MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_DEFAULT");
+          if (!getMS().createFileLocation(sfloc)) {
+            continue;
+          }
+          List<SFileLocation> sfloclist = new ArrayList<SFileLocation>();
+          sfloclist.add(sfloc);
+          cfile.setLocations(sfloclist);
+          break;
+        } while (true);
+      } catch (IOException e) {
+        throw new FileOperationException("System might in Safe Mode, please wait ...", FOFailReason.SAFEMODE);
+      }
+
+      return cfile;
     }
 
     @Override
     public int close_file(SFile file) throws FileOperationException, MetaException, TException {
-      // TODO Auto-generated method stub
+      SFile saved = getMS().getSFile(file.getFid());
+      if (saved == null) {
+        throw new FileOperationException("Can not find SFile by FID" + file.getFid(), FOFailReason.INVALID_FILE);
+      }
+
+      if (saved.getStore_status() != MetaStoreConst.MFileStoreStatus.INCREATE) {
+        throw new FileOperationException("File StoreStatus is not in INCREATE (vs " + saved.getStore_status() + ").",
+            FOFailReason.INVALID_STATE);
+      }
+
+      file.setStore_status(MetaStoreConst.MFileStoreStatus.CLOSED);
+      // keep repnr unchanged
+      file.setRep_nr(saved.getRep_nr());
+      getMS().updateSFile(file);
+
+      SFileLocation sfl = file.getLocations().get(0);
+      assert sfl != null;
+      sfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
+      sfl.setDigest(file.getDigest());
+      getMS().updateSFileLocation(sfl);
+
+      synchronized (dm.repQ) {
+        dm.repQ.add(new DMRequest(file, DMRequest.DMROperation.REPLICATE, 1));
+        dm.repQ.notify();
+      }
       return 0;
     }
 
     @Override
     public SFile get_file_by_id(long fid) throws FileOperationException, MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      SFile r = getMS().getSFile(fid);
+      if (r == null) {
+        throw new FileOperationException("Can not find SFile by FID " + fid, FOFailReason.INVALID_FILE);
+      }
+
+      switch (r.getStore_status()) {
+      case MetaStoreConst.MFileStoreStatus.RM_LOGICAL:
+      case MetaStoreConst.MFileStoreStatus.RM_PHYSICAL:
+        break;
+      default:
+        r.setLocations(getMS().getSFileLocations(fid));
+      }
+      return r;
     }
 
     @Override
     public int rm_file_logical(SFile file) throws FileOperationException, MetaException, TException {
-      // TODO Auto-generated method stub
+      SFile saved = getMS().getSFile(file.getFid());
+      if (saved == null) {
+        throw new FileOperationException("Can not find SFile by FID" + file.getFid(), FOFailReason.INVALID_FILE);
+      }
+
+      // only in REPLICATED state can step into RM_LOGICAL
+      if (saved.getStore_status() != MetaStoreConst.MFileStoreStatus.REPLICATED) {
+        throw new FileOperationException("File StoreStatus is not in REPLICATED.", FOFailReason.INVALID_STATE);
+      }
+      saved.setStore_status(MetaStoreConst.MFileStoreStatus.RM_LOGICAL);
+      getMS().updateSFile(saved);
       return 0;
     }
 
     @Override
     public int restore_file(SFile file) throws FileOperationException, MetaException, TException {
-      // TODO Auto-generated method stub
+      SFile saved = getMS().getSFile(file.getFid());
+      if (saved == null) {
+        throw new FileOperationException("Can not find SFile by FID" + file.getFid(), FOFailReason.INVALID_FILE);
+      }
+
+      if (saved.getStore_status() != MetaStoreConst.MFileStoreStatus.RM_LOGICAL) {
+        throw new FileOperationException("File StoreStatus is not in RM_LOGICAL.", FOFailReason.INVALID_STATE);
+      }
+      saved.setStore_status(MetaStoreConst.MFileStoreStatus.REPLICATED);
+      getMS().updateSFile(saved);
       return 0;
     }
 
     @Override
     public int rm_file_physical(SFile file) throws FileOperationException, MetaException,
         TException {
-      // TODO Auto-generated method stub
+      SFile saved = getMS().getSFile(file.getFid());
+      if (saved == null) {
+        throw new FileOperationException("Can not find SFile by FID" + file.getFid(), FOFailReason.INVALID_FILE);
+      }
+
+      if (!(saved.getStore_status() == MetaStoreConst.MFileStoreStatus.INCREATE ||
+          saved.getStore_status() == MetaStoreConst.MFileStoreStatus.REPLICATED ||
+          saved.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_LOGICAL)) {
+        throw new FileOperationException("File StoreStatus is not in INCREATE/REPLICATED/RM_LOGICAL.", FOFailReason.INVALID_STATE);
+      }
+      saved.setStore_status(MetaStoreConst.MFileStoreStatus.RM_PHYSICAL);
+      file = getMS().updateSFile(saved);
+      file.setLocations(getMS().getSFileLocations(file.getFid()));
+      synchronized (dm.cleanQ) {
+        dm.cleanQ.add(new DMRequest(file, DMRequest.DMROperation.RM_PHYSICAL, 0));
+        dm.cleanQ.notify();
+      }
       return 0;
     }
+
+    @Override
+    public Node add_node(String node_name, List<String> ipl) throws MetaException, TException {
+      Node node = new Node(node_name, ipl, NodeStatus.ONLINE);
+      getMS().createNode(node);
+      return node;
+    }
+
+    @Override
+    public int del_node(String node_name) throws MetaException, TException {
+      if (getMS().delNode(node_name)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+
+    @Override
+    public Node alter_node(String node_name, List<String> ipl, int status) throws MetaException,
+        TException {
+      Node node = new Node(node_name, ipl, status);
+      if (getMS().updateNode(node)) {
+        return node;
+      } else {
+        return null;
+      }
+    }
+
+    @Override
+    public Node get_node(String node_name) throws MetaException, TException {
+      return getMS().getNode(node_name);
+    }
+
+    @Override
+    public List<Node> find_best_nodes(int nr) throws MetaException, TException {
+      try {
+        return dm.findBestNodes(nr);
+      } catch (IOException e) {
+        throw new MetaException(e.getMessage());
+      }
+    }
+
+  //added by liulichao
+    @Override
+  public boolean create_user(User user) throws MetaException,
+      InvalidObjectException, TException {
+        incrementCounter("create_user");
+
+        Boolean ret = null;
+        try {
+//          LOG.info("create user start, HiveMetaStore.");
+          ret = getMS().addUser(user.getUserName(), user.getPassword(), user.getOwnerName());
+//          LOG.info("create user end, HiveMetaStore.");
+        } catch (InvalidObjectException e) {
+          throw e;
+        } catch (MetaException e) {
+          throw e;
+        }
+        return ret;
+  }
+
+  @Override
+  public boolean drop_user(String user_name) throws NoSuchObjectException,
+      MetaException, TException {
+        incrementCounter("drop_user");
+
+        Boolean ret = null;
+        try {
+          ret = getMS().removeUser(user_name);
+        } catch (NoSuchObjectException e) {
+          throw e;
+        } catch (MetaException e) {
+          throw e;
+        }
+        return ret;
+  }
+
+  @Override
+  public boolean setPasswd(String user_name, String passwd)
+      throws NoSuchObjectException, MetaException, TException {
+        incrementCounter("setPassword");
+
+        try {
+         return getMS().setPasswd(user_name, passwd);
+        } catch (NoSuchObjectException e) {
+          throw e;
+        } catch (MetaException e) {
+          throw e;
+        }
+  }
+
+  @Override
+  public List<String> list_users_names() {
+      incrementCounter("list_users_names");
+
+    List<String> ret = null;
+      try {
+      ret = getMS().listUsersNames();
+    } catch (MetaException e) {
+      e.printStackTrace();
+    }
+
+      return ret;
+  }
+
+  @Override
+  /*
+   * valid, return 1; or, 0.
+   */
+  public boolean authentication(String user_name, String passwd)
+      throws NoSuchObjectException, MetaException, TException {
+        incrementCounter("user_authentication");
+
+        Boolean ret = null;
+        try {
+          ret = getMS().authentication(user_name, passwd);
+        } catch (NoSuchObjectException e) {
+          throw e;
+        } catch (MetaException e) {
+          throw e;
+        }
+    return ret;
+  }
+   //added by liulichao
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {
@@ -4175,7 +4440,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
       });
 
-      DiskManager dm = new DiskManager(new HiveConf(DiskManager.class), HMSHandler.LOG);
+      dm = new DiskManager(new HiveConf(DiskManager.class), HMSHandler.LOG);
       startMetaStore(cli.port, ShimLoader.getHadoopThriftAuthBridge(), conf);
     } catch (Throwable t) {
       // Catch the exception, log it and rethrow it.

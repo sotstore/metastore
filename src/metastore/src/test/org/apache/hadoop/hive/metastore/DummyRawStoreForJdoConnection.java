@@ -25,6 +25,7 @@ import junit.framework.Assert;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -40,6 +41,8 @@ import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
+import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
@@ -560,6 +563,111 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   public Node findNode(String ip) throws MetaException {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public void createOrUpdateDevice(DeviceInfo di, Node node) throws InvalidObjectException,
+      MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void createNode(Node node) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public boolean updateNode(Node node) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public long countNode() throws MetaException {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  public void createFile(SFile file) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public SFile getSFile(long fid) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean delNode(String node_name) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public Table getTableByID(long id) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public long getTableOID(String dbName, String tableName) throws MetaException {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  public SFile updateSFile(SFile newfile) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean createFileLocation(SFileLocation location) throws InvalidObjectException,
+      MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public Node getNode(String node_name) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean delSFile(long fid) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public List<SFileLocation> getSFileLocations(long fid) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public SFileLocation getSFileLocation(String node, String devid, String location)
+      throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public SFileLocation updateSFileLocation(SFileLocation newsfl) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean delSFileLocation(String node, String devid, String location) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
   }
 }
 

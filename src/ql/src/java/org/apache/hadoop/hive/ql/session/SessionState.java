@@ -133,6 +133,16 @@ public class SessionState {
    */
   LineageState ls;
 
+  private String user;          //added by liulichao
+
+  public String getUser() {
+    return user;
+  }
+
+  public void setUser(String user) {
+    this.user = user;
+  }
+
   /**
    * Get the lineage state stored in this session.
    *

@@ -70,6 +70,11 @@ public enum HiveOperation {
   ALTERVIEW_PROPERTIES("ALTERVIEW_PROPERTIES", null, null),
   LOCKTABLE("LOCKTABLE",  new Privilege[]{Privilege.LOCK}, null),
   UNLOCKTABLE("UNLOCKTABLE",  new Privilege[]{Privilege.LOCK}, null),
+  CREATEUSER("CREATEUSER", null, null),         //added by liulichao
+  DROPUSER("DROPUSER", null, null),             //added by liulichao
+  CHANGE_PWD("CHANGE_PWD", null, null),         //added by liulichao
+  AUTHENTICATION("AUTHENTICATION", null, null), //added by liulichao
+  SHOW_USERNAMES("SHOW_USERNAMES", null, null), //added by liulichao
   CREATEROLE("CREATEROLE", null, null),
   DROPROLE("DROPROLE", null, null),
   GRANT_PRIVILEGE("GRANT_PRIVILEGE", null, null),

@@ -77,6 +77,9 @@ enum FOFailReason {
   
   NOSPACE = 10,
   NOTEXIST = 11,
+  
+  SAFEMODE = 12,
+  INVALID_STATE = 13,
 }
 
 struct HiveObjectRef{
@@ -116,6 +119,14 @@ struct Role {
   1: string roleName,
   2: i32 createTime,
   3: string ownerName,
+}
+
+//struct User, added by liulichao for authentication
+struct User {  
+  1: string userName,
+  2: string password,
+  3: i64 createTime,
+  4: string ownerName
 }
 
 // namespace for tables
@@ -611,6 +622,18 @@ service ThriftHiveMetastore extends fb303.FacebookService
               (1:NoSuchObjectException o1, 2:MetaException o2, 3:InvalidObjectException o3,
                4:InvalidInputException o4)
 
+//authentication and authorization with user by liulichao, begin
+
+  bool create_user(1:User user) throws(1:InvalidObjectException o1, 2:MetaException o2)
+  bool drop_user(1:string user_name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
+  bool setPasswd(1:string user_name, 2:string passwd) throws(1:NoSuchObjectException o1, 2:MetaException o2)
+  list<string> list_users_names() throws(1:MetaException o1)
+  bool authentication(1:string user_name, 2:string passwd) throws(1:NoSuchObjectException o1, 2:MetaException o2) //authenticate the userName and passwd.
+
+//  list<string> get_user_grants(1:string user_name) throws(1:MetaException o1, 2:NoSuchObjectException o2) //if there is no user_name, then show all users' grants.
+
+  //authentication and authorization with user by liulichao, end  
+
   //authorization privileges
                        
   bool create_role(1:Role role) throws(1:MetaException o1)
@@ -648,7 +671,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   void cancel_delegation_token(1:string token_str_form) throws (1:MetaException o1)
   
   // method for file operations
-  SFile create_file(1:string node_name, 2:i32 repnr, 3:string table_name) throws (1:FileOperationException o1)
+  SFile create_file(1:string node_name, 2:i32 repnr, 3:i64 table_id) throws (1:FileOperationException o1)
   
   i32 close_file(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
   
@@ -659,6 +682,17 @@ service ThriftHiveMetastore extends fb303.FacebookService
   i32 restore_file(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
   
   i32 rm_file_physical(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
+  
+  // method for node operations
+  Node get_node(1:string node_name) throws (1:MetaException o1)
+  
+  Node add_node(1:string node_name, 2:list<string> ipl) throws (1:MetaException o1)
+  
+  i32 del_node(1:string node_name) throws (1:MetaException o1)
+  
+  Node alter_node(1:string node_name, 2:list<string> ipl, 3:i32 status) throws (1:MetaException o1)
+  
+  list<Node> find_best_nodes(1:i32 nr) throws (1:MetaException o1)
 }
 
 // * Note about the DDL_TIME: When creating or altering a table or a partition,

@@ -38,8 +38,10 @@ module FOFailReason
   INVALID_FILE = 3
   NOSPACE = 10
   NOTEXIST = 11
-  VALUE_MAP = {1 => "INVALID_NODE", 2 => "INVALID_TABLE", 3 => "INVALID_FILE", 10 => "NOSPACE", 11 => "NOTEXIST"}
-  VALID_VALUES = Set.new([INVALID_NODE, INVALID_TABLE, INVALID_FILE, NOSPACE, NOTEXIST]).freeze
+  SAFEMODE = 12
+  INVALID_STATE = 13
+  VALUE_MAP = {1 => "INVALID_NODE", 2 => "INVALID_TABLE", 3 => "INVALID_FILE", 10 => "NOSPACE", 11 => "NOTEXIST", 12 => "SAFEMODE", 13 => "INVALID_STATE"}
+  VALID_VALUES = Set.new([INVALID_NODE, INVALID_TABLE, INVALID_FILE, NOSPACE, NOTEXIST, SAFEMODE, INVALID_STATE]).freeze
 end
 
 class Version
@@ -226,6 +228,28 @@ class Role
   FIELDS = {
     ROLENAME => {:type => ::Thrift::Types::STRING, :name => 'roleName'},
     CREATETIME => {:type => ::Thrift::Types::I32, :name => 'createTime'},
+    OWNERNAME => {:type => ::Thrift::Types::STRING, :name => 'ownerName'}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
+class User
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  USERNAME = 1
+  PASSWORD = 2
+  CREATETIME = 3
+  OWNERNAME = 4
+
+  FIELDS = {
+    USERNAME => {:type => ::Thrift::Types::STRING, :name => 'userName'},
+    PASSWORD => {:type => ::Thrift::Types::STRING, :name => 'password'},
+    CREATETIME => {:type => ::Thrift::Types::I64, :name => 'createTime'},
     OWNERNAME => {:type => ::Thrift::Types::STRING, :name => 'ownerName'}
   }
 

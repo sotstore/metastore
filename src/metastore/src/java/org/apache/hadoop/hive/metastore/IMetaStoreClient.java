@@ -26,6 +26,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -35,16 +36,19 @@ import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
+import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.thrift.TException;
 
 /**
@@ -967,5 +971,68 @@ public interface IMetaStoreClient {
    */
   public void cancelDelegationToken(String tokenStrForm) throws MetaException, TException;
 
+  public SFile create_file(String node_name, int repnr, long table_id)
+      throws FileOperationException, TException;
 
+  public int close_file(SFile file) throws FileOperationException, TException;
+
+  public SFile get_file_by_id(long fid) throws FileOperationException, MetaException, TException;
+
+  public int rm_file_logical(SFile file) throws FileOperationException, MetaException, TException;
+
+  public int restore_file(SFile file) throws FileOperationException, MetaException, TException;
+
+  public int rm_file_physical(SFile file) throws FileOperationException, MetaException, TException;
+
+  public Node add_node(String node_name, List<String> ipl) throws MetaException, TException;
+
+  public Node get_node(String node_name) throws MetaException, TException;
+
+//authentication and authorization with user by liulichao, begin
+  /**
+   * @param user
+   * @return true on success
+   * @throws InvalidObjectException
+   * @throws MetaException
+   * @throws TException
+   */
+  public boolean create_user(User user) throws InvalidObjectException, MetaException, TException;
+
+  /**
+   * @param user_name
+   * @return true on success
+   * @throws NoSuchObjectException
+   * @throws MetaException
+   * @throws TException
+   */
+  public boolean drop_user(String user_name) throws NoSuchObjectException, MetaException, TException;
+
+  /**
+   * @param user_name
+   * @param passwd
+   * @throws NoSuchObjectException
+   * @throws MetaException
+   * @throws TException
+   */
+  public boolean setPasswd(String user_name, String passwd) throws NoSuchObjectException, MetaException, TException;
+
+  /**
+   * @return names of all users
+   * @throws MetaException
+   * @throws TException
+   */
+  //public List<String> list_users_names() throws MetaException, TException;
+
+  /**
+   * @param user_name
+   * @param passwd
+   * @return true on success
+   * @throws NoSuchObjectException
+   * @throws MetaException
+   * @throws TException
+   */
+  public boolean authentication(String user_name, String passwd) throws NoSuchObjectException, MetaException, TException;
+
+  public List<String> list_users_names() throws MetaException, TException;
+  //authentication and authorization with user by liulichao, end
 }

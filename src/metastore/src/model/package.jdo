@@ -889,6 +889,27 @@
       </field>
     </class>
     
+    <class name="MDataCenter" table="DataCenter" identity-type="datastore" detachable="true">
+      <index name="UniqueDC" unique="true">
+        <column name="DC_ID"/>
+        <column name="NAME"/>
+      </index>
+      
+      <datastore-identity>
+      	<column name="DC_ID"/>
+      </datastore-identity>
+      
+      <field name="name">
+      	<column name="NAME"/>
+      </field>
+      <field name="ms_ip">
+      	<column name="MS_IP"/>
+      </field>
+      <field name="ms_port">
+      	<column name="MS_PORT"/>
+      </field>
+    </class>
+    
     <class name="MDevice" table="DEVICES" identity-type="datastore" detachable="true">
       <index name="UniqueDevice" unique="true">
         <column name="DEV_ID"/>
@@ -975,5 +996,27 @@
       </field>
     </class>
 
+<!-- Added by : liulichao begin     -->
+     <class name="MUser" identity-type="datastore" table="USER" detachable="true">
+
+      <datastore-identity>
+        <column name="USER_ID"/>
+      </datastore-identity>
+      <field name="userName">
+        <column name="USER_NAME" length="16" jdbc-type="VARCHAR" allows-null="false"/>
+        <index name="UniqueUser" unique="true"/>
+      </field>
+      <field name="passwd">
+        <column name="PASSWD" length="64" jdbc-type="VARCHAR" allows-null="false"/>
+      </field>
+      <field name="createTime">
+        <column name="CREATE_TIME" jdbc-type="integer"/>
+      </field>
+      <field name="ownerName">
+        <column name="OWNER_NAME" length="128" jdbc-type="VARCHAR"/>
+      </field>
+
+      </class>
+      <!-- Added by : liulichao end     -->
   </package>
 </jdo>
