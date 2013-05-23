@@ -231,33 +231,35 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_subpartition_index failed: unknown result')
     end
 
-    def add_partition_index_files(index, part, file)
-      send_add_partition_index_files(index, part, file)
+    def add_partition_index_files(index, part, file, originfid)
+      send_add_partition_index_files(index, part, file, originfid)
       return recv_add_partition_index_files()
     end
 
-    def send_add_partition_index_files(index, part, file)
-      send_message('add_partition_index_files', Add_partition_index_files_args, :index => index, :part => part, :file => file)
+    def send_add_partition_index_files(index, part, file, originfid)
+      send_message('add_partition_index_files', Add_partition_index_files_args, :index => index, :part => part, :file => file, :originfid => originfid)
     end
 
     def recv_add_partition_index_files()
       result = receive_message(Add_partition_index_files_result)
       return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_partition_index_files failed: unknown result')
     end
 
-    def drop_partition_index_files(index, part, file)
-      send_drop_partition_index_files(index, part, file)
+    def drop_partition_index_files(index, part, file, originfid)
+      send_drop_partition_index_files(index, part, file, originfid)
       return recv_drop_partition_index_files()
     end
 
-    def send_drop_partition_index_files(index, part, file)
-      send_message('drop_partition_index_files', Drop_partition_index_files_args, :index => index, :part => part, :file => file)
+    def send_drop_partition_index_files(index, part, file, originfid)
+      send_message('drop_partition_index_files', Drop_partition_index_files_args, :index => index, :part => part, :file => file, :originfid => originfid)
     end
 
     def recv_drop_partition_index_files()
       result = receive_message(Drop_partition_index_files_result)
       return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_partition_index_files failed: unknown result')
     end
 
@@ -1871,14 +1873,22 @@ module ThriftHiveMetastore
     def process_add_partition_index_files(seqid, iprot, oprot)
       args = read_args(iprot, Add_partition_index_files_args)
       result = Add_partition_index_files_result.new()
-      result.success = @handler.add_partition_index_files(args.index, args.part, args.file)
+      begin
+        result.success = @handler.add_partition_index_files(args.index, args.part, args.file, args.originfid)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
       write_result(result, oprot, 'add_partition_index_files', seqid)
     end
 
     def process_drop_partition_index_files(seqid, iprot, oprot)
       args = read_args(iprot, Drop_partition_index_files_args)
       result = Drop_partition_index_files_result.new()
-      result.success = @handler.drop_partition_index_files(args.index, args.part, args.file)
+      begin
+        result.success = @handler.drop_partition_index_files(args.index, args.part, args.file, args.originfid)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
       write_result(result, oprot, 'drop_partition_index_files', seqid)
     end
 
@@ -3522,11 +3532,13 @@ module ThriftHiveMetastore
     INDEX = 1
     PART = 2
     FILE = 3
+    ORIGINFID = 4
 
     FIELDS = {
       INDEX => {:type => ::Thrift::Types::STRUCT, :name => 'index', :class => ::Index},
       PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition},
-      FILE => {:type => ::Thrift::Types::LIST, :name => 'file', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}}
+      FILE => {:type => ::Thrift::Types::LIST, :name => 'file', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}},
+      ORIGINFID => {:type => ::Thrift::Types::LIST, :name => 'originfid', :element => {:type => ::Thrift::Types::I64}}
     }
 
     def struct_fields; FIELDS; end
@@ -3540,9 +3552,11 @@ module ThriftHiveMetastore
   class Add_partition_index_files_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
+    O1 = 1
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'}
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end
@@ -3558,11 +3572,13 @@ module ThriftHiveMetastore
     INDEX = 1
     PART = 2
     FILE = 3
+    ORIGINFID = 4
 
     FIELDS = {
       INDEX => {:type => ::Thrift::Types::STRUCT, :name => 'index', :class => ::Index},
       PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition},
-      FILE => {:type => ::Thrift::Types::LIST, :name => 'file', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}}
+      FILE => {:type => ::Thrift::Types::LIST, :name => 'file', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}},
+      ORIGINFID => {:type => ::Thrift::Types::LIST, :name => 'originfid', :element => {:type => ::Thrift::Types::I64}}
     }
 
     def struct_fields; FIELDS; end
@@ -3576,9 +3592,11 @@ module ThriftHiveMetastore
   class Drop_partition_index_files_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
+    O1 = 1
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'}
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end

@@ -114,6 +114,7 @@ import org.apache.hadoop.hive.metastore.model.MPartition;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnStatistics;
 import org.apache.hadoop.hive.metastore.model.MPartitionEvent;
+import org.apache.hadoop.hive.metastore.model.MPartitionIndex;
 import org.apache.hadoop.hive.metastore.model.MPartitionPrivilege;
 import org.apache.hadoop.hive.metastore.model.MRole;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
@@ -803,6 +804,21 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
+  public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException {
+    MPartitionIndex mpi = new MPartitionIndex(convertToMIndex(index), convertToMPart(part, false));
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      pm.makePersistent(mpi);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+  }
+
   public void createNode(Node node) throws InvalidObjectException, MetaException {
     boolean commited = false;
 
@@ -1185,6 +1201,21 @@ public class ObjectStore implements RawStore, Configurable {
     return n;
   }
 
+  public MPartitionIndex getPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException {
+    boolean commited = false;
+    MPartitionIndex mpi = null;
+    try {
+      openTransaction();
+      mpi = getMPartitionIndex(convertToMIndex(index), convertToMPart(part, false));
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return mpi;
+  }
+
   public SFile getSFile(long fid) throws MetaException {
     boolean commited = false;
     SFile f = null;
@@ -1387,6 +1418,69 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     return md;
+  }
+
+  private MPartitionIndex getMPartitionIndex(MIndex index, MPartition part) {
+    MPartitionIndex mpi = null;
+    boolean commited = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MPartitionIndex.class, "this.index.indexName == indexName && this.partition.partitionName == partName");
+      query.declareParameters("java.lang.String indexName, java.lang.String partName");
+      query.setUnique(true);
+      mpi = (MPartitionIndex)query.execute(index.getIndexName(), part.getPartitionName());
+      pm.retrieve(mpi);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return mpi;
+  }
+
+  private List<MPartitionIndex> getMPartitionIndexByIndex(MIndex index) {
+    List<MPartitionIndex> mpil = new ArrayList<MPartitionIndex>();
+    boolean commited = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MPartitionIndex.class, "this.index.indexName == indexName");
+      query.declareParameters("java.lang.String indexName");
+      Collection allpis = (Collection)query.execute();
+      Iterator iter = allpis.iterator();
+      while (iter.hasNext()) {
+        MPartitionIndex p = (MPartitionIndex)iter.next();
+        mpil.add(p);
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return mpil;
+  }
+
+  private List<MPartitionIndex> getMPartitionIndexByPartition(MPartition part) {
+    List<MPartitionIndex> mpil = new ArrayList<MPartitionIndex>();
+    boolean commited = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MPartitionIndex.class, "this.partition.partitionName == partName");
+      query.declareParameters("java.lang.String partName");
+      Collection allpis = (Collection)query.execute();
+      Iterator iter = allpis.iterator();
+      while (iter.hasNext()) {
+        MPartitionIndex p = (MPartitionIndex)iter.next();
+        mpil.add(p);
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return mpil;
   }
 
   private MNode getMNode(String node_name) {

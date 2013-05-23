@@ -4319,28 +4319,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public boolean add_partition_index(Index index, Partition part) throws TException {
-      // TODO Auto-generated method stub
-      return false;
+      getMS().createPartitionIndex(index, part);
+      return true;
     }
 
     @Override
     public boolean drop_partition_index(Index index, Partition part) throws TException {
       // TODO Auto-generated method stub
       return false;
-    }
-
-    @Override
-    public int add_partition_index_files(Index index, Partition part, List<SFile> file)
-        throws TException {
-      // TODO Auto-generated method stub
-      return 0;
-    }
-
-    @Override
-    public int drop_partition_index_files(Index index, Partition part, List<SFile> file)
-        throws TException {
-      // TODO Auto-generated method stub
-      return 0;
     }
 
     @Override
@@ -4351,6 +4337,20 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public boolean drop_subpartition_index(Index index, Subpartition part) throws TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public boolean add_partition_index_files(Index index, Partition part, List<SFile> file,
+        List<Long> originfid) throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public boolean drop_partition_index_files(Index index, Partition part, List<SFile> file,
+        List<Long> originfid) throws MetaException, TException {
       // TODO Auto-generated method stub
       return false;
     }

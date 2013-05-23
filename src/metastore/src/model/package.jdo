@@ -1054,5 +1054,44 @@
       </field>
     </class>
     
+    <class name="MPartitionIndex" table="PARTITION_INDEX" identity-type="datastore" detachable="true">
+      <index name="UniquePartitionIndex" unique="true">
+        <column name="INDEX_ID"/>
+        <column name="PART_ID"/>
+      </index>
+      
+      <datastore-identity>
+        <column name="PART_INDEX_ID"/>
+      </datastore-identity>
+      
+      <field name="index">
+      	<column name="INDEX_ID"/>
+      </field>
+      <field name="partition">
+        <column name="PART_ID"/>
+      </field>
+    </class>
+    
+    <class name="MPartitionIndexStore" table="PARTITION_INDEX_STORE" identity-type="datastore" detachable="true">
+      <index name="UniquePartitionIndexStore" unique="true">
+        <column name="PART_INDEX_ID"/>
+        <column name="FILE_ID"/>
+      </index>
+      
+      <datastore-identity>
+        <column name="PART_INDEX_STORE_ID"/>
+      </datastore-identity>
+      
+      <field name="pi">
+      	<column name="PART_INDEX_ID"/>
+      </field>
+      <field name="indexFile">
+        <column name="FILE_ID"/>
+      </field>
+      <field name="originFid">
+      	<column name="FID"/>
+      </field>
+    </class>
+    
   </package>
 </jdo>
