@@ -39,6 +39,7 @@ import javax.security.auth.login.LoginException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
@@ -57,6 +58,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
@@ -64,12 +66,14 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -78,6 +82,7 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TMemoryBuffer;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
@@ -394,6 +399,130 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       transport.close();
     }
   }
+
+  /**
+   * Creates a partition ,added by zjw
+   *
+   * @param tbl
+   *          table for which partition needs to be created
+   * @param partSpec
+   *          partition keys and their values
+   * @param location
+   *          location of this partition
+   * @param partParams
+   *          partition parameters
+   * @return created partition object
+   * @throws HiveException
+   *           if table doesn't exist or partition already exists
+   */
+  public Partition createPartition(Table tbl, String partitionName, Map<String, String> partSpec) throws HiveException {
+     return this.createPartition(tbl, partitionName, partSpec, null, null, null, null, 0, null, null, null, null, null);
+  }
+
+  /**
+   * Creates a partition  ,added by zjw
+   *
+   * @param tbl
+   *          table for which partition needs to be created
+   * @param partSpec
+   *          partition keys and their values
+   * @param location
+   *          location of this partition
+   * @param partParams
+   *          partition parameters
+   * @param inputFormat the inputformat class
+   * @param outputFormat the outputformat class
+   * @param numBuckets the number of buckets
+   * @param cols the column schema
+   * @param serializationLib the serde class
+   * @param serdeParams the serde parameters
+   * @param bucketCols the bucketing columns
+   * @param sortCols sort columns and order
+   *
+   * @return created partition object
+   * @throws HiveException
+   *           if table doesn't exist or partition already exists
+   */
+  private Partition createPartition(Table tbl, String partitionName, Map<String, String> partSpec,
+      Path location, Map<String, String> partParams, String inputFormat, String outputFormat,
+      int numBuckets, List<FieldSchema> cols,
+      String serializationLib, Map<String, String> serdeParams,
+      List<String> bucketCols, List<Order> sortCols) throws HiveException {
+
+    org.apache.hadoop.hive.metastore.api.Partition partition = null;
+    List<String> pvals = new ArrayList<String>();
+    for (String val : partSpec.values()) {
+        pvals.add(val);
+    }
+
+    org.apache.hadoop.hive.metastore.api.Partition inPart = new org.apache.hadoop.hive.metastore.api.Partition();
+    inPart.setDbName(tbl.getDbName());
+    inPart.setTableName(tbl.getTableName());
+    inPart.setValues(pvals);
+
+    StorageDescriptor sd = new StorageDescriptor();
+    try {
+      // replace with THRIFT-138
+      TMemoryBuffer buffer = new TMemoryBuffer(1024);
+      TBinaryProtocol prot = new TBinaryProtocol(buffer);
+      tbl.getSd().write(prot);
+
+      sd.read(prot);
+    } catch (TException e) {
+      LOG.error("Could not create a copy of StorageDescription");
+      throw new HiveException("Could not create a copy of StorageDescription",e);
+    }
+
+    inPart.setSd(sd);
+    if(partitionName != null){
+      inPart.setPartitionName(partitionName);
+    }
+
+    if (partParams != null) {
+      inPart.setParameters(partParams);
+    }
+    if (inputFormat != null) {
+      inPart.getSd().setInputFormat(inputFormat);
+    }
+    if (outputFormat != null) {
+      inPart.getSd().setOutputFormat(outputFormat);
+    }
+    if (numBuckets != -1) {
+      inPart.getSd().setNumBuckets(numBuckets);
+    }
+    if (cols != null) {
+      inPart.getSd().setCols(cols);
+    }
+    if (serializationLib != null) {
+        inPart.getSd().getSerdeInfo().setSerializationLib(serializationLib);
+    }
+    if (serdeParams != null) {
+      inPart.getSd().getSerdeInfo().setParameters(serdeParams);
+    }
+    if (bucketCols != null) {
+      inPart.getSd().setBucketCols(bucketCols);
+    }
+    if (sortCols != null) {
+      inPart.getSd().setSortCols(sortCols);
+    }
+
+    if (tbl.getPartitionKeys() == null || tbl.getPartitionKeys().isEmpty()){
+        throw new HiveException("Invalid partition for table " + tbl.getTableName());
+    }
+
+
+    try {
+
+      LOG.warn("---zjw-- before hive add_partition.");
+      partition = add_partition(inPart);
+    } catch (Exception e) {
+      LOG.error(StringUtils.stringifyException(e));
+      throw new HiveException(e);
+    }
+
+    return partition;
+  }
+
 
   /**
    * @param new_part

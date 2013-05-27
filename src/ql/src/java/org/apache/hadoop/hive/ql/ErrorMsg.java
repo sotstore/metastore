@@ -332,7 +332,8 @@ public enum ErrorMsg {
   COLUMNSTATSCOLLECTOR_PARSE_ERROR(30009, "Encountered parse error while parsing rewritten query"),
   COLUMNSTATSCOLLECTOR_IO_ERROR(30010, "Encountered I/O exception while parsing rewritten query"),
   //added by zjw
-  PARTITIONCOLUMNNOTEXIST_ERROR(40001, "Partition column not exist")
+  PARTITIONCOLUMNNOTEXIST_ERROR(40001, "Partition column not exist"),
+  PARTITION_ARGUMENTS_INVALID(40002, "Partition arguments invalid")
     ;
 
   private int errorCode;

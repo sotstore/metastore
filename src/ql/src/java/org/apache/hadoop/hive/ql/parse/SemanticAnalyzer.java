@@ -8670,6 +8670,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       case HiveParser.TOK_PARTITIONED_BY:
         pd.setTableName(tableName);
         partCols = analyzePartitionClause((ASTNode) child, pd);
+
         List<org.apache.hadoop.hive.metastore.api.Partition> ps = pd.toPartitionList();
         int g=1;
         break;

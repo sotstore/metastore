@@ -20,15 +20,20 @@ package org.apache.hadoop.hive.ql.plan;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hive.common.JavaUtils;
+import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionType;
 import org.apache.hadoop.hive.ql.ErrorMsg;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.io.HiveFileFormatUtils;
@@ -463,6 +468,40 @@ public class CreateTableDesc extends DDLDesc implements Serializable {
     }
 
     if (this.getPartCols() != null) {
+
+
+      //added by zjw
+      for(PartitionInfo pi:PartitionFactory.PartitionInfo.getPartitionInfo(partCols)){
+        if(pi.getP_type() == PartitionType.interval){
+          if(pi.getArgs().size() != 2){
+            throw new SemanticException(
+                ErrorMsg.PARTITION_ARGUMENTS_INVALID.getMsg());
+          }
+          String interval_unit = pi.getArgs().get(0);
+          Long interval_seconds = Long.parseLong(pi.getArgs().get(1));
+
+          if("M".equals(interval_unit)){
+            interval_seconds = interval_seconds * 3600 * 24 * 7 *30;
+          }else if("W".equals(interval_unit)){
+            interval_seconds = interval_seconds * 3600 * 24 * 7;
+          }else if("D".equals(interval_unit)){
+            interval_seconds = interval_seconds * 3600 * 24;
+          }else if("H".equals(interval_unit)){
+            interval_seconds = interval_seconds * 3600;
+          }else if("MI".equals(interval_unit)){
+            interval_seconds = interval_seconds * 60;
+          }else{
+            throw new SemanticException(
+                ErrorMsg.PARTITION_ARGUMENTS_INVALID.getMsg());
+          }
+          if(this.getTblProps() == null){
+            this.setTblProps(new HashMap<String,String>());
+          }
+          this.getTblProps().put(Constants.META_LOAD_ROUND_SECONDS, interval_seconds.toString());
+        }
+      }
+
+
       // there is no overlap between columns and partitioning columns
       Iterator<FieldSchema> partColsIter = this.getPartCols().iterator();
       while (partColsIter.hasNext()) {

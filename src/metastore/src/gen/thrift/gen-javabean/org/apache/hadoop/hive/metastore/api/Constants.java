@@ -54,4 +54,6 @@ public class Constants {
 
   public static final String META_LUCENE_STORE   = "lucene.indexd";
 
+  public static final String META_LOAD_ROUND_SECONDS   = "load.round.seconds";
+
 }
