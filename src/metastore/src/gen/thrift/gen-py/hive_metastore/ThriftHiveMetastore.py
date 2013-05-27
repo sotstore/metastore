@@ -134,7 +134,7 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
-  def get_subpartition(self, dbname, tbl_name, part):
+  def get_subpartitions(self, dbname, tbl_name, part):
     """
     Parameters:
      - dbname
@@ -1375,19 +1375,19 @@ class Client(fb303.FacebookService.Client, Iface):
       return result.success
     raise TApplicationException(TApplicationException.MISSING_RESULT, "add_subpartition failed: unknown result");
 
-  def get_subpartition(self, dbname, tbl_name, part):
+  def get_subpartitions(self, dbname, tbl_name, part):
     """
     Parameters:
      - dbname
      - tbl_name
      - part
     """
-    self.send_get_subpartition(dbname, tbl_name, part)
-    return self.recv_get_subpartition()
+    self.send_get_subpartitions(dbname, tbl_name, part)
+    return self.recv_get_subpartitions()
 
-  def send_get_subpartition(self, dbname, tbl_name, part):
-    self._oprot.writeMessageBegin('get_subpartition', TMessageType.CALL, self._seqid)
-    args = get_subpartition_args()
+  def send_get_subpartitions(self, dbname, tbl_name, part):
+    self._oprot.writeMessageBegin('get_subpartitions', TMessageType.CALL, self._seqid)
+    args = get_subpartitions_args()
     args.dbname = dbname
     args.tbl_name = tbl_name
     args.part = part
@@ -1395,19 +1395,19 @@ class Client(fb303.FacebookService.Client, Iface):
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
 
-  def recv_get_subpartition(self, ):
+  def recv_get_subpartitions(self, ):
     (fname, mtype, rseqid) = self._iprot.readMessageBegin()
     if mtype == TMessageType.EXCEPTION:
       x = TApplicationException()
       x.read(self._iprot)
       self._iprot.readMessageEnd()
       raise x
-    result = get_subpartition_result()
+    result = get_subpartitions_result()
     result.read(self._iprot)
     self._iprot.readMessageEnd()
     if result.success is not None:
       return result.success
-    raise TApplicationException(TApplicationException.MISSING_RESULT, "get_subpartition failed: unknown result");
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "get_subpartitions failed: unknown result");
 
   def add_partition_index_files(self, index, part, file, originfid):
     """
@@ -4667,7 +4667,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["add_subpartition_index"] = Processor.process_add_subpartition_index
     self._processMap["drop_subpartition_index"] = Processor.process_drop_subpartition_index
     self._processMap["add_subpartition"] = Processor.process_add_subpartition
-    self._processMap["get_subpartition"] = Processor.process_get_subpartition
+    self._processMap["get_subpartitions"] = Processor.process_get_subpartitions
     self._processMap["add_partition_index_files"] = Processor.process_add_partition_index_files
     self._processMap["drop_partition_index_files"] = Processor.process_drop_partition_index_files
     self._processMap["create_database"] = Processor.process_create_database
@@ -4966,13 +4966,13 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
-  def process_get_subpartition(self, seqid, iprot, oprot):
-    args = get_subpartition_args()
+  def process_get_subpartitions(self, seqid, iprot, oprot):
+    args = get_subpartitions_args()
     args.read(iprot)
     iprot.readMessageEnd()
-    result = get_subpartition_result()
-    result.success = self._handler.get_subpartition(args.dbname, args.tbl_name, args.part)
-    oprot.writeMessageBegin("get_subpartition", TMessageType.REPLY, seqid)
+    result = get_subpartitions_result()
+    result.success = self._handler.get_subpartitions(args.dbname, args.tbl_name, args.part)
+    oprot.writeMessageBegin("get_subpartitions", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -8538,7 +8538,7 @@ class add_subpartition_result:
   def __ne__(self, other):
     return not (self == other)
 
-class get_subpartition_args:
+class get_subpartitions_args:
   """
   Attributes:
    - dbname
@@ -8592,7 +8592,7 @@ class get_subpartition_args:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('get_subpartition_args')
+    oprot.writeStructBegin('get_subpartitions_args')
     if self.dbname is not None:
       oprot.writeFieldBegin('dbname', TType.STRING, 1)
       oprot.writeString(self.dbname)
@@ -8623,7 +8623,7 @@ class get_subpartition_args:
   def __ne__(self, other):
     return not (self == other)
 
-class get_subpartition_result:
+class get_subpartitions_result:
   """
   Attributes:
    - success
@@ -8665,7 +8665,7 @@ class get_subpartition_result:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('get_subpartition_result')
+    oprot.writeStructBegin('get_subpartitions_result')
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))

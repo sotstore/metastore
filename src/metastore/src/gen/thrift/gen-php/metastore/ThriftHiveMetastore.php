@@ -31,7 +31,7 @@ interface ThriftHiveMetastoreIf extends \FacebookServiceIf {
   public function add_subpartition_index(\metastore\Index $index, \metastore\Subpartition $part);
   public function drop_subpartition_index(\metastore\Index $index, \metastore\Subpartition $part);
   public function add_subpartition($dbname, $tbl_name, $part_vals, \metastore\Subpartition $sub_part);
-  public function get_subpartition($dbname, $tbl_name, \metastore\Partition $part);
+  public function get_subpartitions($dbname, $tbl_name, \metastore\Partition $part);
   public function add_partition_index_files(\metastore\Index $index, \metastore\Partition $part, $file, $originfid);
   public function drop_partition_index_files(\metastore\Index $index, \metastore\Partition $part, $file);
   public function create_database(\metastore\Database $database);
@@ -933,36 +933,36 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
     throw new \Exception("add_subpartition failed: unknown result");
   }
 
-  public function get_subpartition($dbname, $tbl_name, \metastore\Partition $part)
+  public function get_subpartitions($dbname, $tbl_name, \metastore\Partition $part)
   {
-    $this->send_get_subpartition($dbname, $tbl_name, $part);
-    return $this->recv_get_subpartition();
+    $this->send_get_subpartitions($dbname, $tbl_name, $part);
+    return $this->recv_get_subpartitions();
   }
 
-  public function send_get_subpartition($dbname, $tbl_name, \metastore\Partition $part)
+  public function send_get_subpartitions($dbname, $tbl_name, \metastore\Partition $part)
   {
-    $args = new \metastore\ThriftHiveMetastore_get_subpartition_args();
+    $args = new \metastore\ThriftHiveMetastore_get_subpartitions_args();
     $args->dbname = $dbname;
     $args->tbl_name = $tbl_name;
     $args->part = $part;
     $bin_accel = ($this->output_ instanceof TProtocol::$TBINARYPROTOCOLACCELERATED) && function_exists('thrift_protocol_write_binary');
     if ($bin_accel)
     {
-      thrift_protocol_write_binary($this->output_, 'get_subpartition', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+      thrift_protocol_write_binary($this->output_, 'get_subpartitions', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
     }
     else
     {
-      $this->output_->writeMessageBegin('get_subpartition', TMessageType::CALL, $this->seqid_);
+      $this->output_->writeMessageBegin('get_subpartitions', TMessageType::CALL, $this->seqid_);
       $args->write($this->output_);
       $this->output_->writeMessageEnd();
       $this->output_->getTransport()->flush();
     }
   }
 
-  public function recv_get_subpartition()
+  public function recv_get_subpartitions()
   {
     $bin_accel = ($this->input_ instanceof TProtocol::$TBINARYPROTOCOLACCELERATED) && function_exists('thrift_protocol_read_binary');
-    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\metastore\ThriftHiveMetastore_get_subpartition_result', $this->input_->isStrictRead());
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\metastore\ThriftHiveMetastore_get_subpartitions_result', $this->input_->isStrictRead());
     else
     {
       $rseqid = 0;
@@ -976,14 +976,14 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
         $this->input_->readMessageEnd();
         throw $x;
       }
-      $result = new \metastore\ThriftHiveMetastore_get_subpartition_result();
+      $result = new \metastore\ThriftHiveMetastore_get_subpartitions_result();
       $result->read($this->input_);
       $this->input_->readMessageEnd();
     }
     if ($result->success !== null) {
       return $result->success;
     }
-    throw new \Exception("get_subpartition failed: unknown result");
+    throw new \Exception("get_subpartitions failed: unknown result");
   }
 
   public function add_partition_index_files(\metastore\Index $index, \metastore\Partition $part, $file, $originfid)
@@ -9040,7 +9040,7 @@ class ThriftHiveMetastore_add_subpartition_result {
 
 }
 
-class ThriftHiveMetastore_get_subpartition_args {
+class ThriftHiveMetastore_get_subpartitions_args {
   static $_TSPEC;
 
   public $dbname = null;
@@ -9079,7 +9079,7 @@ class ThriftHiveMetastore_get_subpartition_args {
   }
 
   public function getName() {
-    return 'ThriftHiveMetastore_get_subpartition_args';
+    return 'ThriftHiveMetastore_get_subpartitions_args';
   }
 
   public function read($input)
@@ -9131,7 +9131,7 @@ class ThriftHiveMetastore_get_subpartition_args {
 
   public function write($output) {
     $xfer = 0;
-    $xfer += $output->writeStructBegin('ThriftHiveMetastore_get_subpartition_args');
+    $xfer += $output->writeStructBegin('ThriftHiveMetastore_get_subpartitions_args');
     if ($this->dbname !== null) {
       $xfer += $output->writeFieldBegin('dbname', TType::STRING, 1);
       $xfer += $output->writeString($this->dbname);
@@ -9157,7 +9157,7 @@ class ThriftHiveMetastore_get_subpartition_args {
 
 }
 
-class ThriftHiveMetastore_get_subpartition_result {
+class ThriftHiveMetastore_get_subpartitions_result {
   static $_TSPEC;
 
   public $success = null;
@@ -9184,7 +9184,7 @@ class ThriftHiveMetastore_get_subpartition_result {
   }
 
   public function getName() {
-    return 'ThriftHiveMetastore_get_subpartition_result';
+    return 'ThriftHiveMetastore_get_subpartitions_result';
   }
 
   public function read($input)
@@ -9232,7 +9232,7 @@ class ThriftHiveMetastore_get_subpartition_result {
 
   public function write($output) {
     $xfer = 0;
-    $xfer += $output->writeStructBegin('ThriftHiveMetastore_get_subpartition_result');
+    $xfer += $output->writeStructBegin('ThriftHiveMetastore_get_subpartitions_result');
     if ($this->success !== null) {
       if (!is_array($this->success)) {
         throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);

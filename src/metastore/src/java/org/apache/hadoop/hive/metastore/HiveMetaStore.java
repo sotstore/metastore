@@ -4307,13 +4307,34 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public int add_subpartition_files(Subpartition subpart, List<SFile> files) throws TException {
-      // TODO Auto-generated method stub
+      Subpartition p = getMS().getSubpartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
+      List<Long> nl = new ArrayList<Long>();
+      Set<Long> tmp = new TreeSet<Long>();
+
+      for (SFile f : files) {
+        tmp.add(new Long(f.getFid()));
+      }
+      if (p.getFiles() != null) {
+        tmp.addAll(p.getFiles());
+      }
+      for (Long l : tmp) {
+        nl.add(l);
+      }
+      p.setFiles(nl);
+
+      LOG.info("Begin update subpartition " + subpart.getPartitionName() + " fileset's size " + files.size());
+      getMS().updateSubpartition(p);
       return 0;
     }
 
     @Override
     public int drop_subpartition_files(Subpartition subpart, List<SFile> files) throws TException {
-      // TODO Auto-generated method stub
+      Subpartition p = getMS().getSubpartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
+      List<Long> new_files = subpart.getFiles();
+      new_files.removeAll(files);
+      p.setFiles(new_files);
+      LOG.info("Begin drop subpartition " + subpart.getPartitionName() + " fileset's size " + files.size());
+      getMS().updateSubpartition(p);
       return 0;
     }
 
@@ -4360,6 +4381,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         throws MetaException, TException {
       // TODO Auto-generated method stub
       return false;
+    }
+
+    @Override
+    public List<Subpartition> get_subpartition(String dbname, String tbl_name, Partition part)
+        throws TException {
+      // TODO Auto-generated method stub
+      return null;
     }
 
   }

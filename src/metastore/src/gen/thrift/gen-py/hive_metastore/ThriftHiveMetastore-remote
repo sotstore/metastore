@@ -38,7 +38,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  bool add_subpartition_index(Index index, Subpartition part)'
   print '  bool drop_subpartition_index(Index index, Subpartition part)'
   print '  bool add_subpartition(string dbname, string tbl_name,  part_vals, Subpartition sub_part)'
-  print '   get_subpartition(string dbname, string tbl_name, Partition part)'
+  print '   get_subpartitions(string dbname, string tbl_name, Partition part)'
   print '  bool add_partition_index_files(Index index, Partition part,  file,  originfid)'
   print '  bool drop_partition_index_files(Index index, Partition part,  file)'
   print '  void create_database(Database database)'
@@ -269,11 +269,11 @@ elif cmd == 'add_subpartition':
     sys.exit(1)
   pp.pprint(client.add_subpartition(args[0],args[1],eval(args[2]),eval(args[3]),))
 
-elif cmd == 'get_subpartition':
+elif cmd == 'get_subpartitions':
   if len(args) != 3:
-    print 'get_subpartition requires 3 args'
+    print 'get_subpartitions requires 3 args'
     sys.exit(1)
-  pp.pprint(client.get_subpartition(args[0],args[1],eval(args[2]),))
+  pp.pprint(client.get_subpartitions(args[0],args[1],eval(args[2]),))
 
 elif cmd == 'add_partition_index_files':
   if len(args) != 4:

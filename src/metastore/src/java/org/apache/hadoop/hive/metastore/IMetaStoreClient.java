@@ -977,6 +977,8 @@ public interface IMetaStoreClient {
 
   public SFile get_file_by_id(long fid) throws FileOperationException, MetaException, TException;
 
+  public List<SFile> get_files_by_ids(List<Long> fids) throws FileOperationException, MetaException, TException;
+
   public int rm_file_logical(SFile file) throws FileOperationException, MetaException, TException;
 
   public int restore_file(SFile file) throws FileOperationException, MetaException, TException;
@@ -996,4 +998,5 @@ public interface IMetaStoreClient {
   public List<String> get_partition_names(final String db_name, final String tbl_name,
         final short max_parts) throws MetaException, TException;
 
+  public boolean add_partition_index(Index index, Partition part) throws TException;
 }

@@ -40,6 +40,7 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
@@ -151,7 +152,12 @@ public interface RawStore extends Configurable {
   public abstract Partition getPartition(String dbName, String tableName,
       String partName) throws MetaException, NoSuchObjectException;
 
+  public abstract Subpartition getSubpartition(String dbName, String tableName,
+      String partName) throws MetaException, NoSuchObjectException;
+
   public void updatePartition(Partition newPart) throws InvalidObjectException, MetaException;
+
+  public void updateSubpartition(Subpartition newPart) throws InvalidObjectException, MetaException;
 
   public abstract boolean dropPartition(String dbName, String tableName,
       List<String> part_vals) throws MetaException, NoSuchObjectException, InvalidObjectException,

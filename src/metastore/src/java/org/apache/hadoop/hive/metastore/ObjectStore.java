@@ -2037,6 +2037,17 @@ public class ObjectStore implements RawStore, Configurable {
     return part;
   }
 
+  public Subpartition getSubpartition(String dbName, String tableName,
+      String part_name) throws NoSuchObjectException, MetaException {
+    openTransaction();
+    Subpartition part = convertToSubpart(getMPartition(dbName, tableName, part_name));
+    commitTransaction();
+    if(part == null) {
+      throw new NoSuchObjectException("partition values=" + part_name);
+    }
+    return part;
+  }
+
   private MPartition getMPartition(String dbName, String tableName, String partName) throws MetaException {
     MPartition mpart = null;
     boolean commited = false;
@@ -2178,6 +2189,18 @@ public class ObjectStore implements RawStore, Configurable {
       return null;
     }
     Partition p = new Partition(mpart.getValues(), mpart.getTable().getDatabase()
+        .getName(), mpart.getTable().getTableName(), mpart.getCreateTime(),
+        mpart.getLastAccessTime(), convertToStorageDescriptor(mpart.getSd()),
+        mpart.getParameters(), mpart.getFiles());
+    p.setPartitionName(mpart.getPartitionName());
+    return p;
+  }
+
+  private Subpartition convertToSubpart(MPartition mpart) throws MetaException {
+    if (mpart == null) {
+      return null;
+    }
+    Subpartition p = new Subpartition(mpart.getValues(), mpart.getTable().getDatabase()
         .getName(), mpart.getTable().getTableName(), mpart.getCreateTime(),
         mpart.getLastAccessTime(), convertToStorageDescriptor(mpart.getSd()),
         mpart.getParameters(), mpart.getFiles());
@@ -3016,6 +3039,23 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
+  public void updateSubpartition(Subpartition newPart) throws InvalidObjectException, MetaException {
+    boolean success = false;
+    try {
+      openTransaction();
+      MPartition oldp = getMPartition(newPart.getDbName(), newPart.getTableName(), newPart.getPartitionName());
+      // update the files list!
+      oldp.setFiles(newPart.getFiles());
+      pm.makePersistent(oldp);
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+        throw new MetaException("Update partition did not commit successfully.");
+      }
+    }
+  }
+
   public void alterPartitions(String dbname, String name, List<String> partNames, List<List<String>> part_vals,
       List<Partition> newParts) throws InvalidObjectException, MetaException {
     boolean success = false;
@@ -3271,7 +3311,7 @@ public class ObjectStore implements RawStore, Configurable {
     mIndex.getOrigTable().getTableName(),
     mIndex.getCreateTime(),
     mIndex.getLastAccessTime(),
-    mIndex.getIndexTable().getTableName(),
+    mIndex.getIndexTable() == null ? null : mIndex.getIndexTable().getTableName(),
     this.convertToStorageDescriptor(mIndex.getSd()),
     mIndex.getParameters(),
     mIndex.getDeferredRebuild());

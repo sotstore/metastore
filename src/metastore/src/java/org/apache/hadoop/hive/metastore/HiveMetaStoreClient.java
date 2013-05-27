@@ -1446,4 +1446,24 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       return client.get_partition_names(db_name, tbl_name, max_parts);
   }
 
+  @Override
+  public boolean add_partition_index(Index index, Partition part) throws TException {
+    assert index != null;
+    assert part != null;
+    return client.add_partition_index(index, part);
+  }
+
+  @Override
+  public List<SFile> get_files_by_ids(List<Long> fids) throws FileOperationException,
+      MetaException, TException {
+    List<SFile> lsf = new ArrayList<SFile>();
+    if (fids.size() > 0) {
+      for (Long id : fids) {
+        lsf.add(client.get_file_by_id(id));
+      }
+    }
+
+    return lsf;
+  }
+
 }

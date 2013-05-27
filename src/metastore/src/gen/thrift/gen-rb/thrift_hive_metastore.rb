@@ -246,19 +246,19 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_subpartition failed: unknown result')
     end
 
-    def get_subpartition(dbname, tbl_name, part)
-      send_get_subpartition(dbname, tbl_name, part)
-      return recv_get_subpartition()
+    def get_subpartitions(dbname, tbl_name, part)
+      send_get_subpartitions(dbname, tbl_name, part)
+      return recv_get_subpartitions()
     end
 
-    def send_get_subpartition(dbname, tbl_name, part)
-      send_message('get_subpartition', Get_subpartition_args, :dbname => dbname, :tbl_name => tbl_name, :part => part)
+    def send_get_subpartitions(dbname, tbl_name, part)
+      send_message('get_subpartitions', Get_subpartitions_args, :dbname => dbname, :tbl_name => tbl_name, :part => part)
     end
 
-    def recv_get_subpartition()
-      result = receive_message(Get_subpartition_result)
+    def recv_get_subpartitions()
+      result = receive_message(Get_subpartitions_result)
       return result.success unless result.success.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_subpartition failed: unknown result')
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_subpartitions failed: unknown result')
     end
 
     def add_partition_index_files(index, part, file, originfid)
@@ -1907,11 +1907,11 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'add_subpartition', seqid)
     end
 
-    def process_get_subpartition(seqid, iprot, oprot)
-      args = read_args(iprot, Get_subpartition_args)
-      result = Get_subpartition_result.new()
-      result.success = @handler.get_subpartition(args.dbname, args.tbl_name, args.part)
-      write_result(result, oprot, 'get_subpartition', seqid)
+    def process_get_subpartitions(seqid, iprot, oprot)
+      args = read_args(iprot, Get_subpartitions_args)
+      result = Get_subpartitions_result.new()
+      result.success = @handler.get_subpartitions(args.dbname, args.tbl_name, args.part)
+      write_result(result, oprot, 'get_subpartitions', seqid)
     end
 
     def process_add_partition_index_files(seqid, iprot, oprot)
@@ -3609,7 +3609,7 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Get_subpartition_args
+  class Get_subpartitions_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     DBNAME = 1
     TBL_NAME = 2
@@ -3629,7 +3629,7 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Get_subpartition_result
+  class Get_subpartitions_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
 
