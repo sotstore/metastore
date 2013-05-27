@@ -1,4 +1,4 @@
-package org.apache.hadoop.hive.ql.parse;
+package org.apache.hadoop.hive.metastore.tools;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -193,6 +193,18 @@ public class PartitionFactory {
       pi.args = (List<String>)JSONArray.toList(json.getJSONArray("args"));
       return pi;
     }
+
+
+
+    public static List<PartitionInfo> getPartitionInfo(List<FieldSchema> partitionKeys) {
+      List<PartitionInfo> pis = new ArrayList<PartitionInfo>();
+      int i = 0;
+      for(FieldSchema fs : partitionKeys){
+        PartitionInfo pi = PartitionInfo.fromJson(fs.getComment());
+        pis.add(pi);
+      }
+      return pis;
+    }
   }
 
   public static class PartitionDefinition{
@@ -253,6 +265,7 @@ public class PartitionFactory {
       for(PartitionDefinition p : partitions){
         PartitionDefinition clone = new PartitionDefinition(p);
         clone.setPart_name(this.getPart_name() + "_" + p.getPart_name());
+        LOG.warn("---zjw-- subparname:"+clone.getPart_name());
         this.partitions.add(clone);
       }
     }
@@ -366,5 +379,70 @@ public class PartitionFactory {
     }
     return jsonVals.toString();
   }
+
+  /**
+  *
+  * @param colList
+  * @param global_sub_pd
+  * @param isAuto 表明在 createtable的时候自动建立的分区
+  */
+ public static void createSubPartition(List<FieldSchema> colList,
+     PartitionDefinition global_sub_pd,boolean isAuto,String part_name) {
+   if(global_sub_pd.getPartitions() != null && !global_sub_pd.getPartitions().isEmpty()){
+     return;
+   }
+   assert(colList.size() == 2);
+   FieldSchema part = colList.get(0);
+   FieldSchema subpart = colList.get(1);
+   switch(PartitionFactory.PartitionType.valueOf(part.getType())){
+     case none:
+     case roundrobin:
+       return;//no need to creat subpartitions
+     case list:
+     case range:
+     case interval:
+       if(isAuto){
+         return;
+       }
+     case hash:
+       switch(PartitionFactory.PartitionType.valueOf(subpart.getType())){
+         case none:
+         case interval:
+         case roundrobin:
+         case list:
+         case range:
+           return;//no need to creat subpartitions
+         case hash://creat hash subpartitions
+           List<PartitionDefinition> global_sub_parts = new ArrayList<PartitionDefinition>();
+           for(int i=1;i<=global_sub_pd.getPi().getP_num();i++){
+             PartitionDefinition partition = new PartitionDefinition();
+             if(isAuto){
+               partition.setPart_name("p_"+i);
+             }else{
+               partition.setPart_name(part_name+"_p_"+i);
+             }
+             List<String> values = new ArrayList<String>();
+             values.add(new String(""+i));
+             partition.setValues(values);
+             if(global_sub_pd != null){
+               partition.setTableName(global_sub_pd.getTableName());
+               partition.getPi().setP_col(global_sub_pd.getPi().getP_col());
+               partition.getPi().setP_type(global_sub_pd.getPi().getP_type());
+               partition.getPi().setP_level(global_sub_pd.getPi().getP_level());
+               partition.getPi().setP_num(global_sub_pd.getPi().getP_num());
+               partition.getPi().setP_order(global_sub_pd.getPi().getP_order());
+               partition.getPi().setP_version(global_sub_pd.getPi().getP_version());
+               partition.getPi().setArgs(global_sub_pd.getPi().getArgs());
+             }
+             global_sub_parts.add(partition);
+           }
+           global_sub_pd.setPartitions(global_sub_parts);
+           break;
+       }
+       break;
+
+   }
+
+ }
 
 }

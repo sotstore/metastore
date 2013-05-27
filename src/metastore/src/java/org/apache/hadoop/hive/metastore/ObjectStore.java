@@ -1943,6 +1943,19 @@ public class ObjectStore implements RawStore, Configurable {
     return part;
   }
 
+  public Partition getPartition(String dbName, String tableName,
+      List<String> part_vals) throws NoSuchObjectException, MetaException {
+    openTransaction();
+    Partition part = convertToPart(getMPartition(dbName, tableName, part_vals));
+    commitTransaction();
+    if(part == null) {
+      throw new NoSuchObjectException("partition values="
+          + part_vals.toString());
+    }
+    part.setValues(part_vals);
+    return part;
+  }
+
   private MPartition getMPartition(String dbName, String tableName, String partName) throws MetaException {
     MPartition mpart = null;
     boolean commited = false;
@@ -2013,9 +2026,23 @@ public class ObjectStore implements RawStore, Configurable {
 //        .getPartitionKeys()), part.getValues()), mt, part.getValues(), part
 //        .getCreateTime(), part.getLastAccessTime(),
 //        msd, part.getParameters());
-    return new MPartition(part.getPartitionName(), mt, part.getValues(), part.getFiles(), part
+    MPartition mpart = new MPartition(part.getPartitionName(), mt, part.getValues(), part.getFiles(), part
         .getCreateTime(), part.getLastAccessTime(),
         msd, part.getParameters());
+
+    if(part.getSubpartitions() != null){
+      LOG.warn("--zjw--getSubPartitions is not null,size"+part.getSubpartitions().size());
+      for(Subpartition sub : part.getSubpartitions()){
+        sub.setDbName(mt.getDatabase().getName());
+        MPartition sub_part = convertToMPartFromSubpartition(sub,useTableCD);
+        sub_part.setParent(mpart);
+        mpart.getSubPartitions().add(sub_part);
+      }
+    }else{
+      LOG.warn("--zjw--getSubPartitions is  null");
+    }
+
+    return mpart;
   }
 
   private MPartition convertToMPartFromSubpartition(Subpartition part, boolean useTableCD)
@@ -2241,8 +2268,7 @@ public class ObjectStore implements RawStore, Configurable {
       tableName = tableName.toLowerCase().trim();
       String fisrt_value = partVals.get(0);
       Query query = pm.newQuery(MPartition.class,
-          "table.tableName == t1 && table.database.name == t2 && values.contains(pkv) " +
-          "&& pkv.name == t3");
+          "table.tableName == t1 && table.database.name == t2 && values.contains(t3)");
       query.declareParameters("java.lang.String t1, java.lang.String t2, java.lang.String t3");
       query.setOrdering("partitionName ascending");
       mparts = (List<MPartition>) query.execute(tableName, dbName,fisrt_value);
@@ -2266,7 +2292,7 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       // TODO: fix it
-      MPartition mpart = getMPartition(dbName, tblName, partVals.toString());
+      MPartition mpart = getMPartition(dbName, tblName, partVals);//modified by zjw
       if (mpart == null) {
         commitTransaction();
         throw new NoSuchObjectException("partition values="
@@ -2285,6 +2311,9 @@ public class ObjectStore implements RawStore, Configurable {
 
       success = commitTransaction();
       return part;
+    }catch(Exception e){
+      LOG.error(e,e);
+      throw new MetaException(e.getMessage());
     } finally {
       if (!success) {
         rollbackTransaction();

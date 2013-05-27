@@ -151,6 +151,10 @@ public interface RawStore extends Configurable {
   public abstract Partition getPartition(String dbName, String tableName,
       String partName) throws MetaException, NoSuchObjectException;
 
+
+  public abstract Partition getPartition(String db_name, String tbl_name,
+      List<String> part_vals) throws MetaException, NoSuchObjectException;
+
   public void updatePartition(Partition newPart) throws InvalidObjectException, MetaException;
 
   public abstract boolean dropPartition(String dbName, String tableName,
@@ -469,5 +473,6 @@ public interface RawStore extends Configurable {
   public List<SFile> findOverReplicatedFiles() throws MetaException;
 
   public List<SFile> findLingeringFiles() throws MetaException;
+
 
 }

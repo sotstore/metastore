@@ -1396,13 +1396,13 @@ public class Hive {
 
     org.apache.hadoop.hive.metastore.api.Partition partition = null;
 
-    for (FieldSchema field : tbl.getPartCols()) {
-      String val = partSpec.get(field.getName());
-      if (val == null || val.length() == 0) {
-        throw new HiveException("add partition: Value for key "
-            + field.getName() + " is null or empty");
-      }
-    }
+//    for (FieldSchema field : tbl.getPartCols()) {
+//      String val = partSpec.get(field.getName());
+//      if (val == null || val.length() == 0) {
+//        throw new HiveException("add partition: Value for key "
+//            + field.getName() + " is null or empty");
+//      }
+//    }
 
     try {
       Partition tmpPart = new Partition(tbl, partSpec, location);
@@ -1410,6 +1410,10 @@ public class Hive {
       // not populated on construction.
       org.apache.hadoop.hive.metastore.api.Partition inPart
         = tmpPart.getTPartition();
+      if(partitionName != null){
+        inPart.setPartitionName(partitionName);
+      }
+
       if (partParams != null) {
         inPart.setParameters(partParams);
       }
@@ -1437,6 +1441,7 @@ public class Hive {
       if (sortCols != null) {
         inPart.getSd().setSortCols(sortCols);
       }
+      LOG.warn("---zjw-- before hive add_partition.");
       partition = getMSC().add_partition(inPart);
     } catch (Exception e) {
       LOG.error(StringUtils.stringifyException(e));
@@ -1472,17 +1477,23 @@ public class Hive {
       throw new HiveException("Invalid partition: " + partSpec);
     }
     List<String> pvals = new ArrayList<String>();
-    for (FieldSchema field : tbl.getPartCols()) {
-      String val = partSpec.get(field.getName());
-      // enable dynamic partitioning
-      if (val == null && !HiveConf.getBoolVar(conf, HiveConf.ConfVars.DYNAMICPARTITIONING)
-          || val.length() == 0) {
-        throw new HiveException("get partition: Value for key "
-            + field.getName() + " is null or empty");
-      } else if (val != null){
+//    for (FieldSchema field : tbl.getPartCols()) {
+//      String val = partSpec.get(field.getName());
+//      // enable dynamic partitioning
+//      if (val == null && !HiveConf.getBoolVar(conf, HiveConf.ConfVars.DYNAMICPARTITIONING)
+//          || val.length() == 0) {
+//        throw new HiveException("get partition: Value for key "
+//            + field.getName() + " is null or empty");
+//      } else if (val != null){
+//        pvals.add(val);
+//      }
+//    }
+
+    //modified by zjw
+    for (String val : partSpec.values()) {
         pvals.add(val);
-      }
     }
+
     org.apache.hadoop.hive.metastore.api.Partition tpart = null;
     try {
       tpart = getMSC().getPartitionWithAuthInfo(tbl.getDbName(),

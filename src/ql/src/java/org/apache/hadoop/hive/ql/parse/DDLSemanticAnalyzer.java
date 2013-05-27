@@ -50,6 +50,10 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionDefinition;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionType;
 import org.apache.hadoop.hive.ql.Driver;
 import org.apache.hadoop.hive.ql.ErrorMsg;
 import org.apache.hadoop.hive.ql.exec.ArchiveUtils;
@@ -70,9 +74,6 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveUtils;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
-import org.apache.hadoop.hive.ql.parse.PartitionFactory.PartitionDefinition;
-import org.apache.hadoop.hive.ql.parse.PartitionFactory.PartitionInfo;
-import org.apache.hadoop.hive.ql.parse.PartitionFactory.PartitionType;
 import org.apache.hadoop.hive.ql.plan.AddNodeDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
@@ -740,12 +741,15 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
         throw new SemanticException("Add partition operation only supprots interval partition.");
       }
       if(pis.size() == 2 ){
+        LOG.warn("---zjw --in anaylzeDDL,1-level part");
         global_sub_pd = new PartitionDefinition();
         global_sub_pd.setPi(pis.get(1));
         global_sub_pd.setDbName(tab.getDbName());
         global_sub_pd.setTableName(tblName);
         global_sub_pd.getPi().setP_level(2);//设为2级分区
-        createSubPartition(tab.getPartCols(),global_sub_pd);
+        PartitionFactory.createSubPartition(tab.getPartCols(),global_sub_pd,false,null);
+      }else{
+        LOG.warn("---zjw --in anaylzeDDL,2-level part");
       }
     }
 
@@ -753,14 +757,17 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
    List<PartitionDefinition> pds = getPartitionDef(child, global_sub_pd);
 
 
+
    List<AddPartitionDesc> addPartDescs = new ArrayList<AddPartitionDesc> ();
 
     for(PartitionDefinition pd : pds){
       Map<String, String> partSpec = new LinkedHashMap<String, String>();
-      partSpec.put(pis.get(0).getP_col(), PartitionFactory.arrayToJson(pd.getValues()));//set partition values,which can be extracted from ast parser
+      partSpec.put(pis.get(0).getP_col(), pd.getValues().get(0));//set partition values,which can be extracted from ast parser
       AddPartitionDesc addPartitionDesc = new AddPartitionDesc(tab.getDbName(), tblName,
           pd.getPart_name(), partSpec, null, null);
       addPartDescs.add(addPartitionDesc);
+
+      LOG.warn("---zjw --in anaylzeDDL,create part partname:"+pd.getPart_name());
     }
     for(AddPartitionDesc addPartitionDesc: addPartDescs){
       rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
