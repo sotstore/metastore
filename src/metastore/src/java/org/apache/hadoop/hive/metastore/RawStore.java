@@ -155,6 +155,9 @@ public interface RawStore extends Configurable {
   public abstract Subpartition getSubpartition(String dbName, String tableName,
       String partName) throws MetaException, NoSuchObjectException;
 
+  public abstract Partition getPartition(String db_name, String tbl_name,
+      List<String> part_vals) throws MetaException, NoSuchObjectException;
+
   public void updatePartition(Partition newPart) throws InvalidObjectException, MetaException;
 
   public void updateSubpartition(Subpartition newPart) throws InvalidObjectException, MetaException;

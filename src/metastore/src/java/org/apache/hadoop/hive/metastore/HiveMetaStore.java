@@ -125,6 +125,10 @@ import org.apache.hadoop.hive.metastore.model.MRole;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
 import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionDefinition;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionType;
 import org.apache.hadoop.hive.serde2.Deserializer;
 import org.apache.hadoop.hive.serde2.SerDeException;
 import org.apache.hadoop.hive.serde2.SerDeUtils;
@@ -1501,7 +1505,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         try {
           // TODO: fix it
           old_part = ms.getPartition(part.getDbName(), part
-              .getTableName(), part.getValues().toString());
+              .getTableName(), part.getValues());
         } catch (NoSuchObjectException e) {
           // this means there is no existing partition
           old_part = null;
@@ -1650,6 +1654,26 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return ret;
     }
 
+
+    private PartitionDefinition createSubpartitions(Table tab, String part_name) throws MetaException{
+      List<PartitionInfo> pis = PartitionInfo.getPartitionInfo(tab.getPartitionKeys());
+      PartitionDefinition global_sub_pd = null;
+      if( pis != null && pis.size() > 0){
+        if(pis.get(0).getP_type() != PartitionType.interval){
+          throw new MetaException("Add partition operation only supprots interval partition.");
+        }
+        if(pis.size() == 2 ){
+          global_sub_pd = new PartitionDefinition();
+          global_sub_pd.setPi(pis.get(1));
+          global_sub_pd.setDbName(tab.getDbName());
+          global_sub_pd.setTableName(tab.getTableName());
+          global_sub_pd.getPi().setP_level(2);//设为2级分区
+          PartitionFactory.createSubPartition(tab.getPartitionKeys(),global_sub_pd,false,part_name);
+        }
+      }
+      return global_sub_pd;
+    }
+
     /**
      * An implementation of add_partition_core that does not commit
      * transaction or rollback transaction as part of its operation
@@ -1691,6 +1715,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           throw new InvalidObjectException(
               "Unable to add partition because table or database do not exist");
         }
+        LOG.warn("---zjw-- int add_partition_core_notxn.");
+        PartitionDefinition global_sub_pd = this.createSubpartitions(tbl,part.getPartitionName());
+        List<Subpartition> subpartitions = global_sub_pd.toSubpartitionList();
+        LOG.warn("---zjw-- subpartitions size:"+subpartitions.size());
+        part.setSubpartitions(subpartitions);
 
         String partLocationStr = null;
         if (part.getSd() != null) {
@@ -1753,7 +1782,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             part.putToParameters(key, paramVal);
           }
         }
-
+        LOG.warn("---zjw-- before addPartition.");
         success = ms.addPartition(part);
 
       } finally {
@@ -1945,7 +1974,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Exception ex = null;
       try {
         // TODO: fix it
-        ret = getMS().getPartition(db_name, tbl_name, part_vals.toString());
+        ret = getMS().getPartition(db_name, tbl_name, part_vals);
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -4384,7 +4413,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public List<Subpartition> get_subpartition(String dbname, String tbl_name, Partition part)
+    public List<Subpartition> get_subpartitions(String dbname, String tbl_name, Partition part)
         throws TException {
       // TODO Auto-generated method stub
       return null;

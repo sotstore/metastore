@@ -37,6 +37,9 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Order;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionConstants;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionDefinition;
 import org.apache.hadoop.hive.ql.Context;
 import org.apache.hadoop.hive.ql.ErrorMsg;
 import org.apache.hadoop.hive.ql.QueryProperties;
@@ -55,8 +58,6 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.InvalidTableException;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
-import org.apache.hadoop.hive.ql.parse.PartitionFactory.PartitionConstants;
-import org.apache.hadoop.hive.ql.parse.PartitionFactory.PartitionDefinition;
 import org.apache.hadoop.hive.ql.plan.PlanUtils;
 import org.apache.hadoop.hive.ql.session.SessionState.LogHelper;
 import org.apache.hadoop.hive.serde.serdeConstants;
@@ -604,7 +605,7 @@ TOK_PARTITION_EXPER--text:TOK_PARTITION_EXPER--tokenType:255
 //          List<SubPartitionFieldSchema> subPartFieldList =
 //              PartitionFactory.toSubPartitionFieldSchemaList(subPartCol);
           colList.addAll(subPartCol);
-          createSubPartition(colList,global_sub_pd);
+          PartitionFactory.createSubPartition(colList,global_sub_pd,true,null);
 //          assert(colList.size() == 1);
 
           break;
@@ -623,57 +624,6 @@ TOK_PARTITION_EXPER--text:TOK_PARTITION_EXPER--tokenType:255
       return colList;
   }
 
-  protected static void createSubPartition(List<FieldSchema> colList,
-      PartitionDefinition global_sub_pd) {
-    if(global_sub_pd.getPartitions() != null && !global_sub_pd.getPartitions().isEmpty()){
-      return;
-    }
-    assert(colList.size() == 2);
-    FieldSchema part = colList.get(0);
-    FieldSchema subpart = colList.get(1);
-    switch(PartitionFactory.PartitionType.valueOf(part.getType())){
-      case none:
-      case interval:
-      case roundrobin:
-        return;//no need to creat subpartitions
-      case list:
-      case range:
-      case hash:
-        switch(PartitionFactory.PartitionType.valueOf(subpart.getType())){
-          case none:
-          case interval:
-          case roundrobin:
-          case list:
-          case range:
-            return;//no need to creat subpartitions
-          case hash://creat hash subpartitions
-            List<PartitionDefinition> global_sub_parts = new ArrayList<PartitionDefinition>();
-            for(int i=1;i<=global_sub_pd.getPi().getP_num();i++){
-              PartitionDefinition partition = new PartitionDefinition();
-              partition.setPart_name("p_"+i);
-              List<String> values = new ArrayList<String>();
-              values.add(new String(""+i));
-              partition.setValues(values);
-              if(global_sub_pd != null){
-                partition.setTableName(global_sub_pd.getTableName());
-                partition.getPi().setP_col(global_sub_pd.getPi().getP_col());
-                partition.getPi().setP_type(global_sub_pd.getPi().getP_type());
-                partition.getPi().setP_level(global_sub_pd.getPi().getP_level());
-                partition.getPi().setP_num(global_sub_pd.getPi().getP_num());
-                partition.getPi().setP_order(global_sub_pd.getPi().getP_order());
-                partition.getPi().setP_version(global_sub_pd.getPi().getP_version());
-                partition.getPi().setArgs(global_sub_pd.getPi().getArgs());
-              }
-              global_sub_parts.add(partition);
-            }
-            global_sub_pd.setPartitions(global_sub_parts);
-            break;
-        }
-        break;
-
-    }
-
-  }
 
   /**
    * 解析对分区方法的定义

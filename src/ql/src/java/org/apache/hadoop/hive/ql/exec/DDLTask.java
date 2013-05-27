@@ -1238,7 +1238,8 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
 
     if (addPartitionDesc.getLocation() == null) {
-      db.createPartition(tbl,null, addPartitionDesc.getPartSpec(), null,
+
+      db.createPartition(tbl,addPartitionDesc.getPartitionName(), addPartitionDesc.getPartSpec(), null,
           addPartitionDesc.getPartParams(),
                     addPartitionDesc.getInputFormat(),
                     addPartitionDesc.getOutputFormat(),
@@ -1254,7 +1255,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         throw new HiveException("LOCATION clause illegal for view partition");
       }
       // set partition path relative to table
-      db.createPartition(tbl,null, addPartitionDesc.getPartSpec(), new Path(tbl
+      db.createPartition(tbl,addPartitionDesc.getPartitionName(), addPartitionDesc.getPartSpec(), new Path(tbl
                     .getPath(), addPartitionDesc.getLocation()), addPartitionDesc.getPartParams(),
                     addPartitionDesc.getInputFormat(),
                     addPartitionDesc.getOutputFormat(),

@@ -45,10 +45,10 @@ import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.io.HiveFileFormatUtils;
 import org.apache.hadoop.hive.ql.io.HiveOutputFormat;
 import org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat;
-import org.apache.hadoop.hive.ql.parse.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.Deserializer;
 import org.apache.hadoop.hive.serde2.MetadataTypedColumnsetSerDe;
@@ -354,19 +354,20 @@ public class Table implements Serializable {
       }
     }
 
-    if ((spec == null) || (spec.size() != partCols.size())) {
-      throw new HiveException(
-          "table is partitioned but partition spec is not specified or"
-          + " does not fully match table partitioning: "
-          + spec);
-    }
-
-    for (FieldSchema field : partCols) {
-      if (spec.get(field.getName()) == null) {
-        throw new HiveException(field.getName()
-            + " not found in table's partition spec: " + spec);
-      }
-    }
+    //removed by zjw
+//    if ((spec == null) || (spec.size() != partCols.size())) {
+//      throw new HiveException(
+//          "table is partitioned but partition spec is not specified or"
+//          + " does not fully match table partitioning: "
+//          + spec);
+//    }
+//
+//    for (FieldSchema field : partCols) {
+//      if (spec.get(field.getName()) == null) {
+//        throw new HiveException(field.getName()
+//            + " not found in table's partition spec: " + spec);
+//      }
+//    }
 
     return true;
   }

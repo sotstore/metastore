@@ -123,13 +123,18 @@ public class Partition implements Serializable {
       throws HiveException {
 
     List<String> pvals = new ArrayList<String>();
-    for (FieldSchema field : tbl.getPartCols()) {
-      String val = partSpec.get(field.getName());
-      if (val == null) {
-        throw new HiveException(
-            "partition spec is invalid. field.getName() does not exist in input.");
-      }
-      pvals.add(val);
+//    for (FieldSchema field : tbl.getPartCols()) {
+//      String val = partSpec.get(field.getName());
+//      if (val == null) {
+//        throw new HiveException(
+//            "partition spec is invalid. field.getName() does not exist in input.");
+//      }
+//      pvals.add(val);
+//    }
+
+    //modified by zjw
+    for (String val : partSpec.values()) {
+        pvals.add(val);
     }
 
     org.apache.hadoop.hive.metastore.api.Partition tpart = new org.apache.hadoop.hive.metastore.api.Partition();

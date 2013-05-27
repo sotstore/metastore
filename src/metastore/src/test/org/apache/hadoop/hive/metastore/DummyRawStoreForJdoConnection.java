@@ -700,6 +700,13 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
     return null;
   }
+
+  @Override
+  public Partition getPartition(String db_name, String tbl_name, List<String> part_vals)
+      throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }
 
 
