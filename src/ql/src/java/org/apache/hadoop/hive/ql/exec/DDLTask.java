@@ -2503,7 +2503,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       outStream = fs.create(resFile);
 
       List<FieldSchema> cols = table.getCols();
-      cols.addAll(table.getPartCols());
+//      cols.addAll(table.getPartCols());
       outStream.writeBytes(MetaDataFormatUtils.displayColsUnformatted(cols));
       ((FSDataOutputStream) outStream).close();
       outStream = null;
@@ -3074,11 +3074,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         cols = (part == null || tbl.getTableType() == TableType.VIRTUAL_VIEW) ?
             tbl.getCols() : part.getCols();
 
-        if (!descTbl.isFormatted()) {
-          if (tableName.equals(colPath)) {
-            cols.addAll(tbl.getPartCols());
-          }
-        }
+//        if (!descTbl.isFormatted()) {
+//          if (tableName.equals(colPath)) {
+//            cols.addAll(tbl.getPartCols());
+//          }
+//        }
       } else {
         cols = Hive.getFieldsFromDeserializer(colPath, tbl.getDeserializer());
       }

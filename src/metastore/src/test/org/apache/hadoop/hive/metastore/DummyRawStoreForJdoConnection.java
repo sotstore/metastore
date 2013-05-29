@@ -43,6 +43,7 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
@@ -706,6 +707,26 @@ public class DummyRawStoreForJdoConnection implements RawStore {
       throws MetaException, NoSuchObjectException {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public Subpartition getSubpartition(String dbName, String tableName, String partName)
+      throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void updateSubpartition(Subpartition newPart) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException,
+      MetaException {
+    // TODO Auto-generated method stub
+
   }
 }
 
