@@ -471,6 +471,19 @@ public class DiskManager {
       return ni;
     }
 
+    public void SafeModeStateChange() {
+      try {
+        synchronized (rs) {
+          if ((double)ndmap.size() / (double)rs.countNode() <= 0.99) {
+            safeMode = true;
+            LOG.info("Lost too many Nodes, enter into SafeMode now.");
+          }
+        }
+      } catch (MetaException e) {
+        e.printStackTrace();
+      }
+    }
+
     public List<Node> findBestNodes(int nr) throws IOException {
       if (safeMode) {
         throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
@@ -703,7 +716,7 @@ public class DiskManager {
                         + rand.nextInt(Integer.MAX_VALUE);
                   }
                 } else {
-                  location += "UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
+                  location += "UNNAMED-DB/UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
                 }
                 SFileLocation nloc = new SFileLocation(node_name, r.file.getFid(), devid, location,
                     i, System.currentTimeMillis(),

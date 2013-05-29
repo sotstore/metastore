@@ -4110,7 +4110,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           break;
         } while (true);
       } catch (IOException e) {
-        throw new FileOperationException("System might in Safe Mode, please wait ...", FOFailReason.SAFEMODE);
+        throw new FileOperationException("System might in Safe Mode, please wait ... {" + e + "}", FOFailReason.SAFEMODE);
       }
 
       return cfile;
@@ -4221,12 +4221,18 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public Node add_node(String node_name, List<String> ipl) throws MetaException, TException {
       Node node = new Node(node_name, ipl, MetaStoreConst.MNodeStatus.ONLINE);
       getMS().createNode(node);
+      if (dm != null) {
+        dm.SafeModeStateChange();
+      }
       return node;
     }
 
     @Override
     public int del_node(String node_name) throws MetaException, TException {
       if (getMS().delNode(node_name)) {
+        if (dm != null) {
+          dm.SafeModeStateChange();
+        }
         return 1;
       } else {
         return 0;

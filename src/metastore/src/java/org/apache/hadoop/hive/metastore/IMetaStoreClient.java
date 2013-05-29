@@ -989,7 +989,11 @@ public interface IMetaStoreClient {
 
   public Node get_node(String node_name) throws MetaException, TException;
 
+  public Boolean del_node(String node_name) throws MetaException, TException;
+
   public Node alter_node(String node_name, List<String> ipl, int status) throws MetaException, TException;
+
+  public List<Node> get_all_nodes() throws MetaException, TException;
 
   public int add_partition_files(Partition part, List<SFile> files) throws TException;
 

@@ -1595,4 +1595,19 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     return lsf;
   }
 
+  @Override
+  public Boolean del_node(String node_name) throws MetaException, TException {
+    assert node_name != null;
+    if (client.del_node(node_name) > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public List<Node> get_all_nodes() throws MetaException, TException {
+    return client.get_all_nodes();
+  }
+
 }
