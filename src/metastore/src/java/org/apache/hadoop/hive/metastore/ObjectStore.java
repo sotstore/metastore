@@ -52,7 +52,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hive.common.FileUtils;
 import org.apache.hadoop.hive.common.classification.InterfaceAudience;
 import org.apache.hadoop.hive.common.classification.InterfaceStability;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -2254,7 +2253,26 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       // TODO: fix it
-      MPartition part = getMPartition(dbName, tableName, part_vals.toString());
+      MPartition part = getMPartition(dbName, tableName, part_vals);
+      dropPartitionCommon(part);
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public boolean dropPartition(String dbName, String tableName,
+    String part_name) throws MetaException, NoSuchObjectException, InvalidObjectException,
+    InvalidInputException {
+    boolean success = false;
+    try {
+      openTransaction();
+      // TODO: fix it
+      MPartition part = getMPartition(dbName, tableName, part_name);
       dropPartitionCommon(part);
       success = commitTransaction();
     } finally {
@@ -2281,12 +2299,14 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       if (part != null) {
-        List<MFieldSchema> schemas = part.getTable().getPartitionKeys();
-        List<String> colNames = new ArrayList<String>();
-        for (MFieldSchema col: schemas) {
-          colNames.add(col.getName());
-        }
-        String partName = FileUtils.makePartName(colNames, part.getValues());
+//        List<MFieldSchema> schemas = part.getTable().getPartitionKeys();
+//        List<String> colNames = new ArrayList<String>();
+//        for (MFieldSchema col: schemas) {
+//          colNames.add(col.getName());
+//        }
+//        String partName = FileUtils.makePartName(colNames, part.getValues());
+
+        String partName = part.getPartitionName();
 
         List<MPartitionPrivilege> partGrants = listPartitionGrants(
             part.getTable().getDatabase().getName(),
@@ -2470,7 +2490,7 @@ public class ObjectStore implements RawStore, Configurable {
       tableName = tableName.toLowerCase().trim();
       Query q = pm.newQuery(
           "select partitionName from org.apache.hadoop.hive.metastore.model.MPartition "
-          + "where table.database.name == t1 && table.tableName == t2 "
+          + "where table.database.name == t1 && table.tableName == t2  && parent == null "
           + "order by partitionName asc");
       q.declareParameters("java.lang.String t1, java.lang.String t2");
       q.setResult("partitionName");
@@ -2622,7 +2642,7 @@ public class ObjectStore implements RawStore, Configurable {
       dbName = dbName.toLowerCase().trim();
       tableName = tableName.toLowerCase().trim();
       Query query = pm.newQuery(MPartition.class,
-          "table.tableName == t1 && table.database.name == t2");
+          "table.tableName == t1 && table.database.name == t2 && parent == null");
       query.declareParameters("java.lang.String t1, java.lang.String t2");
       query.setOrdering("partitionName ascending");
       if(max > 0) {

@@ -559,8 +559,14 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
   /////start of zjw need to implement
 
-  private int dropPartition(Hive db, DropPartitionDesc dropPartitionDesc) {
-    // TODO Auto-generated method stub
+  private int dropPartition(Hive db, DropPartitionDesc dropPartitionDesc) throws HiveException {
+    List<String> partNames = new ArrayList<String>();
+    Table tbl = db.getTable(dropPartitionDesc.getDbName(), dropPartitionDesc.getTableName());
+    List<Partition> ps = db.getPartitionsByNames(tbl, partNames);
+    LOG.info("---zjw--subpartitionsSize"+ps.get(0).getTPartition().getSubpartitionsSize());
+    LOG.info("---zjw--subpartitionName"+ps.get(0).getTPartition().getSubpartitions().get(0).getPartitionName());
+
+    db.dropPartition(dropPartitionDesc.getDbName(), dropPartitionDesc.getTableName(), dropPartitionDesc.getPartitionName());
     return 0;
   }
 

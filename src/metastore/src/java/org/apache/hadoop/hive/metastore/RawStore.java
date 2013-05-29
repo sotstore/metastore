@@ -481,4 +481,7 @@ public interface RawStore extends Configurable {
 
   public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException;
 
+  boolean dropPartition(String dbName, String tableName, String part_name) throws MetaException,
+      NoSuchObjectException, InvalidObjectException, InvalidInputException;
+
 }

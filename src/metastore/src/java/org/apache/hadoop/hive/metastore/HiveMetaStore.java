@@ -1864,6 +1864,75 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return ret;
     }
 
+    private boolean drop_partition_common_by_name(RawStore ms, String db_name, String tbl_name,
+        String part_name, final boolean deleteData)
+        throws MetaException, NoSuchObjectException, IOException, InvalidObjectException,
+        InvalidInputException {
+        boolean success = false;
+        Path partPath = null;
+        Table tbl = null;
+        Partition part = null;
+        boolean isArchived = false;
+        Path archiveParentDir = null;
+
+        try {
+          ms.openTransaction();
+          // TODO: fix it
+          part = ms.getPartition(db_name, tbl_name, part_name);
+
+          firePreEvent(new PreDropPartitionEvent(part, this));
+
+          if (part == null) {
+            throw new NoSuchObjectException("Partition doesn't exist. "
+                + part_name);
+          }
+
+          isArchived = MetaStoreUtils.isArchived(part);
+          if (isArchived) {
+            archiveParentDir = MetaStoreUtils.getOriginalLocation(part);
+            if (!wh.isWritable(archiveParentDir.getParent())) {
+              throw new MetaException("Table partition not deleted since " +
+                  archiveParentDir.getParent() + " is not writable by " +
+                  hiveConf.getUser());
+            }
+          }
+          if (!ms.dropPartition(db_name, tbl_name, part_name)) {
+            throw new MetaException("Unable to drop partition");
+          }
+          success = ms.commitTransaction();
+          if ((part.getSd() != null) && (part.getSd().getLocation() != null)) {
+            partPath = new Path(part.getSd().getLocation());
+            if (!wh.isWritable(partPath.getParent())) {
+              throw new MetaException("Table partition not deleted since " +
+                  partPath.getParent() + " is not writable by " +
+                  hiveConf.getUser());
+            }
+          }
+          tbl = get_table(db_name, tbl_name);
+        } finally {
+          if (!success) {
+            ms.rollbackTransaction();
+          } else if (deleteData && ((partPath != null) || (archiveParentDir != null))) {
+            if (tbl != null && !isExternal(tbl)) {
+              // Archived partitions have har:/to_har_file as their location.
+              // The original directory was saved in params
+              if (isArchived) {
+                assert (archiveParentDir != null);
+                wh.deleteDir(archiveParentDir, true);
+              } else {
+                assert (partPath != null);
+                wh.deleteDir(partPath, true);
+              }
+              // ok even if the data is not deleted
+            }
+          }
+          for (MetaStoreEventListener listener : listeners) {
+            listener.onDropPartition(new DropPartitionEvent(tbl, part, success, this));
+          }
+        }
+        return true;
+      }
+
     private boolean drop_partition_common(RawStore ms, String db_name, String tbl_name,
       List<String> part_vals, final boolean deleteData)
       throws MetaException, NoSuchObjectException, IOException, InvalidObjectException,
@@ -1878,7 +1947,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         ms.openTransaction();
         // TODO: fix it
-        part = ms.getPartition(db_name, tbl_name, part_vals.toString());
+        part = ms.getPartition(db_name, tbl_name, part_vals);
 
         firePreEvent(new PreDropPartitionEvent(part, this));
 
@@ -2681,14 +2750,15 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         final boolean deleteData) throws NoSuchObjectException,
         MetaException, TException, IOException, InvalidObjectException, InvalidInputException {
 
-      List<String> partVals = null;
-      try {
-        partVals = getPartValsFromName(ms, db_name, tbl_name, part_name);
-      } catch (InvalidObjectException e) {
-        throw new NoSuchObjectException(e.getMessage());
-      }
-
-      return drop_partition_common(ms, db_name, tbl_name, partVals, deleteData);
+//      List<String> partVals = null;
+//      try {
+//        partVals = getPartValsFromName(ms, db_name, tbl_name, part_name);
+//      } catch (InvalidObjectException e) {
+//        throw new NoSuchObjectException(e.getMessage());
+//      }
+//
+//      return drop_partition_common(ms, db_name, tbl_name, partVals, deleteData);
+      return drop_partition_common_by_name(ms, db_name, tbl_name, part_name, deleteData);
     }
 
     @Override
