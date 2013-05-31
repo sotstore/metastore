@@ -128,6 +128,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  Node alter_node(string node_name,  ipl, i32 status)'
   print '   find_best_nodes(i32 nr)'
   print '   get_all_nodes()'
+  print '  string getDMStatus()'
   print ''
   sys.exit(0)
 
@@ -808,6 +809,12 @@ elif cmd == 'get_all_nodes':
     print 'get_all_nodes requires 0 args'
     sys.exit(1)
   pp.pprint(client.get_all_nodes())
+
+elif cmd == 'getDMStatus':
+  if len(args) != 0:
+    print 'getDMStatus requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.getDMStatus())
 
 else:
   print 'Unrecognized method %s' % cmd

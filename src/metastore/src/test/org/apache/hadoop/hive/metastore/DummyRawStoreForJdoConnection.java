@@ -43,6 +43,7 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
@@ -706,6 +707,82 @@ public class DummyRawStoreForJdoConnection implements RawStore {
       throws MetaException, NoSuchObjectException {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public List<SFileLocation> getSFileLocations(String devid, long curts, long timeout)
+      throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Subpartition getSubpartition(String dbName, String tableName, String partName)
+      throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void updateSubpartition(Subpartition newPart) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException,
+      MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void createPartitionIndex(Index index, Subpartition part) throws InvalidObjectException,
+      MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public boolean dropPartitionIndex(Index index, Partition part) throws InvalidObjectException,
+      NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean dropPartitionIndex(Index index, Subpartition part) throws InvalidObjectException,
+      NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void createPartitionIndexStores(Index index, Partition part, List<SFile> store,
+      List<Long> originFid) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void createPartitionIndexStores(Index index, Subpartition part, List<SFile> store,
+      List<Long> originFid) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public boolean dropPartitionIndexStores(Index index, Partition part, List<SFile> store)
+      throws InvalidObjectException, NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean dropPartitionIndexStores(Index index, Subpartition part, List<SFile> store)
+      throws InvalidObjectException, NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return false;
   }
 }
 

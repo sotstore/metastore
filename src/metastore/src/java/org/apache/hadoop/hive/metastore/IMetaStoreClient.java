@@ -1003,4 +1003,14 @@ public interface IMetaStoreClient {
         final short max_parts) throws MetaException, TException;
 
   public boolean add_partition_index(Index index, Partition part) throws TException;
+
+  public boolean drop_partition_index(Index index, Partition part) throws TException;
+
+  public boolean add_partition_index_files(Index index, Partition part, List<SFile> file,
+        List<Long> originfid) throws MetaException, TException;
+
+  public boolean drop_partition_index_files(Index index, Partition part, List<SFile> file)
+        throws MetaException, TException;
+
+  public String getDMStatus() throws MetaException, TException;
 }

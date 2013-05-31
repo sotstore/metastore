@@ -547,6 +547,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("get_all_nodes\n");
   }
 
+  void getDMStatus(std::string& _return) {
+    // Your implementation goes here
+    printf("getDMStatus\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

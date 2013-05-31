@@ -130,6 +130,8 @@ public interface RawStore extends Configurable {
 
   public List<SFileLocation> getSFileLocations(long fid) throws MetaException;
 
+  public List<SFileLocation> getSFileLocations(String devid, long curts, long timeout) throws MetaException;
+
   public SFileLocation getSFileLocation(String node, String devid, String location) throws MetaException;
 
   public SFileLocation updateSFileLocation(SFileLocation newsfl) throws MetaException;
@@ -481,4 +483,17 @@ public interface RawStore extends Configurable {
 
   public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException;
 
+  public void createPartitionIndex(Index index, Subpartition part) throws InvalidObjectException, MetaException;
+
+  public boolean dropPartitionIndex(Index index, Partition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+  public boolean dropPartitionIndex(Index index, Subpartition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+  public void createPartitionIndexStores(Index index, Partition part, List<SFile> store, List<Long> originFid) throws InvalidObjectException, MetaException;
+
+  public void createPartitionIndexStores(Index index, Subpartition part, List<SFile> store, List<Long> originFid) throws InvalidObjectException, MetaException;
+
+  public boolean dropPartitionIndexStores(Index index, Partition part, List<SFile> store) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+  public boolean dropPartitionIndexStores(Index index, Subpartition part, List<SFile> store) throws InvalidObjectException, NoSuchObjectException, MetaException;
 }

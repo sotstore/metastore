@@ -1610,4 +1610,35 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     return client.get_all_nodes();
   }
 
+  @Override
+  public boolean drop_partition_index(Index index, Partition part) throws TException {
+    assert index != null;
+    assert part != null;
+    return client.drop_partition_index(index, part);
+  }
+
+  @Override
+  public boolean add_partition_index_files(Index index, Partition part, List<SFile> file,
+      List<Long> originfid) throws MetaException, TException {
+    assert index != null;
+    assert part != null;
+    assert file != null;
+    assert originfid != null;
+    return client.add_partition_index_files(index, part, file, originfid);
+  }
+
+  @Override
+  public boolean drop_partition_index_files(Index index, Partition part, List<SFile> file)
+      throws MetaException, TException {
+    assert index != null;
+    assert part != null;
+    assert file != null;
+    return client.drop_partition_index_files(index, part, file);
+  }
+
+  @Override
+  public String getDMStatus() throws MetaException, TException {
+    return client.getDMStatus();
+  }
+
 }

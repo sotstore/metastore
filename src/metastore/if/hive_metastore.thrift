@@ -741,6 +741,8 @@ service ThriftHiveMetastore extends fb303.FacebookService
   list<Node> find_best_nodes(1:i32 nr) throws (1:MetaException o1)
 
   list<Node> get_all_nodes() throws(1:MetaException o1)
+  
+  string getDMStatus() throws(1:MetaException o1)
 }
 
 // * Note about the DDL_TIME: When creating or altering a table or a partition,
