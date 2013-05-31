@@ -784,6 +784,13 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
     return false;
   }
+
+  @Override
+  public boolean dropPartition(String dbName, String tableName, String part_name)
+      throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
+    // TODO Auto-generated method stub
+    return false;
+  }
 }
 
 

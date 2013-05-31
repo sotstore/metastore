@@ -168,6 +168,10 @@ public interface RawStore extends Configurable {
       List<String> part_vals) throws MetaException, NoSuchObjectException, InvalidObjectException,
       InvalidInputException;
 
+  public boolean dropPartition(String dbName, String tableName,
+    String part_name) throws MetaException, NoSuchObjectException, InvalidObjectException,
+    InvalidInputException;
+
   public abstract List<Partition> getPartitions(String dbName,
       String tableName, int max) throws MetaException;
 
