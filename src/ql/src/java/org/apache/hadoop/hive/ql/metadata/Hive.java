@@ -2320,4 +2320,17 @@ public class Hive {
   private static String[] getQualifiedNames(String qualifiedName) {
     return qualifiedName.split("\\.");
   }
+
+  /*******************************added by zjw
+   * @throws HiveException ***************************************/
+  public void dropPartition(String db_name,String tbl_name,String part_name) throws HiveException{
+    try{
+      Table t = this.getTable(db_name, tbl_name);
+      getMSC().dropPartition(t.getDbName(), tbl_name, part_name, false);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
 };

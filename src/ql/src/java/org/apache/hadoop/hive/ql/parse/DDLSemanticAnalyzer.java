@@ -789,8 +789,8 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       throw new SemanticException("Drop subpartition operation invalid, table:"+tblName+" does not hava subpartitions");
     }
 
-    ASTNode child = (ASTNode) ast.getChild(1);
-    String subpartitionName = getUnescapedName((ASTNode) child.getChild(0));
+//  ASTNode child = (ASTNode) ast.getChild(1);
+  String subpartitionName = unescapeIdentifier(ast.getChild(1).getText());
 
     DropSubpartitionDesc dropSubpartitionDesc = new DropSubpartitionDesc(tab.getDbName(), tblName, subpartitionName);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
@@ -811,9 +811,10 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       throw new SemanticException("Drop partition operation invalid, table:"+tblName+" does not hava partitions");
     }
 
-    ASTNode child = (ASTNode) ast.getChild(1);
-    String partitionName = unescapeIdentifier(child.getChild(0).getText());
-    DropPartitionDesc dropPartitionDesc = new DropPartitionDesc(tab.getTableName(), tblName, partitionName);
+//    ASTNode child = (ASTNode) ast.getChild(1);
+    String partitionName = unescapeIdentifier(ast.getChild(1).getText());
+//    LOG.info("---zjw--drop partitionName:"+partitionName);
+    DropPartitionDesc dropPartitionDesc = new DropPartitionDesc(tab.getDbName(), tblName, partitionName);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         dropPartitionDesc), conf));
 
