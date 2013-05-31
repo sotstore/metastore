@@ -2131,7 +2131,7 @@ public class ObjectStore implements RawStore, Configurable {
 //        .getPartitionKeys()), part.getValues()), mt, part.getValues(), part
 //        .getCreateTime(), part.getLastAccessTime(),
 //        msd, part.getParameters());
-    MPartition mpart = new MPartition(part.getPartitionName(), mt, part.getValues(), part.getFiles(), part
+    MPartition mpart = new MPartition(part.getPartitionName(), mt, null,part.getValues(), part.getFiles(), part
         .getCreateTime(), part.getLastAccessTime(),
         msd, part.getParameters());
 
@@ -2180,7 +2180,7 @@ public class ObjectStore implements RawStore, Configurable {
 //        .getPartitionKeys()), part.getValues()), mt, part.getValues(), part
 //        .getCreateTime(), part.getLastAccessTime(),
 //        msd, part.getParameters());
-    return new MPartition(part.getPartitionName(), mt, part.getValues(), part.getFiles(), part
+    return new MPartition(part.getPartitionName(), mt,null, part.getValues(), part.getFiles(), part
         .getCreateTime(), part.getLastAccessTime(),
         msd, part.getParameters());
   }
@@ -2240,9 +2240,31 @@ public class ObjectStore implements RawStore, Configurable {
     if (mpart == null) {
       return null;
     }
-    return new Partition(mpart.getValues(), dbName, tblName, mpart.getCreateTime(),
+
+    Partition part = new Partition(mpart.getValues(), dbName, tblName, mpart.getCreateTime(),
         mpart.getLastAccessTime(), convertToStorageDescriptor(mpart.getSd(), true),
         mpart.getParameters(), mpart.getFiles());
+
+    part.setPartitionName(mpart.getPartitionName());
+
+    List<Subpartition> sub_parts = null;
+    if(mpart.getSubPartitions() != null){
+      sub_parts = new ArrayList<Subpartition>();
+      LOG.warn("--zjw--getMSubPartitions is not null,size"+mpart.getSubPartitions().size());
+      for(MPartition msub : mpart.getSubPartitions()){
+
+        Subpartition sub_part = convertToSubpart(msub);
+        //FIX this ,thrift do not support recursive definition,neither inter-reference,so parent partition cannot be defined.
+//        sub_part.setParent(part);
+        sub_parts.add(sub_part);
+      }
+    }else{
+      LOG.warn("--zjw--getSubPartitions is  null");
+    }
+
+    part.setSubpartitions(sub_parts);
+
+    return part;
   }
 
   @Override
@@ -2297,6 +2319,11 @@ public class ObjectStore implements RawStore, Configurable {
     InvalidObjectException, InvalidInputException {
     boolean success = false;
     try {
+      if(part == null) return true;
+      String partName = part.getPartitionName();
+      LOG.warn("--zjw--getPartitionName is  "+part.getPartitionName());
+      LOG.warn("--zjw--getSd is  "+part.getSd());
+      LOG.warn("--zjw--getTableName is  "+part.getTable().getTableName());
       openTransaction();
       if (part != null) {
 //        List<MFieldSchema> schemas = part.getTable().getPartitionKeys();
@@ -2306,8 +2333,7 @@ public class ObjectStore implements RawStore, Configurable {
 //        }
 //        String partName = FileUtils.makePartName(colNames, part.getValues());
 
-        String partName = part.getPartitionName();
-
+        
         List<MPartitionPrivilege> partGrants = listPartitionGrants(
             part.getTable().getDatabase().getName(),
             part.getTable().getTableName(),
@@ -2404,12 +2430,35 @@ public class ObjectStore implements RawStore, Configurable {
       LOG.debug("Executing listMPartitions");
       dbName = dbName.toLowerCase().trim();
       tableName = tableName.toLowerCase().trim();
-      String fisrt_value = partVals.get(0);
-      Query query = pm.newQuery(MPartition.class,
-          "table.tableName == t1 && table.database.name == t2 && values.contains(t3)");
-      query.declareParameters("java.lang.String t1, java.lang.String t2, java.lang.String t3");
+
+      StringBuilder sb = new StringBuilder(
+          "table.tableName == t1 && table.database.name == t2 && (");
+      int n = 0;
+      Map<String, String> params = new HashMap<String, String>();
+      for (Iterator<String> itr = partVals.iterator(); itr.hasNext();) {
+        String vn = "v" + n;
+        n++;
+        String part = itr.next();
+        params.put(vn, part);
+        sb.append("values.contains(").append(vn).append(")");
+        sb.append(" || ");
+      }
+      sb.setLength(sb.length() - 4); // remove the last " || "
+      sb.append(')');
+
+      Query query = pm.newQuery(MPartition.class, sb.toString());
+
+      LOG.debug(" JDOQL filter is " + sb.toString());
+
+      params.put("t1", tableName.trim());
+      params.put("t2", dbName.trim());
+
+      String parameterDeclaration = makeParameterDeclarationString(params);
+      query.declareParameters(parameterDeclaration);
       query.setOrdering("partitionName ascending");
-      mparts = (List<MPartition>) query.execute(tableName, dbName,fisrt_value);
+
+
+      mparts = (List<MPartition>) query.executeWithMap(params);
       LOG.debug("Done executing query for listMPartitions");
       pm.retrieveAll(mparts);
       success = commitTransaction();
@@ -2457,6 +2506,36 @@ public class ObjectStore implements RawStore, Configurable {
         rollbackTransaction();
       }
     }
+  }
+
+  private void loadSubpartitions(List<MPartition> mparts)
+      throws MetaException {
+
+    openTransaction();
+    for (MPartition mp : mparts) {
+      if(mp.getTable().getPartitionKeys().size() != 2){
+        continue;
+      }
+      StringBuilder sb = new StringBuilder(
+          "table.tableName == t1 && table.database.name == t2 && parent.partitionName == t3");
+      int n = 0;
+
+      Query query = pm.newQuery(MPartition.class, sb.toString());
+      query.declareParameters("java.lang.String t1, java.lang.String t2, java.lang.String t3");
+      query.setOrdering("partitionName ascending");
+      LOG.debug(" JDOQL filter is " + sb.toString());
+
+      Collection names = (Collection) query.execute(mp.getTable().getTableName(),mp.getTable().getDatabase().getName(),mp.getPartitionName());
+      for (Iterator i = names.iterator(); i.hasNext();) {
+        MPartition sub = (MPartition) i.next();
+        LOG.debug("---zjw-- getParent is"+sub.getParent().getPartitionName()+"--"+sub.getParent().toString()+"--"+sub.getParent().getSubPartitions().size());
+        mp.getSubPartitions().add(sub);
+      }
+      LOG.debug("---zjw-- getSubPartitions size  is " + mp.getSubPartitions().size());
+
+
+    }
+
   }
 
 
@@ -2696,6 +2775,7 @@ public class ObjectStore implements RawStore, Configurable {
       query.setOrdering("partitionName ascending");
 
       List<MPartition> mparts = (List<MPartition>) query.executeWithMap(params);
+      this.loadSubpartitions(mparts);
       // pm.retrieveAll(mparts); // retrieveAll is pessimistic. some fields may not be needed
       List<Partition> results = convertToParts(dbName, tblName, mparts);
       // pm.makeTransientAll(mparts); // makeTransient will prohibit future access of unfetched fields

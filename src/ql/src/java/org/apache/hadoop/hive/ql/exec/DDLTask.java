@@ -562,9 +562,14 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   private int dropPartition(Hive db, DropPartitionDesc dropPartitionDesc) throws HiveException {
     List<String> partNames = new ArrayList<String>();
     Table tbl = db.getTable(dropPartitionDesc.getDbName(), dropPartitionDesc.getTableName());
+    partNames.add(dropPartitionDesc.getPartitionName());
     List<Partition> ps = db.getPartitionsByNames(tbl, partNames);
-    LOG.info("---zjw--subpartitionsSize"+ps.get(0).getTPartition().getSubpartitionsSize());
-    LOG.info("---zjw--subpartitionName"+ps.get(0).getTPartition().getSubpartitions().get(0).getPartitionName());
+    LOG.info("---zjw--size"+ps.size());
+
+    org.apache.hadoop.hive.metastore.api.Partition tp = ps.get(0).getTPartition();
+    LOG.info("---zjw--getPartitionName"+tp.getPartitionName()+"--"+tp.getDbName()+"--"+tp.getTableName()+"--"+tp.getValuesSize());
+    LOG.info("---zjw--subpartitionsSize"+tp.getSubpartitionsSize());
+    LOG.info("---zjw--subpartitionName"+tp.getSubpartitions().get(0).getPartitionName());
 
     db.dropPartition(dropPartitionDesc.getDbName(), dropPartitionDesc.getTableName(), dropPartitionDesc.getPartitionName());
     return 0;

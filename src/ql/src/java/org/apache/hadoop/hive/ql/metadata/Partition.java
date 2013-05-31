@@ -189,7 +189,7 @@ public class Partition implements Serializable {
     if (table.isView()) {
       return;
     }
-
+    /*
     String partName = "";
     if (table.isPartitioned()) {
       try {
@@ -215,6 +215,7 @@ public class Partition implements Serializable {
       }
     }
 
+  */
     // This will set up field: inputFormatClass
     getInputFormatClass();
     // This will set up field: outputFormatClass
