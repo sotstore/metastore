@@ -970,7 +970,7 @@ public interface IMetaStoreClient {
    */
   public void cancelDelegationToken(String tokenStrForm) throws MetaException, TException;
 
-  public SFile create_file(String node_name, int repnr, long table_id)
+  public SFile create_file(String node_name, int repnr, String db_name, String table_name)
       throws FileOperationException, TException;
 
   public int close_file(SFile file) throws FileOperationException, TException;

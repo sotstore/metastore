@@ -1566,13 +1566,13 @@ module ThriftHiveMetastore
       return
     end
 
-    def create_file(node_name, repnr, table_id)
-      send_create_file(node_name, repnr, table_id)
+    def create_file(node_name, repnr, db_name, table_name)
+      send_create_file(node_name, repnr, db_name, table_name)
       return recv_create_file()
     end
 
-    def send_create_file(node_name, repnr, table_id)
-      send_message('create_file', Create_file_args, :node_name => node_name, :repnr => repnr, :table_id => table_id)
+    def send_create_file(node_name, repnr, db_name, table_name)
+      send_message('create_file', Create_file_args, :node_name => node_name, :repnr => repnr, :db_name => db_name, :table_name => table_name)
     end
 
     def recv_create_file()
@@ -2957,7 +2957,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, Create_file_args)
       result = Create_file_result.new()
       begin
-        result.success = @handler.create_file(args.node_name, args.repnr, args.table_id)
+        result.success = @handler.create_file(args.node_name, args.repnr, args.db_name, args.table_name)
       rescue ::FileOperationException => o1
         result.o1 = o1
       end
@@ -6699,12 +6699,14 @@ module ThriftHiveMetastore
     include ::Thrift::Struct, ::Thrift::Struct_Union
     NODE_NAME = 1
     REPNR = 2
-    TABLE_ID = 3
+    DB_NAME = 3
+    TABLE_NAME = 4
 
     FIELDS = {
       NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'},
       REPNR => {:type => ::Thrift::Types::I32, :name => 'repnr'},
-      TABLE_ID => {:type => ::Thrift::Types::I64, :name => 'table_id'}
+      DB_NAME => {:type => ::Thrift::Types::STRING, :name => 'db_name'},
+      TABLE_NAME => {:type => ::Thrift::Types::STRING, :name => 'table_name'}
     }
 
     def struct_fields; FIELDS; end

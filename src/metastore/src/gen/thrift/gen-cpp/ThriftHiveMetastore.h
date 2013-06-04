@@ -109,7 +109,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void get_delegation_token(std::string& _return, const std::string& token_owner, const std::string& renewer_kerberos_principal_name) = 0;
   virtual int64_t renew_delegation_token(const std::string& token_str_form) = 0;
   virtual void cancel_delegation_token(const std::string& token_str_form) = 0;
-  virtual void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const int64_t table_id) = 0;
+  virtual void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name) = 0;
   virtual int32_t close_file(const SFile& file) = 0;
   virtual void get_file_by_id(SFile& _return, const int64_t fid) = 0;
   virtual int32_t rm_file_logical(const SFile& file) = 0;
@@ -459,7 +459,7 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void cancel_delegation_token(const std::string& /* token_str_form */) {
     return;
   }
-  void create_file(SFile& /* _return */, const std::string& /* node_name */, const int32_t /* repnr */, const int64_t /* table_id */) {
+  void create_file(SFile& /* _return */, const std::string& /* node_name */, const int32_t /* repnr */, const std::string& /* db_name */, const std::string& /* table_name */) {
     return;
   }
   int32_t close_file(const SFile& /* file */) {
@@ -13317,23 +13317,25 @@ class ThriftHiveMetastore_cancel_delegation_token_presult {
 };
 
 typedef struct _ThriftHiveMetastore_create_file_args__isset {
-  _ThriftHiveMetastore_create_file_args__isset() : node_name(false), repnr(false), table_id(false) {}
+  _ThriftHiveMetastore_create_file_args__isset() : node_name(false), repnr(false), db_name(false), table_name(false) {}
   bool node_name;
   bool repnr;
-  bool table_id;
+  bool db_name;
+  bool table_name;
 } _ThriftHiveMetastore_create_file_args__isset;
 
 class ThriftHiveMetastore_create_file_args {
  public:
 
-  ThriftHiveMetastore_create_file_args() : node_name(), repnr(0), table_id(0) {
+  ThriftHiveMetastore_create_file_args() : node_name(), repnr(0), db_name(), table_name() {
   }
 
   virtual ~ThriftHiveMetastore_create_file_args() throw() {}
 
   std::string node_name;
   int32_t repnr;
-  int64_t table_id;
+  std::string db_name;
+  std::string table_name;
 
   _ThriftHiveMetastore_create_file_args__isset __isset;
 
@@ -13345,8 +13347,12 @@ class ThriftHiveMetastore_create_file_args {
     repnr = val;
   }
 
-  void __set_table_id(const int64_t val) {
-    table_id = val;
+  void __set_db_name(const std::string& val) {
+    db_name = val;
+  }
+
+  void __set_table_name(const std::string& val) {
+    table_name = val;
   }
 
   bool operator == (const ThriftHiveMetastore_create_file_args & rhs) const
@@ -13355,7 +13361,9 @@ class ThriftHiveMetastore_create_file_args {
       return false;
     if (!(repnr == rhs.repnr))
       return false;
-    if (!(table_id == rhs.table_id))
+    if (!(db_name == rhs.db_name))
+      return false;
+    if (!(table_name == rhs.table_name))
       return false;
     return true;
   }
@@ -13379,7 +13387,8 @@ class ThriftHiveMetastore_create_file_pargs {
 
   const std::string* node_name;
   const int32_t* repnr;
-  const int64_t* table_id;
+  const std::string* db_name;
+  const std::string* table_name;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -15208,8 +15217,8 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void cancel_delegation_token(const std::string& token_str_form);
   void send_cancel_delegation_token(const std::string& token_str_form);
   void recv_cancel_delegation_token();
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const int64_t table_id);
-  void send_create_file(const std::string& node_name, const int32_t repnr, const int64_t table_id);
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name);
+  void send_create_file(const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name);
   void recv_create_file(SFile& _return);
   int32_t close_file(const SFile& file);
   void send_close_file(const SFile& file);
@@ -16390,13 +16399,13 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     ifaces_[i]->cancel_delegation_token(token_str_form);
   }
 
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const int64_t table_id) {
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->create_file(_return, node_name, repnr, table_id);
+      ifaces_[i]->create_file(_return, node_name, repnr, db_name, table_name);
     }
-    ifaces_[i]->create_file(_return, node_name, repnr, table_id);
+    ifaces_[i]->create_file(_return, node_name, repnr, db_name, table_name);
     return;
   }
 

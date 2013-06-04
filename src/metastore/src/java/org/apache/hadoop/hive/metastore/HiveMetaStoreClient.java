@@ -1491,17 +1491,23 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   }
 
   @Override
-  public SFile create_file(String node_name, int repnr, long table_id)
+  public SFile create_file(String node_name, int repnr, String db_name, String table_name)
       throws FileOperationException, TException {
 
     if ("".equals(node_name)) {
       node_name = null;
     }
+    if ("".equals(db_name)) {
+      db_name = null;
+    }
+    if ("".equals(table_name)) {
+      table_name = null;
+    }
     if (repnr == 0) {
       repnr = 1;
     }
 
-    return client.create_file(node_name, repnr, table_id);
+    return client.create_file(node_name, repnr, db_name, table_name);
   }
 
   @Override

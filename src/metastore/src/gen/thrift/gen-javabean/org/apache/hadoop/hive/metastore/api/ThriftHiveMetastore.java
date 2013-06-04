@@ -224,7 +224,7 @@ public class ThriftHiveMetastore {
 
     public void cancel_delegation_token(String token_str_form) throws MetaException, org.apache.thrift.TException;
 
-    public SFile create_file(String node_name, int repnr, long table_id) throws FileOperationException, org.apache.thrift.TException;
+    public SFile create_file(String node_name, int repnr, String db_name, String table_name) throws FileOperationException, org.apache.thrift.TException;
 
     public int close_file(SFile file) throws FileOperationException, MetaException, org.apache.thrift.TException;
 
@@ -440,7 +440,7 @@ public class ThriftHiveMetastore {
 
     public void cancel_delegation_token(String token_str_form, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.cancel_delegation_token_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void create_file(String node_name, int repnr, long table_id, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.create_file_call> resultHandler) throws org.apache.thrift.TException;
+    public void create_file(String node_name, int repnr, String db_name, String table_name, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.create_file_call> resultHandler) throws org.apache.thrift.TException;
 
     public void close_file(SFile file, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.close_file_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -3237,18 +3237,19 @@ public class ThriftHiveMetastore {
       return;
     }
 
-    public SFile create_file(String node_name, int repnr, long table_id) throws FileOperationException, org.apache.thrift.TException
+    public SFile create_file(String node_name, int repnr, String db_name, String table_name) throws FileOperationException, org.apache.thrift.TException
     {
-      send_create_file(node_name, repnr, table_id);
+      send_create_file(node_name, repnr, db_name, table_name);
       return recv_create_file();
     }
 
-    public void send_create_file(String node_name, int repnr, long table_id) throws org.apache.thrift.TException
+    public void send_create_file(String node_name, int repnr, String db_name, String table_name) throws org.apache.thrift.TException
     {
       create_file_args args = new create_file_args();
       args.setNode_name(node_name);
       args.setRepnr(repnr);
-      args.setTable_id(table_id);
+      args.setDb_name(db_name);
+      args.setTable_name(table_name);
       sendBase("create_file", args);
     }
 
@@ -6986,9 +6987,9 @@ public class ThriftHiveMetastore {
       }
     }
 
-    public void create_file(String node_name, int repnr, long table_id, org.apache.thrift.async.AsyncMethodCallback<create_file_call> resultHandler) throws org.apache.thrift.TException {
+    public void create_file(String node_name, int repnr, String db_name, String table_name, org.apache.thrift.async.AsyncMethodCallback<create_file_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      create_file_call method_call = new create_file_call(node_name, repnr, table_id, resultHandler, this, ___protocolFactory, ___transport);
+      create_file_call method_call = new create_file_call(node_name, repnr, db_name, table_name, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -6996,12 +6997,14 @@ public class ThriftHiveMetastore {
     public static class create_file_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String node_name;
       private int repnr;
-      private long table_id;
-      public create_file_call(String node_name, int repnr, long table_id, org.apache.thrift.async.AsyncMethodCallback<create_file_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private String db_name;
+      private String table_name;
+      public create_file_call(String node_name, int repnr, String db_name, String table_name, org.apache.thrift.async.AsyncMethodCallback<create_file_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.node_name = node_name;
         this.repnr = repnr;
-        this.table_id = table_id;
+        this.db_name = db_name;
+        this.table_name = table_name;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -7009,7 +7012,8 @@ public class ThriftHiveMetastore {
         create_file_args args = new create_file_args();
         args.setNode_name(node_name);
         args.setRepnr(repnr);
-        args.setTable_id(table_id);
+        args.setDb_name(db_name);
+        args.setTable_name(table_name);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -9956,7 +9960,7 @@ public class ThriftHiveMetastore {
       public create_file_result getResult(I iface, create_file_args args) throws org.apache.thrift.TException {
         create_file_result result = new create_file_result();
         try {
-          result.success = iface.create_file(args.node_name, args.repnr, args.table_id);
+          result.success = iface.create_file(args.node_name, args.repnr, args.db_name, args.table_name);
         } catch (FileOperationException o1) {
           result.o1 = o1;
         }
@@ -110866,7 +110870,8 @@ public class ThriftHiveMetastore {
 
     private static final org.apache.thrift.protocol.TField NODE_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("node_name", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField REPNR_FIELD_DESC = new org.apache.thrift.protocol.TField("repnr", org.apache.thrift.protocol.TType.I32, (short)2);
-    private static final org.apache.thrift.protocol.TField TABLE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("table_id", org.apache.thrift.protocol.TType.I64, (short)3);
+    private static final org.apache.thrift.protocol.TField DB_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("db_name", org.apache.thrift.protocol.TType.STRING, (short)3);
+    private static final org.apache.thrift.protocol.TField TABLE_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("table_name", org.apache.thrift.protocol.TType.STRING, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -110876,13 +110881,15 @@ public class ThriftHiveMetastore {
 
     private String node_name; // required
     private int repnr; // required
-    private long table_id; // required
+    private String db_name; // required
+    private String table_name; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       NODE_NAME((short)1, "node_name"),
       REPNR((short)2, "repnr"),
-      TABLE_ID((short)3, "table_id");
+      DB_NAME((short)3, "db_name"),
+      TABLE_NAME((short)4, "table_name");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -110901,8 +110908,10 @@ public class ThriftHiveMetastore {
             return NODE_NAME;
           case 2: // REPNR
             return REPNR;
-          case 3: // TABLE_ID
-            return TABLE_ID;
+          case 3: // DB_NAME
+            return DB_NAME;
+          case 4: // TABLE_NAME
+            return TABLE_NAME;
           default:
             return null;
         }
@@ -110944,7 +110953,6 @@ public class ThriftHiveMetastore {
 
     // isset id assignments
     private static final int __REPNR_ISSET_ID = 0;
-    private static final int __TABLE_ID_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
@@ -110953,8 +110961,10 @@ public class ThriftHiveMetastore {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.REPNR, new org.apache.thrift.meta_data.FieldMetaData("repnr", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-      tmpMap.put(_Fields.TABLE_ID, new org.apache.thrift.meta_data.FieldMetaData("table_id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.DB_NAME, new org.apache.thrift.meta_data.FieldMetaData("db_name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.TABLE_NAME, new org.apache.thrift.meta_data.FieldMetaData("table_name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(create_file_args.class, metaDataMap);
     }
@@ -110965,14 +110975,15 @@ public class ThriftHiveMetastore {
     public create_file_args(
       String node_name,
       int repnr,
-      long table_id)
+      String db_name,
+      String table_name)
     {
       this();
       this.node_name = node_name;
       this.repnr = repnr;
       setRepnrIsSet(true);
-      this.table_id = table_id;
-      setTable_idIsSet(true);
+      this.db_name = db_name;
+      this.table_name = table_name;
     }
 
     /**
@@ -110984,7 +110995,12 @@ public class ThriftHiveMetastore {
         this.node_name = other.node_name;
       }
       this.repnr = other.repnr;
-      this.table_id = other.table_id;
+      if (other.isSetDb_name()) {
+        this.db_name = other.db_name;
+      }
+      if (other.isSetTable_name()) {
+        this.table_name = other.table_name;
+      }
     }
 
     public create_file_args deepCopy() {
@@ -110996,8 +111012,8 @@ public class ThriftHiveMetastore {
       this.node_name = null;
       setRepnrIsSet(false);
       this.repnr = 0;
-      setTable_idIsSet(false);
-      this.table_id = 0;
+      this.db_name = null;
+      this.table_name = null;
     }
 
     public String getNode_name() {
@@ -111045,26 +111061,50 @@ public class ThriftHiveMetastore {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REPNR_ISSET_ID, value);
     }
 
-    public long getTable_id() {
-      return this.table_id;
+    public String getDb_name() {
+      return this.db_name;
     }
 
-    public void setTable_id(long table_id) {
-      this.table_id = table_id;
-      setTable_idIsSet(true);
+    public void setDb_name(String db_name) {
+      this.db_name = db_name;
     }
 
-    public void unsetTable_id() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TABLE_ID_ISSET_ID);
+    public void unsetDb_name() {
+      this.db_name = null;
     }
 
-    /** Returns true if field table_id is set (has been assigned a value) and false otherwise */
-    public boolean isSetTable_id() {
-      return EncodingUtils.testBit(__isset_bitfield, __TABLE_ID_ISSET_ID);
+    /** Returns true if field db_name is set (has been assigned a value) and false otherwise */
+    public boolean isSetDb_name() {
+      return this.db_name != null;
     }
 
-    public void setTable_idIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TABLE_ID_ISSET_ID, value);
+    public void setDb_nameIsSet(boolean value) {
+      if (!value) {
+        this.db_name = null;
+      }
+    }
+
+    public String getTable_name() {
+      return this.table_name;
+    }
+
+    public void setTable_name(String table_name) {
+      this.table_name = table_name;
+    }
+
+    public void unsetTable_name() {
+      this.table_name = null;
+    }
+
+    /** Returns true if field table_name is set (has been assigned a value) and false otherwise */
+    public boolean isSetTable_name() {
+      return this.table_name != null;
+    }
+
+    public void setTable_nameIsSet(boolean value) {
+      if (!value) {
+        this.table_name = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
@@ -111085,11 +111125,19 @@ public class ThriftHiveMetastore {
         }
         break;
 
-      case TABLE_ID:
+      case DB_NAME:
         if (value == null) {
-          unsetTable_id();
+          unsetDb_name();
         } else {
-          setTable_id((Long)value);
+          setDb_name((String)value);
+        }
+        break;
+
+      case TABLE_NAME:
+        if (value == null) {
+          unsetTable_name();
+        } else {
+          setTable_name((String)value);
         }
         break;
 
@@ -111104,8 +111152,11 @@ public class ThriftHiveMetastore {
       case REPNR:
         return Integer.valueOf(getRepnr());
 
-      case TABLE_ID:
-        return Long.valueOf(getTable_id());
+      case DB_NAME:
+        return getDb_name();
+
+      case TABLE_NAME:
+        return getTable_name();
 
       }
       throw new IllegalStateException();
@@ -111122,8 +111173,10 @@ public class ThriftHiveMetastore {
         return isSetNode_name();
       case REPNR:
         return isSetRepnr();
-      case TABLE_ID:
-        return isSetTable_id();
+      case DB_NAME:
+        return isSetDb_name();
+      case TABLE_NAME:
+        return isSetTable_name();
       }
       throw new IllegalStateException();
     }
@@ -111159,12 +111212,21 @@ public class ThriftHiveMetastore {
           return false;
       }
 
-      boolean this_present_table_id = true;
-      boolean that_present_table_id = true;
-      if (this_present_table_id || that_present_table_id) {
-        if (!(this_present_table_id && that_present_table_id))
+      boolean this_present_db_name = true && this.isSetDb_name();
+      boolean that_present_db_name = true && that.isSetDb_name();
+      if (this_present_db_name || that_present_db_name) {
+        if (!(this_present_db_name && that_present_db_name))
           return false;
-        if (this.table_id != that.table_id)
+        if (!this.db_name.equals(that.db_name))
+          return false;
+      }
+
+      boolean this_present_table_name = true && this.isSetTable_name();
+      boolean that_present_table_name = true && that.isSetTable_name();
+      if (this_present_table_name || that_present_table_name) {
+        if (!(this_present_table_name && that_present_table_name))
+          return false;
+        if (!this.table_name.equals(that.table_name))
           return false;
       }
 
@@ -111185,10 +111247,15 @@ public class ThriftHiveMetastore {
       if (present_repnr)
         builder.append(repnr);
 
-      boolean present_table_id = true;
-      builder.append(present_table_id);
-      if (present_table_id)
-        builder.append(table_id);
+      boolean present_db_name = true && (isSetDb_name());
+      builder.append(present_db_name);
+      if (present_db_name)
+        builder.append(db_name);
+
+      boolean present_table_name = true && (isSetTable_name());
+      builder.append(present_table_name);
+      if (present_table_name)
+        builder.append(table_name);
 
       return builder.toHashCode();
     }
@@ -111221,12 +111288,22 @@ public class ThriftHiveMetastore {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetTable_id()).compareTo(typedOther.isSetTable_id());
+      lastComparison = Boolean.valueOf(isSetDb_name()).compareTo(typedOther.isSetDb_name());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetTable_id()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.table_id, typedOther.table_id);
+      if (isSetDb_name()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.db_name, typedOther.db_name);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetTable_name()).compareTo(typedOther.isSetTable_name());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetTable_name()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.table_name, typedOther.table_name);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -111263,8 +111340,20 @@ public class ThriftHiveMetastore {
       sb.append(this.repnr);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("table_id:");
-      sb.append(this.table_id);
+      sb.append("db_name:");
+      if (this.db_name == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.db_name);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("table_name:");
+      if (this.table_name == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.table_name);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -111327,10 +111416,18 @@ public class ThriftHiveMetastore {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 3: // TABLE_ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.table_id = iprot.readI64();
-                struct.setTable_idIsSet(true);
+            case 3: // DB_NAME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.db_name = iprot.readString();
+                struct.setDb_nameIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 4: // TABLE_NAME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.table_name = iprot.readString();
+                struct.setTable_nameIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -111356,9 +111453,16 @@ public class ThriftHiveMetastore {
         oprot.writeFieldBegin(REPNR_FIELD_DESC);
         oprot.writeI32(struct.repnr);
         oprot.writeFieldEnd();
-        oprot.writeFieldBegin(TABLE_ID_FIELD_DESC);
-        oprot.writeI64(struct.table_id);
-        oprot.writeFieldEnd();
+        if (struct.db_name != null) {
+          oprot.writeFieldBegin(DB_NAME_FIELD_DESC);
+          oprot.writeString(struct.db_name);
+          oprot.writeFieldEnd();
+        }
+        if (struct.table_name != null) {
+          oprot.writeFieldBegin(TABLE_NAME_FIELD_DESC);
+          oprot.writeString(struct.table_name);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -111383,25 +111487,31 @@ public class ThriftHiveMetastore {
         if (struct.isSetRepnr()) {
           optionals.set(1);
         }
-        if (struct.isSetTable_id()) {
+        if (struct.isSetDb_name()) {
           optionals.set(2);
         }
-        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetTable_name()) {
+          optionals.set(3);
+        }
+        oprot.writeBitSet(optionals, 4);
         if (struct.isSetNode_name()) {
           oprot.writeString(struct.node_name);
         }
         if (struct.isSetRepnr()) {
           oprot.writeI32(struct.repnr);
         }
-        if (struct.isSetTable_id()) {
-          oprot.writeI64(struct.table_id);
+        if (struct.isSetDb_name()) {
+          oprot.writeString(struct.db_name);
+        }
+        if (struct.isSetTable_name()) {
+          oprot.writeString(struct.table_name);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, create_file_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(4);
         if (incoming.get(0)) {
           struct.node_name = iprot.readString();
           struct.setNode_nameIsSet(true);
@@ -111411,8 +111521,12 @@ public class ThriftHiveMetastore {
           struct.setRepnrIsSet(true);
         }
         if (incoming.get(2)) {
-          struct.table_id = iprot.readI64();
-          struct.setTable_idIsSet(true);
+          struct.db_name = iprot.readString();
+          struct.setDb_nameIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.table_name = iprot.readString();
+          struct.setTable_nameIsSet(true);
         }
       }
     }

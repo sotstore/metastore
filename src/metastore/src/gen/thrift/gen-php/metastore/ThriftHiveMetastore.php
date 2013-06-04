@@ -109,7 +109,7 @@ interface ThriftHiveMetastoreIf extends \FacebookServiceIf {
   public function get_delegation_token($token_owner, $renewer_kerberos_principal_name);
   public function renew_delegation_token($token_str_form);
   public function cancel_delegation_token($token_str_form);
-  public function create_file($node_name, $repnr, $table_id);
+  public function create_file($node_name, $repnr, $db_name, $table_name);
   public function close_file(\metastore\SFile $file);
   public function get_file_by_id($fid);
   public function rm_file_logical(\metastore\SFile $file);
@@ -5482,18 +5482,19 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
     return;
   }
 
-  public function create_file($node_name, $repnr, $table_id)
+  public function create_file($node_name, $repnr, $db_name, $table_name)
   {
-    $this->send_create_file($node_name, $repnr, $table_id);
+    $this->send_create_file($node_name, $repnr, $db_name, $table_name);
     return $this->recv_create_file();
   }
 
-  public function send_create_file($node_name, $repnr, $table_id)
+  public function send_create_file($node_name, $repnr, $db_name, $table_name)
   {
     $args = new \metastore\ThriftHiveMetastore_create_file_args();
     $args->node_name = $node_name;
     $args->repnr = $repnr;
-    $args->table_id = $table_id;
+    $args->db_name = $db_name;
+    $args->table_name = $table_name;
     $bin_accel = ($this->output_ instanceof TProtocol::$TBINARYPROTOCOLACCELERATED) && function_exists('thrift_protocol_write_binary');
     if ($bin_accel)
     {
@@ -27603,7 +27604,8 @@ class ThriftHiveMetastore_create_file_args {
 
   public $node_name = null;
   public $repnr = null;
-  public $table_id = null;
+  public $db_name = null;
+  public $table_name = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -27617,8 +27619,12 @@ class ThriftHiveMetastore_create_file_args {
           'type' => TType::I32,
           ),
         3 => array(
-          'var' => 'table_id',
-          'type' => TType::I64,
+          'var' => 'db_name',
+          'type' => TType::STRING,
+          ),
+        4 => array(
+          'var' => 'table_name',
+          'type' => TType::STRING,
           ),
         );
     }
@@ -27629,8 +27635,11 @@ class ThriftHiveMetastore_create_file_args {
       if (isset($vals['repnr'])) {
         $this->repnr = $vals['repnr'];
       }
-      if (isset($vals['table_id'])) {
-        $this->table_id = $vals['table_id'];
+      if (isset($vals['db_name'])) {
+        $this->db_name = $vals['db_name'];
+      }
+      if (isset($vals['table_name'])) {
+        $this->table_name = $vals['table_name'];
       }
     }
   }
@@ -27669,8 +27678,15 @@ class ThriftHiveMetastore_create_file_args {
           }
           break;
         case 3:
-          if ($ftype == TType::I64) {
-            $xfer += $input->readI64($this->table_id);
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->db_name);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->table_name);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -27698,9 +27714,14 @@ class ThriftHiveMetastore_create_file_args {
       $xfer += $output->writeI32($this->repnr);
       $xfer += $output->writeFieldEnd();
     }
-    if ($this->table_id !== null) {
-      $xfer += $output->writeFieldBegin('table_id', TType::I64, 3);
-      $xfer += $output->writeI64($this->table_id);
+    if ($this->db_name !== null) {
+      $xfer += $output->writeFieldBegin('db_name', TType::STRING, 3);
+      $xfer += $output->writeString($this->db_name);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->table_name !== null) {
+      $xfer += $output->writeFieldBegin('table_name', TType::STRING, 4);
+      $xfer += $output->writeString($this->table_name);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();

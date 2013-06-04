@@ -116,7 +116,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  string get_delegation_token(string token_owner, string renewer_kerberos_principal_name)'
   print '  i64 renew_delegation_token(string token_str_form)'
   print '  void cancel_delegation_token(string token_str_form)'
-  print '  SFile create_file(string node_name, i32 repnr, i64 table_id)'
+  print '  SFile create_file(string node_name, i32 repnr, string db_name, string table_name)'
   print '  i32 close_file(SFile file)'
   print '  SFile get_file_by_id(i64 fid)'
   print '  i32 rm_file_logical(SFile file)'
@@ -739,10 +739,10 @@ elif cmd == 'cancel_delegation_token':
   pp.pprint(client.cancel_delegation_token(args[0],))
 
 elif cmd == 'create_file':
-  if len(args) != 3:
-    print 'create_file requires 3 args'
+  if len(args) != 4:
+    print 'create_file requires 4 args'
     sys.exit(1)
-  pp.pprint(client.create_file(args[0],eval(args[1]),eval(args[2]),))
+  pp.pprint(client.create_file(args[0],eval(args[1]),args[2],args[3],))
 
 elif cmd == 'close_file':
   if len(args) != 1:

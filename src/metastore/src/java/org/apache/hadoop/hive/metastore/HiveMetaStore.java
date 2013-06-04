@@ -4121,7 +4121,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public SFile create_file(String node_name, int repnr, long table_id)
+    public SFile create_file(String node_name, int repnr, String db_name, String table_name)
         throws FileOperationException, TException {
 
       if (node_name == null) {
@@ -4143,18 +4143,19 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         FileLocatingPolicy flp = new FileLocatingPolicy(null, null, FileLocatingPolicy.EXCLUDE_NODES_DEVS, true);
         String devid = dm.findBestDevice(node_name, flp);
-        String table_name = null;
+        long table_id = -1;
 
         if (devid == null) {
           throw new FileOperationException("Can not find any available device on node '" + node_name + "' now", FOFailReason.NOTEXIST);
         }
         // try to parse table_name
-        if (table_id >= 0) {
+        if (db_name != null && table_name != null) {
           Table tbl;
           try {
-            tbl = getMS().getTableByID(table_id);
+            tbl = getMS().getTable(db_name, table_name);
+            table_id = getMS().getTableOID(db_name, table_name);
           } catch (MetaException me) {
-            throw new FileOperationException("Invalid Table ID:" + table_id, FOFailReason.INVALID_TABLE);
+            throw new FileOperationException("Invalid Table name:" + db_name + "/" + table_name, FOFailReason.INVALID_TABLE);
           }
           table_name = tbl.getDbName() + "/" + tbl.getTableName();
         }

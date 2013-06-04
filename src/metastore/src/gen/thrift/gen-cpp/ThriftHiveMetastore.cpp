@@ -22089,9 +22089,17 @@ uint32_t ThriftHiveMetastore_create_file_args::read(::apache::thrift::protocol::
         }
         break;
       case 3:
-        if (ftype == ::apache::thrift::protocol::T_I64) {
-          xfer += iprot->readI64(this->table_id);
-          this->__isset.table_id = true;
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->db_name);
+          this->__isset.db_name = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 4:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->table_name);
+          this->__isset.table_name = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -22120,8 +22128,12 @@ uint32_t ThriftHiveMetastore_create_file_args::write(::apache::thrift::protocol:
   xfer += oprot->writeI32(this->repnr);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("table_id", ::apache::thrift::protocol::T_I64, 3);
-  xfer += oprot->writeI64(this->table_id);
+  xfer += oprot->writeFieldBegin("db_name", ::apache::thrift::protocol::T_STRING, 3);
+  xfer += oprot->writeString(this->db_name);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("table_name", ::apache::thrift::protocol::T_STRING, 4);
+  xfer += oprot->writeString(this->table_name);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -22141,8 +22153,12 @@ uint32_t ThriftHiveMetastore_create_file_pargs::write(::apache::thrift::protocol
   xfer += oprot->writeI32((*(this->repnr)));
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("table_id", ::apache::thrift::protocol::T_I64, 3);
-  xfer += oprot->writeI64((*(this->table_id)));
+  xfer += oprot->writeFieldBegin("db_name", ::apache::thrift::protocol::T_STRING, 3);
+  xfer += oprot->writeString((*(this->db_name)));
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("table_name", ::apache::thrift::protocol::T_STRING, 4);
+  xfer += oprot->writeString((*(this->table_name)));
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -30646,13 +30662,13 @@ void ThriftHiveMetastoreClient::recv_cancel_delegation_token()
   return;
 }
 
-void ThriftHiveMetastoreClient::create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const int64_t table_id)
+void ThriftHiveMetastoreClient::create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name)
 {
-  send_create_file(node_name, repnr, table_id);
+  send_create_file(node_name, repnr, db_name, table_name);
   recv_create_file(_return);
 }
 
-void ThriftHiveMetastoreClient::send_create_file(const std::string& node_name, const int32_t repnr, const int64_t table_id)
+void ThriftHiveMetastoreClient::send_create_file(const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("create_file", ::apache::thrift::protocol::T_CALL, cseqid);
@@ -30660,7 +30676,8 @@ void ThriftHiveMetastoreClient::send_create_file(const std::string& node_name, c
   ThriftHiveMetastore_create_file_pargs args;
   args.node_name = &node_name;
   args.repnr = &repnr;
-  args.table_id = &table_id;
+  args.db_name = &db_name;
+  args.table_name = &table_name;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -37023,7 +37040,7 @@ void ThriftHiveMetastoreProcessor::process_create_file(int32_t seqid, ::apache::
 
   ThriftHiveMetastore_create_file_result result;
   try {
-    iface_->create_file(result.success, args.node_name, args.repnr, args.table_id);
+    iface_->create_file(result.success, args.node_name, args.repnr, args.db_name, args.table_name);
     result.__isset.success = true;
   } catch (FileOperationException &o1) {
     result.o1 = o1;
