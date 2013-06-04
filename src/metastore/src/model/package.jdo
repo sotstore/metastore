@@ -409,9 +409,10 @@
            <column name="PARAM_VALUE" length="4000" jdbc-type="VARCHAR"/>
         </value>
       </field>
-      <field name="parent" field-type="MPartition"/>
+      <field name="parent" field-type="org.apache.hadoop.hive.metastore.model.MPartition"/>
       <field name="subPartitions" mappedBy="parent">
-        <collection element-type="MPartition"/>
+        <!--collection element-type="MPartition"/-->
+        <collection element-type="org.apache.hadoop.hive.metastore.model.MPartition"/>
       </field>
     </class>
 

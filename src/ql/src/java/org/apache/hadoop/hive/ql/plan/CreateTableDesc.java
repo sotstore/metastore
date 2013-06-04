@@ -43,6 +43,7 @@ import org.apache.hadoop.hive.ql.parse.ParseUtils;
 import org.apache.hadoop.hive.ql.parse.SemanticException;
 import org.apache.hadoop.hive.serde2.SerDeUtils;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorUtils;
+import org.mortbay.log.Log;
 
 /**
  * CreateTableDesc.
@@ -479,16 +480,18 @@ public class CreateTableDesc extends DDLDesc implements Serializable {
           }
           String interval_unit = pi.getArgs().get(0);
           Long interval_seconds = Long.parseLong(pi.getArgs().get(1));
-
-          if("M".equals(interval_unit)){
+          Log.info("---zjw--interval_unit:"+interval_unit);
+          if("'Y'".equalsIgnoreCase(interval_unit)){
+            interval_seconds = interval_seconds * 3600 * 24 * 7 *30 * 365;
+          }else if("'M'".equalsIgnoreCase(interval_unit)){
             interval_seconds = interval_seconds * 3600 * 24 * 7 *30;
-          }else if("W".equals(interval_unit)){
+          }else if("'W'".equalsIgnoreCase(interval_unit)){
             interval_seconds = interval_seconds * 3600 * 24 * 7;
-          }else if("D".equals(interval_unit)){
+          }else if("'D'".equalsIgnoreCase(interval_unit)){
             interval_seconds = interval_seconds * 3600 * 24;
-          }else if("H".equals(interval_unit)){
+          }else if("'H'".equalsIgnoreCase(interval_unit)){
             interval_seconds = interval_seconds * 3600;
-          }else if("MI".equals(interval_unit)){
+          }else if("'MI'".equalsIgnoreCase(interval_unit)){
             interval_seconds = interval_seconds * 60;
           }else{
             throw new SemanticException(

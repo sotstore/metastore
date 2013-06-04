@@ -48,9 +48,12 @@ public class MPartition {
    * @param sd
    * @param parameters
    */
-  public MPartition(String partitionName, MTable table, List<String> values, List<Long> files, int createTime,
+  public MPartition(String partitionName, MTable table, List<MPartition> subPartitions,List<String> values, List<Long> files, int createTime,
       int lastAccessTime, MStorageDescriptor sd, Map<String, String> parameters) {
     this.partitionName = partitionName;
+    if(subPartitions != null){
+      this.subPartitions = subPartitions;
+    }
     this.table = table;
     this.values = values;
     this.files = files;
