@@ -25,6 +25,7 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -500,4 +501,8 @@ public interface RawStore extends Configurable {
   public boolean dropPartitionIndexStores(Index index, Partition part, List<SFile> store) throws InvalidObjectException, NoSuchObjectException, MetaException;
 
   public boolean dropPartitionIndexStores(Index index, Subpartition part, List<SFile> store) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+  public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException;
+
+  public void createDatacenter(Datacenter dc) throws InvalidObjectException, MetaException;
 }

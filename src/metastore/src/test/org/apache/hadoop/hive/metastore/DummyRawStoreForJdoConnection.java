@@ -28,6 +28,7 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -790,6 +791,18 @@ public class DummyRawStoreForJdoConnection implements RawStore {
       throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
     // TODO Auto-generated method stub
     return false;
+  }
+
+  @Override
+  public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void createDatacenter(Datacenter dc) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
   }
 }
 

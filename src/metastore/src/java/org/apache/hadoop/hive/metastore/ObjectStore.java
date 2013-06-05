@@ -64,6 +64,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsData;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.DoubleColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -101,6 +102,7 @@ import org.apache.hadoop.hive.metastore.model.MBusiTypeColumn;
 import org.apache.hadoop.hive.metastore.model.MColumnDescriptor;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MDatabase;
+import org.apache.hadoop.hive.metastore.model.MDatacenter;
 import org.apache.hadoop.hive.metastore.model.MDevice;
 import org.apache.hadoop.hive.metastore.model.MFieldSchema;
 import org.apache.hadoop.hive.metastore.model.MFile;
@@ -428,6 +430,11 @@ public class ObjectStore implements RawStore, Configurable {
     mdb.setLocationUri(db.getLocationUri());
     mdb.setDescription(db.getDescription());
     mdb.setParameters(db.getParameters());
+    try {
+      mdb.setDatacenter(getMDatacenter(db.getDatacenter().getName()));
+    } catch (NoSuchObjectException e) {
+      throw new InvalidObjectException("This datacenter " + db.getDatacenter().getName() + " is invalid.");
+    }
     try {
       openTransaction();
       pm.makePersistent(mdb);
@@ -938,6 +945,21 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
+  public void createDatacenter(Datacenter dc) throws InvalidObjectException, MetaException {
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      MDatacenter mdc = convertToMDatacenter(dc);
+      pm.makePersistent(mdc);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+  }
+
   public void createFileLocaiton(SFileLocation fl) throws InvalidObjectException, MetaException {
     boolean commited = false;
 
@@ -1266,6 +1288,22 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     return ln;
+  }
+
+  public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException {
+    boolean commited = false;
+    Datacenter dc = null;
+
+    try {
+      openTransaction();
+      dc = convertToDatacenter(getMDatacenter(name));
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return dc;
   }
 
   public Node getNode(String node_name) throws MetaException {
@@ -1636,6 +1674,29 @@ public class ObjectStore implements RawStore, Configurable {
     return mn;
   }
 
+  private MDatacenter getMDatacenter(String name) throws NoSuchObjectException {
+    MDatacenter dc = null;
+    boolean commited = false;
+    try {
+      openTransaction();
+      name = name.trim();
+      Query query = pm.newQuery(MDatacenter.class, "this.name == name");
+      query.declareParameters("java.lang.String name");
+      query.setUnique(true);
+      dc = (MDatacenter)query.execute(name);
+      pm.retrieve(dc);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    if (dc == null) {
+      throw new NoSuchObjectException("There is no datacenter named " + name);
+    }
+    return dc;
+  }
+
   private MFile getMFile(long fid) {
     MFile mf = null;
     boolean commited = false;
@@ -1786,6 +1847,13 @@ public class ObjectStore implements RawStore, Configurable {
     return new Node(mn.getNode_name(), mn.getIPList(), mn.getStatus());
   }
 
+  private Datacenter convertToDatacenter(MDatacenter mdc) throws MetaException {
+    if (mdc == null) {
+      return null;
+    }
+    return new Datacenter(mdc.getName(), mdc.getLocationUri(), mdc.getDescription(), mdc.getParameters());
+  }
+
   private SFile convertToSFile(MFile mf) throws MetaException {
     if (mf == null) {
       return null;
@@ -1843,6 +1911,14 @@ public class ObjectStore implements RawStore, Configurable {
     }
 
     return new MNode(node.getNode_name().trim(), node.getIps(), node.getStatus());
+  }
+
+  private MDatacenter convertToMDatacenter(Datacenter dc) {
+    if (dc == null) {
+      return null;
+    }
+
+    return new MDatacenter(dc.getName(), dc.getLocationUri(), dc.getDescription(), dc.getParameters());
   }
 
   private MFile convertToMFile(SFile file) {
@@ -2474,7 +2550,9 @@ public class ObjectStore implements RawStore, Configurable {
     InvalidObjectException, InvalidInputException {
     boolean success = false;
     try {
-      if(part == null) return true;
+      if(part == null) {
+        return true;
+      }
       String partName = part.getPartitionName();
       LOG.warn("--zjw--getPartitionName is  "+part.getPartitionName());
       LOG.warn("--zjw--getSd is  "+part.getSd());
@@ -2488,7 +2566,7 @@ public class ObjectStore implements RawStore, Configurable {
 //        }
 //        String partName = FileUtils.makePartName(colNames, part.getValues());
 
-        
+
         List<MPartitionPrivilege> partGrants = listPartitionGrants(
             part.getTable().getDatabase().getName(),
             part.getTable().getTableName(),

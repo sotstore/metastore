@@ -414,12 +414,22 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     private void createDefaultDB_core(RawStore ms) throws MetaException, InvalidObjectException {
+      Datacenter dc = null;
+
+      try {
+        dc = ms.getDatacenter(MetaStoreUtils.DEFAULT_DATACENTER_NAME);
+      } catch (NoSuchObjectException e) {
+        dc = new Datacenter(MetaStoreUtils.DEFAULT_DATACENTER_NAME, null, "DC_URI", null);
+        ms.createDatacenter(dc);
+      }
+
       try {
         ms.getDatabase(DEFAULT_DATABASE_NAME);
       } catch (NoSuchObjectException e) {
-        ms.createDatabase(
-            new Database(DEFAULT_DATABASE_NAME, DEFAULT_DATABASE_COMMENT,
-                wh.getDefaultDatabasePath(DEFAULT_DATABASE_NAME).toString(), null));
+        Database db = new Database(DEFAULT_DATABASE_NAME, DEFAULT_DATABASE_COMMENT,
+                wh.getDefaultDatabasePath(DEFAULT_DATABASE_NAME).toString(), null);
+        db.setDatacenter(dc);
+        ms.createDatabase(db);
       }
       HMSHandler.createDefaultDB = true;
     }
