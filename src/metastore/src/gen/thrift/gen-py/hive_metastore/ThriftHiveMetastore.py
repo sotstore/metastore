@@ -794,12 +794,13 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
-  def create_file(self, node_name, repnr, table_id):
+  def create_file(self, node_name, repnr, db_name, table_name):
     """
     Parameters:
      - node_name
      - repnr
-     - table_id
+     - db_name
+     - table_name
     """
     pass
 
@@ -877,6 +878,9 @@ class Iface(fb303.FacebookService.Iface):
     pass
 
   def get_all_nodes(self, ):
+    pass
+
+  def getDMStatus(self, ):
     pass
 
 
@@ -4249,22 +4253,24 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     return
 
-  def create_file(self, node_name, repnr, table_id):
+  def create_file(self, node_name, repnr, db_name, table_name):
     """
     Parameters:
      - node_name
      - repnr
-     - table_id
+     - db_name
+     - table_name
     """
-    self.send_create_file(node_name, repnr, table_id)
+    self.send_create_file(node_name, repnr, db_name, table_name)
     return self.recv_create_file()
 
-  def send_create_file(self, node_name, repnr, table_id):
+  def send_create_file(self, node_name, repnr, db_name, table_name):
     self._oprot.writeMessageBegin('create_file', TMessageType.CALL, self._seqid)
     args = create_file_args()
     args.node_name = node_name
     args.repnr = repnr
-    args.table_id = table_id
+    args.db_name = db_name
+    args.table_name = table_name
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
@@ -4648,6 +4654,33 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "get_all_nodes failed: unknown result");
 
+  def getDMStatus(self, ):
+    self.send_getDMStatus()
+    return self.recv_getDMStatus()
+
+  def send_getDMStatus(self, ):
+    self._oprot.writeMessageBegin('getDMStatus', TMessageType.CALL, self._seqid)
+    args = getDMStatus_args()
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_getDMStatus(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = getDMStatus_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "getDMStatus failed: unknown result");
+
 
 class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
   def __init__(self, handler):
@@ -4757,6 +4790,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["alter_node"] = Processor.process_alter_node
     self._processMap["find_best_nodes"] = Processor.process_find_best_nodes
     self._processMap["get_all_nodes"] = Processor.process_get_all_nodes
+    self._processMap["getDMStatus"] = Processor.process_getDMStatus
 
   def process(self, iprot, oprot):
     (name, type, seqid) = iprot.readMessageBegin()
@@ -6237,7 +6271,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     iprot.readMessageEnd()
     result = create_file_result()
     try:
-      result.success = self._handler.create_file(args.node_name, args.repnr, args.table_id)
+      result.success = self._handler.create_file(args.node_name, args.repnr, args.db_name, args.table_name)
     except FileOperationException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("create_file", TMessageType.REPLY, seqid)
@@ -6405,6 +6439,20 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("get_all_nodes", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_getDMStatus(self, seqid, iprot, oprot):
+    args = getDMStatus_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = getDMStatus_result()
+    try:
+      result.success = self._handler.getDMStatus()
+    except MetaException as o1:
+      result.o1 = o1
+    oprot.writeMessageBegin("getDMStatus", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -21689,20 +21737,23 @@ class create_file_args:
   Attributes:
    - node_name
    - repnr
-   - table_id
+   - db_name
+   - table_name
   """
 
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'node_name', None, None, ), # 1
     (2, TType.I32, 'repnr', None, None, ), # 2
-    (3, TType.I64, 'table_id', None, None, ), # 3
+    (3, TType.STRING, 'db_name', None, None, ), # 3
+    (4, TType.STRING, 'table_name', None, None, ), # 4
   )
 
-  def __init__(self, node_name=None, repnr=None, table_id=None,):
+  def __init__(self, node_name=None, repnr=None, db_name=None, table_name=None,):
     self.node_name = node_name
     self.repnr = repnr
-    self.table_id = table_id
+    self.db_name = db_name
+    self.table_name = table_name
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -21724,8 +21775,13 @@ class create_file_args:
         else:
           iprot.skip(ftype)
       elif fid == 3:
-        if ftype == TType.I64:
-          self.table_id = iprot.readI64();
+        if ftype == TType.STRING:
+          self.db_name = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRING:
+          self.table_name = iprot.readString();
         else:
           iprot.skip(ftype)
       else:
@@ -21746,9 +21802,13 @@ class create_file_args:
       oprot.writeFieldBegin('repnr', TType.I32, 2)
       oprot.writeI32(self.repnr)
       oprot.writeFieldEnd()
-    if self.table_id is not None:
-      oprot.writeFieldBegin('table_id', TType.I64, 3)
-      oprot.writeI64(self.table_id)
+    if self.db_name is not None:
+      oprot.writeFieldBegin('db_name', TType.STRING, 3)
+      oprot.writeString(self.db_name)
+      oprot.writeFieldEnd()
+    if self.table_name is not None:
+      oprot.writeFieldBegin('table_name', TType.STRING, 4)
+      oprot.writeString(self.table_name)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -23395,6 +23455,120 @@ class get_all_nodes_result:
       for iter714 in self.success:
         iter714.write(oprot)
       oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getDMStatus_args:
+
+  thrift_spec = (
+  )
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getDMStatus_args')
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getDMStatus_result:
+  """
+  Attributes:
+   - success
+   - o1
+  """
+
+  thrift_spec = (
+    (0, TType.STRING, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, o1=None,):
+    self.success = success
+    self.o1 = o1
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.STRING:
+          self.success = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getDMStatus_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.STRING, 0)
+      oprot.writeString(self.success)
       oprot.writeFieldEnd()
     if self.o1 is not None:
       oprot.writeFieldBegin('o1', TType.STRUCT, 1)

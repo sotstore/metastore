@@ -25,6 +25,7 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -130,6 +131,8 @@ public interface RawStore extends Configurable {
 
   public List<SFileLocation> getSFileLocations(long fid) throws MetaException;
 
+  public List<SFileLocation> getSFileLocations(String devid, long curts, long timeout) throws MetaException;
+
   public SFileLocation getSFileLocation(String node, String devid, String location) throws MetaException;
 
   public SFileLocation updateSFileLocation(SFileLocation newsfl) throws MetaException;
@@ -165,6 +168,10 @@ public interface RawStore extends Configurable {
   public abstract boolean dropPartition(String dbName, String tableName,
       List<String> part_vals) throws MetaException, NoSuchObjectException, InvalidObjectException,
       InvalidInputException;
+
+  public boolean dropPartition(String dbName, String tableName,
+    String part_name) throws MetaException, NoSuchObjectException, InvalidObjectException,
+    InvalidInputException;
 
   public abstract List<Partition> getPartitions(String dbName,
       String tableName, int max) throws MetaException;
@@ -481,7 +488,21 @@ public interface RawStore extends Configurable {
 
   public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException;
 
-  boolean dropPartition(String dbName, String tableName, String part_name) throws MetaException,
-      NoSuchObjectException, InvalidObjectException, InvalidInputException;
+  public void createPartitionIndex(Index index, Subpartition part) throws InvalidObjectException, MetaException;
 
+  public boolean dropPartitionIndex(Index index, Partition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+  public boolean dropPartitionIndex(Index index, Subpartition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+  public void createPartitionIndexStores(Index index, Partition part, List<SFile> store, List<Long> originFid) throws InvalidObjectException, MetaException;
+
+  public void createPartitionIndexStores(Index index, Subpartition part, List<SFile> store, List<Long> originFid) throws InvalidObjectException, MetaException;
+
+  public boolean dropPartitionIndexStores(Index index, Partition part, List<SFile> store) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+  public boolean dropPartitionIndexStores(Index index, Subpartition part, List<SFile> store) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+  public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException;
+
+  public void createDatacenter(Datacenter dc) throws InvalidObjectException, MetaException;
 }

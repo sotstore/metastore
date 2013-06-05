@@ -970,7 +970,7 @@ public interface IMetaStoreClient {
    */
   public void cancelDelegationToken(String tokenStrForm) throws MetaException, TException;
 
-  public SFile create_file(String node_name, int repnr, long table_id)
+  public SFile create_file(String node_name, int repnr, String db_name, String table_name)
       throws FileOperationException, TException;
 
   public int close_file(SFile file) throws FileOperationException, TException;
@@ -989,7 +989,11 @@ public interface IMetaStoreClient {
 
   public Node get_node(String node_name) throws MetaException, TException;
 
+  public Boolean del_node(String node_name) throws MetaException, TException;
+
   public Node alter_node(String node_name, List<String> ipl, int status) throws MetaException, TException;
+
+  public List<Node> get_all_nodes() throws MetaException, TException;
 
   public int add_partition_files(Partition part, List<SFile> files) throws TException;
 
@@ -999,4 +1003,14 @@ public interface IMetaStoreClient {
         final short max_parts) throws MetaException, TException;
 
   public boolean add_partition_index(Index index, Partition part) throws TException;
+
+  public boolean drop_partition_index(Index index, Partition part) throws TException;
+
+  public boolean add_partition_index_files(Index index, Partition part, List<SFile> file,
+        List<Long> originfid) throws MetaException, TException;
+
+  public boolean drop_partition_index_files(Index index, Partition part, List<SFile> file)
+        throws MetaException, TException;
+
+  public String getDMStatus() throws MetaException, TException;
 }

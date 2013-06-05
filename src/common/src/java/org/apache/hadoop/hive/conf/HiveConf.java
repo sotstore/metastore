@@ -301,7 +301,7 @@ public class HiveConf extends Configuration {
         "hive.cluster.delegation.token.store.zookeeper.znode", "/hive/cluster/delegation"),
     METASTORE_CLUSTER_DELEGATION_TOKEN_STORE_ZK_ACL(
         "hive.cluster.delegation.token.store.zookeeper.acl", ""),
-    METASTORE_CACHE_PINOBJTYPES("hive.metastore.cache.pinobjtypes", "Table,StorageDescriptor,SerDeInfo,Partition,Database,Type,FieldSchema,Order"),
+    METASTORE_CACHE_PINOBJTYPES("hive.metastore.cache.pinobjtypes", "Table,StorageDescriptor,SerDeInfo,Partition,Database,Datacenter,Type,FieldSchema,Order"),
     METASTORE_CONNECTION_POOLING_TYPE("datanucleus.connectionPoolingType", "DBCP"),
     METASTORE_VALIDATE_TABLES("datanucleus.validateTables", false),
     METASTORE_VALIDATE_COLUMNS("datanucleus.validateColumns", false),

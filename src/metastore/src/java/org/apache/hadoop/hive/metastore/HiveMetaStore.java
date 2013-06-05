@@ -57,6 +57,7 @@ import org.apache.hadoop.hive.common.metrics.Metrics;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.DiskManager.DMRequest;
+import org.apache.hadoop.hive.metastore.DiskManager.FileLocatingPolicy;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
@@ -413,12 +414,22 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     private void createDefaultDB_core(RawStore ms) throws MetaException, InvalidObjectException {
+      Datacenter dc = null;
+
+      try {
+        dc = ms.getDatacenter(MetaStoreUtils.DEFAULT_DATACENTER_NAME);
+      } catch (NoSuchObjectException e) {
+        dc = new Datacenter(MetaStoreUtils.DEFAULT_DATACENTER_NAME, null, "DC_URI", null);
+        ms.createDatacenter(dc);
+      }
+
       try {
         ms.getDatabase(DEFAULT_DATABASE_NAME);
       } catch (NoSuchObjectException e) {
-        ms.createDatabase(
-            new Database(DEFAULT_DATABASE_NAME, DEFAULT_DATABASE_COMMENT,
-                wh.getDefaultDatabasePath(DEFAULT_DATABASE_NAME).toString(), null));
+        Database db = new Database(DEFAULT_DATABASE_NAME, DEFAULT_DATABASE_COMMENT,
+                wh.getDefaultDatabasePath(DEFAULT_DATABASE_NAME).toString(), null);
+        db.setDatacenter(dc);
+        ms.createDatabase(db);
       }
       HMSHandler.createDefaultDB = true;
     }
@@ -4120,7 +4131,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public SFile create_file(String node_name, int repnr, long table_id)
+    public SFile create_file(String node_name, int repnr, String db_name, String table_name)
         throws FileOperationException, TException {
 
       if (node_name == null) {
@@ -4128,8 +4139,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         try {
           node_name = dm.findBestNode();
         } catch (IOException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+          LOG.error(e, e);
           throw new FileOperationException("Can not find any Best Available Node now, please retry", FOFailReason.SAFEMODE);
         }
       }
@@ -4141,16 +4151,21 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         return null;
       }
       try {
-        String devid = dm.findBestDevice(node_name);
-        String table_name = null;
+        FileLocatingPolicy flp = new FileLocatingPolicy(null, null, FileLocatingPolicy.EXCLUDE_NODES_DEVS, true);
+        String devid = dm.findBestDevice(node_name, flp);
+        long table_id = -1;
 
+        if (devid == null) {
+          throw new FileOperationException("Can not find any available device on node '" + node_name + "' now", FOFailReason.NOTEXIST);
+        }
         // try to parse table_name
-        if (table_id >= 0) {
+        if (db_name != null && table_name != null) {
           Table tbl;
           try {
-            tbl = getMS().getTableByID(table_id);
+            tbl = getMS().getTable(db_name, table_name);
+            table_id = getMS().getTableOID(db_name, table_name);
           } catch (MetaException me) {
-            throw new FileOperationException("Invalid Table ID:" + table_id, FOFailReason.INVALID_TABLE);
+            throw new FileOperationException("Invalid Table name:" + db_name + "/" + table_name, FOFailReason.INVALID_TABLE);
           }
           table_name = tbl.getDbName() + "/" + tbl.getTableName();
         }
@@ -4180,7 +4195,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           break;
         } while (true);
       } catch (IOException e) {
-        throw new FileOperationException("System might in Safe Mode, please wait ...", FOFailReason.SAFEMODE);
+        throw new FileOperationException("System might in Safe Mode, please wait ... {" + e + "}", FOFailReason.SAFEMODE);
       }
 
       return cfile;
@@ -4291,12 +4306,18 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public Node add_node(String node_name, List<String> ipl) throws MetaException, TException {
       Node node = new Node(node_name, ipl, MetaStoreConst.MNodeStatus.ONLINE);
       getMS().createNode(node);
+      if (dm != null) {
+        dm.SafeModeStateChange();
+      }
       return node;
     }
 
     @Override
     public int del_node(String node_name) throws MetaException, TException {
       if (getMS().delNode(node_name)) {
+        if (dm != null) {
+          dm.SafeModeStateChange();
+        }
         return 1;
       } else {
         return 0;
@@ -4390,17 +4411,19 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       }
       p.setFiles(nl);
 
-      LOG.info("Begin update partition " + part.getPartitionName() + " fileset's size " + files.size());
+      LOG.info("Begin add partition files " + part.getPartitionName() + " fileset's size " + nl.size());
       getMS().updatePartition(p);
       return 0;
     }
 
     @Override
     public int drop_partition_files(Partition part, List<SFile> files) throws TException {
+      Partition p = getMS().getPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
       List<Long> new_files = part.getFiles();
       new_files.removeAll(files);
-      part.setFiles(new_files);
-      getMS().alterPartition(part.getDbName(), part.getTableName(), part.getPartitionName(), part.getValues(), part);
+      p.setFiles(new_files);
+      LOG.info("Begin drop partition files " + p.getPartitionName() + " fileset's size " + new_files.size());
+      getMS().updatePartition(p);
       return 0;
     }
 
@@ -4421,7 +4444,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       }
       p.setFiles(nl);
 
-      LOG.info("Begin update subpartition " + subpart.getPartitionName() + " fileset's size " + files.size());
+      LOG.info("Begin add subpartition files " + subpart.getPartitionName() + " fileset's size " + nl.size());
       getMS().updateSubpartition(p);
       return 0;
     }
@@ -4432,7 +4455,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       List<Long> new_files = subpart.getFiles();
       new_files.removeAll(files);
       p.setFiles(new_files);
-      LOG.info("Begin drop subpartition " + subpart.getPartitionName() + " fileset's size " + files.size());
+      LOG.info("Begin drop subpartition files " + subpart.getPartitionName() + " fileset's size " + new_files.size());
       getMS().updateSubpartition(p);
       return 0;
     }
@@ -4445,26 +4468,29 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public boolean drop_partition_index(Index index, Partition part) throws TException {
-      // TODO Auto-generated method stub
+      getMS().dropPartitionIndex(index, part);
       return false;
     }
 
     @Override
     public boolean add_subpartition_index(Index index, Subpartition part) throws TException {
-      // TODO Auto-generated method stub
+      getMS().createPartitionIndex(index, part);
       return false;
     }
 
     @Override
     public boolean drop_subpartition_index(Index index, Subpartition part) throws TException {
-      // TODO Auto-generated method stub
+      getMS().dropPartitionIndex(index, part);
       return false;
     }
 
     @Override
     public boolean add_partition_index_files(Index index, Partition part, List<SFile> file,
         List<Long> originfid) throws MetaException, TException {
-      // TODO Auto-generated method stub
+      if (file.size() != originfid.size()) {
+        return false;
+      }
+      getMS().createPartitionIndexStores(index, part, file, originfid);
       return false;
     }
 
@@ -4478,8 +4504,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public boolean drop_partition_index_files(Index index, Partition part, List<SFile> file)
         throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+      return getMS().dropPartitionIndexStores(index, part, file);
     }
 
     @Override
@@ -4487,6 +4512,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         throws TException {
       // TODO Auto-generated method stub
       return null;
+    }
+
+    @Override
+    public String getDMStatus() throws MetaException, TException {
+      if (dm != null) {
+        return dm.getDMStatus();
+      }
+      return "+FAIL: No DiskManger!\n";
     }
 
   }

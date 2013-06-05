@@ -109,7 +109,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void get_delegation_token(std::string& _return, const std::string& token_owner, const std::string& renewer_kerberos_principal_name) = 0;
   virtual int64_t renew_delegation_token(const std::string& token_str_form) = 0;
   virtual void cancel_delegation_token(const std::string& token_str_form) = 0;
-  virtual void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const int64_t table_id) = 0;
+  virtual void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name) = 0;
   virtual int32_t close_file(const SFile& file) = 0;
   virtual void get_file_by_id(SFile& _return, const int64_t fid) = 0;
   virtual int32_t rm_file_logical(const SFile& file) = 0;
@@ -121,6 +121,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status) = 0;
   virtual void find_best_nodes(std::vector<Node> & _return, const int32_t nr) = 0;
   virtual void get_all_nodes(std::vector<Node> & _return) = 0;
+  virtual void getDMStatus(std::string& _return) = 0;
 };
 
 class ThriftHiveMetastoreIfFactory : virtual public  ::facebook::fb303::FacebookServiceIfFactory {
@@ -458,7 +459,7 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void cancel_delegation_token(const std::string& /* token_str_form */) {
     return;
   }
-  void create_file(SFile& /* _return */, const std::string& /* node_name */, const int32_t /* repnr */, const int64_t /* table_id */) {
+  void create_file(SFile& /* _return */, const std::string& /* node_name */, const int32_t /* repnr */, const std::string& /* db_name */, const std::string& /* table_name */) {
     return;
   }
   int32_t close_file(const SFile& /* file */) {
@@ -497,6 +498,9 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return;
   }
   void get_all_nodes(std::vector<Node> & /* _return */) {
+    return;
+  }
+  void getDMStatus(std::string& /* _return */) {
     return;
   }
 };
@@ -13313,23 +13317,25 @@ class ThriftHiveMetastore_cancel_delegation_token_presult {
 };
 
 typedef struct _ThriftHiveMetastore_create_file_args__isset {
-  _ThriftHiveMetastore_create_file_args__isset() : node_name(false), repnr(false), table_id(false) {}
+  _ThriftHiveMetastore_create_file_args__isset() : node_name(false), repnr(false), db_name(false), table_name(false) {}
   bool node_name;
   bool repnr;
-  bool table_id;
+  bool db_name;
+  bool table_name;
 } _ThriftHiveMetastore_create_file_args__isset;
 
 class ThriftHiveMetastore_create_file_args {
  public:
 
-  ThriftHiveMetastore_create_file_args() : node_name(), repnr(0), table_id(0) {
+  ThriftHiveMetastore_create_file_args() : node_name(), repnr(0), db_name(), table_name() {
   }
 
   virtual ~ThriftHiveMetastore_create_file_args() throw() {}
 
   std::string node_name;
   int32_t repnr;
-  int64_t table_id;
+  std::string db_name;
+  std::string table_name;
 
   _ThriftHiveMetastore_create_file_args__isset __isset;
 
@@ -13341,8 +13347,12 @@ class ThriftHiveMetastore_create_file_args {
     repnr = val;
   }
 
-  void __set_table_id(const int64_t val) {
-    table_id = val;
+  void __set_db_name(const std::string& val) {
+    db_name = val;
+  }
+
+  void __set_table_name(const std::string& val) {
+    table_name = val;
   }
 
   bool operator == (const ThriftHiveMetastore_create_file_args & rhs) const
@@ -13351,7 +13361,9 @@ class ThriftHiveMetastore_create_file_args {
       return false;
     if (!(repnr == rhs.repnr))
       return false;
-    if (!(table_id == rhs.table_id))
+    if (!(db_name == rhs.db_name))
+      return false;
+    if (!(table_name == rhs.table_name))
       return false;
     return true;
   }
@@ -13375,7 +13387,8 @@ class ThriftHiveMetastore_create_file_pargs {
 
   const std::string* node_name;
   const int32_t* repnr;
-  const int64_t* table_id;
+  const std::string* db_name;
+  const std::string* table_name;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -14809,6 +14822,110 @@ class ThriftHiveMetastore_get_all_nodes_presult {
 
 };
 
+
+class ThriftHiveMetastore_getDMStatus_args {
+ public:
+
+  ThriftHiveMetastore_getDMStatus_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_getDMStatus_args() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_getDMStatus_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_getDMStatus_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_getDMStatus_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_getDMStatus_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_getDMStatus_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_getDMStatus_result__isset {
+  _ThriftHiveMetastore_getDMStatus_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_getDMStatus_result__isset;
+
+class ThriftHiveMetastore_getDMStatus_result {
+ public:
+
+  ThriftHiveMetastore_getDMStatus_result() : success() {
+  }
+
+  virtual ~ThriftHiveMetastore_getDMStatus_result() throw() {}
+
+  std::string success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_getDMStatus_result__isset __isset;
+
+  void __set_success(const std::string& val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_getDMStatus_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_getDMStatus_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_getDMStatus_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_getDMStatus_presult__isset {
+  _ThriftHiveMetastore_getDMStatus_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_getDMStatus_presult__isset;
+
+class ThriftHiveMetastore_getDMStatus_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_getDMStatus_presult() throw() {}
+
+  std::string* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_getDMStatus_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  ::facebook::fb303::FacebookServiceClient {
  public:
   ThriftHiveMetastoreClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -15100,8 +15217,8 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void cancel_delegation_token(const std::string& token_str_form);
   void send_cancel_delegation_token(const std::string& token_str_form);
   void recv_cancel_delegation_token();
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const int64_t table_id);
-  void send_create_file(const std::string& node_name, const int32_t repnr, const int64_t table_id);
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name);
+  void send_create_file(const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name);
   void recv_create_file(SFile& _return);
   int32_t close_file(const SFile& file);
   void send_close_file(const SFile& file);
@@ -15136,6 +15253,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void get_all_nodes(std::vector<Node> & _return);
   void send_get_all_nodes();
   void recv_get_all_nodes(std::vector<Node> & _return);
+  void getDMStatus(std::string& _return);
+  void send_getDMStatus();
+  void recv_getDMStatus(std::string& _return);
 };
 
 class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceProcessor {
@@ -15251,6 +15371,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_alter_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_find_best_nodes(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_all_nodes(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_getDMStatus(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   ThriftHiveMetastoreProcessor(boost::shared_ptr<ThriftHiveMetastoreIf> iface) :
      ::facebook::fb303::FacebookServiceProcessor(iface),
@@ -15360,6 +15481,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["alter_node"] = &ThriftHiveMetastoreProcessor::process_alter_node;
     processMap_["find_best_nodes"] = &ThriftHiveMetastoreProcessor::process_find_best_nodes;
     processMap_["get_all_nodes"] = &ThriftHiveMetastoreProcessor::process_get_all_nodes;
+    processMap_["getDMStatus"] = &ThriftHiveMetastoreProcessor::process_getDMStatus;
   }
 
   virtual ~ThriftHiveMetastoreProcessor() {}
@@ -16277,13 +16399,13 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     ifaces_[i]->cancel_delegation_token(token_str_form);
   }
 
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const int64_t table_id) {
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->create_file(_return, node_name, repnr, table_id);
+      ifaces_[i]->create_file(_return, node_name, repnr, db_name, table_name);
     }
-    ifaces_[i]->create_file(_return, node_name, repnr, table_id);
+    ifaces_[i]->create_file(_return, node_name, repnr, db_name, table_name);
     return;
   }
 
@@ -16389,6 +16511,16 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->get_all_nodes(_return);
     }
     ifaces_[i]->get_all_nodes(_return);
+    return;
+  }
+
+  void getDMStatus(std::string& _return) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->getDMStatus(_return);
+    }
+    ifaces_[i]->getDMStatus(_return);
     return;
   }
 

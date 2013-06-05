@@ -1491,17 +1491,23 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   }
 
   @Override
-  public SFile create_file(String node_name, int repnr, long table_id)
+  public SFile create_file(String node_name, int repnr, String db_name, String table_name)
       throws FileOperationException, TException {
 
     if ("".equals(node_name)) {
       node_name = null;
     }
+    if ("".equals(db_name)) {
+      db_name = null;
+    }
+    if ("".equals(table_name)) {
+      table_name = null;
+    }
     if (repnr == 0) {
       repnr = 1;
     }
 
-    return client.create_file(node_name, repnr, table_id);
+    return client.create_file(node_name, repnr, db_name, table_name);
   }
 
   @Override
@@ -1593,6 +1599,52 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     }
 
     return lsf;
+  }
+
+  @Override
+  public Boolean del_node(String node_name) throws MetaException, TException {
+    assert node_name != null;
+    if (client.del_node(node_name) > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public List<Node> get_all_nodes() throws MetaException, TException {
+    return client.get_all_nodes();
+  }
+
+  @Override
+  public boolean drop_partition_index(Index index, Partition part) throws TException {
+    assert index != null;
+    assert part != null;
+    return client.drop_partition_index(index, part);
+  }
+
+  @Override
+  public boolean add_partition_index_files(Index index, Partition part, List<SFile> file,
+      List<Long> originfid) throws MetaException, TException {
+    assert index != null;
+    assert part != null;
+    assert file != null;
+    assert originfid != null;
+    return client.add_partition_index_files(index, part, file, originfid);
+  }
+
+  @Override
+  public boolean drop_partition_index_files(Index index, Partition part, List<SFile> file)
+      throws MetaException, TException {
+    assert index != null;
+    assert part != null;
+    assert file != null;
+    return client.drop_partition_index_files(index, part, file);
+  }
+
+  @Override
+  public String getDMStatus() throws MetaException, TException {
+    return client.getDMStatus();
   }
 
 }
