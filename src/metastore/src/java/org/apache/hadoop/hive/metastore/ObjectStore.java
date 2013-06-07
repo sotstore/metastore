@@ -2553,10 +2553,6 @@ public class ObjectStore implements RawStore, Configurable {
       if(part == null) {
         return true;
       }
-      String partName = part.getPartitionName();
-      LOG.warn("--zjw--getPartitionName is  "+part.getPartitionName());
-      LOG.warn("--zjw--getSd is  "+part.getSd());
-      LOG.warn("--zjw--getTableName is  "+part.getTable().getTableName());
       openTransaction();
       if (part != null) {
 //        List<MFieldSchema> schemas = part.getTable().getPartitionKeys();
@@ -2566,7 +2562,10 @@ public class ObjectStore implements RawStore, Configurable {
 //        }
 //        String partName = FileUtils.makePartName(colNames, part.getValues());
 
-
+        String partName = part.getPartitionName();
+        LOG.warn("--zjw--getPartitionName is  "+part.getPartitionName());
+        LOG.warn("--zjw--getSd is  "+part.getSd());
+        LOG.warn("--zjw--getTableName is  "+part.getTable().getTableName());
         List<MPartitionPrivilege> partGrants = listPartitionGrants(
             part.getTable().getDatabase().getName(),
             part.getTable().getTableName(),
