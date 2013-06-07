@@ -1495,7 +1495,7 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       MTable mtbl = getMTable(dbName, tableName);
       commited = commitTransaction();
-      oid = Long.parseLong(JDOHelper.getObjectId(mtbl).toString().split("[OID]")[0]);
+      oid = Long.parseLong(JDOHelper.getObjectId(mtbl).toString().split("\\[OID\\]")[0]);
     } finally {
       if (!commited) {
         rollbackTransaction();
