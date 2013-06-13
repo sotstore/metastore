@@ -44,6 +44,7 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
+import org.apache.hadoop.hive.metastore.api.SFileRef;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -810,6 +811,13 @@ public class DummyRawStoreForJdoConnection implements RawStore {
       MetaException {
     // TODO Auto-generated method stub
     return false;
+  }
+
+  @Override
+  public List<SFileRef> getPartitionIndexFiles(Index index, Partition part)
+      throws InvalidObjectException, NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
 

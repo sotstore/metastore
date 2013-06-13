@@ -20,6 +20,7 @@ package org.apache.hadoop.hive.metastore;
 
 import static org.apache.commons.lang.StringUtils.join;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -102,7 +103,6 @@ import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.model.MBusiTypeColumn;
 import org.apache.hadoop.hive.metastore.model.MColumnDescriptor;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
-import org.apache.hadoop.hive.metastore.model.MDataCenter;
 import org.apache.hadoop.hive.metastore.model.MDatabase;
 import org.apache.hadoop.hive.metastore.model.MDatacenter;
 import org.apache.hadoop.hive.metastore.model.MDevice;
@@ -200,7 +200,7 @@ public class ObjectStore implements RawStore, Configurable {
     map.put("files", MFile.class);
     map.put("nodes", MNode.class);
     map.put("direct_ddl", MDirectDDL.class);
-    map.put("datacenter", MDataCenter.class);
+    map.put("datacenter", MDatacenter.class);
     map.put("busi_column", MBusiTypeColumn.class);
     map.put("index", MIndex.class);
     map.put("partindex", MPartitionIndex.class);
@@ -1280,7 +1280,7 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       Query query = pm.newQuery("javax.jdo.query.SQL", "SELECT count(*) FROM NODES");
       List results = (List) query.execute();
-      Integer tableSize = (Integer) results.iterator().next();
+      BigDecimal tableSize = (BigDecimal) results.iterator().next();
       r = tableSize.longValue();
       commited = commitTransaction();
     } finally {

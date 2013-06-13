@@ -66,6 +66,7 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileRef;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
@@ -1650,6 +1651,13 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   @Override
   public boolean addDatawareHouseSql(Integer dwNum, String sql) throws MetaException, TException {
     return client.add_datawarehouse_sql(dwNum, sql);
+  }
+
+  public List<SFileRef> get_partition_index_files(Index index, Partition part)
+      throws MetaException, TException {
+    assert index != null;
+    assert part != null;
+    return client.get_partition_index_files(index, part);
   }
 
 }

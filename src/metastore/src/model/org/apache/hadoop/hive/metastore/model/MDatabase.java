@@ -45,11 +45,12 @@ public class MDatabase {
    * @param locationUri Location of the database in the warehouse
    * @param description Comment describing the database
    */
-  public MDatabase(String name, String locationUri, String description,
+  public MDatabase(String name, String locationUri, String description, MDatacenter datacenter,
       Map<String, String> parameters) {
     this.name = name;
     this.locationUri = locationUri;
     this.description = description;
+    this.datacenter = datacenter;
     this.parameters = parameters;
   }
 

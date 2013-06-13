@@ -44,6 +44,7 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileRef;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
@@ -1011,6 +1012,9 @@ public interface IMetaStoreClient {
 
   public boolean drop_partition_index_files(Index index, Partition part, List<SFile> file)
         throws MetaException, TException;
+
+  public List<SFileRef> get_partition_index_files(Index index, Partition part)
+      throws MetaException, TException;
 
   public String getDMStatus() throws MetaException, TException;
 
