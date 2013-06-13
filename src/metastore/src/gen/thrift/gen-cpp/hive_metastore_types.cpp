@@ -3170,8 +3170,8 @@ void swap(SFileLocation &a, SFileLocation &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* SFile::ascii_fingerprint = "F8BCCC012E518BD2A73D13E4CDD96AE1";
-const uint8_t SFile::binary_fingerprint[16] = {0xF8,0xBC,0xCC,0x01,0x2E,0x51,0x8B,0xD2,0xA7,0x3D,0x13,0xE4,0xCD,0xD9,0x6A,0xE1};
+const char* SFile::ascii_fingerprint = "A35168FCF9B6081CDC8FE76BE711767A";
+const uint8_t SFile::binary_fingerprint[16] = {0xA3,0x51,0x68,0xFC,0xF9,0xB6,0x08,0x1C,0xDC,0x8F,0xE7,0x6B,0xE7,0x11,0x76,0x7A};
 
 uint32_t SFile::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -3269,6 +3269,14 @@ uint32_t SFile::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
+      case 9:
+        if (ftype == ::apache::thrift::protocol::T_I64) {
+          xfer += iprot->readI64(this->length);
+          this->__isset.length = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -3325,6 +3333,10 @@ uint32_t SFile::write(::apache::thrift::protocol::TProtocol* oprot) const {
   }
   xfer += oprot->writeFieldEnd();
 
+  xfer += oprot->writeFieldBegin("length", ::apache::thrift::protocol::T_I64, 9);
+  xfer += oprot->writeI64(this->length);
+  xfer += oprot->writeFieldEnd();
+
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -3340,6 +3352,82 @@ void swap(SFile &a, SFile &b) {
   swap(a.record_nr, b.record_nr);
   swap(a.all_record_nr, b.all_record_nr);
   swap(a.locations, b.locations);
+  swap(a.length, b.length);
+  swap(a.__isset, b.__isset);
+}
+
+const char* SFileRef::ascii_fingerprint = "8CB1CFF74F7571F121B4D5D494ED385F";
+const uint8_t SFileRef::binary_fingerprint[16] = {0x8C,0xB1,0xCF,0xF7,0x4F,0x75,0x71,0xF1,0x21,0xB4,0xD5,0xD4,0x94,0xED,0x38,0x5F};
+
+uint32_t SFileRef::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->file.read(iprot);
+          this->__isset.file = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_I64) {
+          xfer += iprot->readI64(this->origin_fid);
+          this->__isset.origin_fid = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t SFileRef::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("SFileRef");
+
+  xfer += oprot->writeFieldBegin("file", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += this->file.write(oprot);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("origin_fid", ::apache::thrift::protocol::T_I64, 2);
+  xfer += oprot->writeI64(this->origin_fid);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+void swap(SFileRef &a, SFileRef &b) {
+  using ::std::swap;
+  swap(a.file, b.file);
+  swap(a.origin_fid, b.origin_fid);
   swap(a.__isset, b.__isset);
 }
 

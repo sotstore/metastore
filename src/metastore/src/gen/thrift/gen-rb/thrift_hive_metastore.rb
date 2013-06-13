@@ -277,6 +277,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_partition_index_files failed: unknown result')
     end
 
+    def get_partition_index_files(index, part)
+      send_get_partition_index_files(index, part)
+      return recv_get_partition_index_files()
+    end
+
+    def send_get_partition_index_files(index, part)
+      send_message('get_partition_index_files', Get_partition_index_files_args, :index => index, :part => part)
+    end
+
+    def recv_get_partition_index_files()
+      result = receive_message(Get_partition_index_files_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_partition_index_files failed: unknown result')
+    end
+
     def drop_partition_index_files(index, part, file)
       send_drop_partition_index_files(index, part, file)
       return recv_drop_partition_index_files()
@@ -1939,6 +1955,17 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'add_partition_index_files', seqid)
+    end
+
+    def process_get_partition_index_files(seqid, iprot, oprot)
+      args = read_args(iprot, Get_partition_index_files_args)
+      result = Get_partition_index_files_result.new()
+      begin
+        result.success = @handler.get_partition_index_files(args.index, args.part)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'get_partition_index_files', seqid)
     end
 
     def process_drop_partition_index_files(seqid, iprot, oprot)
@@ -3701,6 +3728,42 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_partition_index_files_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    INDEX = 1
+    PART = 2
+
+    FIELDS = {
+      INDEX => {:type => ::Thrift::Types::STRUCT, :name => 'index', :class => ::Index},
+      PART => {:type => ::Thrift::Types::STRUCT, :name => 'part', :class => ::Partition}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_partition_index_files_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFileRef}},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 

@@ -33,6 +33,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual bool add_subpartition(const std::string& dbname, const std::string& tbl_name, const std::vector<std::string> & part_vals, const Subpartition& sub_part) = 0;
   virtual void get_subpartitions(std::vector<Subpartition> & _return, const std::string& dbname, const std::string& tbl_name, const Partition& part) = 0;
   virtual bool add_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file, const std::vector<int64_t> & originfid) = 0;
+  virtual void get_partition_index_files(std::vector<SFileRef> & _return, const Index& index, const Partition& part) = 0;
   virtual bool drop_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file) = 0;
   virtual void create_database(const Database& database) = 0;
   virtual void get_database(Database& _return, const std::string& name) = 0;
@@ -211,6 +212,9 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   bool add_partition_index_files(const Index& /* index */, const Partition& /* part */, const std::vector<SFile> & /* file */, const std::vector<int64_t> & /* originfid */) {
     bool _return = false;
     return _return;
+  }
+  void get_partition_index_files(std::vector<SFileRef> & /* _return */, const Index& /* index */, const Partition& /* part */) {
+    return;
   }
   bool drop_partition_index_files(const Index& /* index */, const Partition& /* part */, const std::vector<SFile> & /* file */) {
     bool _return = false;
@@ -2588,6 +2592,133 @@ class ThriftHiveMetastore_add_partition_index_files_presult {
   MetaException o1;
 
   _ThriftHiveMetastore_add_partition_index_files_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_get_partition_index_files_args__isset {
+  _ThriftHiveMetastore_get_partition_index_files_args__isset() : index(false), part(false) {}
+  bool index;
+  bool part;
+} _ThriftHiveMetastore_get_partition_index_files_args__isset;
+
+class ThriftHiveMetastore_get_partition_index_files_args {
+ public:
+
+  ThriftHiveMetastore_get_partition_index_files_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_partition_index_files_args() throw() {}
+
+  Index index;
+  Partition part;
+
+  _ThriftHiveMetastore_get_partition_index_files_args__isset __isset;
+
+  void __set_index(const Index& val) {
+    index = val;
+  }
+
+  void __set_part(const Partition& val) {
+    part = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_partition_index_files_args & rhs) const
+  {
+    if (!(index == rhs.index))
+      return false;
+    if (!(part == rhs.part))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_partition_index_files_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_partition_index_files_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_get_partition_index_files_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_partition_index_files_pargs() throw() {}
+
+  const Index* index;
+  const Partition* part;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_partition_index_files_result__isset {
+  _ThriftHiveMetastore_get_partition_index_files_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_get_partition_index_files_result__isset;
+
+class ThriftHiveMetastore_get_partition_index_files_result {
+ public:
+
+  ThriftHiveMetastore_get_partition_index_files_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_partition_index_files_result() throw() {}
+
+  std::vector<SFileRef>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_get_partition_index_files_result__isset __isset;
+
+  void __set_success(const std::vector<SFileRef> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_partition_index_files_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_partition_index_files_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_partition_index_files_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_partition_index_files_presult__isset {
+  _ThriftHiveMetastore_get_partition_index_files_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_get_partition_index_files_presult__isset;
+
+class ThriftHiveMetastore_get_partition_index_files_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_partition_index_files_presult() throw() {}
+
+  std::vector<SFileRef> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_get_partition_index_files_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -14989,6 +15120,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   bool add_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file, const std::vector<int64_t> & originfid);
   void send_add_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file, const std::vector<int64_t> & originfid);
   bool recv_add_partition_index_files();
+  void get_partition_index_files(std::vector<SFileRef> & _return, const Index& index, const Partition& part);
+  void send_get_partition_index_files(const Index& index, const Partition& part);
+  void recv_get_partition_index_files(std::vector<SFileRef> & _return);
   bool drop_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file);
   void send_drop_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file);
   bool recv_drop_partition_index_files();
@@ -15283,6 +15417,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_add_subpartition(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_subpartitions(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_add_partition_index_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_partition_index_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_drop_partition_index_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_create_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -15393,6 +15528,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["add_subpartition"] = &ThriftHiveMetastoreProcessor::process_add_subpartition;
     processMap_["get_subpartitions"] = &ThriftHiveMetastoreProcessor::process_get_subpartitions;
     processMap_["add_partition_index_files"] = &ThriftHiveMetastoreProcessor::process_add_partition_index_files;
+    processMap_["get_partition_index_files"] = &ThriftHiveMetastoreProcessor::process_get_partition_index_files;
     processMap_["drop_partition_index_files"] = &ThriftHiveMetastoreProcessor::process_drop_partition_index_files;
     processMap_["create_database"] = &ThriftHiveMetastoreProcessor::process_create_database;
     processMap_["get_database"] = &ThriftHiveMetastoreProcessor::process_get_database;
@@ -15671,6 +15807,16 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->add_partition_index_files(index, part, file, originfid);
     }
     return ifaces_[i]->add_partition_index_files(index, part, file, originfid);
+  }
+
+  void get_partition_index_files(std::vector<SFileRef> & _return, const Index& index, const Partition& part) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->get_partition_index_files(_return, index, part);
+    }
+    ifaces_[i]->get_partition_index_files(_return, index, part);
+    return;
   }
 
   bool drop_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file) {

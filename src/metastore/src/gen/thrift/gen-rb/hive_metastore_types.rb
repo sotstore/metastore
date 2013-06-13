@@ -561,6 +561,7 @@ class SFile
   RECORD_NR = 6
   ALL_RECORD_NR = 7
   LOCATIONS = 8
+  LENGTH = 9
 
   FIELDS = {
     FID => {:type => ::Thrift::Types::I64, :name => 'fid'},
@@ -570,7 +571,26 @@ class SFile
     DIGEST => {:type => ::Thrift::Types::STRING, :name => 'digest'},
     RECORD_NR => {:type => ::Thrift::Types::I64, :name => 'record_nr'},
     ALL_RECORD_NR => {:type => ::Thrift::Types::I64, :name => 'all_record_nr'},
-    LOCATIONS => {:type => ::Thrift::Types::LIST, :name => 'locations', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFileLocation}}
+    LOCATIONS => {:type => ::Thrift::Types::LIST, :name => 'locations', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFileLocation}},
+    LENGTH => {:type => ::Thrift::Types::I64, :name => 'length'}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
+class SFileRef
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  FILE = 1
+  ORIGIN_FID = 2
+
+  FIELDS = {
+    FILE => {:type => ::Thrift::Types::STRUCT, :name => 'file', :class => ::SFile},
+    ORIGIN_FID => {:type => ::Thrift::Types::I64, :name => 'origin_fid'}
   }
 
   def struct_fields; FIELDS; end

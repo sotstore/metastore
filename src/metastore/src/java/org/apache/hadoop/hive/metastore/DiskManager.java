@@ -1,10 +1,16 @@
 package org.apache.hadoop.hive.metastore;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -24,12 +30,15 @@ import net.sf.json.JSONObject;
 
 import org.apache.commons.logging.Log;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.util.ReflectionUtils;
 
 public class DiskManager {
@@ -43,11 +52,39 @@ public class DiskManager {
     private DMRepThread dmrt;
     public boolean safeMode = true;
     private final Timer timer = new Timer("checker");
+    private final Timer bktimer = new Timer("backuper");
     private final DMTimerTask dmtt = new DMTimerTask();
+    private final BackupTimerTask bktt = new BackupTimerTask();
     public final Queue<DMRequest> cleanQ = new ConcurrentLinkedQueue<DMRequest>();
     public final Queue<DMRequest> repQ = new ConcurrentLinkedQueue<DMRequest>();
+    public final Queue<BackupEntry> backupQ = new ConcurrentLinkedQueue<BackupEntry>();
     public final Map<String, Long> toReRep = new ConcurrentHashMap<String, Long>();
     public final Map<String, Long> toUnspc = new ConcurrentHashMap<String, Long>();
+
+    public static class BackupEntry {
+      public enum FOP {
+        ADD, DROP,
+      }
+      public Partition part;
+      public List<SFile> files;
+      public FOP op;
+
+      public BackupEntry(Partition part, List<SFile> files, FOP op) {
+        this.part = part;
+        this.files = files;
+        this.op = op;
+      }
+    }
+
+    public static class FileToPart {
+      public SFile file;
+      public Partition part;
+
+      public FileToPart(SFile file, Partition part) {
+        this.file = file;
+        this.part = part;
+      }
+    }
 
     public static class DMReply {
       public enum DMReplyType {
@@ -116,6 +153,179 @@ public class DiskManager {
 
     // Node -> Device Map
     private final Map<String, NodeInfo> ndmap;
+
+    public class BackupTimerTask extends TimerTask {
+      public long backupTimeout = 30 * 60 * 1000;
+      public long fileSizeThreshold = 64 * 1024 * 1024;
+      public String backupNodeName = "BACKUP-STORE";
+
+      private long last_backupTs = System.currentTimeMillis();
+
+      public boolean generateSyncFiles(Set<Partition> parts, Set<FileToPart> toAdd, Set<FileToPart> toDrop) {
+        Date d = new Date(System.currentTimeMillis());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss");
+        File dir = new File(System.getProperty("user.dir") + "/backup/" + sdf.format(d));
+        if (!dir.mkdirs()) {
+          LOG.error("Make directory " + dir.getPath() + " failed, can't write sync meta files.");
+          return false;
+        }
+        // generate tableName.desc files
+        Set<Table> tables = new TreeSet<Table>();
+        Map<String, Table> partToTbl = new HashMap<String, Table>();
+        for (Partition p : parts) {
+          synchronized (rs) {
+            Table t;
+            try {
+              t = rs.getTable(p.getDbName(), p.getTableName());
+              tables.add(t);
+              partToTbl.put(p.getPartitionName(), t);
+            } catch (MetaException e) {
+              LOG.error(e, e);
+              return false;
+            }
+          }
+        }
+        for (Table t : tables) {
+          File f = new File(dir, t.getDbName() + ":" + t.getTableName() + ".desc");
+          try {
+            if (!f.exists()) {
+              f.createNewFile();
+            }
+            String content = "[fieldInfo]\n";
+            for (FieldSchema fs : t.getSd().getCols()) {
+              content += fs.getName() + "\t" + fs.getType() + "\n";
+            }
+            content += "[partitionInfo]\n";
+            List<PartitionInfo> pis = PartitionInfo.getPartitionInfo(t.getPartitionKeys());
+            for (PartitionInfo pi : pis) {
+              content += pi.getP_col() + "\t" + pi.getP_type().getName() + "\t" + pi.getArgs().toString() + "\n";
+            }
+            FileWriter fw = new FileWriter(f.getAbsoluteFile());
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(content);
+            bw.close();
+          } catch (IOException e) {
+            LOG.error(e, e);
+            return false;
+          }
+        }
+        File f = new File(dir, "manifest.desc");
+        if (!f.exists()) {
+          try {
+            f.createNewFile();
+          } catch (IOException e) {
+            LOG.error(e, e);
+            return false;
+          }
+        }
+        String content = "";
+        for (FileToPart ftp : toAdd) {
+          for (SFileLocation sfl : ftp.file.getLocations()) {
+            if (sfl.getNode_name().equals(this.backupNodeName)) {
+              content += sfl.getLocation() + "\tADD\t" + ftp.part.getDbName() + "\t" + ftp.part.getTableName() + "\t";
+              for (int i = 0; i < ftp.part.getValuesSize(); i++) {
+                content += ftp.part.getValues().get(i);
+                if (i < ftp.part.getValuesSize() - 1) {
+                  content += "#";
+                }
+              }
+              content += "\n";
+              break;
+            }
+          }
+        }
+        for (FileToPart ftp : toDrop) {
+          for (SFileLocation sfl : ftp.file.getLocations()) {
+            if (sfl.getNode_name().equals(this.backupNodeName)) {
+              content += sfl.getLocation() + "\tRemove\t" + ftp.part.getDbName() + "\t" + ftp.part.getTableName() + "\t";
+              for (int i = 0; i < ftp.part.getValuesSize(); i++) {
+                content += ftp.part.getValues().get(i);
+                if (i < ftp.part.getValuesSize() - 1) {
+                  content += "#";
+                }
+              }
+              content += "\n";
+              break;
+            }
+          }
+        }
+
+        try {
+          FileWriter fw = new FileWriter(f.getAbsoluteFile());
+          BufferedWriter bw = new BufferedWriter(fw);
+          bw.write(content);
+          bw.close();
+        } catch (IOException e) {
+          LOG.error(e, e);
+          return false;
+        }
+
+        return true;
+      }
+
+      @Override
+      public void run() {
+
+        if (last_backupTs + backupTimeout <= System.currentTimeMillis()) {
+          // TODO: generate manifest.desc and tableName.desc
+          Set<Partition> parts = new TreeSet<Partition>();
+          Set<FileToPart> toAdd = new TreeSet<FileToPart>();
+          Set<FileToPart> toDrop = new TreeSet<FileToPart>();
+          Queue<BackupEntry> localQ = new ConcurrentLinkedQueue<BackupEntry>();
+
+          while (true) {
+            BackupEntry be = null;
+
+            synchronized (backupQ) {
+              be = backupQ.poll();
+            }
+            if (be == null) {
+              break;
+            }
+            // this is a valid entry, check if the file size is large enough
+            if (be.op == BackupEntry.FOP.ADD) {
+              // refresh to check if the file is closed and has the proper length
+              for (SFile f : be.files) {
+                SFile nf;
+                synchronized (rs) {
+                  try {
+                    nf = rs.getSFile(f.getFid());
+                  } catch (MetaException e) {
+                    LOG.error(e, e);
+                    // lately reinsert back to the queue
+                    localQ.add(be);
+                    break;
+                  }
+                }
+                if (nf != null && ((nf.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED ||
+                    nf.getStore_status() == MetaStoreConst.MFileStoreStatus.REPLICATED ||
+                    nf.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_PHYSICAL) &&
+                    nf.getLength() >= fileSizeThreshold)) {
+                  // add this file to manifest.desc
+                  FileToPart ftp = new FileToPart(f, be.part);
+                  toAdd.add(ftp);
+                  parts.add(be.part);
+                }
+              }
+            } else if (be.op == BackupEntry.FOP.DROP) {
+              for (SFile f : be.files) {
+                // add this file to manifest.desc
+                FileToPart ftp = new FileToPart(f, be.part);
+                toDrop.add(ftp);
+                parts.add(be.part);
+              }
+            }
+          }
+          toAdd.removeAll(toDrop);
+          // generate final desc files
+          if ((toAdd.size() + toDrop.size() > 0) && generateSyncFiles(parts, toAdd, toDrop)) {
+            LOG.info("Generated SYNC dir around time " + System.currentTimeMillis() + ", toAdd " + toAdd.size() + ", toDrop " + toDrop.size());
+          }
+          last_backupTs = System.currentTimeMillis();
+        }
+      }
+
+    }
 
     public class DMTimerTask extends TimerTask {
       private int times = 0;
@@ -465,6 +675,7 @@ public class DiskManager {
       dmct = new DMCleanThread("DiskManagerCleanThread");
       dmrt = new DMRepThread("DiskManagerRepThread");
       timer.schedule(dmtt, 0, 5000);
+      bktimer.schedule(bktt, 0, 5000);
     }
 
     public String getDMStatus() throws MetaException {

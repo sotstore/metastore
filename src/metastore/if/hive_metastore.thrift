@@ -251,8 +251,13 @@ struct SFile {
   6: i64	record_nr,
   7: i64	all_record_nr,
   8: list<SFileLocation> locations,
+  9: i64    length,
 }
 
+struct SFileRef {
+  1: SFile  file,
+  2: i64    origin_fid,
+}
 
 struct Index {
   1: string       indexName, // unique with in the whole database namespace
@@ -432,6 +437,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
  
   //start of partition index file
   bool add_partition_index_files(1:Index index, 2: Partition part,3:list<SFile> file, 4:list<i64> originfid) throws(1:MetaException o1)
+  list<SFileRef> get_partition_index_files(1:Index index, 2: Partition part) throws(1:MetaException o1)
   bool drop_partition_index_files(1:Index index, 2: Partition part,3:list<SFile> file) throws(1:MetaException o1)
   
 //end of zjw
