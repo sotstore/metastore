@@ -20,6 +20,7 @@ package org.apache.hadoop.hive.metastore;
 
 import static org.apache.commons.lang.StringUtils.join;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -1258,7 +1259,7 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       Query query = pm.newQuery("javax.jdo.query.SQL", "SELECT count(*) FROM NODES");
       List results = (List) query.execute();
-      Integer tableSize = (Integer) results.iterator().next();
+      BigDecimal tableSize = (BigDecimal) results.iterator().next();
       r = tableSize.longValue();
       commited = commitTransaction();
     } finally {

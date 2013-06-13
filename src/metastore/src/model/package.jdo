@@ -32,7 +32,7 @@
         <column name="DC_ID"/>
       </datastore-identity>
       <field name="name">  
-        <column name="NAME" length="128" jdbc-type="VARCHAR"/>
+        <column name="NAME" length="128" jdbc-type="VARCHAR" allows-null="false"/>
         <index name="UniqueDatacenter" unique="true"/>
       </field>
       <field name="description">
@@ -196,10 +196,10 @@
         </value>
       </field>
       <field name="viewOriginalText" default-fetch-group="false">
-        <column name="VIEW_ORIGINAL_TEXT" jdbc-type="LONGVARCHAR"/>
+        <column name="VIEW_ORIGINAL_TEXT" jdbc-type="CLOB"/>
       </field>
       <field name="viewExpandedText" default-fetch-group="false">
-        <column name="VIEW_EXPANDED_TEXT" jdbc-type="LONGVARCHAR"/>
+        <column name="VIEW_EXPANDED_TEXT" jdbc-type="CLOB"/>
       </field>
       <field name="tableType">
         <column name="TBL_TYPE" length="128" jdbc-type="VARCHAR"/>
@@ -948,27 +948,6 @@
       </field>
     </class>
     
-    <class name="MDataCenter" table="DataCenter" identity-type="datastore" detachable="true">
-      <index name="UniqueDC" unique="true">
-        <column name="DC_ID"/>
-        <column name="NAME"/>
-      </index>
-      
-      <datastore-identity>
-      	<column name="DC_ID"/>
-      </datastore-identity>
-      
-      <field name="name">
-      	<column name="NAME"/>
-      </field>
-      <field name="ms_ip">
-      	<column name="MS_IP"/>
-      </field>
-      <field name="ms_port">
-      	<column name="MS_PORT"/>
-      </field>
-    </class>
-    
     <class name="MDevice" table="DEVICES" identity-type="datastore" detachable="true">
       <index name="UniqueDevice" unique="true">
         <column name="DEV_ID"/>
@@ -1024,10 +1003,6 @@
     </class>
     
     <class name="MFileLocation" table="FILE_LOCATION" identity-type="datastore" detachable="true">
-      <index name="UniqueFileLocation" unique="true">
-        <column name="LOCATION_ID"/>
-      </index>
-      
       <datastore-identity>
         <column name="LOCATION_ID"/>
       </datastore-identity>
@@ -1042,7 +1017,7 @@
         <column name="DEV_ID"/>
       </field>
       <field name="location">
-        <column name="LOCATION" length="4096" jdbc-type="VARCHAR"/>
+        <column name="LOCATION" length="4000" jdbc-type="VARCHAR"/>
       </field>
       <field name="rep_id">
         <column name="REP_ID"/>
