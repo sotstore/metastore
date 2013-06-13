@@ -1685,7 +1685,7 @@ class SFileLocation {
 void swap(SFileLocation &a, SFileLocation &b);
 
 typedef struct _SFile__isset {
-  _SFile__isset() : fid(false), placement(false), store_status(false), rep_nr(false), digest(false), record_nr(false), all_record_nr(false), locations(false) {}
+  _SFile__isset() : fid(false), placement(false), store_status(false), rep_nr(false), digest(false), record_nr(false), all_record_nr(false), locations(false), length(false) {}
   bool fid;
   bool placement;
   bool store_status;
@@ -1694,15 +1694,16 @@ typedef struct _SFile__isset {
   bool record_nr;
   bool all_record_nr;
   bool locations;
+  bool length;
 } _SFile__isset;
 
 class SFile {
  public:
 
-  static const char* ascii_fingerprint; // = "F8BCCC012E518BD2A73D13E4CDD96AE1";
-  static const uint8_t binary_fingerprint[16]; // = {0xF8,0xBC,0xCC,0x01,0x2E,0x51,0x8B,0xD2,0xA7,0x3D,0x13,0xE4,0xCD,0xD9,0x6A,0xE1};
+  static const char* ascii_fingerprint; // = "A35168FCF9B6081CDC8FE76BE711767A";
+  static const uint8_t binary_fingerprint[16]; // = {0xA3,0x51,0x68,0xFC,0xF9,0xB6,0x08,0x1C,0xDC,0x8F,0xE7,0x6B,0xE7,0x11,0x76,0x7A};
 
-  SFile() : fid(0), placement(0), store_status(0), rep_nr(0), digest(), record_nr(0), all_record_nr(0) {
+  SFile() : fid(0), placement(0), store_status(0), rep_nr(0), digest(), record_nr(0), all_record_nr(0), length(0) {
   }
 
   virtual ~SFile() throw() {}
@@ -1715,6 +1716,7 @@ class SFile {
   int64_t record_nr;
   int64_t all_record_nr;
   std::vector<SFileLocation>  locations;
+  int64_t length;
 
   _SFile__isset __isset;
 
@@ -1750,6 +1752,10 @@ class SFile {
     locations = val;
   }
 
+  void __set_length(const int64_t val) {
+    length = val;
+  }
+
   bool operator == (const SFile & rhs) const
   {
     if (!(fid == rhs.fid))
@@ -1768,6 +1774,8 @@ class SFile {
       return false;
     if (!(locations == rhs.locations))
       return false;
+    if (!(length == rhs.length))
+      return false;
     return true;
   }
   bool operator != (const SFile &rhs) const {
@@ -1782,6 +1790,57 @@ class SFile {
 };
 
 void swap(SFile &a, SFile &b);
+
+typedef struct _SFileRef__isset {
+  _SFileRef__isset() : file(false), origin_fid(false) {}
+  bool file;
+  bool origin_fid;
+} _SFileRef__isset;
+
+class SFileRef {
+ public:
+
+  static const char* ascii_fingerprint; // = "8CB1CFF74F7571F121B4D5D494ED385F";
+  static const uint8_t binary_fingerprint[16]; // = {0x8C,0xB1,0xCF,0xF7,0x4F,0x75,0x71,0xF1,0x21,0xB4,0xD5,0xD4,0x94,0xED,0x38,0x5F};
+
+  SFileRef() : origin_fid(0) {
+  }
+
+  virtual ~SFileRef() throw() {}
+
+  SFile file;
+  int64_t origin_fid;
+
+  _SFileRef__isset __isset;
+
+  void __set_file(const SFile& val) {
+    file = val;
+  }
+
+  void __set_origin_fid(const int64_t val) {
+    origin_fid = val;
+  }
+
+  bool operator == (const SFileRef & rhs) const
+  {
+    if (!(file == rhs.file))
+      return false;
+    if (!(origin_fid == rhs.origin_fid))
+      return false;
+    return true;
+  }
+  bool operator != (const SFileRef &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const SFileRef & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(SFileRef &a, SFileRef &b);
 
 typedef struct _Index__isset {
   _Index__isset() : indexName(false), indexHandlerClass(false), dbName(false), origTableName(false), createTime(false), lastAccessTime(false), indexTableName(false), sd(false), parameters(false), deferredRebuild(false) {}

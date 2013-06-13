@@ -1018,6 +1018,9 @@
       <field name="all_record_nr">
         <column name="all_record_nr"/>
       </field>
+      <field name="length">
+        <column name="length"/>
+      </field>
     </class>
     
     <class name="MFileLocation" table="FILE_LOCATION" identity-type="datastore" detachable="true">

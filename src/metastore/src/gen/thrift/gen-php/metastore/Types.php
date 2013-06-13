@@ -4289,6 +4289,7 @@ class SFile {
   public $record_nr = null;
   public $all_record_nr = null;
   public $locations = null;
+  public $length = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -4330,6 +4331,10 @@ class SFile {
             'class' => '\metastore\SFileLocation',
             ),
           ),
+        9 => array(
+          'var' => 'length',
+          'type' => TType::I64,
+          ),
         );
     }
     if (is_array($vals)) {
@@ -4356,6 +4361,9 @@ class SFile {
       }
       if (isset($vals['locations'])) {
         $this->locations = $vals['locations'];
+      }
+      if (isset($vals['length'])) {
+        $this->length = $vals['length'];
       }
     }
   }
@@ -4446,6 +4454,13 @@ class SFile {
             $xfer += $input->skip($ftype);
           }
           break;
+        case 9:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->length);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
         default:
           $xfer += $input->skip($ftype);
           break;
@@ -4509,6 +4524,108 @@ class SFile {
         }
         $output->writeListEnd();
       }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->length !== null) {
+      $xfer += $output->writeFieldBegin('length', TType::I64, 9);
+      $xfer += $output->writeI64($this->length);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class SFileRef {
+  static $_TSPEC;
+
+  public $file = null;
+  public $origin_fid = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'file',
+          'type' => TType::STRUCT,
+          'class' => '\metastore\SFile',
+          ),
+        2 => array(
+          'var' => 'origin_fid',
+          'type' => TType::I64,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['file'])) {
+        $this->file = $vals['file'];
+      }
+      if (isset($vals['origin_fid'])) {
+        $this->origin_fid = $vals['origin_fid'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'SFileRef';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->file = new \metastore\SFile();
+            $xfer += $this->file->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->origin_fid);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('SFileRef');
+    if ($this->file !== null) {
+      if (!is_object($this->file)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('file', TType::STRUCT, 1);
+      $xfer += $this->file->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->origin_fid !== null) {
+      $xfer += $output->writeFieldBegin('origin_fid', TType::I64, 2);
+      $xfer += $output->writeI64($this->origin_fid);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
