@@ -101,9 +101,11 @@ import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.model.MBusiTypeColumn;
 import org.apache.hadoop.hive.metastore.model.MColumnDescriptor;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
+import org.apache.hadoop.hive.metastore.model.MDataCenter;
 import org.apache.hadoop.hive.metastore.model.MDatabase;
 import org.apache.hadoop.hive.metastore.model.MDatacenter;
 import org.apache.hadoop.hive.metastore.model.MDevice;
+import org.apache.hadoop.hive.metastore.model.MDirectDDL;
 import org.apache.hadoop.hive.metastore.model.MFieldSchema;
 import org.apache.hadoop.hive.metastore.model.MFile;
 import org.apache.hadoop.hive.metastore.model.MFileLocation;
@@ -169,6 +171,9 @@ public class ObjectStore implements RawStore, Configurable {
       commited = commitTransaction();
     } catch (javax.jdo.JDODataStoreException e) {
       LOG.info("" + e.getCause());
+    }catch (Exception e) {
+      LOG.info("" + e.getCause());
+      g_fid=0;
     } finally {
       if (!commited) {
         rollbackTransaction();
@@ -191,6 +196,15 @@ public class ObjectStore implements RawStore, Configurable {
     map.put("type", MType.class);
     map.put("fieldschema", MFieldSchema.class);
     map.put("order", MOrder.class);
+    map.put("files", MFile.class);
+    map.put("nodes", MNode.class);
+    map.put("direct_ddl", MDirectDDL.class);
+    map.put("datacenter", MDataCenter.class);
+    map.put("busi_column", MBusiTypeColumn.class);
+    map.put("index", MIndex.class);
+    map.put("partindex", MPartitionIndex.class);
+    map.put("partindexstore", MPartitionIndexStore.class);
+    map.put("filelocation", MFileLocation.class);
     PINCLASSMAP = Collections.unmodifiableMap(map);
   }
 
@@ -1077,23 +1091,7 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       MTable mtbl = convertToMTable(tbl);
-      pm.makePersistent(mtbl);
-      LOG.info("createTable w/ ID=" + JDOHelper.getObjectId(mtbl));
-      PrincipalPrivilegeSet principalPrivs = tbl.getPrivileges();
-      List<Object> toPersistPrivObjs = new ArrayList<Object>();
-      if (principalPrivs != null) {
-        int now = (int)(System.currentTimeMillis()/1000);
-
-        Map<String, List<PrivilegeGrantInfo>> userPrivs = principalPrivs.getUserPrivileges();
-        putPersistentPrivObjects(mtbl, toPersistPrivObjs, now, userPrivs, PrincipalType.USER);
-
-        Map<String, List<PrivilegeGrantInfo>> groupPrivs = principalPrivs.getGroupPrivileges();
-        putPersistentPrivObjects(mtbl, toPersistPrivObjs, now, groupPrivs, PrincipalType.GROUP);
-
-        Map<String, List<PrivilegeGrantInfo>> rolePrivs = principalPrivs.getRolePrivileges();
-        putPersistentPrivObjects(mtbl, toPersistPrivObjs, now, rolePrivs, PrincipalType.ROLE);
-      }
-      pm.makePersistentAll(toPersistPrivObjs);
+      boolean make_table = false;
       if(mtbl.getSd().getCD().getCols() != null){//增加业务类型查询支持
         List<MBusiTypeColumn> bcs = new ArrayList<MBusiTypeColumn>();
         for(MFieldSchema f : mtbl.getSd().getCD().getCols()){
@@ -1110,13 +1108,18 @@ public class ObjectStore implements RawStore, Configurable {
           }
         }
         if(!bcs.isEmpty()){
-          LOG.warn("--zjw--getPartitions is not null,size:"+bcs.size());
+
+          LOG.info("--zjw--getPartitions is not null,size:"+bcs.size());
           pm.makePersistentAll(bcs);
         }else{
+          pm.makePersistent(mtbl);
+          make_table =true;
           LOG.warn("--zjw--getPartitions is null ");
         }
       }
-
+      if(!make_table){
+        pm.makePersistent(mtbl);
+      }
 
       if(tbl.getPartitions() != null && !tbl.getPartitions().isEmpty()){//存储分区
         LOG.warn("--zjw--getPartitions is not null,size:"+tbl.getPartitionsSize());
@@ -1125,6 +1128,25 @@ public class ObjectStore implements RawStore, Configurable {
       }else{
         LOG.warn("--zjw--getPartitions is null ");
       }
+
+
+
+      LOG.info("createTable w/ ID=" + JDOHelper.getObjectId(mtbl));
+      PrincipalPrivilegeSet principalPrivs = tbl.getPrivileges();
+      List<Object> toPersistPrivObjs = new ArrayList<Object>();
+      if (principalPrivs != null) {
+        int now = (int)(System.currentTimeMillis()/1000);
+
+        Map<String, List<PrivilegeGrantInfo>> userPrivs = principalPrivs.getUserPrivileges();
+        putPersistentPrivObjects(mtbl, toPersistPrivObjs, now, userPrivs, PrincipalType.USER);
+
+        Map<String, List<PrivilegeGrantInfo>> groupPrivs = principalPrivs.getGroupPrivileges();
+        putPersistentPrivObjects(mtbl, toPersistPrivObjs, now, groupPrivs, PrincipalType.GROUP);
+
+        Map<String, List<PrivilegeGrantInfo>> rolePrivs = principalPrivs.getRolePrivileges();
+        putPersistentPrivObjects(mtbl, toPersistPrivObjs, now, rolePrivs, PrincipalType.ROLE);
+      }
+      pm.makePersistentAll(toPersistPrivObjs);
 
       commited = commitTransaction();
 
@@ -2218,6 +2240,7 @@ public class ObjectStore implements RawStore, Configurable {
       }
       openTransaction();
       MPartition mpart = convertToMPart(part, true);
+      LOG.info("---zjw--in add partition:"+mpart.getPartitionName()+"--sub:"+mpart.getSubPartitions().size());
       pm.makePersistent(mpart);
 
       int now = (int)(System.currentTimeMillis()/1000);
@@ -2246,11 +2269,19 @@ public class ObjectStore implements RawStore, Configurable {
         }
       }
 
+      pm.makePersistent(table);
+
       commited = commitTransaction();
+
+      /*****************NOTE oracle does not commit here.*****************/
+      pm.flush();//
       success = true;
     } finally {
       if (!commited) {
+        LOG.info("---zjw--in add partition,roll back");
         rollbackTransaction();
+      }else{
+        LOG.info("---zjw--in add partition,commit success");
       }
     }
     return success;
@@ -6864,5 +6895,24 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     return success;
+  }
+
+  @Override
+  public boolean add_datawarehouse_sql(int dwNum, String sql) throws InvalidObjectException,
+      MetaException {
+    boolean success = false;
+    int now = (int)(System.currentTimeMillis()/1000);
+    try {
+      openTransaction();
+      MDirectDDL mdd = new MDirectDDL(dwNum,sql,now,now);
+      pm.makePersistent(mdd);
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+
   }
 }

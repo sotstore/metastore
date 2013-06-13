@@ -212,6 +212,7 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_ALTERINDEX_MODIFY_SUBPARTITION_ADD_FILE:
       case HiveParser.TOK_ALTERINDEX_MODIFY_PARTINDEX_DROP_FILE:
       case HiveParser.TOK_ALTERINDEX_MODIFY_SUBPARTINDEX_DROP_FILE:
+      case HiveParser.TOK_ALTER_DW:
 
         return new DDLSemanticAnalyzer(conf);
       case HiveParser.TOK_ALTERTABLE_PARTITION:

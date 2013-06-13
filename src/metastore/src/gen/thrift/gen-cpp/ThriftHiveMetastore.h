@@ -22,6 +22,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void get_all_centers(std::vector<std::string> & _return) = 0;
   virtual void get_local_center(Datacenter& _return) = 0;
   virtual void get_lucene_index_names(std::vector<std::string> & _return, const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes) = 0;
+  virtual bool add_datawarehouse_sql(const int32_t dwNum, const std::string& sql) = 0;
   virtual int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files) = 0;
   virtual int32_t drop_partition_files(const Partition& part, const std::vector<SFile> & files) = 0;
   virtual int32_t add_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files) = 0;
@@ -168,6 +169,10 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   }
   void get_lucene_index_names(std::vector<std::string> & /* _return */, const std::string& /* db_name */, const std::string& /* tbl_name */, const int16_t /* max_indexes */) {
     return;
+  }
+  bool add_datawarehouse_sql(const int32_t /* dwNum */, const std::string& /* sql */) {
+    bool _return = false;
+    return _return;
   }
   int32_t add_partition_files(const Partition& /* part */, const std::vector<SFile> & /* files */) {
     int32_t _return = 0;
@@ -1246,6 +1251,143 @@ class ThriftHiveMetastore_get_lucene_index_names_presult {
   MetaException o2;
 
   _ThriftHiveMetastore_get_lucene_index_names_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_add_datawarehouse_sql_args__isset {
+  _ThriftHiveMetastore_add_datawarehouse_sql_args__isset() : dwNum(false), sql(false) {}
+  bool dwNum;
+  bool sql;
+} _ThriftHiveMetastore_add_datawarehouse_sql_args__isset;
+
+class ThriftHiveMetastore_add_datawarehouse_sql_args {
+ public:
+
+  ThriftHiveMetastore_add_datawarehouse_sql_args() : dwNum(0), sql() {
+  }
+
+  virtual ~ThriftHiveMetastore_add_datawarehouse_sql_args() throw() {}
+
+  int32_t dwNum;
+  std::string sql;
+
+  _ThriftHiveMetastore_add_datawarehouse_sql_args__isset __isset;
+
+  void __set_dwNum(const int32_t val) {
+    dwNum = val;
+  }
+
+  void __set_sql(const std::string& val) {
+    sql = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_datawarehouse_sql_args & rhs) const
+  {
+    if (!(dwNum == rhs.dwNum))
+      return false;
+    if (!(sql == rhs.sql))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_datawarehouse_sql_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_datawarehouse_sql_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_add_datawarehouse_sql_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_datawarehouse_sql_pargs() throw() {}
+
+  const int32_t* dwNum;
+  const std::string* sql;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_datawarehouse_sql_result__isset {
+  _ThriftHiveMetastore_add_datawarehouse_sql_result__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_add_datawarehouse_sql_result__isset;
+
+class ThriftHiveMetastore_add_datawarehouse_sql_result {
+ public:
+
+  ThriftHiveMetastore_add_datawarehouse_sql_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_add_datawarehouse_sql_result() throw() {}
+
+  bool success;
+  InvalidObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_add_datawarehouse_sql_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const InvalidObjectException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const MetaException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_add_datawarehouse_sql_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_add_datawarehouse_sql_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_add_datawarehouse_sql_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_add_datawarehouse_sql_presult__isset {
+  _ThriftHiveMetastore_add_datawarehouse_sql_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_add_datawarehouse_sql_presult__isset;
+
+class ThriftHiveMetastore_add_datawarehouse_sql_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_add_datawarehouse_sql_presult() throw() {}
+
+  bool* success;
+  InvalidObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_add_datawarehouse_sql_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -14956,6 +15098,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void get_lucene_index_names(std::vector<std::string> & _return, const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes);
   void send_get_lucene_index_names(const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes);
   void recv_get_lucene_index_names(std::vector<std::string> & _return);
+  bool add_datawarehouse_sql(const int32_t dwNum, const std::string& sql);
+  void send_add_datawarehouse_sql(const int32_t dwNum, const std::string& sql);
+  bool recv_add_datawarehouse_sql();
   int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files);
   void send_add_partition_files(const Partition& part, const std::vector<SFile> & files);
   int32_t recv_add_partition_files();
@@ -15272,6 +15417,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_get_all_centers(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_local_center(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_lucene_index_names(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_add_datawarehouse_sql(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_add_partition_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_drop_partition_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_add_subpartition_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -15382,6 +15528,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["get_all_centers"] = &ThriftHiveMetastoreProcessor::process_get_all_centers;
     processMap_["get_local_center"] = &ThriftHiveMetastoreProcessor::process_get_local_center;
     processMap_["get_lucene_index_names"] = &ThriftHiveMetastoreProcessor::process_get_lucene_index_names;
+    processMap_["add_datawarehouse_sql"] = &ThriftHiveMetastoreProcessor::process_add_datawarehouse_sql;
     processMap_["add_partition_files"] = &ThriftHiveMetastoreProcessor::process_add_partition_files;
     processMap_["drop_partition_files"] = &ThriftHiveMetastoreProcessor::process_drop_partition_files;
     processMap_["add_subpartition_files"] = &ThriftHiveMetastoreProcessor::process_add_subpartition_files;
@@ -15571,6 +15718,15 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     }
     ifaces_[i]->get_lucene_index_names(_return, db_name, tbl_name, max_indexes);
     return;
+  }
+
+  bool add_datawarehouse_sql(const int32_t dwNum, const std::string& sql) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->add_datawarehouse_sql(dwNum, sql);
+    }
+    return ifaces_[i]->add_datawarehouse_sql(dwNum, sql);
   }
 
   int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files) {

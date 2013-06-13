@@ -52,6 +52,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("get_lucene_index_names\n");
   }
 
+  bool add_datawarehouse_sql(const int32_t dwNum, const std::string& sql) {
+    // Your implementation goes here
+    printf("add_datawarehouse_sql\n");
+  }
+
   int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files) {
     // Your implementation goes here
     printf("add_partition_files\n");

@@ -39,6 +39,24 @@ public class MPartition {
 
   public MPartition() {}
 
+
+  public MPartition(String partitionName, MTable table, List<MPartition> subPartitions,List<String> values, List<Long> files, int createTime,
+      int lastAccessTime, MStorageDescriptor sd, Map<String, String> parameters,int partition_level, int version) {
+    this.partitionName = partitionName;
+    if(subPartitions != null){
+      this.subPartitions = subPartitions;
+    }
+    this.table = table;
+    this.values = values;
+    this.files = files;
+    this.createTime = createTime;
+    this.lastAccessTime = lastAccessTime;
+    this.sd = sd;
+    this.parameters = parameters;
+    this.partition_level = partition_level;
+    this.version = version;
+  }
+
   /**
    * @param partitionName
    * @param table
@@ -62,6 +80,7 @@ public class MPartition {
     this.sd = sd;
     this.parameters = parameters;
   }
+
 
   /**
    * @return the lastAccessTime

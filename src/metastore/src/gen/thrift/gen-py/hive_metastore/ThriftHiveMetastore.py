@@ -60,6 +60,14 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
+  def add_datawarehouse_sql(self, dwNum, sql):
+    """
+    Parameters:
+     - dwNum
+     - sql
+    """
+    pass
+
   def add_partition_files(self, part, files):
     """
     Parameters:
@@ -1086,6 +1094,42 @@ class Client(fb303.FacebookService.Client, Iface):
     if result.o2 is not None:
       raise result.o2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "get_lucene_index_names failed: unknown result");
+
+  def add_datawarehouse_sql(self, dwNum, sql):
+    """
+    Parameters:
+     - dwNum
+     - sql
+    """
+    self.send_add_datawarehouse_sql(dwNum, sql)
+    return self.recv_add_datawarehouse_sql()
+
+  def send_add_datawarehouse_sql(self, dwNum, sql):
+    self._oprot.writeMessageBegin('add_datawarehouse_sql', TMessageType.CALL, self._seqid)
+    args = add_datawarehouse_sql_args()
+    args.dwNum = dwNum
+    args.sql = sql
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_add_datawarehouse_sql(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = add_datawarehouse_sql_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    if result.o2 is not None:
+      raise result.o2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "add_datawarehouse_sql failed: unknown result");
 
   def add_partition_files(self, part, files):
     """
@@ -4691,6 +4735,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["get_all_centers"] = Processor.process_get_all_centers
     self._processMap["get_local_center"] = Processor.process_get_local_center
     self._processMap["get_lucene_index_names"] = Processor.process_get_lucene_index_names
+    self._processMap["add_datawarehouse_sql"] = Processor.process_add_datawarehouse_sql
     self._processMap["add_partition_files"] = Processor.process_add_partition_files
     self._processMap["drop_partition_files"] = Processor.process_drop_partition_files
     self._processMap["add_subpartition_files"] = Processor.process_add_subpartition_files
@@ -4897,6 +4942,22 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     except MetaException as o2:
       result.o2 = o2
     oprot.writeMessageBegin("get_lucene_index_names", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_add_datawarehouse_sql(self, seqid, iprot, oprot):
+    args = add_datawarehouse_sql_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = add_datawarehouse_sql_result()
+    try:
+      result.success = self._handler.add_datawarehouse_sql(args.dwNum, args.sql)
+    except InvalidObjectException as o1:
+      result.o1 = o1
+    except MetaException as o2:
+      result.o2 = o2
+    oprot.writeMessageBegin("add_datawarehouse_sql", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -7306,6 +7367,163 @@ class get_lucene_index_names_result:
       oprot.writeFieldEnd()
     if self.o2 is not None:
       oprot.writeFieldBegin('o2', TType.STRUCT, 1)
+      self.o2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class add_datawarehouse_sql_args:
+  """
+  Attributes:
+   - dwNum
+   - sql
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.I32, 'dwNum', None, None, ), # 1
+    (2, TType.STRING, 'sql', None, None, ), # 2
+  )
+
+  def __init__(self, dwNum=None, sql=None,):
+    self.dwNum = dwNum
+    self.sql = sql
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.I32:
+          self.dwNum = iprot.readI32();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.sql = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('add_datawarehouse_sql_args')
+    if self.dwNum is not None:
+      oprot.writeFieldBegin('dwNum', TType.I32, 1)
+      oprot.writeI32(self.dwNum)
+      oprot.writeFieldEnd()
+    if self.sql is not None:
+      oprot.writeFieldBegin('sql', TType.STRING, 2)
+      oprot.writeString(self.sql)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class add_datawarehouse_sql_result:
+  """
+  Attributes:
+   - success
+   - o1
+   - o2
+  """
+
+  thrift_spec = (
+    (0, TType.BOOL, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'o1', (InvalidObjectException, InvalidObjectException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (MetaException, MetaException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, o1=None, o2=None,):
+    self.success = success
+    self.o1 = o1
+    self.o2 = o2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.BOOL:
+          self.success = iprot.readBool();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = InvalidObjectException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = MetaException()
+          self.o2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('add_datawarehouse_sql_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.BOOL, 0)
+      oprot.writeBool(self.success)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
       self.o2.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()

@@ -196,10 +196,10 @@
         </value>
       </field>
       <field name="viewOriginalText" default-fetch-group="false">
-        <column name="VIEW_ORIGINAL_TEXT" jdbc-type="LONGVARCHAR"/>
+        <column name="VIEW_ORIGINAL_TEXT" jdbc-type="VARCHAR"/>
       </field>
       <field name="viewExpandedText" default-fetch-group="false">
-        <column name="VIEW_EXPANDED_TEXT" jdbc-type="LONGVARCHAR"/>
+        <column name="VIEW_EXPANDED_TEXT" jdbc-type="VARCHAR"/>
       </field>
       <field name="tableType">
         <column name="TBL_TYPE" length="128" jdbc-type="VARCHAR"/>
@@ -380,6 +380,12 @@
       <field name="lastAccessTime">
         <column name="LAST_ACCESS_TIME" jdbc-type="integer"/>
       </field>
+      <field name="partition_level">
+        <column name="PARTITION_LEVEL" jdbc-type="integer"/>
+      </field>
+      <field name="version">
+        <column name="VERSION" jdbc-type="integer"/>
+      </field>
       <field name="values" table="PARTITION_KEY_VALS">
         <collection element-type="java.lang.String"/>
         <join>
@@ -413,6 +419,24 @@
       <field name="subPartitions" mappedBy="parent">
         <!--collection element-type="MPartition"/-->
         <collection element-type="org.apache.hadoop.hive.metastore.model.MPartition"/>
+      </field>
+    </class>
+
+	<class name="MDirectDDL" table="DIRECT_DDL" identity-type="datastore" detachable="true">
+      <datastore-identity>
+        <column name="DDL_OP_ID"/>
+      </datastore-identity>
+      <field name="sql">
+        <column name="DDL_SQL" length="4000" jdbc-type="VARCHAR"/>
+      </field>
+      <field name="dwNum">
+        <column name="DES_DW_ID" jdbc-type="integer"/>
+      </field>
+      <field name="createTime">
+      	<column name="CREATE_TIME" jdbc-type="integer"/>
+      </field>
+      <field name="updateTime">
+      	<column name="UPDATE_TIME" jdbc-type="integer"/>
       </field>
     </class>
 
@@ -947,27 +971,7 @@
         <column name="IP"/>
       </field>
     </class>
-    
-    <class name="MDataCenter" table="DataCenter" identity-type="datastore" detachable="true">
-      <index name="UniqueDC" unique="true">
-        <column name="DC_ID"/>
-        <column name="NAME"/>
-      </index>
-      
-      <datastore-identity>
-      	<column name="DC_ID"/>
-      </datastore-identity>
-      
-      <field name="name">
-      	<column name="NAME"/>
-      </field>
-      <field name="ms_ip">
-      	<column name="MS_IP"/>
-      </field>
-      <field name="ms_port">
-      	<column name="MS_PORT"/>
-      </field>
-    </class>
+
     
     <class name="MDevice" table="DEVICES" identity-type="datastore" detachable="true">
       <index name="UniqueDevice" unique="true">

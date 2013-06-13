@@ -413,6 +413,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   //start of partition,RPC for now is enough,subparttion operation can be done within partition rpc
   //end of partiton
   
+  bool add_datawarehouse_sql(1:i32 dwNum, 2:string sql) throws(1:InvalidObjectException o1, 2:MetaException o2)
   
   //start of partition file
   i32 add_partition_files(1:Partition part, 2:list<SFile> files)

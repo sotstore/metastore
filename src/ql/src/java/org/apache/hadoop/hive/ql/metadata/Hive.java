@@ -2332,5 +2332,15 @@ public class Hive {
     }
   }
 
+  public boolean addDatawareHouseSql(Integer dwNum, String sql) throws HiveException{
+    try{
+      getMSC().addDatawareHouseSql(dwNum, sql);
+
+      return true;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
 
 };

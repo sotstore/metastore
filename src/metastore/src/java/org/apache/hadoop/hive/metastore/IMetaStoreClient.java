@@ -1013,4 +1013,6 @@ public interface IMetaStoreClient {
         throws MetaException, TException;
 
   public String getDMStatus() throws MetaException, TException;
+
+  public boolean addDatawareHouseSql(Integer dwNum, String sql)throws MetaException, TException;
 }

@@ -1647,4 +1647,9 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     return client.getDMStatus();
   }
 
+  @Override
+  public boolean addDatawareHouseSql(Integer dwNum, String sql) throws MetaException, TException {
+    return client.add_datawarehouse_sql(dwNum, sql);
+  }
+
 }

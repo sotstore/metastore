@@ -505,4 +505,7 @@ public interface RawStore extends Configurable {
   public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException;
 
   public void createDatacenter(Datacenter dc) throws InvalidObjectException, MetaException;
+
+  public boolean add_datawarehouse_sql(int dwNum, String sql)throws InvalidObjectException, MetaException;
+
 }

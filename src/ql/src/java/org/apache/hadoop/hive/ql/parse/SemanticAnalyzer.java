@@ -6613,9 +6613,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 
   @SuppressWarnings("nls")
   private Operator genBodyPlan(QB qb, Operator input) throws SemanticException {
-    QBParseInfo qbp = qb.getParseInfo();
-
-    TreeSet<String> ks = new TreeSet<String>(qbp.getClauseNames());
+    QBParseInfo qbp = qb.getParseInfo();  TreeSet<String> ks = new TreeSet<String>(qbp.getClauseNames());
     // For multi-group by with the same distinct, we ignore all user hints
     // currently. It doesnt matter whether he has asked to do
     // map-side aggregation or not. Map side aggregation is turned off

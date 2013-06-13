@@ -80,6 +80,7 @@ import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
 import org.apache.hadoop.hive.ql.plan.AddSubpartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AddSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.AlterDatabaseDesc;
+import org.apache.hadoop.hive.ql.plan.AlterDatawareHouseDesc;
 import org.apache.hadoop.hive.ql.plan.AlterIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AlterIndexDesc.AlterIndexTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc;
@@ -480,12 +481,29 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     case HiveParser.TOK_ALTERINDEX_MODIFY_SUBPARTINDEX_DROP_FILE:
       analyzeAlterIndexModifySubpartIndexDropFile(ast);
       break;
+    case HiveParser.TOK_ALTER_DW:
+      analyzeAlterDatawareHouse(ast);
+      break;
     default:
       throw new SemanticException("Unsupported command.");
     }
   }
 
 
+  /**
+   * KW_ALTER KW_DW  KW_DIRECT LPAREN dwNo=Number COMMA sql=StringLiteral RPAREN
+       -> ^(TOK_ALTER_DW $dwNo $sql)
+   * @param ast
+  */
+  private void analyzeAlterDatawareHouse(ASTNode ast) {
+    LOG.debug("----zjw --analyzeAlterDatawareHouse ast:"+ast.toStringTree());
+    String dwNum = unescapeIdentifier(ast.getChild(0).getText());
+    int dn = Integer.parseInt(dwNum);
+    String sql = unescapeIdentifier(ast.getChild(1).getText());
+    AlterDatawareHouseDesc alterDatawareHouseDesc = new AlterDatawareHouseDesc(dn,sql);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        alterDatawareHouseDesc), conf));
+  }
 
   private void analyzeModifyNode(ASTNode ast) {
     String nodeName = unescapeIdentifier(ast.getChild(0).getText());

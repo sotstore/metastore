@@ -111,6 +111,23 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_lucene_index_names failed: unknown result')
     end
 
+    def add_datawarehouse_sql(dwNum, sql)
+      send_add_datawarehouse_sql(dwNum, sql)
+      return recv_add_datawarehouse_sql()
+    end
+
+    def send_add_datawarehouse_sql(dwNum, sql)
+      send_message('add_datawarehouse_sql', Add_datawarehouse_sql_args, :dwNum => dwNum, :sql => sql)
+    end
+
+    def recv_add_datawarehouse_sql()
+      result = receive_message(Add_datawarehouse_sql_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_datawarehouse_sql failed: unknown result')
+    end
+
     def add_partition_files(part, files)
       send_add_partition_files(part, files)
       return recv_add_partition_files()
@@ -1860,6 +1877,19 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'get_lucene_index_names', seqid)
     end
 
+    def process_add_datawarehouse_sql(seqid, iprot, oprot)
+      args = read_args(iprot, Add_datawarehouse_sql_args)
+      result = Add_datawarehouse_sql_result.new()
+      begin
+        result.success = @handler.add_datawarehouse_sql(args.dwNum, args.sql)
+      rescue ::InvalidObjectException => o1
+        result.o1 = o1
+      rescue ::MetaException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'add_datawarehouse_sql', seqid)
+    end
+
     def process_add_partition_files(seqid, iprot, oprot)
       args = read_args(iprot, Add_partition_files_args)
       result = Add_partition_files_result.new()
@@ -3315,6 +3345,44 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRING}},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_datawarehouse_sql_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DWNUM = 1
+    SQL = 2
+
+    FIELDS = {
+      DWNUM => {:type => ::Thrift::Types::I32, :name => 'dwNum'},
+      SQL => {:type => ::Thrift::Types::STRING, :name => 'sql'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Add_datawarehouse_sql_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::InvalidObjectException},
       O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
     }
 

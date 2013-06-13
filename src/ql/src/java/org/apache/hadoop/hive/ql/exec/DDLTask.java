@@ -112,6 +112,7 @@ import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
 import org.apache.hadoop.hive.ql.plan.AddSubpartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AddSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.AlterDatabaseDesc;
+import org.apache.hadoop.hive.ql.plan.AlterDatawareHouseDesc;
 import org.apache.hadoop.hive.ql.plan.AlterIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
@@ -331,7 +332,12 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       if (null != dropPartitionDesc) {
         return dropPartition(db, dropPartitionDesc);
       }
-      /**********************added by zjw******************************/
+      AlterDatawareHouseDesc alterDatawareHouseDesc = work.getAlterDatawareHouseDesc();
+      if (null != alterDatawareHouseDesc) {
+        return alterDatawareHouse(db, alterDatawareHouseDesc);
+      }
+
+      /**********************end of modification of zjw******************************/
 
 
       CreateDatabaseDesc createDatabaseDesc = work.getCreateDatabaseDesc();
@@ -558,6 +564,15 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   }
 
   /////start of zjw need to implement
+
+  private int alterDatawareHouse(Hive db,
+      AlterDatawareHouseDesc alterDatawareHouseDesc) throws HiveException {
+    Integer dwNum = alterDatawareHouseDesc.getDwNum();
+    String sql = alterDatawareHouseDesc.getSql();
+
+    db.addDatawareHouseSql(dwNum ,sql);
+    return 0;
+  }
 
   private int dropPartition(Hive db, DropPartitionDesc dropPartitionDesc) throws HiveException {
     List<String> partNames = new ArrayList<String>();

@@ -1728,9 +1728,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
         LOG.warn("---zjw-- int add_partition_core_notxn.");
         PartitionDefinition global_sub_pd = this.createSubpartitions(tbl,part.getPartitionName());
-        List<Subpartition> subpartitions = global_sub_pd.toSubpartitionList();
-        LOG.warn("---zjw-- subpartitions size:"+subpartitions.size());
-        part.setSubpartitions(subpartitions);
+        if(global_sub_pd != null){
+          List<Subpartition> subpartitions = global_sub_pd.toSubpartitionList();
+          LOG.warn("---zjw-- subpartitions size:"+subpartitions.size());
+          part.setSubpartitions(subpartitions);
+        }
 
         String partLocationStr = null;
         if (part.getSd() != null) {
@@ -4521,6 +4523,15 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       }
       return "+FAIL: No DiskManger!\n";
     }
+
+    @Override
+    public boolean add_datawarehouse_sql(int dwnum, String sql) throws InvalidObjectException,
+        MetaException, TException {
+      getMS().add_datawarehouse_sql(dwnum,  sql);
+      return false;
+    }
+
+
 
   }
 

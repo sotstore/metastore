@@ -91,6 +91,8 @@ public class DDLWork implements Serializable {
   private DropNodeDesc dropNodeDesc;
   private AddNodeDesc addNodeDesc;
 
+  private AlterDatawareHouseDesc alterDatawareHouseDesc;
+
   private ModifySubpartIndexDropFileDesc modifySubpartIndexDropFileDesc;
   private ModifyPartIndexDropFileDesc modifyPartIndexDropFileDesc;
   private ModifySubpartIndexAddFileDesc modifySubpartIndexAddFileDesc;
@@ -588,6 +590,12 @@ public class DDLWork implements Serializable {
       ModifySubpartIndexDropFileDesc modifySubpartIndexDropFileDesc) {
     this(inputs, outputs);
     this.modifySubpartIndexDropFileDesc = modifySubpartIndexDropFileDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      AlterDatawareHouseDesc alterDatawareHouseDesc) {
+    this(inputs, outputs);
+    this.setAlterDatawareHouseDesc(alterDatawareHouseDesc);
   }
 
   /**
@@ -1313,6 +1321,14 @@ public class DDLWork implements Serializable {
 
   public void setDropPartitionDesc(DropPartitionDesc dropPartitionDesc) {
     this.dropPartitionDesc = dropPartitionDesc;
+  }
+
+  public AlterDatawareHouseDesc getAlterDatawareHouseDesc() {
+    return alterDatawareHouseDesc;
+  }
+
+  public void setAlterDatawareHouseDesc(AlterDatawareHouseDesc alterDatawareHouseDesc) {
+    this.alterDatawareHouseDesc = alterDatawareHouseDesc;
   }
 
 

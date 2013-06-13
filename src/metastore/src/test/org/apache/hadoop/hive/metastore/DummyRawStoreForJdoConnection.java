@@ -804,6 +804,13 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
 
   }
+
+  @Override
+  public boolean add_datawarehouse_sql(int dwNum, String sql) throws InvalidObjectException,
+      MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
 }
 
 
