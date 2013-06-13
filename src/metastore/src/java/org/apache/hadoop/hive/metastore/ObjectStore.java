@@ -88,6 +88,7 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
+import org.apache.hadoop.hive.metastore.api.SFileRef;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
@@ -1060,7 +1061,7 @@ public class ObjectStore implements RawStore, Configurable {
     //createFile(new SFile(10, 10, 3, 4, "abc", 1, 2, null));
     //createFile(new SFile(20, 10, 5, 6, "xyz", 1, 2, null));
     Node n = new Node("macan", ips, MetaStoreConst.MNodeStatus.SUSPECT);
-    SFile sf = new SFile(0, 10, 5, 6, "xyzadfads", 1, 2, null);
+    SFile sf = new SFile(0, 10, 5, 6, "xyzadfads", 1, 2, null, 100);
     createNode(n);
     MDevice md1 = new MDevice(getMNode("macan"), "dev-hello");
     MDevice md2 = new MDevice(getMNode("macan"), "xyz1");
@@ -1443,6 +1444,7 @@ public class ObjectStore implements RawStore, Configurable {
       mf.setRecord_nr(newfile.getRecord_nr());
       mf.setAll_record_nr(newfile.getAll_record_nr());
       mf.setStore_status(newfile.getStore_status());
+      mf.setLength(newfile.getLength());
 
       openTransaction();
       pm.makePersistent(mf);
@@ -1517,7 +1519,7 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       MTable mtbl = getMTable(dbName, tableName);
       commited = commitTransaction();
-      oid = Long.parseLong(JDOHelper.getObjectId(mtbl).toString().split("[OID]")[0]);
+      oid = Long.parseLong(JDOHelper.getObjectId(mtbl).toString().split("\\[OID\\]")[0]);
     } finally {
       if (!commited) {
         rollbackTransaction();
@@ -1881,7 +1883,7 @@ public class ObjectStore implements RawStore, Configurable {
       return null;
     }
     return new SFile(mf.getFid(), mf.getPlacement(), mf.getStore_status(), mf.getRep_nr(),
-        mf.getDigest(), mf.getRecord_nr(), mf.getAll_record_nr(), null);
+        mf.getDigest(), mf.getRecord_nr(), mf.getAll_record_nr(), null, mf.getLength());
   }
 
   private List<SFileLocation> convertToSFileLocation(List<MFileLocation> mfl) throws MetaException {
@@ -1949,7 +1951,7 @@ public class ObjectStore implements RawStore, Configurable {
     }
 
     return new MFile(file.getFid(), file.getPlacement(), file.getStore_status(), file.getRep_nr(),
-        file.getDigest(), file.getRecord_nr(), file.getAll_record_nr());
+        file.getDigest(), file.getRecord_nr(), file.getAll_record_nr(), file.getLength());
   }
 
   private MFileLocation convertToMFileLocation(SFileLocation location) {
@@ -6913,6 +6915,37 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     return success;
+   }
 
+  private List<SFileRef> getMPartitionIndexFiles(MPartitionIndex mpi) throws MetaException {
+    boolean success = false;
+    List<SFileRef> r = new ArrayList<SFileRef>();
+
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MPartitionIndexStore.class, "this.pi.index.indexName == indexName && this.pi.partition.partitionName == partName");
+      query.declareParameters("java.lang.String indexName, java.lang.String partName");
+      Collection files = (Collection) query.execute(mpi.getIndex().getIndexName(), mpi.getPartition().getPartitionName());
+      for (Iterator i = files.iterator(); i.hasNext();) {
+        MPartitionIndexStore mpis = (MPartitionIndexStore)i.next();
+        SFileRef fr = new SFileRef(convertToSFile(mpis.getIndexFile()), mpis.getOriginFid());
+        r.add(fr);
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+
+    return r;
+  }
+
+  public List<SFileRef> getPartitionIndexFiles(Index index, Partition part)
+      throws InvalidObjectException, NoSuchObjectException, MetaException {
+    MPartitionIndex mpi = getPartitionIndex(index, part);
+    List<SFileRef> sfr = getMPartitionIndexFiles(mpi);
+
+    return sfr;
   }
 }

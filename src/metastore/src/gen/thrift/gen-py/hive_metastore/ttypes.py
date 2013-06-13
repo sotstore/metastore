@@ -2679,6 +2679,7 @@ class SFile:
    - record_nr
    - all_record_nr
    - locations
+   - length
   """
 
   thrift_spec = (
@@ -2691,9 +2692,10 @@ class SFile:
     (6, TType.I64, 'record_nr', None, None, ), # 6
     (7, TType.I64, 'all_record_nr', None, None, ), # 7
     (8, TType.LIST, 'locations', (TType.STRUCT,(SFileLocation, SFileLocation.thrift_spec)), None, ), # 8
+    (9, TType.I64, 'length', None, None, ), # 9
   )
 
-  def __init__(self, fid=None, placement=None, store_status=None, rep_nr=None, digest=None, record_nr=None, all_record_nr=None, locations=None,):
+  def __init__(self, fid=None, placement=None, store_status=None, rep_nr=None, digest=None, record_nr=None, all_record_nr=None, locations=None, length=None,):
     self.fid = fid
     self.placement = placement
     self.store_status = store_status
@@ -2702,6 +2704,7 @@ class SFile:
     self.record_nr = record_nr
     self.all_record_nr = all_record_nr
     self.locations = locations
+    self.length = length
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -2758,6 +2761,11 @@ class SFile:
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
+      elif fid == 9:
+        if ftype == TType.I64:
+          self.length = iprot.readI64();
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -2802,6 +2810,83 @@ class SFile:
       for iter252 in self.locations:
         iter252.write(oprot)
       oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.length is not None:
+      oprot.writeFieldBegin('length', TType.I64, 9)
+      oprot.writeI64(self.length)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class SFileRef:
+  """
+  Attributes:
+   - file
+   - origin_fid
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRUCT, 'file', (SFile, SFile.thrift_spec), None, ), # 1
+    (2, TType.I64, 'origin_fid', None, None, ), # 2
+  )
+
+  def __init__(self, file=None, origin_fid=None,):
+    self.file = file
+    self.origin_fid = origin_fid
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRUCT:
+          self.file = SFile()
+          self.file.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.I64:
+          self.origin_fid = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('SFileRef')
+    if self.file is not None:
+      oprot.writeFieldBegin('file', TType.STRUCT, 1)
+      self.file.write(oprot)
+      oprot.writeFieldEnd()
+    if self.origin_fid is not None:
+      oprot.writeFieldBegin('origin_fid', TType.I64, 2)
+      oprot.writeI64(self.origin_fid)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

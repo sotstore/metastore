@@ -56,6 +56,7 @@ import org.apache.hadoop.hive.common.cli.CommonCliOptions;
 import org.apache.hadoop.hive.common.metrics.Metrics;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
+import org.apache.hadoop.hive.metastore.DiskManager.BackupEntry;
 import org.apache.hadoop.hive.metastore.DiskManager.DMRequest;
 import org.apache.hadoop.hive.metastore.DiskManager.FileLocatingPolicy;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
@@ -90,6 +91,7 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
+import org.apache.hadoop.hive.metastore.api.SFileRef;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
@@ -4174,7 +4176,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
         // how to convert table_name to tbl_id?
         cfile = new SFile(0, table_id, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
-            "SFILE_DEFALUT", 0, 0, null);
+            "SFILE_DEFALUT", 0, 0, null, 0);
         getMS().createFile(cfile);
         cfile = getMS().getSFile(cfile.getFid());
 
@@ -4415,6 +4417,10 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
       LOG.info("Begin add partition files " + part.getPartitionName() + " fileset's size " + nl.size());
       getMS().updatePartition(p);
+      synchronized (dm.backupQ) {
+        BackupEntry be = new BackupEntry(part, files, BackupEntry.FOP.ADD);
+        dm.backupQ.add(be);
+      }
       return 0;
     }
 
@@ -4426,6 +4432,10 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       p.setFiles(new_files);
       LOG.info("Begin drop partition files " + p.getPartitionName() + " fileset's size " + new_files.size());
       getMS().updatePartition(p);
+      synchronized (dm.backupQ) {
+        BackupEntry be = new BackupEntry(part, files, BackupEntry.FOP.DROP);
+        dm.backupQ.add(be);
+      }
       return 0;
     }
 
@@ -4532,6 +4542,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
 
+
+    public List<SFileRef> get_partition_index_files(Index index, Partition part)
+        throws MetaException, TException {
+      return getMS().getPartitionIndexFiles(index, part);
+    }
 
   }
 
