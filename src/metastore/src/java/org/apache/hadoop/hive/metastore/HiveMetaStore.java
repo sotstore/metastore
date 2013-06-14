@@ -1622,7 +1622,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           addedPartitions.put(e.getKey(), e.getValue());
         }
         success = true;
-        ms.commitTransaction();
+        success = ms.commitTransaction();
       } finally {
         if (!success) {
           ms.rollbackTransaction();
@@ -1713,9 +1713,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
         Partition old_part = null;
         try {
-          // TODO: fix it
           old_part = ms.getPartition(part.getDbName(), part
-              .getTableName(), part.getValues().toString());
+              .getTableName(), part.getPartitionName());
         } catch (NoSuchObjectException e) {
           // this means there is no existing partition
           old_part = null;
