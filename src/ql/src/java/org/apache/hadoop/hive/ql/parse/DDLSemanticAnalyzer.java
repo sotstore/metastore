@@ -134,6 +134,7 @@ import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
+import org.apache.hadoop.hive.ql.plan.ShowSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTableStatusDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
@@ -484,11 +485,38 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     case HiveParser.TOK_ALTER_DW:
       analyzeAlterDatawareHouse(ast);
       break;
+    case HiveParser.TOK_SHOWSUBPARTITIONS:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowSubpartitions(ast);
+      break;
     default:
       throw new SemanticException("Unsupported command.");
     }
   }
 
+
+  private void analyzeShowSubpartitions(ASTNode ast) throws SemanticException {
+    String partName = unescapeIdentifier(ast.getChild(0).getText());
+    ASTNode tabTree = (ASTNode)ast.getChild(1);
+    String tabName = null;
+    Table tab = null;
+    if(tabTree.getChildCount() ==2){
+      String dbName = unescapeIdentifier(tabTree.getChild(0).getText());
+      tabName = unescapeIdentifier(tabTree.getChild(1).getText());
+      tab = validateAndGetTable(dbName,tabName);
+    }else{
+      tabName = unescapeIdentifier(tabTree.getChild(0).getText());
+      tab = validateAndGetTable(tabName);
+    }
+
+    LOG.info("---zjw-- in analyzeShowSubpartitions, part_name:"+partName+",tablename="+tabName);
+    if(tab == null){
+      throw new SemanticException("table:"+tabName+" is not exist!");
+    }
+    ShowSubpartitionDesc showSubpartitionDesc = new ShowSubpartitionDesc(ctx.getResFile().toString(),partName,tabName,tab.getDbName());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showSubpartitionDesc), conf));
+  }
 
   /**
    * KW_ALTER KW_DW  KW_DIRECT LPAREN dwNo=Number COMMA sql=StringLiteral RPAREN
@@ -843,6 +871,21 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     Table tab = null;
     try {
       tab = db.getTable(db.getCurrentDatabase(), tblName, false);
+      if (tab != null) {
+        inputs.add(new ReadEntity(tab));
+        isView = tab.isView();
+      }
+    } catch (HiveException e) {
+      throw new SemanticException(ErrorMsg.INVALID_TABLE.getMsg(tblName));
+    }
+    return tab;
+  }
+
+  private Table validateAndGetTable(String dbName,String tblName) throws SemanticException{
+    boolean isView = false;
+    Table tab = null;
+    try {
+      tab = db.getTable(dbName, tblName, false);
       if (tab != null) {
         inputs.add(new ReadEntity(tab));
         isView = tab.isView();

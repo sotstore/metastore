@@ -201,6 +201,13 @@
       <field name="viewExpandedText" default-fetch-group="false">
         <column name="VIEW_EXPANDED_TEXT" jdbc-type="CLOB"/>
       </field>
+      
+      <!--field name="viewOriginalText" default-fetch-group="false">
+        <column name="VIEW_ORIGINAL_TEXT" jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="viewExpandedText" default-fetch-group="false">
+        <column name="VIEW_EXPANDED_TEXT" jdbc-type="LONGVARCHAR"/>
+      </field-->
       <field name="tableType">
         <column name="TBL_TYPE" length="128" jdbc-type="VARCHAR"/>
       </field>

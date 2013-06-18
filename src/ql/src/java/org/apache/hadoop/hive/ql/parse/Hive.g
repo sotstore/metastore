@@ -313,6 +313,7 @@ TOK_ALTERINDEX_MODIFY_PARTITION_ADD_FILE;
 TOK_ALTERINDEX_MODIFY_SUBPARTITION_ADD_FILE;
 TOK_ALTERINDEX_MODIFY_PARTINDEX_DROP_FILE;
 TOK_ALTERINDEX_MODIFY_SUBPARTINDEX_DROP_FILE;
+TOK_SHOWSUBPARTITIONS;
 }
 
 
@@ -1184,6 +1185,7 @@ showStatement
     -> ^(TOK_SHOWCOLUMNS $db_name? $tabname)
     | KW_SHOW KW_FUNCTIONS showStmtIdentifier?  -> ^(TOK_SHOWFUNCTIONS showStmtIdentifier?)
     | KW_SHOW KW_PARTITIONS Identifier partitionSpec? -> ^(TOK_SHOWPARTITIONS Identifier partitionSpec?)
+    | KW_SHOW KW_SUBPARTITIONS part_name=Identifier KW_ON tabname=tableName -> ^(TOK_SHOWSUBPARTITIONS $part_name $tabname)
     | KW_SHOW KW_CREATE KW_TABLE tabName=tableName -> ^(TOK_SHOW_CREATETABLE $tabName)
     | KW_SHOW KW_TABLE KW_EXTENDED ((KW_FROM|KW_IN) db_name=Identifier)? KW_LIKE showStmtIdentifier partitionSpec?
     -> ^(TOK_SHOW_TABLESTATUS showStmtIdentifier $db_name? partitionSpec?)
@@ -2926,6 +2928,8 @@ KW_NODE:'NODE';
 KW_NODEPROPERTIES:'NODEPROPERTIES';
 KW_MODIFY:'MODIFY';
 KW_FILE:'FILE';
+KW_SUBPARTITIONS:'SUBPARTITIONS';
+
 // Operators
 // NOTE: if you add a new function/operator, add it to sysFuncNames so that describe function _FUNC_ will work.
 

@@ -122,6 +122,21 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("drop_partition_index_files\n");
   }
 
+  bool add_subpartition_index_files(const Index& index, const Subpartition& subpart, const std::vector<SFile> & file, const std::vector<int64_t> & originfid) {
+    // Your implementation goes here
+    printf("add_subpartition_index_files\n");
+  }
+
+  void get_subpartition_index_files(std::vector<SFileRef> & _return, const Index& index, const Subpartition& subpart) {
+    // Your implementation goes here
+    printf("get_subpartition_index_files\n");
+  }
+
+  bool drop_subpartition_index_files(const Index& index, const Subpartition& subpart, const std::vector<SFile> & file) {
+    // Your implementation goes here
+    printf("drop_subpartition_index_files\n");
+  }
+
   void create_database(const Database& database) {
     // Your implementation goes here
     printf("create_database\n");

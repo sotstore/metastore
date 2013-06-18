@@ -164,6 +164,7 @@ import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
+import org.apache.hadoop.hive.ql.plan.ShowSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTableStatusDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
@@ -528,6 +529,12 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         return showIndexes(db, showIndexes);
       }
 
+      ShowSubpartitionDesc showSubpartitionDesc = work.getShowSubpartitionDesc();
+      if (showSubpartitionDesc != null) {
+        return showSubpartitions(db, showSubpartitionDesc);
+      }
+
+
       AlterTablePartMergeFilesDesc mergeFilesDesc = work.getMergeFilesDesc();
       if(mergeFilesDesc != null) {
         return mergeFiles(db, mergeFilesDesc);
@@ -564,6 +571,37 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   }
 
   /////start of zjw need to implement
+
+  private int showSubpartitions(Hive db, ShowSubpartitionDesc showSubpartitionDesc) throws HiveException {
+//    List<String> subpartNames = new ArrayList<String>();
+    Table tbl = db.getTable(showSubpartitionDesc.getDbName(), showSubpartitionDesc.getTabName());
+    List<String> subpartNames = db.getSubPartitions(showSubpartitionDesc.getDbName(), showSubpartitionDesc.getTabName(),showSubpartitionDesc.getPartName());
+    LOG.debug("---zjw--subpartNames"+subpartNames.size());
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showSubpartitionDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      formatter.showSubpartitions(outStream, subpartNames);
+
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show partitions: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show partitions: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
 
   private int alterDatawareHouse(Hive db,
       AlterDatawareHouseDesc alterDatawareHouseDesc) throws HiveException {
