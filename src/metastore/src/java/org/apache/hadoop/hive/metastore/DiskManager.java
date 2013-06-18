@@ -1453,11 +1453,13 @@ public class DiskManager {
                       synchronized (rs) {
                         newsfl = rs.getSFileLocation(args[0], args[1], args[2]);
                         SFile file = rs.getSFile(newsfl.getFid());
-                        toCheckRep.add(file);
-                        newsfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
-                        // We should check the digest here, and compare it with file.getDigest().
-                        newsfl.setDigest(args[3]);
-                        rs.updateSFileLocation(newsfl);
+                        if (file != null) {
+                          toCheckRep.add(file);
+                          newsfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
+                          // We should check the digest here, and compare it with file.getDigest().
+                          newsfl.setDigest(args[3]);
+                          rs.updateSFileLocation(newsfl);
+                        }
                       }
                     } catch (MetaException e) {
                       LOG.error(e, e);

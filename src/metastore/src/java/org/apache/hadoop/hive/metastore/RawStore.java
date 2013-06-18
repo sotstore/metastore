@@ -511,4 +511,5 @@ public interface RawStore extends Configurable {
 
   public boolean add_datawarehouse_sql(int dwNum, String sql)throws InvalidObjectException, MetaException;
 
+  public void setThisDC(String thisDC);
 }

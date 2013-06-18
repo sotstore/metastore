@@ -424,6 +424,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         dc = new Datacenter(MetaStoreUtils.DEFAULT_DATACENTER_NAME, null, "DC_URI", null);
         ms.createDatacenter(dc);
       }
+      ms.setThisDC(dc.getName());
 
       try {
         ms.getDatabase(DEFAULT_DATABASE_NAME);
@@ -4178,6 +4179,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             "SFILE_DEFALUT", 0, 0, null, 0);
         getMS().createFile(cfile);
         cfile = getMS().getSFile(cfile.getFid());
+        if (cfile == null) {
+          throw new FileOperationException("Creating file with internal error, metadata inconsistent?", FOFailReason.INVALID_FILE);
+        }
 
         do {
           String location = "/data/";
@@ -4334,13 +4338,17 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       if (getMS().updateNode(node)) {
         return node;
       } else {
-        return null;
+        throw new MetaException("Alter node " + node_name + " failed.");
       }
     }
 
     @Override
     public Node get_node(String node_name) throws MetaException, TException {
-      return getMS().getNode(node_name);
+      Node n = getMS().getNode(node_name);
+      if (n == null) {
+        throw new MetaException("Can not find Node " + node_name);
+      }
+      return n;
     }
 
     @Override
@@ -4361,40 +4369,40 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public void create_datacenter(Datacenter datacenter) throws AlreadyExistsException,
         InvalidObjectException, MetaException, TException {
       // TODO Auto-generated method stub
-
+      throw new MetaException("Not implemented yet!");
     }
 
     @Override
     public Datacenter get_center(String name) throws NoSuchObjectException, MetaException,
         TException {
       // TODO Auto-generated method stub
-      return null;
+      throw new MetaException("Not implemented yet!");
     }
 
     @Override
     public void drop_center(String name, boolean deleteData, boolean cascade)
         throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
       // TODO Auto-generated method stub
-
+      throw new MetaException("Not implemented yet!");
     }
 
     @Override
     public List<String> get_all_centers() throws MetaException, TException {
       // TODO Auto-generated method stub
-      return null;
+      throw new MetaException("Not implemented yet!");
     }
 
     @Override
     public Datacenter get_local_center() throws MetaException, TException {
       // TODO Auto-generated method stub
-      return null;
+      throw new MetaException("Not implemented yet!");
     }
 
     @Override
     public List<String> get_lucene_index_names(String db_name, String tbl_name, short max_indexes)
         throws MetaException, TException {
       // TODO Auto-generated method stub
-      return null;
+      throw new MetaException("Not implemented yet!");
     }
 
     @Override
@@ -4522,7 +4530,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public List<Subpartition> get_subpartitions(String dbname, String tbl_name, Partition part)
         throws TException {
       // TODO Auto-generated method stub
-      return null;
+      throw new MetaException("Not implemented yet!");
     }
 
     @Override

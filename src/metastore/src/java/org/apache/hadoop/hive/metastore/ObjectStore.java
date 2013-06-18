@@ -158,6 +158,10 @@ public class ObjectStore implements RawStore, Configurable {
     NO_STATE, OPEN, COMMITED, ROLLBACK
   }
 
+  public void setThisDC(String thisDC) {
+    g_thisDC = thisDC;
+  }
+
   private void restoreFID() {
     boolean commited = false;
 
@@ -1323,6 +1327,9 @@ public class ObjectStore implements RawStore, Configurable {
         rollbackTransaction();
       }
     }
+    if (dc == null) {
+      throw new NoSuchObjectException("Can not find Datacenter " + name + ", please check it!");
+    }
     return dc;
   }
 
@@ -1337,7 +1344,7 @@ public class ObjectStore implements RawStore, Configurable {
         if (ns.length != 2) {
           throw new MetaException("Node name " + node_name + " contains too many '.'!");
         }
-        if (!g_thisDC.equals(ns[0])) {
+        if (g_thisDC == null || !g_thisDC.equals(ns[0])) {
           throw new MetaException("Node name " + node_name + " is on DC " + ns[0] + ", please call getNode() on that DC.");
         }
         node_name = ns[1];
@@ -1352,7 +1359,7 @@ public class ObjectStore implements RawStore, Configurable {
     return n;
   }
 
-  public MPartitionIndex getPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException {
+  public MPartitionIndex getPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException, NoSuchObjectException {
     boolean commited = false;
     MPartitionIndex mpi = null;
     try {
@@ -1361,12 +1368,18 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       mp = getMPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
       mi = getMIndex(index.getDbName(), index.getOrigTableName(), index.getIndexName());
+      if (mp == null || mi == null) {
+        throw new InvalidObjectException("Invalid Index or Partition provided!");
+      }
       mpi = getMPartitionIndex(mi, mp);
       commited = commitTransaction();
     } finally {
       if (!commited) {
         rollbackTransaction();
       }
+    }
+    if (mpi == null) {
+      throw new NoSuchObjectException("Can not find the PartitionIndex, please check it!");
     }
     return mpi;
   }
@@ -1383,12 +1396,13 @@ public class ObjectStore implements RawStore, Configurable {
         rollbackTransaction();
       }
     }
+
     return f;
   }
 
   public List<SFileLocation> getSFileLocations(long fid) throws MetaException {
     boolean commited = false;
-    List<SFileLocation> sfl = null;
+    List<SFileLocation> sfl = new ArrayList<SFileLocation>();
     try {
       openTransaction();
       sfl = convertToSFileLocation(getMFileLocations(fid));
@@ -1403,7 +1417,7 @@ public class ObjectStore implements RawStore, Configurable {
 
   public List<SFileLocation> getSFileLocations(String devid, long curts, long timeout) throws MetaException {
     boolean commited = false;
-    List<SFileLocation> sfl = null;
+    List<SFileLocation> sfl = new ArrayList<SFileLocation>();
     try {
       openTransaction();
       sfl = convertToSFileLocation(getMFileLocations(devid, curts, timeout));
@@ -1427,6 +1441,9 @@ public class ObjectStore implements RawStore, Configurable {
       if (!commited) {
         rollbackTransaction();
       }
+    }
+    if (sfl == null) {
+      throw new MetaException("Can not find location: " + node + "," + devid + "," + location);
     }
     return sfl;
   }
@@ -1452,6 +1469,9 @@ public class ObjectStore implements RawStore, Configurable {
         rollbackTransaction();
       }
     }
+    if (f == null) {
+      throw new MetaException("Invalid SFile object provided!");
+    }
     return f;
   }
 
@@ -1473,6 +1493,9 @@ public class ObjectStore implements RawStore, Configurable {
         rollbackTransaction();
       }
     }
+    if (sfl == null) {
+      throw new MetaException("Invalid SFileLocation provided!");
+    }
     return sfl;
   }
 
@@ -1489,6 +1512,9 @@ public class ObjectStore implements RawStore, Configurable {
       if (!commited) {
         rollbackTransaction();
       }
+    }
+    if (tbl == null) {
+      throw new MetaException("Invalid Table ID " + id + " provided!");
     }
     return tbl;
   }
@@ -1521,6 +1547,9 @@ public class ObjectStore implements RawStore, Configurable {
       if (!commited) {
         rollbackTransaction();
       }
+    }
+    if (oid == -1) {
+      throw new MetaException("Invalid table: " + dbName + " " + tableName);
     }
     return oid;
   }
