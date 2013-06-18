@@ -1452,6 +1452,9 @@ public class DiskManager {
 
                       synchronized (rs) {
                         newsfl = rs.getSFileLocation(args[0], args[1], args[2]);
+                        if (newsfl == null) {
+                          throw new MetaException("Can not find SFileLocation " + args[0] + "," + args[1] + "," + args[2]);
+                        }
                         SFile file = rs.getSFile(newsfl.getFid());
                         if (file != null) {
                           toCheckRep.add(file);

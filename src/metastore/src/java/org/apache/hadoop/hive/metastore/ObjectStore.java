@@ -169,16 +169,16 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       Query query = pm.newQuery("javax.jdo.query.SQL", "SELECT max(fid) FROM FILES");
       List results = (List) query.execute();
-      Long maxfid = (Long) results.iterator().next();
+      BigDecimal maxfid = (BigDecimal) results.iterator().next();
       if (maxfid != null) {
         g_fid = maxfid.longValue() + 1;
       }
       commited = commitTransaction();
+      LOG.info("restore FID to " + g_fid);
     } catch (javax.jdo.JDODataStoreException e) {
-      LOG.info("" + e.getCause());
+      LOG.info(e, e);
     }catch (Exception e) {
-      LOG.info("" + e.getCause());
-      g_fid=0;
+      LOG.info(e, e);
     } finally {
       if (!commited) {
         rollbackTransaction();
@@ -1441,9 +1441,6 @@ public class ObjectStore implements RawStore, Configurable {
       if (!commited) {
         rollbackTransaction();
       }
-    }
-    if (sfl == null) {
-      throw new MetaException("Can not find location: " + node + "," + devid + "," + location);
     }
     return sfl;
   }
