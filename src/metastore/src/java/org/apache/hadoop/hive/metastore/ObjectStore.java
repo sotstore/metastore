@@ -1151,9 +1151,6 @@ public class ObjectStore implements RawStore, Configurable {
 
       commited = commitTransaction();
 
-
-
-
     } finally {
       if (!commited) {
         rollbackTransaction();
@@ -2797,10 +2794,8 @@ public class ObjectStore implements RawStore, Configurable {
         mp.getSubPartitions().add(sub);
       }
       LOG.debug("---zjw-- getSubPartitions size  is " + mp.getSubPartitions().size());
-
-
     }
-
+    commitTransaction();
   }
 
 
@@ -3010,6 +3005,8 @@ public class ObjectStore implements RawStore, Configurable {
       List<String> partNames) throws MetaException, NoSuchObjectException {
 
     boolean success = false;
+    List<Partition> results = new ArrayList<Partition>();
+
     try {
       openTransaction();
 
@@ -3042,16 +3039,17 @@ public class ObjectStore implements RawStore, Configurable {
       List<MPartition> mparts = (List<MPartition>) query.executeWithMap(params);
       this.loadSubpartitions(mparts);
       // pm.retrieveAll(mparts); // retrieveAll is pessimistic. some fields may not be needed
-      List<Partition> results = convertToParts(dbName, tblName, mparts);
+      results = convertToParts(dbName, tblName, mparts);
       // pm.makeTransientAll(mparts); // makeTransient will prohibit future access of unfetched fields
       query.closeAll();
       success = commitTransaction();
-      return results;
     } finally {
       if (!success) {
         rollbackTransaction();
       }
     }
+
+    return results;
   }
 
   @Override

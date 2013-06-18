@@ -683,6 +683,16 @@ public class HiveConf extends Configuration {
 
     // Disk Manager
     DISKMANAGERLISTENPORT("hive.diskmanager.listen.port", 20202),
+    DM_BACKUP_TIMEOUT("hive.diskmanager.backup.timeout", 30 * 60 * 1000),
+    DM_BACKUP_FILESIZE_THRESHOLD("hive.diskmanager.backup.filesizethreshold", 64 * 1024 * 1024),
+    DM_BACKUP_BACKUPNODENAME("hive.diskmanager.backup.backupnodename", "BACKUP-STORE"),
+    DM_CHECK_INVALIDATE_TIMEOUT("hive.diskmanager.check.invalidate.timeout", 60 * 1000),
+    DM_CHECK_REPDELCHECK_INTERVAL("hive.diskmanager.check.repdelcheck.interval", 60 * 1000),
+    DM_CHECK_REP_TIMEOUT("hive.diskmanager.check.rep.timeout", 15 * 60 * 1000),
+    DM_CHECK_DEL_TIMEOUT("hive.diskmanager.check.del.timeout", 5 * 60 * 1000),
+    DM_CHECK_REREP_TIMEOUT("hive.diskmanager.check.rerep.timeout", 30 * 1000),
+    DM_SAFEMODE_ENTER("hive.diskmanager.safemode.enter", (float)0.5),
+    DM_SAFEMODE_LEAVE("hive.diskmanager.safemode.leave", (float)0.99),
     ;
 
     public final String varname;

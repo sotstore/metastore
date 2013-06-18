@@ -682,7 +682,7 @@ public class DiskManager {
       String r = "";
 
       r += "MetaStore Server Disk Manager listening @ " + hiveConf.getIntVar(HiveConf.ConfVars.DISKMANAGERLISTENPORT);
-      r += "SafeMode: " + safeMode + "\n";
+      r += "\nSafeMode: " + safeMode + "\n";
       synchronized (rs) {
         r += "Total nodes " + rs.countNode() + ", active nodes " + ndmap.size() + "\n";
       }
