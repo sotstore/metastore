@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.ql.metadata.Hive;
@@ -129,6 +130,12 @@ public interface MetaDataFormatter {
                                         String comment,
                                         String location,
                                         Map<String, String> params)
+        throws HiveException;
+
+
+
+
+    public void showSubpartitions(DataOutputStream outStream, List<String> subpartNames)
         throws HiveException;
 }
 

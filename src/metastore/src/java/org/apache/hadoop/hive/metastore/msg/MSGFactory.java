@@ -7,12 +7,12 @@ public class MSGFactory {
   private static final Log LOG = LogFactory.getLog(MSGFactory.class.getName());
 
   public static class DDLMsg{
-     long msgType;
+     int msgType;
      long objectId;
      String jsonData;
 
      public DDLMsg(){}
-     public DDLMsg(long msgType,long objectId,String jsonData){
+     public DDLMsg(int msgType,long objectId,String jsonData){
        this.msgType = msgType;
        this.objectId = objectId;
        this.jsonData = jsonData;
@@ -40,7 +40,7 @@ public class MSGFactory {
     }
   }
 
-  public static DDLMsg generateDDLMsg(long msgType ,Object objectId ,Object eventObject){
+  public static DDLMsg generateDDLMsg(int msgType ,Object objectId ,Object eventObject){
 
     String jsonData;
 

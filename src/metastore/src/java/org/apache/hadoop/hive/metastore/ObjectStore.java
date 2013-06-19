@@ -861,14 +861,14 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
-  private void createPartitionIndexStore(Index index, Subpartition part, SFile store, long originFid) throws InvalidObjectException, MetaException {
+  private void createSubPartitionIndexStore(Index index, Subpartition subpart, SFile store, long originFid) throws InvalidObjectException, MetaException {
     MPartition mp;
     MIndex mi;
 
-    mp = getMPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
+    mp = getMPartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
     mi = getMIndex(index.getDbName(), index.getOrigTableName(), index.getIndexName());
     if (mi == null || mp == null) {
-      throw new InvalidObjectException("Invalid Partition or Index provided!");
+      throw new InvalidObjectException("Invalid SubPartition or Index provided!");
     }
     MPartitionIndex mpi = getMPartitionIndex(mi, mp);
     if (mpi == null) {
@@ -1380,6 +1380,25 @@ public class ObjectStore implements RawStore, Configurable {
     }
     if (mpi == null) {
       throw new NoSuchObjectException("Can not find the PartitionIndex, please check it!");
+    }
+    return mpi;
+  }
+
+  public MPartitionIndex getSubpartitionIndex(Index index, Subpartition subpart) throws InvalidObjectException, MetaException {
+    boolean commited = false;
+    MPartitionIndex mpi = null;
+    try {
+      MPartition mp;
+      MIndex mi;
+      openTransaction();
+      mp = getMPartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
+      mi = getMIndex(index.getDbName(), index.getOrigTableName(), index.getIndexName());
+      mpi = getMPartitionIndex(mi, mp);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
     }
     return mpi;
   }
@@ -2266,7 +2285,13 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       MPartition mpart = convertToMPart(part, true);
       LOG.info("---zjw--in add partition:"+mpart.getPartitionName()+"--sub:"+mpart.getSubPartitions().size());
+
+//      for (MTableColumnPrivilege col : tabColumnGrants) {
+//        pm.makePersistentAll(mpart.getSubPartitions());
+//      }
+
       pm.makePersistent(mpart);
+//      pm.makePersistentAll(mpart.getSubPartitions());
 
       int now = (int)(System.currentTimeMillis()/1000);
       List<Object> toPersist = new ArrayList<Object>();
@@ -2294,12 +2319,11 @@ public class ObjectStore implements RawStore, Configurable {
         }
       }
 
-      pm.makePersistent(table);
-
       commited = commitTransaction();
 
+
       /*****************NOTE oracle does not commit here.*****************/
-      pm.flush();//
+//      pm.flush();//
       success = true;
     } finally {
       if (!commited) {
@@ -2499,14 +2523,28 @@ public class ObjectStore implements RawStore, Configurable {
   }
 
   private Partition convertToPart(MPartition mpart) throws MetaException {
+    List<Subpartition> sub_parts = null;
     if (mpart == null) {
       return null;
+    }else{
+      if(mpart.getSubPartitions() != null){
+        sub_parts = new ArrayList<Subpartition>();
+        LOG.warn("--zjw--getMSubPartitions is not null,size"+mpart.getSubPartitions().size());
+        for(MPartition msub : mpart.getSubPartitions()){
+
+          Subpartition sub_part = convertToSubpart(msub);
+          //FIX this ,thrift do not support recursive definition,neither inter-reference,so parent partition cannot be defined.
+//          sub_part.setParent(part);
+          sub_parts.add(sub_part);
+        }
+      }
     }
     Partition p = new Partition(mpart.getValues(), mpart.getTable().getDatabase()
         .getName(), mpart.getTable().getTableName(), mpart.getCreateTime(),
         mpart.getLastAccessTime(), convertToStorageDescriptor(mpart.getSd()),
         mpart.getParameters(), mpart.getFiles());
     p.setPartitionName(mpart.getPartitionName());
+    p.setSubpartitions(sub_parts);
     return p;
   }
 
@@ -2796,6 +2834,12 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
+  /**
+   * @deprecated
+   * @param mparts
+   * @throws MetaException
+   */
+  @Deprecated
   private void loadSubpartitions(List<MPartition> mparts)
       throws MetaException {
 
@@ -3063,7 +3107,10 @@ public class ObjectStore implements RawStore, Configurable {
       query.setOrdering("partitionName ascending");
 
       List<MPartition> mparts = (List<MPartition>) query.executeWithMap(params);
-      this.loadSubpartitions(mparts);
+
+      // can be load recursivly in oracle
+//      this.loadSubpartitions(mparts);
+
       // pm.retrieveAll(mparts); // retrieveAll is pessimistic. some fields may not be needed
       results = convertToParts(dbName, tblName, mparts);
       // pm.makeTransientAll(mparts); // makeTransient will prohibit future access of unfetched fields
@@ -6825,15 +6872,15 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
-  private boolean dropPartitionIndexStore(Index index, Subpartition part, SFile store) throws InvalidObjectException,
+  private boolean dropSubPartitionIndexStore(Index index, Subpartition subpart, SFile store) throws InvalidObjectException,
       NoSuchObjectException, MetaException {
     boolean success = false;
     try {
       openTransaction();
       MIndex mi = getMIndex(index.getDbName(), index.getOrigTableName(), index.getIndexName());
-      MPartition mp = getMPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
+      MPartition mp = getMPartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
       if (mi == null || mp == null) {
-        throw new NoSuchObjectException("Partition or Index doesn't exist!");
+        throw new NoSuchObjectException("Subpartition or Index doesn't exist!");
       }
       MPartitionIndex mpi = getMPartitionIndex(mi, mp);
       MFile mf = getMFile(store.getFid());
@@ -6877,7 +6924,7 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       for (int i = 0; i < store.size(); i++) {
-        createPartitionIndexStore(index, part, store.get(i), originFid.get(i));
+        createSubPartitionIndexStore(index, part, store.get(i), originFid.get(i));
       }
       success = commitTransaction();
     } finally {
@@ -6906,13 +6953,13 @@ public class ObjectStore implements RawStore, Configurable {
   }
 
   @Override
-  public boolean dropPartitionIndexStores(Index index, Subpartition part, List<SFile> store)
+  public boolean dropPartitionIndexStores(Index index, Subpartition subpart, List<SFile> store)
       throws InvalidObjectException, NoSuchObjectException, MetaException {
     boolean success = false;
     try {
       openTransaction();
       for (int i = 0; i < store.size(); i++) {
-        dropPartitionIndexStore(index, part, store.get(i));
+        dropSubPartitionIndexStore(index, subpart, store.get(i));
       }
       success = commitTransaction();
     } finally {
@@ -6965,6 +7012,7 @@ public class ObjectStore implements RawStore, Configurable {
     return r;
   }
 
+
   public List<SFileRef> getPartitionIndexFiles(Index index, Partition part)
       throws InvalidObjectException, NoSuchObjectException, MetaException {
     MPartitionIndex mpi = getPartitionIndex(index, part);
@@ -6972,4 +7020,55 @@ public class ObjectStore implements RawStore, Configurable {
 
     return sfr;
   }
+
+//added by zjw for subparition index files operations
+
+
+  @Override
+  public List<SFileRef> getSubpartitionIndexFiles(Index index, Subpartition subpart)  throws InvalidObjectException, MetaException{
+    MPartitionIndex mpi = getSubpartitionIndex(index, subpart);
+    List<SFileRef> sfr = getMPartitionIndexFiles(mpi);
+
+    return sfr;
+  }
+
+  @Override
+  public List<Subpartition> getSubpartitions(String dbname, String tbl_name, Partition part)
+      throws InvalidObjectException, NoSuchObjectException, MetaException {
+    List<Subpartition> subparts = new ArrayList<Subpartition>();
+    boolean success = false;
+    try {
+      openTransaction();
+      LOG.debug("Executing getSubpartitions");
+      dbname = dbname.toLowerCase().trim();
+      tbl_name = tbl_name.toLowerCase().trim();
+//      Query q = pm.newQuery(
+//          "select partitionName from org.apache.hadoop.hive.metastore.model.MPartition "
+//          + "where table.database.name == t1 && table.tableName == t2  && parent == null "
+//          + "order by partitionName asc");
+//      q.declareParameters("java.lang.String t1, java.lang.String t2");
+//      q.setResult("partitionName");
+
+      Query q = pm.newQuery(MPartition.class,
+          "table.database.name == t1 && table.tableName == t2  && parent != null && parent.partitionName == t3 "
+//          + "order by this.partitionName asc"
+              );
+      q.declareParameters("java.lang.String t1, java.lang.String t2, java.lang.String t3");
+
+      List<MPartition> mparts = (List<MPartition>)q.execute(dbname, tbl_name,part.getPartitionName());
+      pm.retrieveAll(mparts);
+      for (MPartition mp :  mparts) {
+        subparts.add(convertToSubpart(mp));
+      }
+
+
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return subparts;
+  }
+
 }

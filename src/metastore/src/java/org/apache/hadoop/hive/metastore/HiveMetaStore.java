@@ -1756,8 +1756,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           }
           partLocation = wh.getDnsPath(new Path(partLocationStr));
         }
-
-        if (partLocation != null) {
+        LOG.info("---zjw-- before partLocation.");
+        if (partLocation != null && part.getSd() != null) {
           part.getSd().setLocation(partLocation.toString());
 
 
@@ -1781,6 +1781,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           part.putToParameters(hive_metastoreConstants.DDL_TIME, Long.toString(time));
         }
 
+        LOG.info("---zjw-- before getParameters.");
+
         // Inherit table properties into partition properties.
         Map<String, String> tblParams = tbl.getParameters();
         String inheritProps = hiveConf.getVar(ConfVars.METASTORE_PART_INHERIT_TBL_PROPS).trim();
@@ -1797,7 +1799,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             part.putToParameters(key, paramVal);
           }
         }
-        LOG.warn("---zjw-- before addPartition.");
+        LOG.info("---zjw-- before addPartition.");
         success = ms.addPartition(part);
 
       } finally {
@@ -1861,6 +1863,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         ret = add_partition_core(getMS(), part, envContext);
       } catch (Exception e) {
+        LOG.error(e,e);
         ex = e;
         if (e instanceof MetaException) {
           throw (MetaException) e;
@@ -4488,19 +4491,19 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public boolean drop_partition_index(Index index, Partition part) throws TException {
       getMS().dropPartitionIndex(index, part);
-      return false;
+      return true;
     }
 
     @Override
     public boolean add_subpartition_index(Index index, Subpartition part) throws TException {
       getMS().createPartitionIndex(index, part);
-      return false;
+      return true;
     }
 
     @Override
     public boolean drop_subpartition_index(Index index, Subpartition part) throws TException {
       getMS().dropPartitionIndex(index, part);
-      return false;
+      return true;
     }
 
     @Override
@@ -4510,14 +4513,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         return false;
       }
       getMS().createPartitionIndexStores(index, part, file, originfid);
-      return false;
+      return true;
     }
 
     @Override
     public boolean add_subpartition(String dbname, String tbl_name, List<String> part_vals,
         Subpartition sub_part) throws TException {
       // TODO Auto-generated method stub
-      return false;
+      return true;
     }
 
     @Override
@@ -4529,8 +4532,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public List<Subpartition> get_subpartitions(String dbname, String tbl_name, Partition part)
         throws TException {
-      // TODO Auto-generated method stub
-      throw new MetaException("Not implemented yet!");
+      return getMS().getSubpartitions(dbname, tbl_name, part);
     }
 
     @Override
@@ -4553,6 +4555,28 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public List<SFileRef> get_partition_index_files(Index index, Partition part)
         throws MetaException, TException {
       return getMS().getPartitionIndexFiles(index, part);
+    }
+
+    @Override
+    public boolean add_subpartition_index_files(Index index, Subpartition subpart,
+        List<SFile> file, List<Long> originfid) throws MetaException, TException {
+      if (file.size() != originfid.size()) {
+        return false;
+      }
+      getMS().createPartitionIndexStores(index, subpart, file, originfid);
+      return true;
+    }
+
+    @Override
+    public List<SFileRef> get_subpartition_index_files(Index index, Subpartition subpart)
+        throws MetaException, TException {
+      return getMS().getSubpartitionIndexFiles(index, subpart);
+    }
+
+    @Override
+    public boolean drop_subpartition_index_files(Index index, Subpartition subpart, List<SFile> file)
+        throws MetaException, TException {
+      return getMS().dropPartitionIndexStores(index, subpart, file);
     }
 
   }

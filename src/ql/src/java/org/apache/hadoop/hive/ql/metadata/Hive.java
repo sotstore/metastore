@@ -2342,5 +2342,14 @@ public class Hive {
     }
   }
 
+  public List<String> getSubPartitions(String dbName, String tabName, String partName) throws HiveException {
+    try{
+//      Table t = this.getTable(db_name, tbl_name);
+      return getMSC().getSubPartitions(dbName, tabName, partName);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
 
 };

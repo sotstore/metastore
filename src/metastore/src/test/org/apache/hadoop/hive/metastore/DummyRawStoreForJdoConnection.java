@@ -819,6 +819,20 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
     return null;
   }
+
+  @Override
+  public List<SFileRef> getSubpartitionIndexFiles(Index index, Subpartition subpart)
+      throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<Subpartition> getSubpartitions(String dbname, String tbl_name, Partition part)
+      throws InvalidObjectException, NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }
 
 

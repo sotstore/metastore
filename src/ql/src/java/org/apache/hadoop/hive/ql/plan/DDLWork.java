@@ -110,6 +110,7 @@ public class DDLWork implements Serializable {
   private DropSubpartitionDesc dropSubpartitionDesc;
   private DropPartitionDesc dropPartitionDesc;
 
+  private ShowSubpartitionDesc showSubpartitionDesc;
 
 
   public DDLWork() {
@@ -596,6 +597,12 @@ public class DDLWork implements Serializable {
       AlterDatawareHouseDesc alterDatawareHouseDesc) {
     this(inputs, outputs);
     this.setAlterDatawareHouseDesc(alterDatawareHouseDesc);
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowSubpartitionDesc showSubpartitionDesc) {
+    this(inputs, outputs);
+    this.setShowSubpartitionDesc(showSubpartitionDesc);
   }
 
   /**
@@ -1329,6 +1336,14 @@ public class DDLWork implements Serializable {
 
   public void setAlterDatawareHouseDesc(AlterDatawareHouseDesc alterDatawareHouseDesc) {
     this.alterDatawareHouseDesc = alterDatawareHouseDesc;
+  }
+
+  public ShowSubpartitionDesc getShowSubpartitionDesc() {
+    return showSubpartitionDesc;
+  }
+
+  public void setShowSubpartitionDesc(ShowSubpartitionDesc showSubpartitionDesc) {
+    this.showSubpartitionDesc = showSubpartitionDesc;
   }
 
 

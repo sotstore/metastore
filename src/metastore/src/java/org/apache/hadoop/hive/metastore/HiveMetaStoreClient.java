@@ -68,6 +68,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -537,6 +538,11 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public Partition add_partition(Partition new_part)
       throws InvalidObjectException, AlreadyExistsException, MetaException,
       TException {
+    if(new_part ==null ||
+        new_part.getPartitionName()== null
+        || "".equals(new_part.getPartitionName().trim())){
+      throw new InvalidObjectException("Partition is null or partition name is not setted.");
+    }
     return deepCopy(client.add_partition(new_part));
   }
 
@@ -1658,6 +1664,56 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     assert index != null;
     assert part != null;
     return client.get_partition_index_files(index, part);
+  }
+
+  @Override
+  public int add_subpartition_files(Subpartition subpart, List<SFile> files) throws TException {
+    // TODO Auto-generated method stub
+    return client.add_subpartition_files(subpart, files);
+  }
+
+  @Override
+  public int drop_subpartition_files(Subpartition subpart, List<SFile> files) throws TException {
+    // TODO Auto-generated method stub
+    return client.drop_subpartition_files(subpart, files);
+  }
+
+  @Override
+  public boolean add_subpartition_index(Index index, Subpartition subpart) throws TException {
+    // TODO Auto-generated method stub
+    return client.add_subpartition_index(index, subpart);
+  }
+
+  @Override
+  public boolean drop_subpartition_index(Index index, Subpartition subpart) throws TException {
+    // TODO Auto-generated method stub
+    return client.drop_subpartition_index(index, subpart);
+  }
+
+  @Override
+  public boolean add_subpartition_index_files(Index index, Subpartition subpart, List<SFile> file,
+      List<Long> originfid) throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.add_subpartition_index_files(index, subpart, file, originfid);
+  }
+
+  @Override
+  public boolean drop_subpartition_index_files(Index index, Subpartition subpart, List<SFile> file)
+      throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.drop_subpartition_index_files(index, subpart, file);
+  }
+
+  @Override
+  public List<String> getSubPartitions(String dbName, String tabName, String partName)
+      throws MetaException, TException {
+    Partition part = client.get_partition_by_name(dbName, tabName, partName);
+    List<Subpartition> subparts = client.get_subpartitions(dbName, tabName, part);
+    List<String> subpartNames = new ArrayList<String>();
+    for(Subpartition sp : subparts ){
+      subpartNames.add(sp.getPartitionName());
+    }
+    return subpartNames;
   }
 
 }

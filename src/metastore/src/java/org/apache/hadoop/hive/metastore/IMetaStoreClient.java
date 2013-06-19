@@ -45,6 +45,7 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
@@ -999,6 +1000,10 @@ public interface IMetaStoreClient {
   public int add_partition_files(Partition part, List<SFile> files) throws TException;
 
   public int drop_partition_files(Partition part, List<SFile> files) throws TException;
+  //added by zjw
+  public int add_subpartition_files(Subpartition subpart, List<SFile> files) throws TException;
+
+  public int drop_subpartition_files(Subpartition subpart, List<SFile> files) throws TException;
 
   public List<String> get_partition_names(final String db_name, final String tbl_name,
         final short max_parts) throws MetaException, TException;
@@ -1006,12 +1011,22 @@ public interface IMetaStoreClient {
   public boolean add_partition_index(Index index, Partition part) throws TException;
 
   public boolean drop_partition_index(Index index, Partition part) throws TException;
+//added by zjw
+  public boolean add_subpartition_index(Index index, Subpartition subpart) throws TException;
+
+  public boolean drop_subpartition_index(Index index, Subpartition subpart) throws TException;
 
   public boolean add_partition_index_files(Index index, Partition part, List<SFile> file,
         List<Long> originfid) throws MetaException, TException;
 
   public boolean drop_partition_index_files(Index index, Partition part, List<SFile> file)
         throws MetaException, TException;
+//added by zjw
+  public boolean add_subpartition_index_files(Index index, Subpartition subpart, List<SFile> file,
+      List<Long> originfid) throws MetaException, TException;
+
+  public boolean drop_subpartition_index_files(Index index, Subpartition subpart, List<SFile> file)
+      throws MetaException, TException;
 
   public List<SFileRef> get_partition_index_files(Index index, Partition part)
       throws MetaException, TException;
@@ -1019,4 +1034,6 @@ public interface IMetaStoreClient {
   public String getDMStatus() throws MetaException, TException;
 
   public boolean addDatawareHouseSql(Integer dwNum, String sql)throws MetaException, TException;
+
+  public List<String> getSubPartitions(String dbName, String tabName, String partName) throws MetaException, TException;
 }
