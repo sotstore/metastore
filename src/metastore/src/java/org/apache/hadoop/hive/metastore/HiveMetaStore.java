@@ -4428,7 +4428,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       LOG.info("Begin add partition files " + part.getPartitionName() + " fileset's size " + nl.size());
       getMS().updatePartition(p);
       synchronized (dm.backupQ) {
-        BackupEntry be = new BackupEntry(part, files, BackupEntry.FOP.ADD);
+        BackupEntry be = new BackupEntry(part, files, BackupEntry.FOP.ADD_PART);
         dm.backupQ.add(be);
       }
       return 0;
@@ -4443,7 +4443,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       LOG.info("Begin drop partition files " + p.getPartitionName() + " fileset's size " + new_files.size());
       getMS().updatePartition(p);
       synchronized (dm.backupQ) {
-        BackupEntry be = new BackupEntry(part, files, BackupEntry.FOP.DROP);
+        BackupEntry be = new BackupEntry(part, files, BackupEntry.FOP.DROP_PART);
         dm.backupQ.add(be);
       }
       return 0;
@@ -4468,6 +4468,10 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
       LOG.info("Begin add subpartition files " + subpart.getPartitionName() + " fileset's size " + nl.size());
       getMS().updateSubpartition(p);
+      synchronized (dm.backupQ) {
+        BackupEntry be = new BackupEntry(subpart, files, BackupEntry.FOP.ADD_SUBPART);
+        dm.backupQ.add(be);
+      }
       return 0;
     }
 
@@ -4479,6 +4483,10 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       p.setFiles(new_files);
       LOG.info("Begin drop subpartition files " + subpart.getPartitionName() + " fileset's size " + new_files.size());
       getMS().updateSubpartition(p);
+      synchronized (dm.backupQ) {
+        BackupEntry be = new BackupEntry(subpart, files, BackupEntry.FOP.DROP_SUBPART);
+        dm.backupQ.add(be);
+      }
       return 0;
     }
 

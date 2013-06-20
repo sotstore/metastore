@@ -2347,6 +2347,18 @@ public class ObjectStore implements RawStore, Configurable {
     return part;
   }
 
+  public Partition getParentPartition(String dbName, String tableName, String subpart_name) throws NoSuchObjectException, MetaException {
+    Partition pp = null;
+    openTransaction();
+    MPartition subp = getMPartition(dbName, tableName, subpart_name);
+    if (subp == null) {
+      throw new NoSuchObjectException("partition values=" + subpart_name);
+    }
+    pp = convertToPart(subp.getParent());
+    commitTransaction();
+
+    return pp;
+  }
 
   public Subpartition getSubpartition(String dbName, String tableName,
       String part_name) throws NoSuchObjectException, MetaException {
