@@ -682,7 +682,7 @@ public class DiskManager {
       String r = "";
 
       r += "MetaStore Server Disk Manager listening @ " + hiveConf.getIntVar(HiveConf.ConfVars.DISKMANAGERLISTENPORT);
-      r += "SafeMode: " + safeMode + "\n";
+      r += "\nSafeMode: " + safeMode + "\n";
       synchronized (rs) {
         r += "Total nodes " + rs.countNode() + ", active nodes " + ndmap.size() + "\n";
       }
@@ -1452,12 +1452,17 @@ public class DiskManager {
 
                       synchronized (rs) {
                         newsfl = rs.getSFileLocation(args[0], args[1], args[2]);
+                        if (newsfl == null) {
+                          throw new MetaException("Can not find SFileLocation " + args[0] + "," + args[1] + "," + args[2]);
+                        }
                         SFile file = rs.getSFile(newsfl.getFid());
-                        toCheckRep.add(file);
-                        newsfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
-                        // We should check the digest here, and compare it with file.getDigest().
-                        newsfl.setDigest(args[3]);
-                        rs.updateSFileLocation(newsfl);
+                        if (file != null) {
+                          toCheckRep.add(file);
+                          newsfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
+                          // We should check the digest here, and compare it with file.getDigest().
+                          newsfl.setDigest(args[3]);
+                          rs.updateSFileLocation(newsfl);
+                        }
                       }
                     } catch (MetaException e) {
                       LOG.error(e, e);

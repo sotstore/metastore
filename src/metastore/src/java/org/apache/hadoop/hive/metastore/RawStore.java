@@ -511,6 +511,8 @@ public interface RawStore extends Configurable {
 
   public boolean add_datawarehouse_sql(int dwNum, String sql)throws InvalidObjectException, MetaException;
 
+  public void setThisDC(String thisDC);
+
   public abstract List<SFileRef> getSubpartitionIndexFiles(Index index, Subpartition subpart) throws InvalidObjectException, MetaException ;
 
   public abstract List<Subpartition> getSubpartitions(String dbname, String tbl_name, Partition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
