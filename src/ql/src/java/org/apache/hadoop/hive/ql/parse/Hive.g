@@ -314,6 +314,7 @@ TOK_ALTERINDEX_MODIFY_SUBPARTITION_ADD_FILE;
 TOK_ALTERINDEX_MODIFY_PARTINDEX_DROP_FILE;
 TOK_ALTERINDEX_MODIFY_SUBPARTINDEX_DROP_FILE;
 TOK_SHOWSUBPARTITIONS;
+TOK_HETER;
 }
 
 
@@ -1355,18 +1356,25 @@ dropFunctionStatement
     : KW_DROP KW_TEMPORARY KW_FUNCTION ifExists? Identifier
     -> ^(TOK_DROPFUNCTION Identifier ifExists?)
     ;
+    
+heterOption
+@init { msgs.push("drop temporary function statement"); }
+@after { msgs.pop(); }
+	:KW_HETER
+	-> ^(TOK_HETER)
+	;
 
 createViewStatement
 @init {
     msgs.push("create view statement");
 }
 @after { msgs.pop(); }
-    : KW_CREATE (orReplace)? KW_VIEW (ifNotExists)? name=tableName
+    : KW_CREATE (orReplace)? heterOption? KW_VIEW (ifNotExists)? name=tableName
         (LPAREN columnNameCommentList RPAREN)? tableComment? viewPartition?
         tablePropertiesPrefixed?
         KW_AS
         selectStatement
-    -> ^(TOK_CREATEVIEW $name orReplace?
+    -> ^(TOK_CREATEVIEW $name heterOption? orReplace?
          ifNotExists?
          columnNameCommentList?
          tableComment?
@@ -2929,6 +2937,7 @@ KW_NODEPROPERTIES:'NODEPROPERTIES';
 KW_MODIFY:'MODIFY';
 KW_FILE:'FILE';
 KW_SUBPARTITIONS:'SUBPARTITIONS';
+KW_HETER: 'HETER';
 
 // Operators
 // NOTE: if you add a new function/operator, add it to sysFuncNames so that describe function _FUNC_ will work.

@@ -463,7 +463,10 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
     public void showSubpartitions(DataOutputStream outStream, List<String> subpartNames)
         throws HiveException {
       try {
+        LOG.debug("---zjw--subpartNames"+subpartNames.size());
+        int i=0;
         for (String part : subpartNames) {
+            LOG.debug("---zjw--subpartNames "+i++);
             outStream.writeBytes(part);
             outStream.write(terminator);
         }

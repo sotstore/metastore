@@ -1894,7 +1894,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         Path archiveParentDir = null;
 
         try {
-          ms.openTransaction();
+          LOG.debug("--zjw--before drop_partition_common_by_name open ");
+//          ms.openTransaction();
+          LOG.debug("--zjw--after drop_partition_common_by_name open ");
           // TODO: fix it
           part = ms.getPartition(db_name, tbl_name, part_name);
 
@@ -1917,7 +1919,10 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           if (!ms.dropPartition(db_name, tbl_name, part_name)) {
             throw new MetaException("Unable to drop partition");
           }
-          success = ms.commitTransaction();
+
+          LOG.debug("--zjw--before drop_partition_common_by_name cmt open=");
+//          success = ms.commitTransaction();
+          LOG.debug("--zjw--after drop_partition_common_by_name cmt ");
           if ((part.getSd() != null) && (part.getSd().getLocation() != null)) {
             partPath = new Path(part.getSd().getLocation());
             if (!wh.isWritable(partPath.getParent())) {

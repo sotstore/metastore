@@ -84,6 +84,7 @@ public class Table implements Serializable {
   private Class<? extends InputFormat> inputFormatClass;
   private URI uri;
   private HiveStorageHandler storageHandler;
+  private boolean isHeterView = false;//异构试图
 
   /**
    * Used only for serialization.
@@ -167,7 +168,7 @@ public class Table implements Serializable {
         || !MetaStoreUtils.validateName(name)) {
       throw new HiveException("[" + name + "]: is not a valid table name");
     }
-    if (0 == getCols().size()) {
+    if (!isHeterView && 0 == getCols().size()) {
       throw new HiveException(
           "at least one column must be specified for the table");
     }
@@ -189,6 +190,10 @@ public class Table implements Serializable {
     } else {
       assert(getViewOriginalText() == null);
       assert(getViewExpandedText() == null);
+    }
+
+    if(isHeterView){
+      return;
     }
 
     Iterator<FieldSchema> iterCols = getCols().iterator();
@@ -222,6 +227,14 @@ public class Table implements Serializable {
       }
     }
     return;
+  }
+
+  public boolean isHeterView() {
+    return isHeterView;
+  }
+
+  public void setHeterView(boolean isHeterView) {
+    this.isHeterView = isHeterView;
   }
 
   public void setInputFormatClass(Class<? extends InputFormat> inputFormatClass) {

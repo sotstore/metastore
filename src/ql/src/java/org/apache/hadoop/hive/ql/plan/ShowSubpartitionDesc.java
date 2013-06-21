@@ -16,6 +16,8 @@ public class ShowSubpartitionDesc extends DDLDesc implements Serializable {
 
   String resFile;
 
+  private static final String schema = "subpartition#string";
+
 
 
   public ShowSubpartitionDesc() {
@@ -34,7 +36,9 @@ public class ShowSubpartitionDesc extends DDLDesc implements Serializable {
     this.dbName = dbName;
   }
 
-
+  public String getSchema() {
+    return schema;
+  }
 
   public String getPartName() {
     return partName;

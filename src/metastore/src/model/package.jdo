@@ -425,7 +425,7 @@
       <field name="parent" field-type="org.apache.hadoop.hive.metastore.model.MPartition"/>
       <field name="subPartitions" mappedBy="parent">
         <!--collection element-type="MPartition"/-->
-        <collection element-type="org.apache.hadoop.hive.metastore.model.MPartition"/>
+        <collection element-type="org.apache.hadoop.hive.metastore.model.MPartition" dependent-element="true" />
       </field>
     </class>
 
