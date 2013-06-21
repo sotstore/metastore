@@ -63,6 +63,23 @@ module ThriftHiveMetastore
       return
     end
 
+    def update_center(datacenter)
+      send_update_center(datacenter)
+      recv_update_center()
+    end
+
+    def send_update_center(datacenter)
+      send_message('update_center', Update_center_args, :datacenter => datacenter)
+    end
+
+    def recv_update_center()
+      result = receive_message(Update_center_result)
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise result.o3 unless result.o3.nil?
+      return
+    end
+
     def get_all_centers()
       send_get_all_centers()
       return recv_get_all_centers()
@@ -1908,6 +1925,21 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'drop_center', seqid)
     end
 
+    def process_update_center(seqid, iprot, oprot)
+      args = read_args(iprot, Update_center_args)
+      result = Update_center_result.new()
+      begin
+        @handler.update_center(args.datacenter)
+      rescue ::NoSuchObjectException => o1
+        result.o1 = o1
+      rescue ::InvalidOperationException => o2
+        result.o2 = o2
+      rescue ::MetaException => o3
+        result.o3 = o3
+      end
+      write_result(result, oprot, 'update_center', seqid)
+    end
+
     def process_get_all_centers(seqid, iprot, oprot)
       args = read_args(iprot, Get_all_centers_args)
       result = Get_all_centers_result.new()
@@ -3360,6 +3392,42 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
+  class Update_center_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DATACENTER = 1
+
+    FIELDS = {
+      DATACENTER => {:type => ::Thrift::Types::STRUCT, :name => 'datacenter', :class => ::Datacenter}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Update_center_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    O1 = 1
+    O2 = 2
+    O3 = 3
+
+    FIELDS = {
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::NoSuchObjectException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::InvalidOperationException},
+      O3 => {:type => ::Thrift::Types::STRUCT, :name => 'o3', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class Get_all_centers_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
 
@@ -3381,7 +3449,7 @@ module ThriftHiveMetastore
     O1 = 1
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRING}},
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Datacenter}},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 

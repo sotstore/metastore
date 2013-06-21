@@ -37,7 +37,12 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("drop_center\n");
   }
 
-  void get_all_centers(std::vector<std::string> & _return) {
+  void update_center(const Datacenter& datacenter) {
+    // Your implementation goes here
+    printf("update_center\n");
+  }
+
+  void get_all_centers(std::vector<Datacenter> & _return) {
     // Your implementation goes here
     printf("get_all_centers\n");
   }

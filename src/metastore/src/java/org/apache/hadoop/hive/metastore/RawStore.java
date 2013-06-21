@@ -519,4 +519,8 @@ public interface RawStore extends Configurable {
 
   public Partition getParentPartition(String dbName, String tableName, String subpart_name) throws NoSuchObjectException, MetaException;
 
+  public List<Datacenter> getAllDatacenters() throws MetaException;
+
+  public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException;
+
 }

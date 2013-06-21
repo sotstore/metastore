@@ -26,6 +26,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  void create_datacenter(Datacenter datacenter)'
   print '  Datacenter get_center(string name)'
   print '  void drop_center(string name, bool deleteData, bool cascade)'
+  print '  void update_center(Datacenter datacenter)'
   print '   get_all_centers()'
   print '  Datacenter get_local_center()'
   print '   get_lucene_index_names(string db_name, string tbl_name, i16 max_indexes)'
@@ -202,6 +203,12 @@ elif cmd == 'drop_center':
     print 'drop_center requires 3 args'
     sys.exit(1)
   pp.pprint(client.drop_center(args[0],eval(args[1]),eval(args[2]),))
+
+elif cmd == 'update_center':
+  if len(args) != 1:
+    print 'update_center requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.update_center(eval(args[0]),))
 
 elif cmd == 'get_all_centers':
   if len(args) != 0:

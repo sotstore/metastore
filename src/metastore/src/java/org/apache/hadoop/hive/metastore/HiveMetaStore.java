@@ -24,6 +24,7 @@ import static org.apache.hadoop.hive.metastore.MetaStoreUtils.DEFAULT_DATABASE_N
 import static org.apache.hadoop.hive.metastore.MetaStoreUtils.validateName;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -192,6 +193,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
   public static class HMSHandler extends FacebookBase implements
       IHMSHandler {
+    public static IMetaStoreClient topdcli = null;
+    public static String msUri = null;
     public static final Log LOG = HiveMetaStore.LOG;
     private static boolean createDefaultDB = false;
     private String rawStoreClassName;
@@ -416,22 +419,64 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     private void createDefaultDB_core(RawStore ms) throws MetaException, InvalidObjectException {
-      Datacenter dc = null;
+      Datacenter ldc = null, mdc = null;
 
       try {
-        dc = ms.getDatacenter(MetaStoreUtils.DEFAULT_DATACENTER_NAME);
+        ldc = ms.getDatacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
       } catch (NoSuchObjectException e) {
-        dc = new Datacenter(MetaStoreUtils.DEFAULT_DATACENTER_NAME, null, "DC_URI", null);
-        ms.createDatacenter(dc);
+        ldc = new Datacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER), null, HMSHandler.msUri == null ? "DEFAULT_URI" : HMSHandler.msUri, null);
+        ms.createDatacenter(ldc);
       }
-      ms.setThisDC(dc.getName());
+      if (!hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER)) {
+        try {
+          mdc = HMSHandler.topdcli.get_center(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
+        } catch (NoSuchObjectException e) {
+          mdc = new Datacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER), null, HMSHandler.msUri == null ? "DEFAULT_URI" : HMSHandler.msUri, null);
+          try {
+            HMSHandler.topdcli.create_datacenter(mdc);
+          } catch (AlreadyExistsException e1) {
+            LOG.error(e, e);
+          } catch (TException e1) {
+            LOG.error(e, e);
+            throw new MetaException("Try to create dc to top-level datacenter failed!");
+          }
+        } catch (TException e) {
+          LOG.error(e, e);
+          throw new MetaException("Try to get dc from top-level datacenter failed!");
+        }
+      }
+
+      if (!ldc.getLocationUri().equals(HMSHandler.msUri)) {
+        // update the msUri now
+        ldc.setLocationUri(HMSHandler.msUri);
+        try {
+          ms.updateDatacenter(ldc);
+        } catch (NoSuchObjectException e) {
+          LOG.error(e, e);
+          throw new MetaException("Try to update datacenter's locationUri failed!");
+        }
+      }
+      if (mdc != null && !mdc.getLocationUri().equals(HMSHandler.msUri)) {
+        // update the msUri now
+        mdc.setLocationUri(HMSHandler.msUri);
+        try {
+          HMSHandler.topdcli.update_center(mdc);
+        } catch (NoSuchObjectException e) {
+          LOG.error(e, e);
+          throw new MetaException("Try to update datacenter's locationUri failed!");
+        } catch (TException e) {
+          LOG.error(e, e);
+          throw new MetaException("Try to update datacenter's locationUri failed!");
+        }
+      }
+      ms.setThisDC(ldc.getName());
 
       try {
         ms.getDatabase(DEFAULT_DATABASE_NAME);
       } catch (NoSuchObjectException e) {
         Database db = new Database(DEFAULT_DATABASE_NAME, DEFAULT_DATABASE_COMMENT,
                 wh.getDefaultDatabasePath(DEFAULT_DATABASE_NAME).toString(), null);
-        db.setDatacenter(dc);
+        db.setDatacenter(ldc);
         ms.createDatabase(db);
       }
       HMSHandler.createDefaultDB = true;
@@ -4371,15 +4416,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public void create_datacenter(Datacenter datacenter) throws AlreadyExistsException,
         InvalidObjectException, MetaException, TException {
-      // TODO Auto-generated method stub
-      throw new MetaException("Not implemented yet!");
+      getMS().createDatacenter(datacenter);
     }
 
     @Override
     public Datacenter get_center(String name) throws NoSuchObjectException, MetaException,
         TException {
-      // TODO Auto-generated method stub
-      throw new MetaException("Not implemented yet!");
+      return getMS().getDatacenter(name);
     }
 
     @Override
@@ -4390,15 +4433,22 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public List<String> get_all_centers() throws MetaException, TException {
-      // TODO Auto-generated method stub
-      throw new MetaException("Not implemented yet!");
+    public List<Datacenter> get_all_centers() throws MetaException, TException {
+      // try to get all centers from top-level metastore
+      if (hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER)) {
+        return getMS().getAllDatacenters();
+      } else {
+        return HMSHandler.topdcli.get_all_centers();
+      }
     }
 
     @Override
     public Datacenter get_local_center() throws MetaException, TException {
-      // TODO Auto-generated method stub
-      throw new MetaException("Not implemented yet!");
+      String local_dc = hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER);
+      if (local_dc == null) {
+        throw new MetaException("Please set hive.datacenter.local=NAME in config file.");
+      }
+      return getMS().getDatacenter(local_dc);
     }
 
     @Override
@@ -4587,6 +4637,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return getMS().dropPartitionIndexStores(index, subpart, file);
     }
 
+    @Override
+    public void update_center(Datacenter datacenter) throws NoSuchObjectException,
+        InvalidOperationException, MetaException, TException {
+      getMS().updateDatacenter(datacenter);
+    }
+
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {
@@ -4761,6 +4817,17 @@ public class HiveMetaStore extends ThriftHiveMetastore {
   public static void startMetaStore(int port, HadoopThriftAuthBridge bridge,
       HiveConf conf) throws Throwable {
     try {
+      // init connection to top-level datacenter if it is not top-level dc
+      boolean is_top_dc = conf.getBoolVar(ConfVars.IS_TOP_DATACENTER);
+      if (!is_top_dc) {
+        LOG.info("Begin connecting to Top-level Datacenter Metastore ...");
+        HMSHandler.topdcli = new HiveMetaStoreClient(conf.getVar(ConfVars.TOP_DATACENTER),
+            HiveConf.getIntVar(conf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
+            conf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
+            null);
+      }
+      // generate this msuri
+      HMSHandler.msUri = "thrift://" + InetAddress.getLocalHost().getHostName() + ":" + port;
 
       // Server will create new threads up to max as necessary. After an idle
       // period, it will destory threads to keep the number of threads in the
