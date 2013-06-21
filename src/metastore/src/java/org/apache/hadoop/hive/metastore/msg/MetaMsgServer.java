@@ -2,22 +2,50 @@ package org.apache.hadoop.hive.metastore.msg;
 
 import org.apache.hadoop.hive.metastore.msg.MSGFactory.DDLMsg;
 
+import com.taobao.metamorphosis.Message;
+import com.taobao.metamorphosis.client.MessageSessionFactory;
+import com.taobao.metamorphosis.client.MetaClientConfig;
+import com.taobao.metamorphosis.client.MetaMessageSessionFactory;
+import com.taobao.metamorphosis.client.consumer.ConsumerConfig;
+import com.taobao.metamorphosis.client.consumer.MessageConsumer;
+import com.taobao.metamorphosis.client.producer.MessageProducer;
+import com.taobao.metamorphosis.client.producer.SendResult;
+import com.taobao.metamorphosis.exception.MetaClientException;
+import com.taobao.metamorphosis.utils.ZkUtils.ZKConfig;
+
 public class MetaMsgServer {
-  String ip="localhost";
-  int port=2180;
+  static String zkAddr = "127.0.0.1:2181";
+  Producer producer =  null;
+  int times = 3;
 
-
-  private void initalize(){
-
+  private void initalize() throws MetaClientException{
+    producer.config(zkAddr);
+    producer = Producer.getInstance();
   }
 
 
-  public void start(){
+  public void start() throws MetaClientException{
     initalize();
 
   }
 
-  public void sendMsg(DDLMsg msg){
+
+
+  public static String getZkAddr() {
+    return zkAddr;
+  }
+
+
+  public static void setZkAddr(String zkAddr) {
+    MetaMsgServer.zkAddr = zkAddr;
+  }
+
+
+
+
+  public boolean sendMsg(DDLMsg msg) throws MetaClientException{
+    String jsonMsg = "";
+
     switch(msg.msgType){
       case MSGType.MSG_NEW_DATABESE : break;
       //新建库
@@ -100,6 +128,97 @@ public class MetaMsgServer {
         //dw1 专用DDL语句
       case MSGType.MSG_DDL_DIRECT_DW2 : break;
         //dw2 专用DDL语句
+    }//end of switch
+    boolean success = false;
+
+    success = retrySendMsg(jsonMsg, times);
+    return success;
+  }
+
+  boolean retrySendMsg(String jsonMsg,int times){
+    if(times <= 0){
+      return false;
+    }
+
+    boolean success = false;
+    try{
+      success = this.producer.sendMsg(jsonMsg);
+    }catch(InterruptedException ie){
+
+      retrySendMsg(jsonMsg,times-1);
+    } catch (MetaClientException e) {
+      retrySendMsg(jsonMsg,times-1);
+    }
+    return success;
+  }
+
+  public static class AsyncConsumer {
+    final MetaClientConfig metaClientConfig = new MetaClientConfig();
+    final ZKConfig zkConfig = new ZKConfig();
+    //设置zookeeper地址
+    public void consume() throws MetaClientException{
+      zkConfig.zkConnect = "127.0.0.1:2181";
+      metaClientConfig.setZkConfig(zkConfig);
+      // New session factory,强烈建议使用单例
+      MessageSessionFactory sessionFactory = new MetaMessageSessionFactory(metaClientConfig);
+      // subscribed topic
+      final String topic = "metatest";
+      // consumer group
+      final String group = "meta-example";
+      // create consumer,强烈建议使用单例
+
+      //生成处理线程
+      MessageConsumer consumer =
+      sessionFactory.createConsumer(new ConsumerConfig(group));
+      //订阅事件，MessageListener是事件处理接口
+//      consumer.subscribe("事件类型", 1024, new MessageListener());
+//      consumer.completeSubscribe();
+    }
+  }
+
+
+  public static class Producer {
+    private static Producer instance= null;
+    private final MetaClientConfig metaClientConfig = new MetaClientConfig();
+    private final ZKConfig zkConfig = new ZKConfig();
+    private MessageSessionFactory sessionFactory = null;
+    // create producer,强烈建议使用单例
+    private MessageProducer producer = null;
+    // publish topic
+    private final String topic = "matatest";
+    private static String  zkAddr = "127.0.0.1:2181";
+
+    public static void config(String addr){
+      zkAddr = addr;
+    }
+
+    private Producer() throws MetaClientException{
+        //设置zookeeper地址
+
+        zkConfig.zkConnect = zkAddr;
+        metaClientConfig.setZkConfig(zkConfig);
+        // New session factory,强烈建议使用单例
+        sessionFactory = new MetaMessageSessionFactory(metaClientConfig);
+        producer = sessionFactory.createProducer();
+        producer.publish(topic);
+    }
+
+    public static Producer getInstance() throws MetaClientException {
+      return instance;
+    }
+
+    boolean sendMsg(String msg) throws MetaClientException, InterruptedException{
+        SendResult sendResult = producer.sendMessage(new Message(topic, msg.getBytes()));
+        // check result
+
+        boolean success = !sendResult.isSuccess();
+        if (!success) {
+            System.err.println("Send message failed,error message:" + sendResult.getErrorMessage());
+        }
+        else {
+            System.out.println("Send message successfully,sent to " + sendResult.getPartition());
+        }
+        return success;
     }
   }
 

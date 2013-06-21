@@ -374,6 +374,7 @@ public class ObjectStore implements RawStore, Configurable {
 
   public boolean openTransaction() {
     openTrasactionCalls++;
+    LOG.debug("-----openTransaction:"+openTrasactionCalls);
     if (openTrasactionCalls == 1) {
       currentTransaction = pm.currentTransaction();
       currentTransaction.begin();
@@ -408,6 +409,7 @@ public class ObjectStore implements RawStore, Configurable {
               + " mismatching open and close calls or rollback was called in the same trasaction");
     }
     openTrasactionCalls--;
+    LOG.debug("-----commitTransaction:"+openTrasactionCalls);
     if ((openTrasactionCalls == 0) && currentTransaction.isActive()) {
       transactionStatus = TXN_STATUS.COMMITED;
       currentTransaction.commit();
@@ -430,6 +432,7 @@ public class ObjectStore implements RawStore, Configurable {
    * Rolls back the current transaction if it is active
    */
   public void rollbackTransaction() {
+    LOG.debug("-----rollbackTransaction:"+openTrasactionCalls);
     if (openTrasactionCalls < 1) {
       return;
     }
@@ -2661,10 +2664,12 @@ public class ObjectStore implements RawStore, Configurable {
     InvalidInputException {
     boolean success = false;
     try {
+      LOG.debug("--zjw--before 4  ");
       openTransaction();
       // TODO: fix it
       MPartition part = getMPartition(dbName, tableName, part_vals);
       dropPartitionCommon(part);
+      LOG.debug("--zjw--after 4  ");
       success = commitTransaction();
     } finally {
       if (!success) {
@@ -2680,11 +2685,14 @@ public class ObjectStore implements RawStore, Configurable {
     InvalidInputException {
     boolean success = false;
     try {
+      LOG.debug("--zjw--before dropPartition open ");
       openTransaction();
       // TODO: fix it
       MPartition part = getMPartition(dbName, tableName, part_name);
       dropPartitionCommon(part);
+      LOG.debug("--zjw--before dropPartition cmt ");
       success = commitTransaction();
+      LOG.debug("--zjw--after dropPartition cmt ");
     } finally {
       if (!success) {
         rollbackTransaction();
@@ -2720,9 +2728,9 @@ public class ObjectStore implements RawStore, Configurable {
 //        String partName = FileUtils.makePartName(colNames, part.getValues());
 
         String partName = part.getPartitionName();
-        LOG.warn("--zjw--getPartitionName is  "+part.getPartitionName());
-        LOG.warn("--zjw--getSd is  "+part.getSd());
-        LOG.warn("--zjw--getTableName is  "+part.getTable().getTableName());
+        LOG.debug("--zjw--getPartitionName is  "+part.getPartitionName());
+        LOG.debug("--zjw--getSd is  "+part.getSd());
+        LOG.debug("--zjw--getTableName is  "+part.getTable().getTableName());
         List<MPartitionPrivilege> partGrants = listPartitionGrants(
             part.getTable().getDatabase().getName(),
             part.getTable().getTableName(),
@@ -2736,22 +2744,40 @@ public class ObjectStore implements RawStore, Configurable {
             part.getTable().getDatabase().getName(),
             part.getTable().getTableName(),
             partName);
+        LOG.debug("--zjw--getTableName 111  ");
         if (partColumnGrants != null && partColumnGrants.size() > 0) {
           pm.deletePersistentAll(partColumnGrants);
+        }
+
+        /**
+         * WARNING: check weather subpartitions need to delete grant tables recursivly !!!
+         */
+        if(part.getSubPartitions() != null){
+          LOG.debug("--zjw--getSubPartitions not null  ");
+          pm.deletePersistentAll(part.getSubPartitions());
+        }else{
+          LOG.debug("--zjw--getTableName null  ");
         }
 
         String dbName = part.getTable().getDatabase().getName();
         String tableName = part.getTable().getTableName();
 
         // delete partition level column stats if it exists
-       try {
-          deletePartitionColumnStatistics(dbName, tableName, partName, part.getValues(), null);
-        } catch (NoSuchObjectException e) {
-          LOG.info("No column statistics records found to delete");
-        }
+
+        /**
+         *  FATAL ERROR HERE which can cause JDO ERROR,delete by zjw
+         */
+//       try {
+//          deletePartitionColumnStatistics(dbName, tableName, partName, part.getValues(), null);
+//        } catch (NoSuchObjectException e) {
+//          LOG.info("No column statistics records found to delete");
+//        } catch (Exception e){
+//          LOG.error(e,e);
+//        }
 
         preDropStorageDescriptor(part.getSd());
         pm.deletePersistent(part);
+        LOG.debug("--zjw--after dropPartitioncommon cmt ");
       }
       success = commitTransaction();
     } finally {
@@ -6630,7 +6656,7 @@ public class ObjectStore implements RawStore, Configurable {
 
       // TODO: fix it
       MPartition mPartition =
-          getMPartition(dbName, tableName, partVals.toString());
+          getMPartition(dbName, tableName, partVals);
 
       if (mPartition == null) {
         throw new

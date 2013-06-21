@@ -619,10 +619,15 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     List<Partition> ps = db.getPartitionsByNames(tbl, partNames);
     LOG.info("---zjw--size"+ps.size());
 
+    if(ps.size()<=0){
+      throw new HiveException(
+          "partition : "+ dropPartitionDesc.getPartitionName()+" not exist.");
+    }
+
     org.apache.hadoop.hive.metastore.api.Partition tp = ps.get(0).getTPartition();
-    LOG.info("---zjw--getPartitionName"+tp.getPartitionName()+"--"+tp.getDbName()+"--"+tp.getTableName()+"--"+tp.getValuesSize());
-    LOG.info("---zjw--subpartitionsSize"+tp.getSubpartitionsSize());
-    LOG.info("---zjw--subpartitionName"+tp.getSubpartitions().get(0).getPartitionName());
+//    LOG.info("---zjw--getPartitionName"+tp.getPartitionName()+"--"+tp.getDbName()+"--"+tp.getTableName()+"--"+tp.getValuesSize());
+//    LOG.info("---zjw--subpartitionsSize"+tp.getSubpartitionsSize());
+//    LOG.info("---zjw--subpartitionName"+tp.getSubpartitions().get(0).getPartitionName());
 
     db.dropPartition(dropPartitionDesc.getDbName(), dropPartitionDesc.getTableName(), dropPartitionDesc.getPartitionName());
     return 0;
@@ -4196,6 +4201,10 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       int rc = setGenericTableAttributes(tbl);
       if (rc != 0) {
         return rc;
+      }
+
+      if(crtView.isHeter()){
+        tbl.setHeterView(true);
       }
 
       db.createTable(tbl, crtView.getIfNotExists());

@@ -56,4 +56,6 @@ public class Constants {
 
   public static final String META_LOAD_ROUND_SECONDS   = "load.round.seconds";
 
+  public static final String META_HETER_VIEW  = "view.heter";
+
 }

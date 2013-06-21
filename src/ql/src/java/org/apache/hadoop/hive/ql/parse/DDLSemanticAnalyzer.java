@@ -516,6 +516,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     ShowSubpartitionDesc showSubpartitionDesc = new ShowSubpartitionDesc(ctx.getResFile().toString(),partName,tabName,tab.getDbName());
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         showSubpartitionDesc), conf));
+    setFetchTask(createFetchTask(showSubpartitionDesc.getSchema()));
   }
 
   /**

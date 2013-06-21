@@ -42,6 +42,7 @@ public class CreateViewDesc extends DDLDesc implements Serializable {
   private List<FieldSchema> partCols;
   private String comment;
   private boolean ifNotExists;
+  private boolean isHeter;
   private boolean orReplace;
 
   /**
@@ -52,13 +53,14 @@ public class CreateViewDesc extends DDLDesc implements Serializable {
 
   public CreateViewDesc(String viewName, List<FieldSchema> schema,
       String comment, Map<String, String> tblProps,
-      List<String> partColNames, boolean ifNotExists, boolean orReplace) {
+      List<String> partColNames, boolean ifNotExists,boolean isHeter, boolean orReplace) {
     this.viewName = viewName;
     this.schema = schema;
     this.comment = comment;
     this.tblProps = tblProps;
     this.partColNames = partColNames;
     this.ifNotExists = ifNotExists;
+    this.isHeter = isHeter;
     this.orReplace = orReplace;
   }
 
@@ -158,4 +160,14 @@ public class CreateViewDesc extends DDLDesc implements Serializable {
   public void setOrReplace(boolean orReplace) {
     this.orReplace = orReplace;
   }
+
+  public boolean isHeter() {
+    return isHeter;
+  }
+
+  public void setHeter(boolean isHeter) {
+    this.isHeter = isHeter;
+  }
+
+
 }

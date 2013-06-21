@@ -27,6 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.plan.CreateTableDesc;
+import org.apache.hadoop.hive.ql.plan.CreateViewDesc;
 
 /**
  * Implementation of the query block.
@@ -51,6 +52,8 @@ public class QB {
   private boolean isQuery;
   private boolean isAnalyzeRewrite;
   private CreateTableDesc tblDesc = null; // table descriptor of the final
+
+  private CreateViewDesc viewDesc = null;
 
   // results
 
@@ -207,6 +210,21 @@ public class QB {
    */
   public boolean isCTAS() {
     return tblDesc != null;
+  }
+
+  public CreateViewDesc getViewDesc() {
+    return viewDesc;
+  }
+
+  public void setViewDesc(CreateViewDesc desc) {
+    viewDesc  = desc;
+  }
+
+  /**
+   * Whether this QB is for a CREATE-VIEW-AS-SELECT.
+   */
+  public boolean isCVAS() {
+    return viewDesc != null;
   }
 
   /**
