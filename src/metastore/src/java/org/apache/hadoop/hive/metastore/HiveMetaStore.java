@@ -427,8 +427,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         ldc = new Datacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER), null, HMSHandler.msUri == null ? "DEFAULT_URI" : HMSHandler.msUri, null);
         ms.createDatacenter(ldc);
       }
-      if (!hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER)) {
+      if (!hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER) && HMSHandler.topdcli != null) {
         try {
+          LOG.info(HMSHandler.topdcli + ", " + hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
           mdc = HMSHandler.topdcli.get_center(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
         } catch (NoSuchObjectException e) {
           mdc = new Datacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER), null, HMSHandler.msUri == null ? "DEFAULT_URI" : HMSHandler.msUri, null);
@@ -446,7 +447,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
       }
 
-      if (!ldc.getLocationUri().equals(HMSHandler.msUri)) {
+      if (HMSHandler.msUri != null && !ldc.getLocationUri().equals(HMSHandler.msUri)) {
         // update the msUri now
         ldc.setLocationUri(HMSHandler.msUri);
         try {
@@ -456,7 +457,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           throw new MetaException("Try to update datacenter's locationUri failed!");
         }
       }
-      if (mdc != null && !mdc.getLocationUri().equals(HMSHandler.msUri)) {
+      if (mdc != null && HMSHandler.msUri != null && !mdc.getLocationUri().equals(HMSHandler.msUri) && HMSHandler.topdcli != null) {
         // update the msUri now
         mdc.setLocationUri(HMSHandler.msUri);
         try {

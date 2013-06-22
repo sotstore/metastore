@@ -1153,7 +1153,7 @@ public class DiskManager {
       }
       NodeInfo ni = ndmap.get(node);
       if (ni == null) {
-        throw new IOException("Node '" + node + "' does not exist in NDMap ...\n");
+        throw new IOException("Node '" + node + "' does not exist in NDMap, are you sure node '" + node + "' belongs to this MetaStore?" + hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER) + "\n");
       }
       List<DeviceInfo> dilist;
       synchronized (ni) {dilist = ni.dis;}
