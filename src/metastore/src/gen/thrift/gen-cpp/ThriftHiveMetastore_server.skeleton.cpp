@@ -52,6 +52,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("get_lucene_index_names\n");
   }
 
+  void get_all_busi_type_cols(std::vector<BusiTypeColumn> & _return) {
+    // Your implementation goes here
+    printf("get_all_busi_type_cols\n");
+  }
+
   bool add_datawarehouse_sql(const int32_t dwNum, const std::string& sql) {
     // Your implementation goes here
     printf("add_datawarehouse_sql\n");

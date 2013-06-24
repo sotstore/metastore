@@ -2909,6 +2909,94 @@ void swap(Table &a, Table &b) {
   swap(a.__isset, b.__isset);
 }
 
+const char* BusiTypeColumn::ascii_fingerprint = "5EE62A78913B77139932A51C30CF5629";
+const uint8_t BusiTypeColumn::binary_fingerprint[16] = {0x5E,0xE6,0x2A,0x78,0x91,0x3B,0x77,0x13,0x99,0x32,0xA5,0x1C,0x30,0xCF,0x56,0x29};
+
+uint32_t BusiTypeColumn::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->busiType);
+          this->__isset.busiType = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->table.read(iprot);
+          this->__isset.table = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 3:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->column.read(iprot);
+          this->__isset.column = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t BusiTypeColumn::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("BusiTypeColumn");
+
+  xfer += oprot->writeFieldBegin("busiType", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString(this->busiType);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("table", ::apache::thrift::protocol::T_STRUCT, 2);
+  xfer += this->table.write(oprot);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("column", ::apache::thrift::protocol::T_STRUCT, 3);
+  xfer += this->column.write(oprot);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+void swap(BusiTypeColumn &a, BusiTypeColumn &b) {
+  using ::std::swap;
+  swap(a.busiType, b.busiType);
+  swap(a.table, b.table);
+  swap(a.column, b.column);
+  swap(a.__isset, b.__isset);
+}
+
 const char* Node::ascii_fingerprint = "2B861B7093B3DC2A61450349FC883477";
 const uint8_t Node::binary_fingerprint[16] = {0x2B,0x86,0x1B,0x70,0x93,0xB3,0xDC,0x2A,0x61,0x45,0x03,0x49,0xFC,0x88,0x34,0x77};
 

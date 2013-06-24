@@ -177,7 +177,7 @@ struct StorageDescriptor {
   12: optional bool   storedAsSubDirectories       // stored as subdirectories or not
 }
 
-
+  
 struct Subpartition {
   1: list<string> values // string value is converted to appropriate partition key type
   2: string       dbName,
@@ -223,6 +223,14 @@ struct Table {
   12: string tableType,                 // table type enum, e.g. EXTERNAL_TABLE
   13: optional PrincipalPrivilegeSet privileges,
   14: optional list<Partition> partitions,
+}
+
+
+
+struct BusiTypeColumn {
+  1: string busiType,  // required @ip,@content,@tel,@time
+  2: Table table,         // table
+  3: FieldSchema column      //column
 }
 
 struct Node {
@@ -414,6 +422,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   Datacenter get_local_center() throws(1:MetaException o1)
   list<string> get_lucene_index_names(1:string db_name, 2:string tbl_name, 3:i16 max_indexes=-1)
                        throws(1:MetaException o2)
+  list<BusiTypeColumn> get_all_busi_type_cols() throws(1:MetaException o1)
                        
   //start of partition,RPC for now is enough,subparttion operation can be done within partition rpc
   //end of partiton

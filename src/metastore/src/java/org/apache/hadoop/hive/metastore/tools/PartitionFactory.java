@@ -29,6 +29,26 @@ public class PartitionFactory {
     public static String DEFAULT="default";
   }
 
+  public static long getIntervalSeconds(String interval_unit) throws Exception{
+    long interval_seconds=0;
+    if("'Y'".equalsIgnoreCase(interval_unit)){
+      interval_seconds = interval_seconds * 3600 * 24 * 7 *30 * 365;
+    }else if("'M'".equalsIgnoreCase(interval_unit)){
+      interval_seconds = interval_seconds * 3600 * 24 * 7 *30;
+    }else if("'W'".equalsIgnoreCase(interval_unit)){
+      interval_seconds = interval_seconds * 3600 * 24 * 7;
+    }else if("'D'".equalsIgnoreCase(interval_unit)){
+      interval_seconds = interval_seconds * 3600 * 24;
+    }else if("'H'".equalsIgnoreCase(interval_unit)){
+      interval_seconds = interval_seconds * 3600;
+    }else if("'MI'".equalsIgnoreCase(interval_unit)){
+      interval_seconds = interval_seconds * 60;
+    }else{
+      throw new Exception("Not valid interval unit.");
+    }
+    return interval_seconds;
+  }
+
   public static enum PartitionType{
     none("none"),roundrobin("roundrobin"),hash("hash"),list("list"),range("range"),interval("interval");
     private static  HashSet<String> Types  = new HashSet<String>();
@@ -417,9 +437,9 @@ public class PartitionFactory {
            for(int i=1;i<=global_sub_pd.getPi().getP_num();i++){
              PartitionDefinition partition = new PartitionDefinition();
              if(isAuto){
-               partition.setPart_name("p_"+i);
+               partition.setPart_name("p"+i);
              }else{
-               partition.setPart_name(part_name+"_p_"+i);
+               partition.setPart_name(part_name+"_p"+i);
              }
              List<String> values = new ArrayList<String>();
              values.add(new String(""+i));

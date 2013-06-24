@@ -26,6 +26,7 @@ import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
+import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
@@ -830,6 +831,18 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   @Override
   public List<Subpartition> getSubpartitions(String dbname, String tbl_name, Partition part)
       throws InvalidObjectException, NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void setThisDC(String thisDC) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public List<BusiTypeColumn> getAllBusiTypeCols() throws MetaException {
     // TODO Auto-generated method stub
     return null;
   }

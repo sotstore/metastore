@@ -501,6 +501,26 @@ class Table
   ::Thrift::Struct.generate_accessors self
 end
 
+class BusiTypeColumn
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  BUSITYPE = 1
+  TABLE = 2
+  COLUMN = 3
+
+  FIELDS = {
+    BUSITYPE => {:type => ::Thrift::Types::STRING, :name => 'busiType'},
+    TABLE => {:type => ::Thrift::Types::STRUCT, :name => 'table', :class => ::Table},
+    COLUMN => {:type => ::Thrift::Types::STRUCT, :name => 'column', :class => ::FieldSchema}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
 class Node
   include ::Thrift::Struct, ::Thrift::Struct_Union
   NODE_NAME = 1

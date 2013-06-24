@@ -37,7 +37,7 @@ public class MSGType {
       // 新建分区
   public static final int MSG_ALT_PARTITION =  1302;
       //修改分区
-  public static final int MSG_DEL_DATABESE =  1303;
+  public static final int MSG_DEL_PARTITION =  1303;
       // 删除分区
   public static final int MSG_NEW_PARTITION_FILE =  1304;
       //增加分区文件
