@@ -684,7 +684,7 @@ public class HiveConf extends Configuration {
     // Datacenter
     IS_TOP_DATACENTER("hive.datacenter.is_top", false),
     LOCAL_DATACENTER("hive.datacenter.local", null),
-    TOP_DATACENTER("hive.datacenter.top", "top_dc"),
+    TOP_DATACENTER("hive.datacenter.top", null),
 
     // Disk Manager
     DISKMANAGERLISTENPORT("hive.diskmanager.listen.port", 20202),

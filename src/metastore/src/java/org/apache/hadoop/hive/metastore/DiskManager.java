@@ -807,6 +807,54 @@ public class DiskManager {
       bktimer.schedule(bktt, 0, 5000);
     }
 
+    public List<String> getActiveNodes() throws MetaException {
+      List<String> r = new ArrayList<String>();
+
+      synchronized (ndmap) {
+        for (Map.Entry<String, NodeInfo> e : ndmap.entrySet()) {
+          r.add(e.getKey());
+        }
+      }
+
+      return r;
+    }
+
+    public List<String> getActiveDevices() throws MetaException {
+      List<String> r = new ArrayList<String>();
+
+      synchronized (ndmap) {
+        for (Map.Entry<String, NodeInfo> e : ndmap.entrySet()) {
+          for (DeviceInfo di : e.getValue().dis) {
+            r.add(di.dev);
+          }
+        }
+      }
+
+      return r;
+    }
+
+    public boolean markSFileLocationStatus(SFile toMark) throws MetaException {
+      boolean marked = false;
+      Set<String> activeDevs = new HashSet<String>();
+
+      synchronized (ndmap) {
+        for (Map.Entry<String, NodeInfo> e : ndmap.entrySet()) {
+          for (DeviceInfo di : e.getValue().dis) {
+            activeDevs.add(di.dev);
+          }
+        }
+      }
+
+      for (SFileLocation sfl : toMark.getLocations()) {
+        if (!activeDevs.contains(sfl.getDevid()) && sfl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
+          sfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.SUSPECT);
+          marked = true;
+        }
+      }
+
+      return marked;
+    }
+
     public String getDMStatus() throws MetaException {
       String r = "";
 
@@ -1024,6 +1072,54 @@ public class DiskManager {
             LOG.error(e, e);
           }
 
+        }
+      }
+      return r;
+    }
+
+    public List<Node> findBestNodesBySingleDev(int nr) throws IOException {
+      if (safeMode) {
+        throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
+      }
+      if (nr <= 0) {
+        return new ArrayList<Node>();
+      }
+      List<Node> r = new ArrayList<Node>(nr);
+      SortedMap<Long, String> m = new TreeMap<Long, String>();
+      HashSet<String> rset = new HashSet<String>();
+
+      for (Map.Entry<String, NodeInfo> entry : ndmap.entrySet()) {
+        NodeInfo ni = entry.getValue();
+        synchronized (ni) {
+          List<DeviceInfo> dis = ni.dis;
+
+          if (dis == null) {
+            continue;
+          }
+          for (DeviceInfo di : dis) {
+            if (di.free > 0) {
+              m.put(di.free, entry.getKey());
+            }
+          }
+        }
+      }
+
+      int i = 0;
+      for (Map.Entry<Long, String> entry : m.entrySet()) {
+        if (i >= nr) {
+          break;
+        }
+        synchronized (rs) {
+          try {
+            Node n = rs.getNode(entry.getValue());
+            if (n != null && !rset.contains(n.getNode_name())) {
+              r.add(n);
+              rset.add(n.getNode_name());
+              i++;
+            }
+          } catch (MetaException e) {
+            LOG.error(e, e);
+          }
         }
       }
       return r;

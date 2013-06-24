@@ -421,6 +421,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     private void createDefaultDB_core(RawStore ms) throws MetaException, InvalidObjectException {
       Datacenter ldc = null, mdc = null;
 
+      if (hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER) == null) {
+        throw new MetaException("Please set 'hive.datacenter.local' as the local DC name");
+      }
       try {
         ldc = ms.getDatacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
       } catch (NoSuchObjectException e) {
@@ -4407,11 +4410,22 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public List<Node> find_best_nodes(int nr) throws MetaException, TException {
-      try {
-        return dm.findBestNodes(nr);
-      } catch (IOException e) {
-        throw new MetaException(e.getMessage());
+      if (nr > 0) {
+        try {
+          return dm.findBestNodes(nr);
+        } catch (IOException e) {
+          throw new MetaException(e.getMessage());
+        }
+      } else if (nr < 0) {
+        // call findBestNodesBySingleDev
+        try {
+          return dm.findBestNodesBySingleDev(-nr);
+        } catch (IOException e) {
+          throw new MetaException(e.getMessage());
+        }
       }
+
+      return new ArrayList<Node>();
     }
 
     @Override
@@ -4827,7 +4841,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       boolean is_top_dc = conf.getBoolVar(ConfVars.IS_TOP_DATACENTER);
       if (!is_top_dc) {
         LOG.info("Begin connecting to Top-level Datacenter Metastore ...");
-        HMSHandler.topdcli = new HiveMetaStoreClient(conf.getVar(ConfVars.TOP_DATACENTER),
+        String top_dc_uri = conf.getVar(ConfVars.TOP_DATACENTER);
+        if (top_dc_uri == null) {
+          throw new MetaException("Please set 'hive.datacenter.top' as top-level metastore URI." );
+        }
+        HMSHandler.topdcli = new HiveMetaStoreClient(top_dc_uri,
             HiveConf.getIntVar(conf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
             conf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
             null);
