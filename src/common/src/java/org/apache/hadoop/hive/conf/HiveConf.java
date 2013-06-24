@@ -681,6 +681,11 @@ public class HiveConf extends Configuration {
     SERVER_READ_SOCKET_TIMEOUT("hive.server.read.socket.timeout", 10),
     SERVER_TCP_KEEP_ALIVE("hive.server.tcp.keepalive", true),
 
+    // Datacenter
+    IS_TOP_DATACENTER("hive.datacenter.is_top", false),
+    LOCAL_DATACENTER("hive.datacenter.local", null),
+    TOP_DATACENTER("hive.datacenter.top", null),
+
     // Disk Manager
     DISKMANAGERLISTENPORT("hive.diskmanager.listen.port", 20202),
     DM_BACKUP_TIMEOUT("hive.diskmanager.backup.timeout", 30 * 60 * 1000),

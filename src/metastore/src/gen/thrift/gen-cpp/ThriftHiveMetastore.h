@@ -19,7 +19,8 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void create_datacenter(const Datacenter& datacenter) = 0;
   virtual void get_center(Datacenter& _return, const std::string& name) = 0;
   virtual void drop_center(const std::string& name, const bool deleteData, const bool cascade) = 0;
-  virtual void get_all_centers(std::vector<std::string> & _return) = 0;
+  virtual void update_center(const Datacenter& datacenter) = 0;
+  virtual void get_all_centers(std::vector<Datacenter> & _return) = 0;
   virtual void get_local_center(Datacenter& _return) = 0;
   virtual void get_lucene_index_names(std::vector<std::string> & _return, const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes) = 0;
   virtual void get_all_busi_type_cols(std::vector<BusiTypeColumn> & _return) = 0;
@@ -166,7 +167,10 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void drop_center(const std::string& /* name */, const bool /* deleteData */, const bool /* cascade */) {
     return;
   }
-  void get_all_centers(std::vector<std::string> & /* _return */) {
+  void update_center(const Datacenter& /* datacenter */) {
+    return;
+  }
+  void get_all_centers(std::vector<Datacenter> & /* _return */) {
     return;
   }
   void get_local_center(Datacenter& /* _return */) {
@@ -934,6 +938,134 @@ class ThriftHiveMetastore_drop_center_presult {
 
 };
 
+typedef struct _ThriftHiveMetastore_update_center_args__isset {
+  _ThriftHiveMetastore_update_center_args__isset() : datacenter(false) {}
+  bool datacenter;
+} _ThriftHiveMetastore_update_center_args__isset;
+
+class ThriftHiveMetastore_update_center_args {
+ public:
+
+  ThriftHiveMetastore_update_center_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_update_center_args() throw() {}
+
+  Datacenter datacenter;
+
+  _ThriftHiveMetastore_update_center_args__isset __isset;
+
+  void __set_datacenter(const Datacenter& val) {
+    datacenter = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_update_center_args & rhs) const
+  {
+    if (!(datacenter == rhs.datacenter))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_update_center_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_update_center_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_update_center_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_update_center_pargs() throw() {}
+
+  const Datacenter* datacenter;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_update_center_result__isset {
+  _ThriftHiveMetastore_update_center_result__isset() : o1(false), o2(false), o3(false) {}
+  bool o1;
+  bool o2;
+  bool o3;
+} _ThriftHiveMetastore_update_center_result__isset;
+
+class ThriftHiveMetastore_update_center_result {
+ public:
+
+  ThriftHiveMetastore_update_center_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_update_center_result() throw() {}
+
+  NoSuchObjectException o1;
+  InvalidOperationException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_update_center_result__isset __isset;
+
+  void __set_o1(const NoSuchObjectException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const InvalidOperationException& val) {
+    o2 = val;
+  }
+
+  void __set_o3(const MetaException& val) {
+    o3 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_update_center_result & rhs) const
+  {
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    if (!(o3 == rhs.o3))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_update_center_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_update_center_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_update_center_presult__isset {
+  _ThriftHiveMetastore_update_center_presult__isset() : o1(false), o2(false), o3(false) {}
+  bool o1;
+  bool o2;
+  bool o3;
+} _ThriftHiveMetastore_update_center_presult__isset;
+
+class ThriftHiveMetastore_update_center_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_update_center_presult() throw() {}
+
+  NoSuchObjectException o1;
+  InvalidOperationException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_update_center_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 
 class ThriftHiveMetastore_get_all_centers_args {
  public:
@@ -985,12 +1117,12 @@ class ThriftHiveMetastore_get_all_centers_result {
 
   virtual ~ThriftHiveMetastore_get_all_centers_result() throw() {}
 
-  std::vector<std::string>  success;
+  std::vector<Datacenter>  success;
   MetaException o1;
 
   _ThriftHiveMetastore_get_all_centers_result__isset __isset;
 
-  void __set_success(const std::vector<std::string> & val) {
+  void __set_success(const std::vector<Datacenter> & val) {
     success = val;
   }
 
@@ -1029,7 +1161,7 @@ class ThriftHiveMetastore_get_all_centers_presult {
 
   virtual ~ThriftHiveMetastore_get_all_centers_presult() throw() {}
 
-  std::vector<std::string> * success;
+  std::vector<Datacenter> * success;
   MetaException o1;
 
   _ThriftHiveMetastore_get_all_centers_presult__isset __isset;
@@ -15750,9 +15882,12 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void drop_center(const std::string& name, const bool deleteData, const bool cascade);
   void send_drop_center(const std::string& name, const bool deleteData, const bool cascade);
   void recv_drop_center();
-  void get_all_centers(std::vector<std::string> & _return);
+  void update_center(const Datacenter& datacenter);
+  void send_update_center(const Datacenter& datacenter);
+  void recv_update_center();
+  void get_all_centers(std::vector<Datacenter> & _return);
   void send_get_all_centers();
-  void recv_get_all_centers(std::vector<std::string> & _return);
+  void recv_get_all_centers(std::vector<Datacenter> & _return);
   void get_local_center(Datacenter& _return);
   void send_get_local_center();
   void recv_get_local_center(Datacenter& _return);
@@ -16090,6 +16225,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_create_datacenter(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_center(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_drop_center(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_update_center(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_all_centers(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_local_center(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_lucene_index_names(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -16206,6 +16342,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["create_datacenter"] = &ThriftHiveMetastoreProcessor::process_create_datacenter;
     processMap_["get_center"] = &ThriftHiveMetastoreProcessor::process_get_center;
     processMap_["drop_center"] = &ThriftHiveMetastoreProcessor::process_drop_center;
+    processMap_["update_center"] = &ThriftHiveMetastoreProcessor::process_update_center;
     processMap_["get_all_centers"] = &ThriftHiveMetastoreProcessor::process_get_all_centers;
     processMap_["get_local_center"] = &ThriftHiveMetastoreProcessor::process_get_local_center;
     processMap_["get_lucene_index_names"] = &ThriftHiveMetastoreProcessor::process_get_lucene_index_names;
@@ -16376,7 +16513,16 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     ifaces_[i]->drop_center(name, deleteData, cascade);
   }
 
-  void get_all_centers(std::vector<std::string> & _return) {
+  void update_center(const Datacenter& datacenter) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->update_center(datacenter);
+    }
+    ifaces_[i]->update_center(datacenter);
+  }
+
+  void get_all_centers(std::vector<Datacenter> & _return) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {

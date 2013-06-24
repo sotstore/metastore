@@ -1299,6 +1299,35 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
+  public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException {
+    boolean success = false;
+
+    MDatacenter mdc = getMDatacenter(dc.getName());
+    if (mdc != null) {
+      mdc.setDescription(dc.getDescription());
+      mdc.setLocationUri(dc.getLocationUri());
+      mdc.setParameters(dc.getParameters());
+    } else {
+      return success;
+    }
+
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      pm.makePersistent(mdc);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      } else {
+        success = true;
+      }
+    }
+
+    return success;
+  }
+
   public long countNode() throws MetaException {
     boolean commited = false;
     long r = 0;
@@ -1338,6 +1367,28 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     return ln;
+  }
+
+  public List<Datacenter> getAllDatacenters() throws MetaException {
+    List<Datacenter> ld = new ArrayList<Datacenter>();
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      Query q = pm.newQuery(MDatacenter.class);
+      Collection allDCs = (Collection)q.execute();
+      Iterator iter = allDCs.iterator();
+      while (iter.hasNext()) {
+        Datacenter dc = convertToDatacenter((MDatacenter)iter.next());
+        ld.add(dc);
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return ld;
   }
 
   public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException {
@@ -1943,7 +1994,7 @@ public class ObjectStore implements RawStore, Configurable {
     if (mdc == null) {
       return null;
     }
-    return new Datacenter(mdc.getName(), mdc.getLocationUri(), mdc.getDescription(), mdc.getParameters());
+    return new Datacenter(mdc.getName(), mdc.getDescription(), mdc.getLocationUri(), mdc.getParameters());
   }
 
   private SFile convertToSFile(MFile mf) throws MetaException {
@@ -2382,6 +2433,18 @@ public class ObjectStore implements RawStore, Configurable {
     return part;
   }
 
+  public Partition getParentPartition(String dbName, String tableName, String subpart_name) throws NoSuchObjectException, MetaException {
+    Partition pp = null;
+    openTransaction();
+    MPartition subp = getMPartition(dbName, tableName, subpart_name);
+    if (subp == null) {
+      throw new NoSuchObjectException("partition values=" + subpart_name);
+    }
+    pp = convertToPart(subp.getParent());
+    commitTransaction();
+
+    return pp;
+  }
 
   public Subpartition getSubpartition(String dbName, String tableName,
       String part_name) throws NoSuchObjectException, MetaException {

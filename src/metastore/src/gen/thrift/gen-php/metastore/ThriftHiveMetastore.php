@@ -19,6 +19,7 @@ interface ThriftHiveMetastoreIf extends \FacebookServiceIf {
   public function create_datacenter(\metastore\Datacenter $datacenter);
   public function get_center($name);
   public function drop_center($name, $deleteData, $cascade);
+  public function update_center(\metastore\Datacenter $datacenter);
   public function get_all_centers();
   public function get_local_center();
   public function get_lucene_index_names($db_name, $tbl_name, $max_indexes);
@@ -293,6 +294,63 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
         throw $x;
       }
       $result = new \metastore\ThriftHiveMetastore_drop_center_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->o1 !== null) {
+      throw $result->o1;
+    }
+    if ($result->o2 !== null) {
+      throw $result->o2;
+    }
+    if ($result->o3 !== null) {
+      throw $result->o3;
+    }
+    return;
+  }
+
+  public function update_center(\metastore\Datacenter $datacenter)
+  {
+    $this->send_update_center($datacenter);
+    $this->recv_update_center();
+  }
+
+  public function send_update_center(\metastore\Datacenter $datacenter)
+  {
+    $args = new \metastore\ThriftHiveMetastore_update_center_args();
+    $args->datacenter = $datacenter;
+    $bin_accel = ($this->output_ instanceof TProtocol::$TBINARYPROTOCOLACCELERATED) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'update_center', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('update_center', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_update_center()
+  {
+    $bin_accel = ($this->input_ instanceof TProtocol::$TBINARYPROTOCOLACCELERATED) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\metastore\ThriftHiveMetastore_update_center_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \metastore\ThriftHiveMetastore_update_center_result();
       $result->read($this->input_);
       $this->input_->readMessageEnd();
     }
@@ -7165,6 +7223,201 @@ class ThriftHiveMetastore_drop_center_result {
 
 }
 
+class ThriftHiveMetastore_update_center_args {
+  static $_TSPEC;
+
+  public $datacenter = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'datacenter',
+          'type' => TType::STRUCT,
+          'class' => '\metastore\Datacenter',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['datacenter'])) {
+        $this->datacenter = $vals['datacenter'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ThriftHiveMetastore_update_center_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->datacenter = new \metastore\Datacenter();
+            $xfer += $this->datacenter->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ThriftHiveMetastore_update_center_args');
+    if ($this->datacenter !== null) {
+      if (!is_object($this->datacenter)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('datacenter', TType::STRUCT, 1);
+      $xfer += $this->datacenter->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ThriftHiveMetastore_update_center_result {
+  static $_TSPEC;
+
+  public $o1 = null;
+  public $o2 = null;
+  public $o3 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'o1',
+          'type' => TType::STRUCT,
+          'class' => '\metastore\NoSuchObjectException',
+          ),
+        2 => array(
+          'var' => 'o2',
+          'type' => TType::STRUCT,
+          'class' => '\metastore\InvalidOperationException',
+          ),
+        3 => array(
+          'var' => 'o3',
+          'type' => TType::STRUCT,
+          'class' => '\metastore\MetaException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['o1'])) {
+        $this->o1 = $vals['o1'];
+      }
+      if (isset($vals['o2'])) {
+        $this->o2 = $vals['o2'];
+      }
+      if (isset($vals['o3'])) {
+        $this->o3 = $vals['o3'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ThriftHiveMetastore_update_center_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->o1 = new \metastore\NoSuchObjectException();
+            $xfer += $this->o1->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->o2 = new \metastore\InvalidOperationException();
+            $xfer += $this->o2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->o3 = new \metastore\MetaException();
+            $xfer += $this->o3->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ThriftHiveMetastore_update_center_result');
+    if ($this->o1 !== null) {
+      $xfer += $output->writeFieldBegin('o1', TType::STRUCT, 1);
+      $xfer += $this->o1->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->o2 !== null) {
+      $xfer += $output->writeFieldBegin('o2', TType::STRUCT, 2);
+      $xfer += $this->o2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->o3 !== null) {
+      $xfer += $output->writeFieldBegin('o3', TType::STRUCT, 3);
+      $xfer += $this->o3->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
 class ThriftHiveMetastore_get_all_centers_args {
   static $_TSPEC;
 
@@ -7227,9 +7480,10 @@ class ThriftHiveMetastore_get_all_centers_result {
         0 => array(
           'var' => 'success',
           'type' => TType::LST,
-          'etype' => TType::STRING,
+          'etype' => TType::STRUCT,
           'elem' => array(
-            'type' => TType::STRING,
+            'type' => TType::STRUCT,
+            'class' => '\metastore\Datacenter',
             ),
           ),
         1 => array(
@@ -7277,7 +7531,8 @@ class ThriftHiveMetastore_get_all_centers_result {
             for ($_i298 = 0; $_i298 < $_size294; ++$_i298)
             {
               $elem299 = null;
-              $xfer += $input->readString($elem299);
+              $elem299 = new \metastore\Datacenter();
+              $xfer += $elem299->read($input);
               $this->success []= $elem299;
             }
             $xfer += $input->readListEnd();
@@ -7312,11 +7567,11 @@ class ThriftHiveMetastore_get_all_centers_result {
       }
       $xfer += $output->writeFieldBegin('success', TType::LST, 0);
       {
-        $output->writeListBegin(TType::STRING, count($this->success));
+        $output->writeListBegin(TType::STRUCT, count($this->success));
         {
           foreach ($this->success as $iter300)
           {
-            $xfer += $output->writeString($iter300);
+            $xfer += $iter300->write($output);
           }
         }
         $output->writeListEnd();

@@ -33,10 +33,12 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.util.ReflectionUtils;
@@ -63,9 +65,10 @@ public class DiskManager {
 
     public static class BackupEntry {
       public enum FOP {
-        ADD, DROP,
+        ADD_PART, DROP_PART, ADD_SUBPART, DROP_SUBPART,
       }
       public Partition part;
+      public Subpartition subpart;
       public List<SFile> files;
       public FOP op;
 
@@ -74,15 +77,28 @@ public class DiskManager {
         this.files = files;
         this.op = op;
       }
+      public BackupEntry(Subpartition subpart, List<SFile> files, FOP op) {
+        this.subpart = subpart;
+        this.files = files;
+        this.op = op;
+      }
     }
 
     public static class FileToPart {
+      public boolean isPart;
       public SFile file;
       public Partition part;
+      public Subpartition subpart;
 
       public FileToPart(SFile file, Partition part) {
+        this.isPart = true;
         this.file = file;
         this.part = part;
+      }
+      public FileToPart(SFile file, Subpartition subpart) {
+        this.isPart = false;
+        this.file = file;
+        this.subpart = subpart;
       }
     }
 
@@ -155,16 +171,17 @@ public class DiskManager {
     private final Map<String, NodeInfo> ndmap;
 
     public class BackupTimerTask extends TimerTask {
-      public long backupTimeout = 30 * 60 * 1000;
+      // TODO: fix me: change it to 30 min
+      public long backupTimeout = 1 * 60 * 1000;
       public long fileSizeThreshold = 64 * 1024 * 1024;
       public String backupNodeName = "BACKUP-STORE";
 
       private long last_backupTs = System.currentTimeMillis();
 
-      public boolean generateSyncFiles(Set<Partition> parts, Set<FileToPart> toAdd, Set<FileToPart> toDrop) {
+      public boolean generateSyncFiles(Set<Partition> parts, Set<Subpartition> subparts, Set<FileToPart> toAdd, Set<FileToPart> toDrop) {
         Date d = new Date(System.currentTimeMillis());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss");
-        File dir = new File(System.getProperty("user.dir") + "/backup/" + sdf.format(d));
+        File dir = new File(System.getProperty("user.dir") + "/backup/sync-" + sdf.format(d));
         if (!dir.mkdirs()) {
           LOG.error("Make directory " + dir.getPath() + " failed, can't write sync meta files.");
           return false;
@@ -173,6 +190,19 @@ public class DiskManager {
         Set<Table> tables = new TreeSet<Table>();
         Map<String, Table> partToTbl = new HashMap<String, Table>();
         for (Partition p : parts) {
+          synchronized (rs) {
+            Table t;
+            try {
+              t = rs.getTable(p.getDbName(), p.getTableName());
+              tables.add(t);
+              partToTbl.put(p.getPartitionName(), t);
+            } catch (MetaException e) {
+              LOG.error(e, e);
+              return false;
+            }
+          }
+        }
+        for (Subpartition p : subparts) {
           synchronized (rs) {
             Table t;
             try {
@@ -222,14 +252,66 @@ public class DiskManager {
         for (FileToPart ftp : toAdd) {
           for (SFileLocation sfl : ftp.file.getLocations()) {
             if (sfl.getNode_name().equals(this.backupNodeName)) {
-              content += sfl.getLocation() + "\tADD\t" + ftp.part.getDbName() + "\t" + ftp.part.getTableName() + "\t";
-              for (int i = 0; i < ftp.part.getValuesSize(); i++) {
-                content += ftp.part.getValues().get(i);
-                if (i < ftp.part.getValuesSize() - 1) {
-                  content += "#";
+              content += sfl.getLocation().substring(sfl.getLocation().lastIndexOf('/') + 1);
+              if (ftp.isPart) {
+                content += "\tADD\t" + ftp.part.getDbName() + "\t" + ftp.part.getTableName() + "\t";
+                for (int i = 0; i < ftp.part.getValuesSize(); i++) {
+                  Table t = partToTbl.get(ftp.part.getPartitionName());
+                  List<PartitionInfo> pis = PartitionInfo.getPartitionInfo(t.getPartitionKeys());
+                  for (PartitionInfo pi : pis) {
+                    if (pi.getP_level() == 1) {
+                      content += pi.getP_col() + "=";
+                      break;
+                    }
+                  }
+                  content += ftp.part.getValues().get(i);
+                  if (i < ftp.part.getValuesSize() - 1) {
+                    content += ",";
+                  }
                 }
+                content += "\n";
+              } else {
+                Table t = partToTbl.get(ftp.subpart.getPartitionName());
+                List<PartitionInfo> pis = PartitionInfo.getPartitionInfo(t.getPartitionKeys());
+                Partition pp;
+
+                synchronized (rs) {
+                  try {
+                    pp = rs.getParentPartition(ftp.subpart.getDbName(), ftp.subpart.getTableName(), ftp.subpart.getPartitionName());
+                  } catch (NoSuchObjectException e) {
+                    LOG.error(e, e);
+                    break;
+                  } catch (MetaException e) {
+                    LOG.error(e, e);
+                    break;
+                  }
+                }
+                content += "\tADD\t" + ftp.subpart.getDbName() + "\t" + ftp.subpart.getTableName() + "\t";
+                for (PartitionInfo pi : pis) {
+                  if (pi.getP_level() == 1) {
+                    content += pi.getP_col() + "=";
+                    for (int i = 0; i < pp.getValuesSize(); i++) {
+
+                      content += pp.getValues().get(i);
+                      if (i < pp.getValuesSize() - 1) {
+                        content += ",";
+                      }
+                    }
+                    content += "#";
+                  }
+                  if (pi.getP_level() == 2) {
+                    content += pi.getP_col() + "=";
+                    for (int i = 0; i < ftp.subpart.getValuesSize(); i++) {
+
+                      content += ftp.subpart.getValues().get(i);
+                      if (i < ftp.subpart.getValuesSize() - 1) {
+                        content += ",";
+                      }
+                    }
+                  }
+                }
+                content += "\n";
               }
-              content += "\n";
               break;
             }
           }
@@ -269,8 +351,9 @@ public class DiskManager {
         if (last_backupTs + backupTimeout <= System.currentTimeMillis()) {
           // TODO: generate manifest.desc and tableName.desc
           Set<Partition> parts = new TreeSet<Partition>();
-          Set<FileToPart> toAdd = new TreeSet<FileToPart>();
-          Set<FileToPart> toDrop = new TreeSet<FileToPart>();
+          Set<Subpartition> subparts = new TreeSet<Subpartition>();
+          Set<FileToPart> toAdd = new HashSet<FileToPart>();
+          Set<FileToPart> toDrop = new HashSet<FileToPart>();
           Queue<BackupEntry> localQ = new ConcurrentLinkedQueue<BackupEntry>();
 
           while (true) {
@@ -283,13 +366,14 @@ public class DiskManager {
               break;
             }
             // this is a valid entry, check if the file size is large enough
-            if (be.op == BackupEntry.FOP.ADD) {
+            if (be.op == BackupEntry.FOP.ADD_PART) {
               // refresh to check if the file is closed and has the proper length
               for (SFile f : be.files) {
                 SFile nf;
                 synchronized (rs) {
                   try {
                     nf = rs.getSFile(f.getFid());
+                    nf.setLocations(rs.getSFileLocations(f.getFid()));
                   } catch (MetaException e) {
                     LOG.error(e, e);
                     // lately reinsert back to the queue
@@ -297,31 +381,76 @@ public class DiskManager {
                     break;
                   }
                 }
+                if (nf != null && nf.getStore_status() == MetaStoreConst.MFileStoreStatus.INCREATE) {
+                  // this means we should wait a moment for the sfile
+                  localQ.add(be);
+                  break;
+                }
                 if (nf != null && ((nf.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED ||
                     nf.getStore_status() == MetaStoreConst.MFileStoreStatus.REPLICATED ||
                     nf.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_PHYSICAL) &&
                     nf.getLength() >= fileSizeThreshold)) {
                   // add this file to manifest.desc
-                  FileToPart ftp = new FileToPart(f, be.part);
+                  FileToPart ftp = new FileToPart(nf, be.part);
                   toAdd.add(ftp);
                   parts.add(be.part);
                 }
               }
-            } else if (be.op == BackupEntry.FOP.DROP) {
+            } else if (be.op == BackupEntry.FOP.DROP_PART) {
               for (SFile f : be.files) {
                 // add this file to manifest.desc
                 FileToPart ftp = new FileToPart(f, be.part);
                 toDrop.add(ftp);
                 parts.add(be.part);
               }
+            } else if (be.op == BackupEntry.FOP.ADD_SUBPART) {
+              // refresh to check if the file is closed and has the proper length
+              for (SFile f : be.files) {
+                SFile nf;
+                synchronized (rs) {
+                  try {
+                    nf = rs.getSFile(f.getFid());
+                    nf.setLocations(rs.getSFileLocations(f.getFid()));
+                  } catch (MetaException e) {
+                    LOG.error(e, e);
+                    // lately reinsert back to the queue
+                    localQ.add(be);
+                    break;
+                  }
+                }
+                if (nf != null && nf.getStore_status() == MetaStoreConst.MFileStoreStatus.INCREATE) {
+                  // this means we should wait a moment for the sfile
+                  localQ.add(be);
+                  break;
+                }
+                if (nf != null && ((nf.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED ||
+                    nf.getStore_status() == MetaStoreConst.MFileStoreStatus.REPLICATED ||
+                    nf.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_PHYSICAL) &&
+                    nf.getLength() >= fileSizeThreshold)) {
+                  // add this file to manifest.desc
+                  FileToPart ftp = new FileToPart(nf, be.subpart);
+                  toAdd.add(ftp);
+                  subparts.add(be.subpart);
+                }
+              }
+            } else if (be.op == BackupEntry.FOP.DROP_SUBPART) {
+              for (SFile f : be.files) {
+                // add this file to manifest.desc
+                FileToPart ftp = new FileToPart(f, be.subpart);
+                toDrop.add(ftp);
+                subparts.add(be.subpart);
+              }
             }
           }
           toAdd.removeAll(toDrop);
           // generate final desc files
-          if ((toAdd.size() + toDrop.size() > 0) && generateSyncFiles(parts, toAdd, toDrop)) {
+          if ((toAdd.size() + toDrop.size() > 0) && generateSyncFiles(parts, subparts, toAdd, toDrop)) {
             LOG.info("Generated SYNC dir around time " + System.currentTimeMillis() + ", toAdd " + toAdd.size() + ", toDrop " + toDrop.size());
           }
           last_backupTs = System.currentTimeMillis();
+          synchronized (backupQ) {
+            backupQ.addAll(localQ);
+          }
         }
       }
 
@@ -678,6 +807,54 @@ public class DiskManager {
       bktimer.schedule(bktt, 0, 5000);
     }
 
+    public List<String> getActiveNodes() throws MetaException {
+      List<String> r = new ArrayList<String>();
+
+      synchronized (ndmap) {
+        for (Map.Entry<String, NodeInfo> e : ndmap.entrySet()) {
+          r.add(e.getKey());
+        }
+      }
+
+      return r;
+    }
+
+    public List<String> getActiveDevices() throws MetaException {
+      List<String> r = new ArrayList<String>();
+
+      synchronized (ndmap) {
+        for (Map.Entry<String, NodeInfo> e : ndmap.entrySet()) {
+          for (DeviceInfo di : e.getValue().dis) {
+            r.add(di.dev);
+          }
+        }
+      }
+
+      return r;
+    }
+
+    public boolean markSFileLocationStatus(SFile toMark) throws MetaException {
+      boolean marked = false;
+      Set<String> activeDevs = new HashSet<String>();
+
+      synchronized (ndmap) {
+        for (Map.Entry<String, NodeInfo> e : ndmap.entrySet()) {
+          for (DeviceInfo di : e.getValue().dis) {
+            activeDevs.add(di.dev);
+          }
+        }
+      }
+
+      for (SFileLocation sfl : toMark.getLocations()) {
+        if (!activeDevs.contains(sfl.getDevid()) && sfl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
+          sfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.SUSPECT);
+          marked = true;
+        }
+      }
+
+      return marked;
+    }
+
     public String getDMStatus() throws MetaException {
       String r = "";
 
@@ -900,6 +1077,54 @@ public class DiskManager {
       return r;
     }
 
+    public List<Node> findBestNodesBySingleDev(int nr) throws IOException {
+      if (safeMode) {
+        throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
+      }
+      if (nr <= 0) {
+        return new ArrayList<Node>();
+      }
+      List<Node> r = new ArrayList<Node>(nr);
+      SortedMap<Long, String> m = new TreeMap<Long, String>();
+      HashSet<String> rset = new HashSet<String>();
+
+      for (Map.Entry<String, NodeInfo> entry : ndmap.entrySet()) {
+        NodeInfo ni = entry.getValue();
+        synchronized (ni) {
+          List<DeviceInfo> dis = ni.dis;
+
+          if (dis == null) {
+            continue;
+          }
+          for (DeviceInfo di : dis) {
+            if (di.free > 0) {
+              m.put(di.free, entry.getKey());
+            }
+          }
+        }
+      }
+
+      int i = 0;
+      for (Map.Entry<Long, String> entry : m.entrySet()) {
+        if (i >= nr) {
+          break;
+        }
+        synchronized (rs) {
+          try {
+            Node n = rs.getNode(entry.getValue());
+            if (n != null && !rset.contains(n.getNode_name())) {
+              r.add(n);
+              rset.add(n.getNode_name());
+              i++;
+            }
+          } catch (MetaException e) {
+            LOG.error(e, e);
+          }
+        }
+      }
+      return r;
+    }
+
     static public class FileLocatingPolicy {
       public static final int EXCLUDE_NODES_DEVS = 0;
       public static final int SPECIFY_NODES = 1;
@@ -1024,7 +1249,7 @@ public class DiskManager {
       }
       NodeInfo ni = ndmap.get(node);
       if (ni == null) {
-        throw new IOException("Node '" + node + "' does not exist in NDMap ...\n");
+        throw new IOException("Node '" + node + "' does not exist in NDMap, are you sure node '" + node + "' belongs to this MetaStore?" + hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER) + "\n");
       }
       List<DeviceInfo> dilist;
       synchronized (ni) {dilist = ni.dis;}

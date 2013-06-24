@@ -46,6 +46,7 @@ import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -1714,6 +1715,36 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       subpartNames.add(sp.getPartitionName());
     }
     return subpartNames;
+  }
+
+  @Override
+  public Datacenter get_local_center() throws MetaException, TException {
+    return client.get_local_center();
+  }
+
+  @Override
+  public List<Datacenter> get_all_centers() throws MetaException, TException {
+    return client.get_all_centers();
+  }
+
+  @Override
+  public Datacenter get_center(String name) throws NoSuchObjectException, MetaException, TException {
+    assert name != null;
+    return client.get_center(name);
+  }
+
+  @Override
+  public void create_datacenter(Datacenter datacenter) throws AlreadyExistsException,
+      InvalidObjectException, MetaException, TException {
+    assert datacenter != null;
+    client.create_datacenter(datacenter);
+  }
+
+  @Override
+  public void update_center(Datacenter datacenter) throws NoSuchObjectException,
+      InvalidOperationException, MetaException, TException {
+    assert datacenter != null;
+    client.update_center(datacenter);
   }
 
 }

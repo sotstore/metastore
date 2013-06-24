@@ -25,6 +25,7 @@ import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -1036,4 +1037,17 @@ public interface IMetaStoreClient {
   public boolean addDatawareHouseSql(Integer dwNum, String sql)throws MetaException, TException;
 
   public List<String> getSubPartitions(String dbName, String tabName, String partName) throws MetaException, TException;
+
+  public Datacenter get_local_center() throws MetaException, TException;
+
+  public List<Datacenter> get_all_centers() throws MetaException, TException;
+
+  public Datacenter get_center(String name) throws NoSuchObjectException, MetaException,
+        TException;
+
+  public void create_datacenter(Datacenter datacenter) throws AlreadyExistsException,
+        InvalidObjectException, MetaException, TException;
+
+  public void update_center(Datacenter datacenter) throws NoSuchObjectException,
+        InvalidOperationException, MetaException, TException;
 }

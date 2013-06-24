@@ -518,6 +518,14 @@ public interface RawStore extends Configurable {
 
   public abstract List<Subpartition> getSubpartitions(String dbname, String tbl_name, Partition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
 
+<<<<<<< HEAD
   public abstract List<BusiTypeColumn> getAllBusiTypeCols()throws MetaException;
+=======
+  public Partition getParentPartition(String dbName, String tableName, String subpart_name) throws NoSuchObjectException, MetaException;
+
+  public List<Datacenter> getAllDatacenters() throws MetaException;
+
+  public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException;
+>>>>>>> origin/test
 
 }

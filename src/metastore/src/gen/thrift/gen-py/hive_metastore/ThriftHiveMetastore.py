@@ -45,6 +45,13 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
+  def update_center(self, datacenter):
+    """
+    Parameters:
+     - datacenter
+    """
+    pass
+
   def get_all_centers(self, ):
     pass
 
@@ -1033,6 +1040,40 @@ class Client(fb303.FacebookService.Client, Iface):
       self._iprot.readMessageEnd()
       raise x
     result = drop_center_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.o1 is not None:
+      raise result.o1
+    if result.o2 is not None:
+      raise result.o2
+    if result.o3 is not None:
+      raise result.o3
+    return
+
+  def update_center(self, datacenter):
+    """
+    Parameters:
+     - datacenter
+    """
+    self.send_update_center(datacenter)
+    self.recv_update_center()
+
+  def send_update_center(self, datacenter):
+    self._oprot.writeMessageBegin('update_center', TMessageType.CALL, self._seqid)
+    args = update_center_args()
+    args.datacenter = datacenter
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_update_center(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = update_center_result()
     result.read(self._iprot)
     self._iprot.readMessageEnd()
     if result.o1 is not None:
@@ -4939,6 +4980,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["create_datacenter"] = Processor.process_create_datacenter
     self._processMap["get_center"] = Processor.process_get_center
     self._processMap["drop_center"] = Processor.process_drop_center
+    self._processMap["update_center"] = Processor.process_update_center
     self._processMap["get_all_centers"] = Processor.process_get_all_centers
     self._processMap["get_local_center"] = Processor.process_get_local_center
     self._processMap["get_lucene_index_names"] = Processor.process_get_lucene_index_names
@@ -5112,6 +5154,24 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     except MetaException as o3:
       result.o3 = o3
     oprot.writeMessageBegin("drop_center", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_update_center(self, seqid, iprot, oprot):
+    args = update_center_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = update_center_result()
+    try:
+      self._handler.update_center(args.datacenter)
+    except NoSuchObjectException as o1:
+      result.o1 = o1
+    except InvalidOperationException as o2:
+      result.o2 = o2
+    except MetaException as o3:
+      result.o3 = o3
+    oprot.writeMessageBegin("update_center", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -7268,6 +7328,154 @@ class drop_center_result:
   def __ne__(self, other):
     return not (self == other)
 
+class update_center_args:
+  """
+  Attributes:
+   - datacenter
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRUCT, 'datacenter', (Datacenter, Datacenter.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, datacenter=None,):
+    self.datacenter = datacenter
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRUCT:
+          self.datacenter = Datacenter()
+          self.datacenter.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('update_center_args')
+    if self.datacenter is not None:
+      oprot.writeFieldBegin('datacenter', TType.STRUCT, 1)
+      self.datacenter.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class update_center_result:
+  """
+  Attributes:
+   - o1
+   - o2
+   - o3
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRUCT, 'o1', (NoSuchObjectException, NoSuchObjectException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (InvalidOperationException, InvalidOperationException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'o3', (MetaException, MetaException.thrift_spec), None, ), # 3
+  )
+
+  def __init__(self, o1=None, o2=None, o3=None,):
+    self.o1 = o1
+    self.o2 = o2
+    self.o3 = o3
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = NoSuchObjectException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = InvalidOperationException()
+          self.o2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.o3 = MetaException()
+          self.o3.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('update_center_result')
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
+      self.o2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o3 is not None:
+      oprot.writeFieldBegin('o3', TType.STRUCT, 3)
+      self.o3.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class get_all_centers_args:
 
   thrift_spec = (
@@ -7318,7 +7526,7 @@ class get_all_centers_result:
   """
 
   thrift_spec = (
-    (0, TType.LIST, 'success', (TType.STRING,None), None, ), # 0
+    (0, TType.LIST, 'success', (TType.STRUCT,(Datacenter, Datacenter.thrift_spec)), None, ), # 0
     (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
   )
 
@@ -7340,7 +7548,8 @@ class get_all_centers_result:
           self.success = []
           (_etype297, _size294) = iprot.readListBegin()
           for _i298 in xrange(_size294):
-            _elem299 = iprot.readString();
+            _elem299 = Datacenter()
+            _elem299.read(iprot)
             self.success.append(_elem299)
           iprot.readListEnd()
         else:
@@ -7363,9 +7572,9 @@ class get_all_centers_result:
     oprot.writeStructBegin('get_all_centers_result')
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
-      oprot.writeListBegin(TType.STRING, len(self.success))
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
       for iter300 in self.success:
-        oprot.writeString(iter300)
+        iter300.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.o1 is not None:

@@ -65,8 +65,6 @@ public class MetaStoreUtils {
 
   protected static final Log LOG = LogFactory.getLog("hive.log");
 
-  public static final String DEFAULT_DATACENTER_NAME = "local_dc";
-
   public static final String DEFAULT_DATABASE_NAME = "default";
   public static final String DEFAULT_DATABASE_COMMENT = "Default Hive database";
 
