@@ -112,9 +112,11 @@ public class DiskManager {
 
     public static class DMRequest {
       public enum DMROperation {
-        REPLICATE, RM_PHYSICAL,
+        REPLICATE, RM_PHYSICAL, MIGRATE,
       }
       SFile file;
+      SFile tfile; // target file, only valid when op is MIGRATE
+      Map<String, String> devmap;
       DMROperation op;
       int begin_idx;
 
@@ -122,6 +124,13 @@ public class DiskManager {
         file = f;
         op = o;
         begin_idx = idx;
+      }
+
+      public DMRequest(SFile source, SFile target, Map<String, String> devmap) {
+        this.file = source;
+        this.tfile = target;
+        this.devmap = devmap;
+        op = DMROperation.MIGRATE;
       }
     }
 
@@ -1125,6 +1134,18 @@ public class DiskManager {
       return r;
     }
 
+    public String getMP(String node_name, String devid) throws MetaException {
+      NodeInfo ni = ndmap.get(node_name);
+      if (ni == null) {
+        throw new MetaException("Can't find Node '" + node_name + "' in ndmap.");
+      }
+      String mp = ni.getMP(devid);
+      if (mp == null) {
+        throw new MetaException("Can't find DEV '" + devid + "' in Node '" + node_name + "'.");
+      }
+      return mp;
+    }
+
     static public class FileLocatingPolicy {
       public static final int EXCLUDE_NODES_DEVS = 0;
       public static final int SPECIFY_NODES = 1;
@@ -1464,6 +1485,65 @@ public class DiskManager {
                 LOG.error(e, e);
               }
             }
+          } else if (r.op == DMRequest.DMROperation.MIGRATE) {
+            SFileLocation source = null, target = null;
+
+            // select a source node
+            if (r.file == null || r.tfile == null) {
+              LOG.error("Invalid DMRequest provided, NULL SFile!");
+              continue;
+            }
+            if (r.file.getLocationsSize() > 0) {
+              // select the 0th location
+              source = r.file.getLocations().get(0);
+            }
+            // determine the target node
+            if (r.tfile.getLocationsSize() > 0) {
+              // select the 0th location
+              target = r.file.getLocations().get(0);
+            }
+            // indicate file transfer
+            JSONObject jo = new JSONObject();
+            try {
+              JSONObject j = new JSONObject();
+              NodeInfo ni = ndmap.get(source.getNode_name());
+
+              if (ni == null) {
+                throw new IOException("Can not find Node '" + source.getNode_name() + "' in ndoemap now.");
+              }
+              j.put("node_name", source.getNode_name());
+              j.put("devid", source.getDevid());
+              j.put("mp", ni.getMP(source.getDevid()));
+              j.put("location", source.getLocation());
+              jo.put("from", j);
+
+              j = new JSONObject();
+              if (r.devmap.get(target.getDevid()) == null) {
+                throw new IOException("Can not find DEV '" + target.getDevid() + "' in pre-generated devmap.");
+              }
+              j.put("node_name", target.getNode_name());
+              j.put("devid", target.getDevid());
+              j.put("mp", r.devmap.get(target.getDevid()));
+              j.put("location", target.getLocation());
+              jo.put("to", j);
+            } catch (JSONException e) {
+              LOG.error(e, e);
+              continue;
+            } catch (IOException e) {
+              LOG.error(e, e);
+              continue;
+            }
+            synchronized (ndmap) {
+              NodeInfo ni = ndmap.get(source.getNode_name());
+              if (ni == null) {
+                LOG.error("Can not find Node '" + source.getNode_name() + "' in nodemap.");
+              } else {
+                synchronized (ni.toRep) {
+                  ni.toRep.add(jo);
+                  LOG.info("----> ADD toRep (by migrate)" + jo);
+                }
+              }
+            }
           }
         }
       }
@@ -1678,6 +1758,11 @@ public class DiskManager {
                       synchronized (rs) {
                         newsfl = rs.getSFileLocation(args[0], args[1], args[2]);
                         if (newsfl == null) {
+                          if (ndmap.get(args[0]) == null) {
+                            // this means REP might actually MIGRATE
+                            LOG.info("----> MIGRATE to " + args[0] + ":" + args[1] + "/" + args[2] + " DONE.");
+                            break;
+                          }
                           throw new MetaException("Can not find SFileLocation " + args[0] + "," + args[1] + "," + args[2]);
                         }
                         SFile file = rs.getSFile(newsfl.getFid());

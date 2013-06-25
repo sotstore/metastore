@@ -128,6 +128,9 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void find_best_nodes(std::vector<Node> & _return, const int32_t nr) = 0;
   virtual void get_all_nodes(std::vector<Node> & _return) = 0;
   virtual void getDMStatus(std::string& _return) = 0;
+  virtual void migrate_in(std::map<int64_t, SFile> & _return, const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc) = 0;
+  virtual bool migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) = 0;
+  virtual void getMP(std::string& _return, const std::string& node_name, const std::string& devid) = 0;
 };
 
 class ThriftHiveMetastoreIfFactory : virtual public  ::facebook::fb303::FacebookServiceIfFactory {
@@ -528,6 +531,16 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return;
   }
   void getDMStatus(std::string& /* _return */) {
+    return;
+  }
+  void migrate_in(std::map<int64_t, SFile> & /* _return */, const Table& /* tbl */, const std::vector<Partition> & /* parts */, const std::string& /* from_dc */) {
+    return;
+  }
+  bool migrate_out(const std::string& /* dbName */, const std::string& /* tableName */, const std::vector<std::string> & /* partNames */, const std::string& /* to_dc */) {
+    bool _return = false;
+    return _return;
+  }
+  void getMP(std::string& /* _return */, const std::string& /* node_name */, const std::string& /* devid */) {
     return;
   }
 };
@@ -15753,6 +15766,414 @@ class ThriftHiveMetastore_getDMStatus_presult {
 
 };
 
+typedef struct _ThriftHiveMetastore_migrate_in_args__isset {
+  _ThriftHiveMetastore_migrate_in_args__isset() : tbl(false), parts(false), from_dc(false) {}
+  bool tbl;
+  bool parts;
+  bool from_dc;
+} _ThriftHiveMetastore_migrate_in_args__isset;
+
+class ThriftHiveMetastore_migrate_in_args {
+ public:
+
+  ThriftHiveMetastore_migrate_in_args() : from_dc() {
+  }
+
+  virtual ~ThriftHiveMetastore_migrate_in_args() throw() {}
+
+  Table tbl;
+  std::vector<Partition>  parts;
+  std::string from_dc;
+
+  _ThriftHiveMetastore_migrate_in_args__isset __isset;
+
+  void __set_tbl(const Table& val) {
+    tbl = val;
+  }
+
+  void __set_parts(const std::vector<Partition> & val) {
+    parts = val;
+  }
+
+  void __set_from_dc(const std::string& val) {
+    from_dc = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_migrate_in_args & rhs) const
+  {
+    if (!(tbl == rhs.tbl))
+      return false;
+    if (!(parts == rhs.parts))
+      return false;
+    if (!(from_dc == rhs.from_dc))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_migrate_in_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_migrate_in_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_migrate_in_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_migrate_in_pargs() throw() {}
+
+  const Table* tbl;
+  const std::vector<Partition> * parts;
+  const std::string* from_dc;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_migrate_in_result__isset {
+  _ThriftHiveMetastore_migrate_in_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_migrate_in_result__isset;
+
+class ThriftHiveMetastore_migrate_in_result {
+ public:
+
+  ThriftHiveMetastore_migrate_in_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_migrate_in_result() throw() {}
+
+  std::map<int64_t, SFile>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_migrate_in_result__isset __isset;
+
+  void __set_success(const std::map<int64_t, SFile> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_migrate_in_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_migrate_in_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_migrate_in_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_migrate_in_presult__isset {
+  _ThriftHiveMetastore_migrate_in_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_migrate_in_presult__isset;
+
+class ThriftHiveMetastore_migrate_in_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_migrate_in_presult() throw() {}
+
+  std::map<int64_t, SFile> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_migrate_in_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_migrate_out_args__isset {
+  _ThriftHiveMetastore_migrate_out_args__isset() : dbName(false), tableName(false), partNames(false), to_dc(false) {}
+  bool dbName;
+  bool tableName;
+  bool partNames;
+  bool to_dc;
+} _ThriftHiveMetastore_migrate_out_args__isset;
+
+class ThriftHiveMetastore_migrate_out_args {
+ public:
+
+  ThriftHiveMetastore_migrate_out_args() : dbName(), tableName(), to_dc() {
+  }
+
+  virtual ~ThriftHiveMetastore_migrate_out_args() throw() {}
+
+  std::string dbName;
+  std::string tableName;
+  std::vector<std::string>  partNames;
+  std::string to_dc;
+
+  _ThriftHiveMetastore_migrate_out_args__isset __isset;
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_tableName(const std::string& val) {
+    tableName = val;
+  }
+
+  void __set_partNames(const std::vector<std::string> & val) {
+    partNames = val;
+  }
+
+  void __set_to_dc(const std::string& val) {
+    to_dc = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_migrate_out_args & rhs) const
+  {
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(tableName == rhs.tableName))
+      return false;
+    if (!(partNames == rhs.partNames))
+      return false;
+    if (!(to_dc == rhs.to_dc))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_migrate_out_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_migrate_out_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_migrate_out_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_migrate_out_pargs() throw() {}
+
+  const std::string* dbName;
+  const std::string* tableName;
+  const std::vector<std::string> * partNames;
+  const std::string* to_dc;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_migrate_out_result__isset {
+  _ThriftHiveMetastore_migrate_out_result__isset() : success(false), o2(false) {}
+  bool success;
+  bool o2;
+} _ThriftHiveMetastore_migrate_out_result__isset;
+
+class ThriftHiveMetastore_migrate_out_result {
+ public:
+
+  ThriftHiveMetastore_migrate_out_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_migrate_out_result() throw() {}
+
+  bool success;
+  MetaException o2;
+
+  _ThriftHiveMetastore_migrate_out_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o2(const MetaException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_migrate_out_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_migrate_out_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_migrate_out_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_migrate_out_presult__isset {
+  _ThriftHiveMetastore_migrate_out_presult__isset() : success(false), o2(false) {}
+  bool success;
+  bool o2;
+} _ThriftHiveMetastore_migrate_out_presult__isset;
+
+class ThriftHiveMetastore_migrate_out_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_migrate_out_presult() throw() {}
+
+  bool* success;
+  MetaException o2;
+
+  _ThriftHiveMetastore_migrate_out_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_getMP_args__isset {
+  _ThriftHiveMetastore_getMP_args__isset() : node_name(false), devid(false) {}
+  bool node_name;
+  bool devid;
+} _ThriftHiveMetastore_getMP_args__isset;
+
+class ThriftHiveMetastore_getMP_args {
+ public:
+
+  ThriftHiveMetastore_getMP_args() : node_name(), devid() {
+  }
+
+  virtual ~ThriftHiveMetastore_getMP_args() throw() {}
+
+  std::string node_name;
+  std::string devid;
+
+  _ThriftHiveMetastore_getMP_args__isset __isset;
+
+  void __set_node_name(const std::string& val) {
+    node_name = val;
+  }
+
+  void __set_devid(const std::string& val) {
+    devid = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_getMP_args & rhs) const
+  {
+    if (!(node_name == rhs.node_name))
+      return false;
+    if (!(devid == rhs.devid))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_getMP_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_getMP_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_getMP_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_getMP_pargs() throw() {}
+
+  const std::string* node_name;
+  const std::string* devid;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_getMP_result__isset {
+  _ThriftHiveMetastore_getMP_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_getMP_result__isset;
+
+class ThriftHiveMetastore_getMP_result {
+ public:
+
+  ThriftHiveMetastore_getMP_result() : success() {
+  }
+
+  virtual ~ThriftHiveMetastore_getMP_result() throw() {}
+
+  std::string success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_getMP_result__isset __isset;
+
+  void __set_success(const std::string& val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_getMP_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_getMP_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_getMP_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_getMP_presult__isset {
+  _ThriftHiveMetastore_getMP_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_getMP_presult__isset;
+
+class ThriftHiveMetastore_getMP_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_getMP_presult() throw() {}
+
+  std::string* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_getMP_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  ::facebook::fb303::FacebookServiceClient {
  public:
   ThriftHiveMetastoreClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -16101,6 +16522,15 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void getDMStatus(std::string& _return);
   void send_getDMStatus();
   void recv_getDMStatus(std::string& _return);
+  void migrate_in(std::map<int64_t, SFile> & _return, const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc);
+  void send_migrate_in(const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc);
+  void recv_migrate_in(std::map<int64_t, SFile> & _return);
+  bool migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc);
+  void send_migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc);
+  bool recv_migrate_out();
+  void getMP(std::string& _return, const std::string& node_name, const std::string& devid);
+  void send_getMP(const std::string& node_name, const std::string& devid);
+  void recv_getMP(std::string& _return);
 };
 
 class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceProcessor {
@@ -16223,6 +16653,9 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_find_best_nodes(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_all_nodes(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getDMStatus(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_migrate_in(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_migrate_out(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_getMP(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   ThriftHiveMetastoreProcessor(boost::shared_ptr<ThriftHiveMetastoreIf> iface) :
      ::facebook::fb303::FacebookServiceProcessor(iface),
@@ -16339,6 +16772,9 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["find_best_nodes"] = &ThriftHiveMetastoreProcessor::process_find_best_nodes;
     processMap_["get_all_nodes"] = &ThriftHiveMetastoreProcessor::process_get_all_nodes;
     processMap_["getDMStatus"] = &ThriftHiveMetastoreProcessor::process_getDMStatus;
+    processMap_["migrate_in"] = &ThriftHiveMetastoreProcessor::process_migrate_in;
+    processMap_["migrate_out"] = &ThriftHiveMetastoreProcessor::process_migrate_out;
+    processMap_["getMP"] = &ThriftHiveMetastoreProcessor::process_getMP;
   }
 
   virtual ~ThriftHiveMetastoreProcessor() {}
@@ -17434,6 +17870,35 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->getDMStatus(_return);
     }
     ifaces_[i]->getDMStatus(_return);
+    return;
+  }
+
+  void migrate_in(std::map<int64_t, SFile> & _return, const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->migrate_in(_return, tbl, parts, from_dc);
+    }
+    ifaces_[i]->migrate_in(_return, tbl, parts, from_dc);
+    return;
+  }
+
+  bool migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->migrate_out(dbName, tableName, partNames, to_dc);
+    }
+    return ifaces_[i]->migrate_out(dbName, tableName, partNames, to_dc);
+  }
+
+  void getMP(std::string& _return, const std::string& node_name, const std::string& devid) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->getMP(_return, node_name, devid);
+    }
+    ifaces_[i]->getMP(_return, node_name, devid);
     return;
   }
 

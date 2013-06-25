@@ -1050,4 +1050,9 @@ public interface IMetaStoreClient {
 
   public void update_center(Datacenter datacenter) throws NoSuchObjectException,
         InvalidOperationException, MetaException, TException;
+
+  public Map<Long, SFile> migrate_in(Table tbl, List<Partition> parts, String from_dc)
+        throws MetaException, TException;
+
+  public String getMP(String node_name, String devid) throws MetaException, TException;
 }

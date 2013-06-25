@@ -1877,6 +1877,54 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getDMStatus failed: unknown result')
     end
 
+    def migrate_in(tbl, parts, from_dc)
+      send_migrate_in(tbl, parts, from_dc)
+      return recv_migrate_in()
+    end
+
+    def send_migrate_in(tbl, parts, from_dc)
+      send_message('migrate_in', Migrate_in_args, :tbl => tbl, :parts => parts, :from_dc => from_dc)
+    end
+
+    def recv_migrate_in()
+      result = receive_message(Migrate_in_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate_in failed: unknown result')
+    end
+
+    def migrate_out(dbName, tableName, partNames, to_dc)
+      send_migrate_out(dbName, tableName, partNames, to_dc)
+      return recv_migrate_out()
+    end
+
+    def send_migrate_out(dbName, tableName, partNames, to_dc)
+      send_message('migrate_out', Migrate_out_args, :dbName => dbName, :tableName => tableName, :partNames => partNames, :to_dc => to_dc)
+    end
+
+    def recv_migrate_out()
+      result = receive_message(Migrate_out_result)
+      return result.success unless result.success.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate_out failed: unknown result')
+    end
+
+    def getMP(node_name, devid)
+      send_getMP(node_name, devid)
+      return recv_getMP()
+    end
+
+    def send_getMP(node_name, devid)
+      send_message('getMP', GetMP_args, :node_name => node_name, :devid => devid)
+    end
+
+    def recv_getMP()
+      result = receive_message(GetMP_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getMP failed: unknown result')
+    end
+
   end
 
   class Processor < ::FacebookService::Processor 
@@ -3274,6 +3322,39 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'getDMStatus', seqid)
+    end
+
+    def process_migrate_in(seqid, iprot, oprot)
+      args = read_args(iprot, Migrate_in_args)
+      result = Migrate_in_result.new()
+      begin
+        result.success = @handler.migrate_in(args.tbl, args.parts, args.from_dc)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'migrate_in', seqid)
+    end
+
+    def process_migrate_out(seqid, iprot, oprot)
+      args = read_args(iprot, Migrate_out_args)
+      result = Migrate_out_result.new()
+      begin
+        result.success = @handler.migrate_out(args.dbName, args.tableName, args.partNames, args.to_dc)
+      rescue ::MetaException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'migrate_out', seqid)
+    end
+
+    def process_getMP(seqid, iprot, oprot)
+      args = read_args(iprot, GetMP_args)
+      result = GetMP_result.new()
+      begin
+        result.success = @handler.getMP(args.node_name, args.devid)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'getMP', seqid)
     end
 
   end
@@ -7534,6 +7615,120 @@ module ThriftHiveMetastore
   end
 
   class GetDMStatus_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate_in_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    TBL = 1
+    PARTS = 2
+    FROM_DC = 3
+
+    FIELDS = {
+      TBL => {:type => ::Thrift::Types::STRUCT, :name => 'tbl', :class => ::Table},
+      PARTS => {:type => ::Thrift::Types::LIST, :name => 'parts', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Partition}},
+      FROM_DC => {:type => ::Thrift::Types::STRING, :name => 'from_dc'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate_in_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate_out_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    TABLENAME = 2
+    PARTNAMES = 3
+    TO_DC = 4
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+      TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
+      PARTNAMES => {:type => ::Thrift::Types::LIST, :name => 'partNames', :element => {:type => ::Thrift::Types::STRING}},
+      TO_DC => {:type => ::Thrift::Types::STRING, :name => 'to_dc'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate_out_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O2 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetMP_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NODE_NAME = 1
+    DEVID = 2
+
+    FIELDS = {
+      NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'},
+      DEVID => {:type => ::Thrift::Types::STRING, :name => 'devid'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetMP_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1
