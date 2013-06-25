@@ -26,6 +26,7 @@ import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
+import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
@@ -832,6 +833,37 @@ public class DummyRawStoreForJdoConnection implements RawStore {
       throws InvalidObjectException, NoSuchObjectException, MetaException {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public void setThisDC(String thisDC) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public List<BusiTypeColumn> getAllBusiTypeCols() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Partition getParentPartition(String dbName, String tableName, String subpart_name)
+      throws NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<Datacenter> getAllDatacenters() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
   }
 }
 

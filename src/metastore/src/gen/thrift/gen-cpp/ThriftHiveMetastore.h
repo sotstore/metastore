@@ -23,6 +23,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void get_all_centers(std::vector<Datacenter> & _return) = 0;
   virtual void get_local_center(Datacenter& _return) = 0;
   virtual void get_lucene_index_names(std::vector<std::string> & _return, const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes) = 0;
+  virtual void get_all_busi_type_cols(std::vector<BusiTypeColumn> & _return) = 0;
   virtual bool add_datawarehouse_sql(const int32_t dwNum, const std::string& sql) = 0;
   virtual int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files) = 0;
   virtual int32_t drop_partition_files(const Partition& part, const std::vector<SFile> & files) = 0;
@@ -179,6 +180,9 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return;
   }
   void get_lucene_index_names(std::vector<std::string> & /* _return */, const std::string& /* db_name */, const std::string& /* tbl_name */, const int16_t /* max_indexes */) {
+    return;
+  }
+  void get_all_busi_type_cols(std::vector<BusiTypeColumn> & /* _return */) {
     return;
   }
   bool add_datawarehouse_sql(const int32_t /* dwNum */, const std::string& /* sql */) {
@@ -1414,6 +1418,110 @@ class ThriftHiveMetastore_get_lucene_index_names_presult {
   MetaException o2;
 
   _ThriftHiveMetastore_get_lucene_index_names_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class ThriftHiveMetastore_get_all_busi_type_cols_args {
+ public:
+
+  ThriftHiveMetastore_get_all_busi_type_cols_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_all_busi_type_cols_args() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_get_all_busi_type_cols_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_all_busi_type_cols_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_all_busi_type_cols_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_get_all_busi_type_cols_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_all_busi_type_cols_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_all_busi_type_cols_result__isset {
+  _ThriftHiveMetastore_get_all_busi_type_cols_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_get_all_busi_type_cols_result__isset;
+
+class ThriftHiveMetastore_get_all_busi_type_cols_result {
+ public:
+
+  ThriftHiveMetastore_get_all_busi_type_cols_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_all_busi_type_cols_result() throw() {}
+
+  std::vector<BusiTypeColumn>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_get_all_busi_type_cols_result__isset __isset;
+
+  void __set_success(const std::vector<BusiTypeColumn> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_all_busi_type_cols_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_all_busi_type_cols_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_all_busi_type_cols_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_all_busi_type_cols_presult__isset {
+  _ThriftHiveMetastore_get_all_busi_type_cols_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_get_all_busi_type_cols_presult__isset;
+
+class ThriftHiveMetastore_get_all_busi_type_cols_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_all_busi_type_cols_presult() throw() {}
+
+  std::vector<BusiTypeColumn> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_get_all_busi_type_cols_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -16207,6 +16315,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void get_lucene_index_names(std::vector<std::string> & _return, const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes);
   void send_get_lucene_index_names(const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes);
   void recv_get_lucene_index_names(std::vector<std::string> & _return);
+  void get_all_busi_type_cols(std::vector<BusiTypeColumn> & _return);
+  void send_get_all_busi_type_cols();
+  void recv_get_all_busi_type_cols(std::vector<BusiTypeColumn> & _return);
   bool add_datawarehouse_sql(const int32_t dwNum, const std::string& sql);
   void send_add_datawarehouse_sql(const int32_t dwNum, const std::string& sql);
   bool recv_add_datawarehouse_sql();
@@ -16548,6 +16659,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_get_all_centers(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_local_center(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_lucene_index_names(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_all_busi_type_cols(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_add_datawarehouse_sql(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_add_partition_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_drop_partition_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -16667,6 +16779,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["get_all_centers"] = &ThriftHiveMetastoreProcessor::process_get_all_centers;
     processMap_["get_local_center"] = &ThriftHiveMetastoreProcessor::process_get_local_center;
     processMap_["get_lucene_index_names"] = &ThriftHiveMetastoreProcessor::process_get_lucene_index_names;
+    processMap_["get_all_busi_type_cols"] = &ThriftHiveMetastoreProcessor::process_get_all_busi_type_cols;
     processMap_["add_datawarehouse_sql"] = &ThriftHiveMetastoreProcessor::process_add_datawarehouse_sql;
     processMap_["add_partition_files"] = &ThriftHiveMetastoreProcessor::process_add_partition_files;
     processMap_["drop_partition_files"] = &ThriftHiveMetastoreProcessor::process_drop_partition_files;
@@ -16872,6 +16985,16 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->get_lucene_index_names(_return, db_name, tbl_name, max_indexes);
     }
     ifaces_[i]->get_lucene_index_names(_return, db_name, tbl_name, max_indexes);
+    return;
+  }
+
+  void get_all_busi_type_cols(std::vector<BusiTypeColumn> & _return) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->get_all_busi_type_cols(_return);
+    }
+    ifaces_[i]->get_all_busi_type_cols(_return);
     return;
   }
 

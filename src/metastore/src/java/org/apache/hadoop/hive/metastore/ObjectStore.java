@@ -60,10 +60,12 @@ import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.BooleanColumnStatsData;
+import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsData;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
+import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.DoubleColumnStatsData;
@@ -132,10 +134,15 @@ import org.apache.hadoop.hive.metastore.model.MTableColumnStatistics;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
 import org.apache.hadoop.hive.metastore.model.MType;
 import org.apache.hadoop.hive.metastore.msg.MSGFactory;
+import org.apache.hadoop.hive.metastore.msg.MSGFactory.DDLMsg;
+import org.apache.hadoop.hive.metastore.msg.MSGType;
+import org.apache.hadoop.hive.metastore.msg.MetaMsgServer;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree.ANTLRNoCaseStringStream;
 import org.apache.hadoop.hive.metastore.parser.FilterLexer;
 import org.apache.hadoop.hive.metastore.parser.FilterParser;
 import org.apache.hadoop.util.StringUtils;
+
+import com.taobao.metamorphosis.exception.MetaClientException;
 
 /**
  * This class is the interface between the application logic and the database
@@ -291,6 +298,16 @@ public class ObjectStore implements RawStore, Configurable {
         restoreFID();
       }
     }
+
+    //add by zjw for messge queue
+    String zkAddr = prop.getProperty(Constants.META_JDO_ZOOKER_ADDR);
+    MetaMsgServer.setZkAddr(zkAddr);
+    try {
+      MetaMsgServer.start();
+    } catch (MetaClientException e) {
+      LOG.error(e+"---start-metaQ--error",e);
+    }
+
     return;
   }
 
@@ -374,7 +391,7 @@ public class ObjectStore implements RawStore, Configurable {
 
   public boolean openTransaction() {
     openTrasactionCalls++;
-    LOG.debug("-----openTransaction:"+openTrasactionCalls);
+//    LOG.debug("-----openTransaction:"+openTrasactionCalls);
     if (openTrasactionCalls == 1) {
       currentTransaction = pm.currentTransaction();
       currentTransaction.begin();
@@ -409,7 +426,7 @@ public class ObjectStore implements RawStore, Configurable {
               + " mismatching open and close calls or rollback was called in the same trasaction");
     }
     openTrasactionCalls--;
-    LOG.debug("-----commitTransaction:"+openTrasactionCalls);
+//    LOG.debug("-----commitTransaction:"+openTrasactionCalls);
     if ((openTrasactionCalls == 0) && currentTransaction.isActive()) {
       transactionStatus = TXN_STATUS.COMMITED;
       currentTransaction.commit();
@@ -432,7 +449,7 @@ public class ObjectStore implements RawStore, Configurable {
    * Rolls back the current transaction if it is active
    */
   public void rollbackTransaction() {
-    LOG.debug("-----rollbackTransaction:"+openTrasactionCalls);
+//    LOG.debug("-----rollbackTransaction:"+openTrasactionCalls);
     if (openTrasactionCalls < 1) {
       return;
     }
@@ -453,7 +470,9 @@ public class ObjectStore implements RawStore, Configurable {
     mdb.setDescription(db.getDescription());
     mdb.setParameters(db.getParameters());
     try {
-      mdb.setDatacenter(getMDatacenter(db.getDatacenter().getName()));
+      if(db.getDatacenter()!= null){
+        mdb.setDatacenter(getMDatacenter(db.getDatacenter().getName()));
+      }
     } catch (NoSuchObjectException e) {
       throw new InvalidObjectException("This datacenter " + db.getDatacenter().getName() + " is invalid.");
     }
@@ -467,8 +486,9 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     LOG.warn("---zjw---in createdatabase");
-    MSGFactory.generateDDLMsg(org.apache.hadoop.hive.metastore.msg.MSGType.MSG_NEW_DATABESE,
-        (pm.getObjectId(mdb)),mdb);
+    DDLMsg msg = MSGFactory.generateDDLMsg(org.apache.hadoop.hive.metastore.msg.MSGType.MSG_NEW_DATABESE,
+        pm,mdb,null);
+    MetaMsgServer.sendMsg(msg);
   }
 
   @SuppressWarnings("nls")
@@ -1158,11 +1178,14 @@ public class ObjectStore implements RawStore, Configurable {
 
       commited = commitTransaction();
 
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_NEW_TALBE, pm, mtbl,null));
     } finally {
       if (!commited) {
         rollbackTransaction();
       }
     }
+
+
   }
 
   /**
@@ -2125,6 +2148,15 @@ public class ObjectStore implements RawStore, Configurable {
     return mkeys;
   }
 
+  private FieldSchema convertToFieldSchema(MFieldSchema mkey) {
+    FieldSchema key = null;
+    if (key != null) {
+      key = new FieldSchema(mkey.getName().toLowerCase(),
+          mkey.getType(), mkey.getComment());
+    }
+    return key;
+  }
+
   private List<FieldSchema> convertToFieldSchemas(List<MFieldSchema> mkeys) {
     List<FieldSchema> keys = null;
     if (mkeys != null) {
@@ -2511,6 +2543,7 @@ public class ObjectStore implements RawStore, Configurable {
     MPartition mpart = new MPartition(part.getPartitionName(), mt, null,part.getValues(), part.getFiles(), part
         .getCreateTime(), part.getLastAccessTime(),
         msd, part.getParameters());
+    mpart.setPartition_level(1);
 
     if(part.getSubpartitions() != null){
       LOG.warn("--zjw--getSubPartitions is not null,size"+part.getSubpartitions().size());
@@ -2557,9 +2590,11 @@ public class ObjectStore implements RawStore, Configurable {
 //        .getPartitionKeys()), part.getValues()), mt, part.getValues(), part
 //        .getCreateTime(), part.getLastAccessTime(),
 //        msd, part.getParameters());
-    return new MPartition(part.getPartitionName(), mt,null, part.getValues(), part.getFiles(), part
+    MPartition mpart = new MPartition(part.getPartitionName(), mt,null, part.getValues(), part.getFiles(), part
         .getCreateTime(), part.getLastAccessTime(),
         msd, part.getParameters());
+    mpart.setPartition_level(2);
+    return mpart;
   }
 
   public List<MPartition> convertToMParts(List<Partition> parts, boolean useTableCD, String dbName)
@@ -7158,6 +7193,32 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     return subparts;
+  }
+
+  @Override
+  public List<BusiTypeColumn> getAllBusiTypeCols() throws MetaException {
+    List<BusiTypeColumn> btcols = new ArrayList<BusiTypeColumn>();
+
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MBusiTypeColumn.class);
+      List<MBusiTypeColumn> mbtcs = (List<MBusiTypeColumn>) query.execute();
+      pm.retrieveAll(mbtcs);
+      for (Iterator i = mbtcs.iterator(); i.hasNext();) {
+        MBusiTypeColumn col = (MBusiTypeColumn)i.next();
+        BusiTypeColumn btc = new BusiTypeColumn(col.getBusiType(),
+            convertToTable(col.getTable()),this.convertToFieldSchema(col.getColumn()));
+        btcols.add(btc);
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+
+    return btcols;
   }
 
 }

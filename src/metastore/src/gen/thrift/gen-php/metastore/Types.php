@@ -3928,6 +3928,128 @@ class Table {
 
 }
 
+class BusiTypeColumn {
+  static $_TSPEC;
+
+  public $busiType = null;
+  public $table = null;
+  public $column = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'busiType',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'table',
+          'type' => TType::STRUCT,
+          'class' => '\metastore\Table',
+          ),
+        3 => array(
+          'var' => 'column',
+          'type' => TType::STRUCT,
+          'class' => '\metastore\FieldSchema',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['busiType'])) {
+        $this->busiType = $vals['busiType'];
+      }
+      if (isset($vals['table'])) {
+        $this->table = $vals['table'];
+      }
+      if (isset($vals['column'])) {
+        $this->column = $vals['column'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'BusiTypeColumn';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->busiType);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->table = new \metastore\Table();
+            $xfer += $this->table->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->column = new \metastore\FieldSchema();
+            $xfer += $this->column->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('BusiTypeColumn');
+    if ($this->busiType !== null) {
+      $xfer += $output->writeFieldBegin('busiType', TType::STRING, 1);
+      $xfer += $output->writeString($this->busiType);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->table !== null) {
+      if (!is_object($this->table)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('table', TType::STRUCT, 2);
+      $xfer += $this->table->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->column !== null) {
+      if (!is_object($this->column)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('column', TType::STRUCT, 3);
+      $xfer += $this->column->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
 class Node {
   static $_TSPEC;
 

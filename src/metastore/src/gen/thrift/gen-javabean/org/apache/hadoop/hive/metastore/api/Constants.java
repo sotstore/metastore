@@ -58,4 +58,6 @@ public class Constants {
 
   public static final String META_HETER_VIEW  = "view.heter";
 
+  public static final String META_JDO_ZOOKER_ADDR  = "jdo.mq.zookeeper.address";
+
 }

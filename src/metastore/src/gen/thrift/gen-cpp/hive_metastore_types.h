@@ -1526,6 +1526,65 @@ class Table {
 
 void swap(Table &a, Table &b);
 
+typedef struct _BusiTypeColumn__isset {
+  _BusiTypeColumn__isset() : busiType(false), table(false), column(false) {}
+  bool busiType;
+  bool table;
+  bool column;
+} _BusiTypeColumn__isset;
+
+class BusiTypeColumn {
+ public:
+
+  static const char* ascii_fingerprint; // = "5EE62A78913B77139932A51C30CF5629";
+  static const uint8_t binary_fingerprint[16]; // = {0x5E,0xE6,0x2A,0x78,0x91,0x3B,0x77,0x13,0x99,0x32,0xA5,0x1C,0x30,0xCF,0x56,0x29};
+
+  BusiTypeColumn() : busiType() {
+  }
+
+  virtual ~BusiTypeColumn() throw() {}
+
+  std::string busiType;
+  Table table;
+  FieldSchema column;
+
+  _BusiTypeColumn__isset __isset;
+
+  void __set_busiType(const std::string& val) {
+    busiType = val;
+  }
+
+  void __set_table(const Table& val) {
+    table = val;
+  }
+
+  void __set_column(const FieldSchema& val) {
+    column = val;
+  }
+
+  bool operator == (const BusiTypeColumn & rhs) const
+  {
+    if (!(busiType == rhs.busiType))
+      return false;
+    if (!(table == rhs.table))
+      return false;
+    if (!(column == rhs.column))
+      return false;
+    return true;
+  }
+  bool operator != (const BusiTypeColumn &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const BusiTypeColumn & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(BusiTypeColumn &a, BusiTypeColumn &b);
+
 typedef struct _Node__isset {
   _Node__isset() : node_name(false), ips(false), status(false) {}
   bool node_name;

@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
+import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
@@ -517,10 +518,14 @@ public interface RawStore extends Configurable {
 
   public abstract List<Subpartition> getSubpartitions(String dbname, String tbl_name, Partition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
 
+
+  public abstract List<BusiTypeColumn> getAllBusiTypeCols()throws MetaException;
+
   public Partition getParentPartition(String dbName, String tableName, String subpart_name) throws NoSuchObjectException, MetaException;
 
   public List<Datacenter> getAllDatacenters() throws MetaException;
 
   public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException;
+
 
 }
