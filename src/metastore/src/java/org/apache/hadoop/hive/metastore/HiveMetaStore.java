@@ -4445,10 +4445,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public void create_datacenter(Datacenter datacenter) throws AlreadyExistsException,
         InvalidObjectException, MetaException, TException {
-<<<<<<< HEAD
-      // TODO Auto-generated method stub
-=======
->>>>>>> origin/test
       getMS().createDatacenter(datacenter);
     }
 
@@ -4671,14 +4667,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-<<<<<<< HEAD
     public List<BusiTypeColumn> get_all_busi_type_cols() throws MetaException, TException {
       return getMS().getAllBusiTypeCols();
-=======
+    }
+
     public void update_center(Datacenter datacenter) throws NoSuchObjectException,
         InvalidOperationException, MetaException, TException {
       getMS().updateDatacenter(datacenter);
->>>>>>> origin/test
     }
 
   }

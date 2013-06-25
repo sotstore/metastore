@@ -846,6 +846,25 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
     return null;
   }
+
+  @Override
+  public Partition getParentPartition(String dbName, String tableName, String subpart_name)
+      throws NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<Datacenter> getAllDatacenters() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
 }
 
 
