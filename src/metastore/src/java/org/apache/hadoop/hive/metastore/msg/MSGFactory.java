@@ -3,11 +3,15 @@ package org.apache.hadoop.hive.metastore.msg;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jdo.PersistenceManager;
 
 import net.sf.json.JSONObject;
+import net.sf.json.JSONSerializer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -27,7 +31,7 @@ public class MSGFactory {
   public static class DDLMsg{
      private long event_id;//事件类型
      private long object_id;
-     private String msg_data;//事件内容（可能为空）
+     private HashMap<String,Object> msg_data;//事件内容（可能为空）
      private Object eventObject;
 
      private long msg_id;//     消息ID
@@ -35,14 +39,14 @@ public class MSGFactory {
      private long node_id;//节点ID
      private long event_time;//事件发生事件
      private String event_handler;//事件处理函数（可能为空）
-     HashMap<String,String> old_object_params;//对于修改操作，提供修改前对象的参数
+     private HashMap<String,Object> old_object_params;//对于修改操作，提供修改前对象的参数
 
 
 
+     public DDLMsg(){}
 
-
-     public DDLMsg(long event_id, long object_id, String msg_data, Object eventObject, long msg_id,
-        long db_id, long node_id, long event_time, String event_handler,HashMap<String,String> old_object_params) {
+     public DDLMsg(long event_id, long object_id,  HashMap<String,Object> msg_data, Object eventObject, long msg_id,
+        long db_id, long node_id, long event_time, String event_handler,HashMap<String,Object> old_object_params) {
       super();
       this.event_id = event_id;
       this.object_id = object_id;
@@ -63,10 +67,10 @@ public class MSGFactory {
     public void setObject_id(long object_id) {
       this.object_id = object_id;
     }
-    public String getMsg_data() {
+    public HashMap<String,Object> getMsg_data() {
       return msg_data;
     }
-    public void setMsg_data(String msg_data) {
+    public void setMsg_data( HashMap<String,Object> msg_data) {
       this.msg_data = msg_data;
     }
     public Object getEventObject() {
@@ -112,11 +116,11 @@ public class MSGFactory {
       this.event_handler = event_handler;
     }
 
-    public HashMap<String,String> getOld_object_params() {
+    public HashMap<String,Object> getOld_object_params() {
       return old_object_params;
     }
 
-    public void setOld_object_params(HashMap<String,String> old_object_params) {
+    public void setOld_object_params(HashMap<String,Object> old_object_params) {
       this.old_object_params = old_object_params;
     }
 
@@ -125,28 +129,70 @@ public class MSGFactory {
       JSONObject jsonObject = new JSONObject();
       jsonObject.put("event_id", event_id);
       jsonObject.put("object_id", object_id);
-      jsonObject.put("msg_data", msg_data);
-      jsonObject.put("eventObject", eventObject);
+      jsonObject.put("msg_data", parserMapToJson(msg_data));
+//      jsonObject.put("eventObject", eventObject);
       jsonObject.put("msg_id", msg_id);
       jsonObject.put("db_id", db_id);
       jsonObject.put("node_id", node_id);
       jsonObject.put("event_time", event_time);
       jsonObject.put("event_handler", event_handler);
 
-//      JSONObject old_object_json = new JSONObject();
-//      if(old_object_params != null){
-//        for(Entry<String,String> arg : old_object_params.entrySet()){
-//          old_object_json.put(arg.getKey(),arg.getValue());
-//        }
-//        jsonObject.put("old_object_params", old_object_json.toString());
-//      }
+
 
       String jsonData = jsonObject.toString();
       LOG.warn("---zjw--json:"+jsonData);
 
       return jsonData;
     }
+
+    public static DDLMsg fromJson(String jsonData){
+      JSONObject json = (JSONObject)JSONSerializer.toJSON(jsonData);
+
+      DDLMsg msg = new DDLMsg();
+      msg.event_id = Long.parseLong(json.getString("event_id"));
+      msg.object_id = Long.parseLong(json.getString("object_id"));
+//      msg.msg_data = json.getString("msg_data");
+      msg.msg_data = (HashMap<String,Object>)parserJsonToMap(json.getString("msg_data"));
+      msg.msg_id = Long.parseLong(json.getString("msg_id"));
+      msg.db_id = Long.parseLong(json.getString("db_id"));
+      msg.node_id = Long.parseLong(json.getString("node_id"));
+      msg.event_time = Long.parseLong(json.getString("event_time"));
+      msg.event_handler = json.getString("event_handler");
+
+      return msg;
+
+    }
   }
+
+  public static String parserMapToJson(Map<String,Object> map){
+    JSONObject json = new JSONObject();
+    if(map != null){
+      for(Entry<String,Object> arg : map.entrySet()){
+        json.put(arg.getKey(),arg.getValue());
+      }
+    }
+    return json.toString();
+  }
+
+  public static Map<String, Object> parserJsonToMap(String json) {
+    Map<String, Object> map = new HashMap<String, Object>();
+//    Map<String, String> map = new HashMap<String, String>();
+    JSONObject jsonObject = JSONObject.fromObject(json);
+    Iterator<String> keys = jsonObject.keys();
+    while (keys.hasNext()) {
+        String key = (String) keys.next();
+        String value = jsonObject.get(key).toString();
+        if (value.startsWith("{") && value.endsWith("}")) {
+            map.put(key, parserJsonToMap(value));
+        } else {
+            map.put(key, value);
+        }
+    }
+    return map;
+}
+
+
+
 /**
  * todo:按照要求，传送给后端的类字符串应该是同数据库字段是一一对应的
  * @param msgType
@@ -164,7 +210,7 @@ public class MSGFactory {
     }
   }
 
-   public static DDLMsg generateDDLMsg(long event_id ,PersistenceManager pm , Object eventObject,HashMap<String,String> old_object_params){
+   public static DDLMsg generateDDLMsg(long event_id ,PersistenceManager pm , Object eventObject,HashMap<String,Object> old_object_params){
 
      String jsonData;
      Object objectId = pm.getObjectId(eventObject);
@@ -184,7 +230,7 @@ public class MSGFactory {
      return new MSGFactory.DDLMsg(event_id, id, null, eventObject, max_msg_id++, -1, -1, now, null,old_object_params);
    }
 
-  public static List<DDLMsg> generateDDLMsg(long event_id ,PersistenceManager pm ,List<Object> eventObjects,HashMap<String,String> old_object_params){
+  public static List<DDLMsg> generateDDLMsg(long event_id ,PersistenceManager pm ,List<Object> eventObjects,HashMap<String,Object> old_object_params){
 
     List<DDLMsg> msgs = new ArrayList<DDLMsg>();
     long now = new Date().getTime()/1000;
@@ -212,8 +258,8 @@ public class MSGFactory {
 
   public static String getMsgData(DDLMsg msg) {
 
-//    HashMap<String,String> params = new HashMap<String,String>();
-    JSONObject params = new JSONObject();
+    HashMap<String,Object> params = new HashMap<String,Object>();
+
 
     switch((int)msg.getEvent_id()){
       case MSGType.MSG_NEW_DATABESE :
@@ -229,7 +275,7 @@ public class MSGFactory {
           params.put("datacenter_name",alt_db.getDatacenter().getName());
           params.put("db_name",alt_db.getName());
           if(msg.getOld_object_params().containsKey("old_db_name")){
-            params.put("old_db_name",msg.getOld_object_params().containsKey("old_db_name"));
+            params.put("old_db_name",msg.getOld_object_params().get("old_db_name"));
           }
           break;
       case MSGType.MSG_ALTER_DATABESE_PARAM :
@@ -238,7 +284,7 @@ public class MSGFactory {
           params.put("datacenter_name",alt_param_db.getDatacenter().getName());
           params.put("db_name",alt_param_db.getName());
           if(msg.getOld_object_params().containsKey("param_name")){
-            params.put("param_name",msg.getOld_object_params().containsKey("param_name"));
+            params.put("param_name",msg.getOld_object_params().get("param_name"));
           }
           break;
       case MSGType.MSG_DROP_DATABESE :
@@ -260,7 +306,7 @@ public class MSGFactory {
           params.put("db_name",alt_tbl.getDatabase().getName());
           params.put("table_name",alt_tbl.getTableName());
           if(msg.getOld_object_params().containsKey("old_table_name")){
-            params.put("old_table_name",msg.getOld_object_params().containsKey("old_table_name"));
+            params.put("old_table_name",msg.getOld_object_params().get("old_table_name"));
           }
           break;
       case MSGType.MSG_ALT_TALBE_DISTRIBUTE :
@@ -272,10 +318,10 @@ public class MSGFactory {
           params.put("db_name",alt_distribute_tbl.getDatabase().getName());
           params.put("table_name",alt_distribute_tbl.getTableName());
           if(msg.getOld_object_params().containsKey("table_distribute")){
-            params.put("table_distribute",msg.getOld_object_params().containsKey("table_distribute"));
+            params.put("table_distribute",msg.getOld_object_params().get("table_distribute"));
           }
           if(msg.getOld_object_params().containsKey("old_table_distribute")){
-            params.put("old_table_distribute",msg.getOld_object_params().containsKey("old_table_distribute"));
+            params.put("old_table_distribute",msg.getOld_object_params().get("old_table_distribute"));
           }
           break;
       case MSGType.MSG_ALT_TALBE_PARTITIONING :
@@ -284,7 +330,7 @@ public class MSGFactory {
           params.put("db_name",alt_partitioning_tbl.getDatabase().getName());
           params.put("table_name",alt_partitioning_tbl.getTableName());
           if(msg.getOld_object_params().containsKey("p_version")){
-            params.put("p_version",msg.getOld_object_params().containsKey("old_table_name"));
+            params.put("p_version",msg.getOld_object_params().get("old_table_name"));
           }
           break;
       case MSGType.MSG_ALT_TALBE_DEL_COL :
@@ -293,7 +339,7 @@ public class MSGFactory {
           params.put("db_name",del_col_tbl.getDatabase().getName());
           params.put("table_name",del_col_tbl.getTableName());
           if(msg.getOld_object_params().containsKey("column_name")){
-            params.put("column_name",msg.getOld_object_params().containsKey("column_name"));
+            params.put("column_name",msg.getOld_object_params().get("column_name"));
           }
           break;
       case MSGType.MSG_ALT_TALBE_ADD_COL :
@@ -302,7 +348,7 @@ public class MSGFactory {
           params.put("db_name",add_col_tbl.getDatabase().getName());
           params.put("table_name",add_col_tbl.getTableName());
           if(msg.getOld_object_params().containsKey("column_name")){
-            params.put("column_name",msg.getOld_object_params().containsKey("column_name"));
+            params.put("column_name",msg.getOld_object_params().get("column_name"));
           }
           break;
       case MSGType.MSG_ALT_TALBE_ALT_COL_NAME :
@@ -311,10 +357,10 @@ public class MSGFactory {
           params.put("db_name",alt_col_tbl.getDatabase().getName());
           params.put("table_name",alt_col_tbl.getTableName());
           if(msg.getOld_object_params().containsKey("column_name")){
-            params.put("column_name",msg.getOld_object_params().containsKey("column_name"));
+            params.put("column_name",msg.getOld_object_params().get("column_name"));
           }
           if(msg.getOld_object_params().containsKey("old_column_name")){
-            params.put("old_column_name",msg.getOld_object_params().containsKey("old_column_name"));
+            params.put("old_column_name",msg.getOld_object_params().get("old_column_name"));
           }
           break;
       case MSGType.MSG_ALT_TALBE_ALT_COL_TYPE :
@@ -323,10 +369,10 @@ public class MSGFactory {
           params.put("db_name",alt_col_type_tbl.getDatabase().getName());
           params.put("table_name",alt_col_type_tbl.getTableName());
           if(msg.getOld_object_params().containsKey("column_type")){
-            params.put("column_type",msg.getOld_object_params().containsKey("column_type"));
+            params.put("column_type",msg.getOld_object_params().get("column_type"));
           }
           if(msg.getOld_object_params().containsKey("old_column_type")){
-            params.put("old_column_type",msg.getOld_object_params().containsKey("old_column_type"));
+            params.put("old_column_type",msg.getOld_object_params().get("old_column_type"));
           }
       break;
       case MSGType.MSG_ALT_TALBE_ALT_COL_LENGTH : break;
@@ -348,7 +394,7 @@ public class MSGFactory {
           params.put("partition_name", alt_part.getPartitionName());
           params.put("partition_level", alt_part.getPartition_level());
           if(msg.getOld_object_params().containsKey("old_partition_name")){
-            params.put("old_partition_name",msg.getOld_object_params().containsKey("old_partition_name"));
+            params.put("old_partition_name",msg.getOld_object_params().get("old_partition_name"));
           }
           break;
       case MSGType.MSG_DEL_PARTITION :
@@ -364,7 +410,7 @@ public class MSGFactory {
           MFile file = (MFile)msg.getEventObject();
           params.put("file_id",file.getFid());
           if(msg.getOld_object_params().containsKey("partition_name")){
-            params.put("partition_name",msg.getOld_object_params().containsKey("partition_name"));
+            params.put("partition_name",msg.getOld_object_params().get("partition_name"));
           }
           break;
       case MSGType.MSG_ALT_PARTITION_FILE :
@@ -372,7 +418,7 @@ public class MSGFactory {
           MFile alt_file = (MFile)msg.getEventObject();
           params.put("file_id",alt_file.getFid());
           if(msg.getOld_object_params().containsKey("partition_name")){
-            params.put("partition_name",msg.getOld_object_params().containsKey("partition_name"));
+            params.put("partition_name",msg.getOld_object_params().get("partition_name"));
           }
           break;
       case MSGType.MSG_REP_PARTITION_FILE_CHAGE :
@@ -380,7 +426,7 @@ public class MSGFactory {
           MFile file_rep = (MFile)msg.getEventObject();
           params.put("file_id",file_rep.getFid());
           if(msg.getOld_object_params().containsKey("partition_name")){
-            params.put("partition_name",msg.getOld_object_params().containsKey("partition_name"));
+            params.put("partition_name",msg.getOld_object_params().get("partition_name"));
           }
           break;
       case MSGType.MSG_STA_PARTITION_FILE_CHAGE :
@@ -388,7 +434,7 @@ public class MSGFactory {
           MFile stat_file = (MFile)msg.getEventObject();
           params.put("file_id",stat_file.getFid());
           if(msg.getOld_object_params().containsKey("partition_name")){
-            params.put("partition_name",msg.getOld_object_params().containsKey("partition_name"));
+            params.put("partition_name",msg.getOld_object_params().get("partition_name"));
           }
           break;
       case MSGType.MSG_REP_PARTITION_FILE_ONOFF :
@@ -396,7 +442,7 @@ public class MSGFactory {
           MFile onoff_file = (MFile)msg.getEventObject();
           params.put("file_id",onoff_file.getFid());
           if(msg.getOld_object_params().containsKey("partition_name")){
-            params.put("partition_name",msg.getOld_object_params().containsKey("partition_name"));
+            params.put("partition_name",msg.getOld_object_params().get("partition_name"));
           }
           break;
       case MSGType.MSG_DEL_PARTITION_FILE :
@@ -404,7 +450,7 @@ public class MSGFactory {
           MFile del_file = (MFile)msg.getEventObject();
           params.put("file_id",del_file.getFid());
           if(msg.getOld_object_params().containsKey("partition_name")){
-            params.put("partition_name",msg.getOld_object_params().containsKey("partition_name"));
+            params.put("partition_name",msg.getOld_object_params().get("partition_name"));
           }
           break;
       case MSGType.MSG_NEW_INDEX :
@@ -425,7 +471,7 @@ public class MSGFactory {
           params.put("db_name",alt_param_index.getIndexTable().getDatabase().getName());
           params.put("index_name",alt_param_index.getIndexName());
           if(msg.getOld_object_params().containsKey("param_name")){
-            params.put("param_name",msg.getOld_object_params().containsKey("param_name"));
+            params.put("param_name",msg.getOld_object_params().get("param_name"));
           }
       case MSGType.MSG_DEL_INDEX : break;
             //删除列索引
@@ -455,7 +501,7 @@ public class MSGFactory {
           MFile idx_file = (MFile)msg.getEventObject();
           params.put("file_id",idx_file.getFid());
           if(msg.getOld_object_params().containsKey("part_index_store_id")){
-            params.put("part_index_store_id",msg.getOld_object_params().containsKey("part_index_store_id"));
+            params.put("part_index_store_id",msg.getOld_object_params().get("part_index_store_id"));
           }
           break;
       case MSGType.MSG_ALT_PARTITION_INDEX_FILE :
@@ -463,7 +509,7 @@ public class MSGFactory {
           MFile alt_idx_file = (MFile)msg.getEventObject();
           params.put("file_id",alt_idx_file.getFid());
           if(msg.getOld_object_params().containsKey("part_index_store_id")){
-            params.put("part_index_store_id",msg.getOld_object_params().containsKey("part_index_store_id"));
+            params.put("part_index_store_id",msg.getOld_object_params().get("part_index_store_id"));
           }
           break;
       case MSGType.MSG_REP_PARTITION_INDEX_FILE_CHAGE :
@@ -471,7 +517,7 @@ public class MSGFactory {
           MFile idx_file_rep = (MFile)msg.getEventObject();
           params.put("file_id",idx_file_rep.getFid());
           if(msg.getOld_object_params().containsKey("part_index_store_id")){
-            params.put("part_index_store_id",msg.getOld_object_params().containsKey("part_index_store_id"));
+            params.put("part_index_store_id",msg.getOld_object_params().get("part_index_store_id"));
           }
           break;
       case MSGType.MSG_STA_PARTITION_INDEX_FILE_CHAGE :
@@ -479,7 +525,7 @@ public class MSGFactory {
           MFile stat_idx_file = (MFile)msg.getEventObject();
           params.put("file_id",stat_idx_file.getFid());
           if(msg.getOld_object_params().containsKey("part_index_store_id")){
-            params.put("part_index_store_id",msg.getOld_object_params().containsKey("part_index_store_id"));
+            params.put("part_index_store_id",msg.getOld_object_params().get("part_index_store_id"));
           }
           break;
       case MSGType.MSG_REP_PARTITION_INDEX_FILE_ONOFF :
@@ -487,7 +533,7 @@ public class MSGFactory {
           MFile onoff_idx_file = (MFile)msg.getEventObject();
           params.put("file_id",onoff_idx_file.getFid());
           if(msg.getOld_object_params().containsKey("part_index_store_id")){
-            params.put("part_index_store_id",msg.getOld_object_params().containsKey("part_index_store_id"));
+            params.put("part_index_store_id",msg.getOld_object_params().get("part_index_store_id"));
           }
           break;
       case MSGType.MSG_DEL_PARTITION_INDEX_FILE :
@@ -495,7 +541,7 @@ public class MSGFactory {
           MFile del_idx_file = (MFile)msg.getEventObject();
           params.put("file_id",del_idx_file.getFid());
           if(msg.getOld_object_params().containsKey("part_index_store_id")){
-            params.put("part_index_store_id",msg.getOld_object_params().containsKey("part_index_store_id"));
+            params.put("part_index_store_id",msg.getOld_object_params().get("part_index_store_id"));
           }
           break;
       case MSGType.MSG_NEW_NODE :
@@ -525,10 +571,19 @@ public class MSGFactory {
           break;
     }//end of switch
 
-    String jsonData = params.toString();
-    msg.setMsg_data(jsonData);
+//    String jsonData = params.toString();
+    msg.setMsg_data(params);
     return msg.toJson();
   }
 
+  public static void main(String args[]){
+    Map<String,Object > map = new HashMap<String ,Object>();
+    map.put("a", 1);
+    map.put("b", "haah");
+    String s = MSGFactory.parserMapToJson(map);
+    System.out.println(s);
+    Map r = MSGFactory.parserJsonToMap(s);
+    System.out.println(s);
+  }
 
 }

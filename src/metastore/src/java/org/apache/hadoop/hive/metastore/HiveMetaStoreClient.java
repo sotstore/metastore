@@ -418,7 +418,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
    * @throws HiveException
    *           if table doesn't exist or partition already exists
    */
-  public Partition createPartition(Table tbl, String partitionName, Map<String, String> partSpec) throws HiveException {
+  public Partition createPartition(Table tbl, String partitionName, Map<String, String> partSpec) throws MetaException,TException {
      return this.createPartition(tbl, partitionName, partSpec, null, null, null, null, 0, null, null, null, null, null);
   }
 
@@ -450,7 +450,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       Path location, Map<String, String> partParams, String inputFormat, String outputFormat,
       int numBuckets, List<FieldSchema> cols,
       String serializationLib, Map<String, String> serdeParams,
-      List<String> bucketCols, List<Order> sortCols) throws HiveException {
+      List<String> bucketCols, List<Order> sortCols) throws MetaException,TException {
 
     org.apache.hadoop.hive.metastore.api.Partition partition = null;
     List<String> pvals = new ArrayList<String>();
@@ -473,7 +473,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       sd.read(prot);
     } catch (TException e) {
       LOG.error("Could not create a copy of StorageDescription");
-      throw new HiveException("Could not create a copy of StorageDescription",e);
+      throw new TException("Could not create a copy of StorageDescription",e);
     }
 
     inPart.setSd(sd);
@@ -510,7 +510,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     }
 
     if (tbl.getPartitionKeys() == null || tbl.getPartitionKeys().isEmpty()){
-        throw new HiveException("Invalid partition for table " + tbl.getTableName());
+        throw new MetaException("Invalid partition for table " + tbl.getTableName());
     }
 
 
@@ -520,7 +520,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       partition = add_partition(inPart);
     } catch (Exception e) {
       LOG.error(StringUtils.stringifyException(e));
-      throw new HiveException(e);
+      throw new TException(e);
     }
 
     return partition;
