@@ -472,6 +472,8 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       if(db.getDatacenter()!= null){
         mdb.setDatacenter(getMDatacenter(db.getDatacenter().getName()));
+      }else{
+        mdb.setDatacenter(getMDatacenter(this.g_thisDC));
       }
     } catch (NoSuchObjectException e) {
       throw new InvalidObjectException("This datacenter " + db.getDatacenter().getName() + " is invalid.");
@@ -2406,7 +2408,8 @@ public class ObjectStore implements RawStore, Configurable {
       }
 
       commited = commitTransaction();
-
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_NEW_PARTITION,
+          pm,part,null));
 
       /*****************NOTE oracle does not commit here.*****************/
 //      pm.flush();//
@@ -2597,7 +2600,7 @@ public class ObjectStore implements RawStore, Configurable {
     return mpart;
   }
 
-  public List<MPartition> convertToMParts(List<Partition> parts, boolean useTableCD, String dbName)
+  private List<MPartition> convertToMParts(List<Partition> parts, boolean useTableCD, String dbName)
       throws InvalidObjectException, MetaException {
     if(parts == null) {
       return null;
@@ -3638,6 +3641,32 @@ public class ObjectStore implements RawStore, Configurable {
       oldp.setFiles(newPart.getFiles());
       pm.makePersistent(oldp);
       success = commitTransaction();
+
+      //added by zjw for msg queue
+      HashSet<Long> new_set = new HashSet<Long>();
+      if(newPart.getFiles() != null){
+        new_set.addAll(newPart.getFiles());
+      }
+      HashSet<Long> old_set = new HashSet<Long>();
+      if(oldp.getFiles() != null){
+        old_set.addAll(oldp.getFiles());
+      }
+
+      /**
+       * 注意，如果分区文件数量没有变化，消息不会推送到后端
+       */
+      if(new_set.size() > old_set.size()){
+        new_set.removeAll(old_set);
+
+        MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_NEW_PARTITION_FILE,
+            pm,new_set.toArray(new Long[0]),null));
+      }else if(new_set.size() < old_set.size()){
+        old_set.removeAll(new_set);
+        MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_PARTITION_FILE,
+            pm,old_set.toArray(new Long[0]),null));
+      }
+
+
     } finally {
       if (!success) {
         rollbackTransaction();
@@ -3796,6 +3825,9 @@ public class ObjectStore implements RawStore, Configurable {
       MIndex idx = convertToMIndex(index);
       pm.makePersistent(idx);
       commited = commitTransaction();
+
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_NEW_INDEX,
+          pm,idx,null));
       return true;
     } finally {
       if (!commited) {
