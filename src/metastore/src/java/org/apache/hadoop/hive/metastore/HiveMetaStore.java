@@ -4451,7 +4451,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public Datacenter get_center(String name) throws NoSuchObjectException, MetaException,
         TException {
-      return getMS().getDatacenter(name);
+      if (hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER)) {
+        return getMS().getDatacenter(name);
+      } else {
+        if (HMSHandler.topdcli == null) {
+          connect_to_top_dc(hiveConf);
+        }
+        return HMSHandler.topdcli.get_center(name);
+      }
     }
 
     @Override
@@ -4467,6 +4474,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       if (hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER)) {
         return getMS().getAllDatacenters();
       } else {
+        if (HMSHandler.topdcli == null) {
+          connect_to_top_dc(hiveConf);
+        }
         return HMSHandler.topdcli.get_all_centers();
       }
     }
@@ -4679,6 +4689,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public Map<Long, SFile> migrate_in(Table tbl, List<Partition> parts, String from_dc)
         throws MetaException, TException {
+      LOG.info("server parts2 " + parts.get(0).getSubpartitions().get(0).getPartitionName() + ", " + parts.get(0).getSubpartitions().get(0).getFiles());
       Map<Long, SFile> rmap = new HashMap<Long, SFile>();
 
       // try to create the database, if it doesn't exist
@@ -4703,7 +4714,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         getMS().createDatabase(db);
       }
       // try to create the table, if it doesn't exist
-      create_table(tbl);
+      try {
+        create_table(tbl);
+      } catch (AlreadyExistsException e) {
+        // it is ok, ignore it.
+      }
 
       // try to create the partition, if it doesn't exist
       List<Partition> toAdd = new ArrayList<Partition>();
@@ -4723,31 +4738,52 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
       // try to create the file
       for (Partition part : parts) {
+        LOG.info("Handle partition " + part.getPartitionName() + ", subparts NR " + part.getSubpartitionsSize());
         if (part.getSubpartitionsSize() > 0) {
           for (Subpartition subpart : part.getSubpartitions()) {
+            LOG.info("subparts " + subpart.getPartitionName() + ", " + subpart.getFiles());
             // handle files
+            Subpartition localsubpart = getMS().getSubpartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
+            List<SFile> files = new ArrayList<SFile>();
+
+            if (localsubpart == null) {
+              throw new MetaException("Invalid local subpart: " + subpart.getPartitionName());
+            }
+
             if (subpart.getFilesSize() > 0) {
               for (long fid : subpart.getFiles()) {
                 // create a new target file
                 SFile f = create_file(null, 3, tbl.getDbName(), tbl.getTableName());
+                files.add(f);
                 rmap.put(fid, f);
               }
             }
+            add_subpartition_files(localsubpart, files);
           }
         } else {
           // handle files
           if (part.getFilesSize() > 0) {
+            Partition localpart = getMS().getPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
+            List<SFile> files = new ArrayList<SFile>();
+
+            if (localpart == null) {
+              throw new MetaException("Invalid local part: " + part.getPartitionName());
+            }
+            LOG.info("parts " + part.getPartitionName() + ", " + part.getFiles().toString());
+
             for (long fid : part.getFiles()) {
               // create a new target file
               SFile f = create_file(null, 3, tbl.getDbName(), tbl.getTableName());
+              files.add(f);
               rmap.put(fid, f);
             }
+            add_partition_files(localpart, files);
           }
         }
       }
 
       LOG.info("OK, we will migrate DC " + from_dc + " DB " + tbl.getDbName() + " Table " +
-          tbl.getTableName() + "'s " + parts.size() + " Partitions w/ " + rmap.size() +
+          tbl.getTableName() + "'s " + parts.size() + " Partition(s) w/ " + rmap.size() +
           " files to local DC.");
 
       return rmap;
@@ -4773,7 +4809,19 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
       // prepare tbl, parts
       Table tbl = getMS().getTable(dbName, tableName);
+      LOG.info("parts: " + partNames.toString());
       List<Partition> parts = getMS().getPartitionsByNames(dbName, tableName, partNames);
+      if (parts.size() == 0) {
+        LOG.info("Zero partition list, do not migrate!");
+        rcli.close();
+        return false;
+      }
+      for (Partition p : parts) {
+        LOG.info("p " + p.getPartitionName() + " subparts " + p.getSubpartitionsSize());
+        for (Subpartition sp : p.getSubpartitions()) {
+          LOG.info("sp " + sp.getPartitionName() + " files " + sp.getFiles().toString());
+        }
+      }
 
       // call remote metastore's migrate_in to prepare metadata
       Map<Long, SFile> rmap = rcli.migrate_in(tbl, parts, ldc.getName());
@@ -4964,6 +5012,25 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
   }
 
+  static void connect_to_top_dc(HiveConf conf) throws MetaException {
+    boolean is_top_dc = conf.getBoolVar(ConfVars.IS_TOP_DATACENTER);
+    if (!is_top_dc) {
+      LOG.info("Begin connecting to Top-level Datacenter Metastore ...");
+      String top_dc_uri = conf.getVar(ConfVars.TOP_DATACENTER);
+      if (top_dc_uri == null) {
+        throw new MetaException("Please set 'hive.datacenter.top' as top-level metastore URI." );
+      }
+      try {
+      HMSHandler.topdcli = new HiveMetaStoreClient(top_dc_uri,
+          HiveConf.getIntVar(conf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
+          conf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
+          null);
+      } catch (MetaException me) {
+        LOG.info("Connect to top-level Datacenter failed!");
+      }
+    }
+  }
+
   /**
    * Start Metastore based on a passed {@link HadoopThriftAuthBridge}
    *
@@ -4989,18 +5056,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       HiveConf conf) throws Throwable {
     try {
       // init connection to top-level datacenter if it is not top-level dc
-      boolean is_top_dc = conf.getBoolVar(ConfVars.IS_TOP_DATACENTER);
-      if (!is_top_dc) {
-        LOG.info("Begin connecting to Top-level Datacenter Metastore ...");
-        String top_dc_uri = conf.getVar(ConfVars.TOP_DATACENTER);
-        if (top_dc_uri == null) {
-          throw new MetaException("Please set 'hive.datacenter.top' as top-level metastore URI." );
-        }
-        HMSHandler.topdcli = new HiveMetaStoreClient(top_dc_uri,
-            HiveConf.getIntVar(conf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
-            conf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
-            null);
-      }
+      connect_to_top_dc(conf);
+
       // generate this msuri
       HMSHandler.msUri = "thrift://" + InetAddress.getLocalHost().getHostName() + ":" + port;
 

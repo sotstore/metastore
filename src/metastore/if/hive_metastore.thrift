@@ -765,7 +765,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   string getDMStatus() throws(1:MetaException o1)
   
-  map<i64, SFile> migrate_in(1:Table tbl, 2:list<Partition> parts, 3: string from_dc) throws (1:MetaException o1)
+  map<i64, SFile> migrate_in(1:Table tbl, 2:list<Partition> parts, 3:string from_dc) throws (1:MetaException o1)
   
   bool migrate_out(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc) throws (1:MetaException o2)
   

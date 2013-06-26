@@ -6968,6 +6968,23 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
+  public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException {
+    boolean success = false;
+    try {
+      openTransaction();
+      MDatacenter mdc = getMDatacenter(dc_name);
+      if (mdc != null) {
+        pm.deletePersistent(mdc);
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
   private boolean dropPartitionIndexStore(Index index, Partition part, SFile store) throws InvalidObjectException,
       NoSuchObjectException, MetaException {
     boolean success = false;
