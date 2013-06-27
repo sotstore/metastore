@@ -1747,4 +1747,30 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     client.update_center(datacenter);
   }
 
+  @Override
+  public Map<Long, SFile> migrate_in(Table tbl, List<Partition> parts, String from_dc)
+      throws MetaException, TException {
+    assert tbl != null;
+    assert parts != null;
+    assert from_dc != null;
+    LOG.info("client parts " + parts.get(0).getSubpartitions().get(0).getFiles());
+    return client.migrate_in(tbl, parts, from_dc);
+  }
+
+  @Override
+  public String getMP(String node_name, String devid) throws MetaException, TException {
+    assert node_name != null;
+    assert devid != null;
+    return client.getMP(node_name, devid);
+  }
+
+  @Override
+  public boolean migrate_out(String dbName, String tableName, List<String> partNames, String to_dc)
+      throws MetaException, TException {
+    assert dbName != null;
+    assert tableName != null;
+    assert partNames != null;
+    assert to_dc != null;
+    return client.migrate_out(dbName, tableName, partNames, to_dc);
+  }
 }

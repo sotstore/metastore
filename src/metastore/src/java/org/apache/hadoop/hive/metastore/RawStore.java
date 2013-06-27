@@ -527,5 +527,5 @@ public interface RawStore extends Configurable {
 
   public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException;
 
-
+  public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException;
 }

@@ -764,6 +764,12 @@ service ThriftHiveMetastore extends fb303.FacebookService
   list<Node> get_all_nodes() throws(1:MetaException o1)
   
   string getDMStatus() throws(1:MetaException o1)
+  
+  map<i64, SFile> migrate_in(1:Table tbl, 2:list<Partition> parts, 3:string from_dc) throws (1:MetaException o1)
+  
+  bool migrate_out(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc) throws (1:MetaException o2)
+  
+  string getMP(1:string node_name, 2:string devid) throws (1:MetaException o1) 
 }
 
 // * Note about the DDL_TIME: When creating or altering a table or a partition,
