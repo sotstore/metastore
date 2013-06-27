@@ -4045,6 +4045,123 @@ class BusiTypeColumn {
 
 }
 
+class BusiTypeDatacenter {
+  static $_TSPEC;
+
+  public $busiType = null;
+  public $dc = null;
+  public $db_name = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'busiType',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'dc',
+          'type' => TType::STRUCT,
+          'class' => '\metastore\Datacenter',
+          ),
+        3 => array(
+          'var' => 'db_name',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['busiType'])) {
+        $this->busiType = $vals['busiType'];
+      }
+      if (isset($vals['dc'])) {
+        $this->dc = $vals['dc'];
+      }
+      if (isset($vals['db_name'])) {
+        $this->db_name = $vals['db_name'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'BusiTypeDatacenter';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->busiType);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->dc = new \metastore\Datacenter();
+            $xfer += $this->dc->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->db_name);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('BusiTypeDatacenter');
+    if ($this->busiType !== null) {
+      $xfer += $output->writeFieldBegin('busiType', TType::STRING, 1);
+      $xfer += $output->writeString($this->busiType);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->dc !== null) {
+      if (!is_object($this->dc)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('dc', TType::STRUCT, 2);
+      $xfer += $this->dc->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->db_name !== null) {
+      $xfer += $output->writeFieldBegin('db_name', TType::STRING, 3);
+      $xfer += $output->writeString($this->db_name);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
 class Node {
   static $_TSPEC;
 

@@ -521,6 +521,26 @@ class BusiTypeColumn
   ::Thrift::Struct.generate_accessors self
 end
 
+class BusiTypeDatacenter
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  BUSITYPE = 1
+  DC = 2
+  DB_NAME = 3
+
+  FIELDS = {
+    BUSITYPE => {:type => ::Thrift::Types::STRING, :name => 'busiType'},
+    DC => {:type => ::Thrift::Types::STRUCT, :name => 'dc', :class => ::Datacenter},
+    DB_NAME => {:type => ::Thrift::Types::STRING, :name => 'db_name'}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
 class Node
   include ::Thrift::Struct, ::Thrift::Struct_Union
   NODE_NAME = 1

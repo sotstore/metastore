@@ -462,6 +462,21 @@
       </field>
     </class>
     
+   <class name="MBusiTypeDatacenter" table="BUSITYPE_DATACENTER" identity-type="datastore" detachable="true">
+      <datastore-identity>
+        <column name="BD_ID"/>
+      </datastore-identity>
+      <field name="busiType">
+        <column name="BUSI_TYPE" length="128" jdbc-type="VARCHAR"/>
+      </field>
+      <field name="dc">
+      	<column name="DC_ID"/>
+      </field>
+      <field name="db_name">
+      	<column name="DB_NAME" length="256" jdbc-type="VARCHAR"/>
+      </field>
+    </class>
+    
     <class name="MIndex" table="IDXS" identity-type="datastore" detachable="true">
       <index name="UniqueINDEX" unique="true">
         <column name="INDEX_NAME"/>

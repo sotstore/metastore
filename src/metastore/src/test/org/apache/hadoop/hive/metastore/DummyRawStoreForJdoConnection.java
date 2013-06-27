@@ -27,6 +27,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
+import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
@@ -59,6 +60,7 @@ import org.apache.hadoop.hive.metastore.model.MPartitionPrivilege;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
 import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
+import org.apache.thrift.TException;
 
 /**
  *
@@ -870,6 +872,19 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException {
     // TODO Auto-generated method stub
     return false;
+  }
+
+  @Override
+  public List<BusiTypeDatacenter> get_all_busi_type_datacenters() throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
+      throws InvalidObjectException, MetaException, TException {
+    // TODO Auto-generated method stub
+
   }
 }
 

@@ -62,6 +62,16 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("get_all_busi_type_cols\n");
   }
 
+  void get_all_busi_type_datacenters(std::vector<BusiTypeDatacenter> & _return) {
+    // Your implementation goes here
+    printf("get_all_busi_type_datacenters\n");
+  }
+
+  void append_busi_type_datacenter(const BusiTypeDatacenter& busiTypeDatacenter) {
+    // Your implementation goes here
+    printf("append_busi_type_datacenter\n");
+  }
+
   bool add_datawarehouse_sql(const int32_t dwNum, const std::string& sql) {
     // Your implementation goes here
     printf("add_datawarehouse_sql\n");

@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
+import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
@@ -56,6 +57,7 @@ import org.apache.hadoop.hive.metastore.model.MPartitionPrivilege;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
 import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
+import org.apache.thrift.TException;
 
 public interface RawStore extends Configurable {
 
@@ -528,4 +530,8 @@ public interface RawStore extends Configurable {
   public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException;
 
   public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException;
+
+  public abstract List<BusiTypeDatacenter> get_all_busi_type_datacenters()throws  MetaException, TException ;
+
+  public abstract void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)throws InvalidObjectException, MetaException, TException;
 }

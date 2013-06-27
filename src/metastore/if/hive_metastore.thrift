@@ -233,6 +233,12 @@ struct BusiTypeColumn {
   3: string column      //column
 }
 
+struct BusiTypeDatacenter {
+  1: string busiType,  // required @ip,@content,@tel,@time
+  2: Datacenter dc,         // Datacenter 
+  3: string db_name      //db_name
+}
+
 struct Node {
   1: string node_name,
   2: list<string> ips,
@@ -425,10 +431,16 @@ service ThriftHiveMetastore extends fb303.FacebookService
                        throws(1:MetaException o2)
   list<BusiTypeColumn> get_all_busi_type_cols() throws(1:MetaException o1)
                        
+  list<BusiTypeDatacenter> get_all_busi_type_datacenters() throws(1:MetaException o1) 
+  
+  void append_busi_type_datacenter(1:BusiTypeDatacenter busiTypeDatacenter) throws(1:InvalidObjectException o1, 2:MetaException o2)
+                        
   //start of partition,RPC for now is enough,subparttion operation can be done within partition rpc
   //end of partiton
   
   bool add_datawarehouse_sql(1:i32 dwNum, 2:string sql) throws(1:InvalidObjectException o1, 2:MetaException o2)
+  
+
   
   //start of partition file
   i32 add_partition_files(1:Partition part, 2:list<SFile> files)

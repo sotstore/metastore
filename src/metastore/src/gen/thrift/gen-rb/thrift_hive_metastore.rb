@@ -144,6 +144,38 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_all_busi_type_cols failed: unknown result')
     end
 
+    def get_all_busi_type_datacenters()
+      send_get_all_busi_type_datacenters()
+      return recv_get_all_busi_type_datacenters()
+    end
+
+    def send_get_all_busi_type_datacenters()
+      send_message('get_all_busi_type_datacenters', Get_all_busi_type_datacenters_args)
+    end
+
+    def recv_get_all_busi_type_datacenters()
+      result = receive_message(Get_all_busi_type_datacenters_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_all_busi_type_datacenters failed: unknown result')
+    end
+
+    def append_busi_type_datacenter(busiTypeDatacenter)
+      send_append_busi_type_datacenter(busiTypeDatacenter)
+      recv_append_busi_type_datacenter()
+    end
+
+    def send_append_busi_type_datacenter(busiTypeDatacenter)
+      send_message('append_busi_type_datacenter', Append_busi_type_datacenter_args, :busiTypeDatacenter => busiTypeDatacenter)
+    end
+
+    def recv_append_busi_type_datacenter()
+      result = receive_message(Append_busi_type_datacenter_result)
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      return
+    end
+
     def add_datawarehouse_sql(dwNum, sql)
       send_add_datawarehouse_sql(dwNum, sql)
       return recv_add_datawarehouse_sql()
@@ -2048,6 +2080,30 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'get_all_busi_type_cols', seqid)
     end
 
+    def process_get_all_busi_type_datacenters(seqid, iprot, oprot)
+      args = read_args(iprot, Get_all_busi_type_datacenters_args)
+      result = Get_all_busi_type_datacenters_result.new()
+      begin
+        result.success = @handler.get_all_busi_type_datacenters()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'get_all_busi_type_datacenters', seqid)
+    end
+
+    def process_append_busi_type_datacenter(seqid, iprot, oprot)
+      args = read_args(iprot, Append_busi_type_datacenter_args)
+      result = Append_busi_type_datacenter_result.new()
+      begin
+        @handler.append_busi_type_datacenter(args.busiTypeDatacenter)
+      rescue ::InvalidObjectException => o1
+        result.o1 = o1
+      rescue ::MetaException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'append_busi_type_datacenter', seqid)
+    end
+
     def process_add_datawarehouse_sql(seqid, iprot, oprot)
       args = read_args(iprot, Add_datawarehouse_sql_args)
       result = Add_datawarehouse_sql_result.new()
@@ -3663,6 +3719,73 @@ module ThriftHiveMetastore
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::BusiTypeColumn}},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_all_busi_type_datacenters_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_all_busi_type_datacenters_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::BusiTypeDatacenter}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Append_busi_type_datacenter_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    BUSITYPEDATACENTER = 1
+
+    FIELDS = {
+      BUSITYPEDATACENTER => {:type => ::Thrift::Types::STRUCT, :name => 'busiTypeDatacenter', :class => ::BusiTypeDatacenter}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Append_busi_type_datacenter_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::InvalidObjectException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end

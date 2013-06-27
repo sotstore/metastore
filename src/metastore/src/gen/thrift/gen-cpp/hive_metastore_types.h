@@ -1585,6 +1585,65 @@ class BusiTypeColumn {
 
 void swap(BusiTypeColumn &a, BusiTypeColumn &b);
 
+typedef struct _BusiTypeDatacenter__isset {
+  _BusiTypeDatacenter__isset() : busiType(false), dc(false), db_name(false) {}
+  bool busiType;
+  bool dc;
+  bool db_name;
+} _BusiTypeDatacenter__isset;
+
+class BusiTypeDatacenter {
+ public:
+
+  static const char* ascii_fingerprint; // = "EDFBA234DD8D4DEF7CF51A8F3112D35D";
+  static const uint8_t binary_fingerprint[16]; // = {0xED,0xFB,0xA2,0x34,0xDD,0x8D,0x4D,0xEF,0x7C,0xF5,0x1A,0x8F,0x31,0x12,0xD3,0x5D};
+
+  BusiTypeDatacenter() : busiType(), db_name() {
+  }
+
+  virtual ~BusiTypeDatacenter() throw() {}
+
+  std::string busiType;
+  Datacenter dc;
+  std::string db_name;
+
+  _BusiTypeDatacenter__isset __isset;
+
+  void __set_busiType(const std::string& val) {
+    busiType = val;
+  }
+
+  void __set_dc(const Datacenter& val) {
+    dc = val;
+  }
+
+  void __set_db_name(const std::string& val) {
+    db_name = val;
+  }
+
+  bool operator == (const BusiTypeDatacenter & rhs) const
+  {
+    if (!(busiType == rhs.busiType))
+      return false;
+    if (!(dc == rhs.dc))
+      return false;
+    if (!(db_name == rhs.db_name))
+      return false;
+    return true;
+  }
+  bool operator != (const BusiTypeDatacenter &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const BusiTypeDatacenter & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(BusiTypeDatacenter &a, BusiTypeDatacenter &b);
+
 typedef struct _Node__isset {
   _Node__isset() : node_name(false), ips(false), status(false) {}
   bool node_name;

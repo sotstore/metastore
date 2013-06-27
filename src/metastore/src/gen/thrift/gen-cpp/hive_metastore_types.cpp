@@ -2997,6 +2997,94 @@ void swap(BusiTypeColumn &a, BusiTypeColumn &b) {
   swap(a.__isset, b.__isset);
 }
 
+const char* BusiTypeDatacenter::ascii_fingerprint = "EDFBA234DD8D4DEF7CF51A8F3112D35D";
+const uint8_t BusiTypeDatacenter::binary_fingerprint[16] = {0xED,0xFB,0xA2,0x34,0xDD,0x8D,0x4D,0xEF,0x7C,0xF5,0x1A,0x8F,0x31,0x12,0xD3,0x5D};
+
+uint32_t BusiTypeDatacenter::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->busiType);
+          this->__isset.busiType = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->dc.read(iprot);
+          this->__isset.dc = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 3:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->db_name);
+          this->__isset.db_name = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t BusiTypeDatacenter::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("BusiTypeDatacenter");
+
+  xfer += oprot->writeFieldBegin("busiType", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString(this->busiType);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("dc", ::apache::thrift::protocol::T_STRUCT, 2);
+  xfer += this->dc.write(oprot);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("db_name", ::apache::thrift::protocol::T_STRING, 3);
+  xfer += oprot->writeString(this->db_name);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+void swap(BusiTypeDatacenter &a, BusiTypeDatacenter &b) {
+  using ::std::swap;
+  swap(a.busiType, b.busiType);
+  swap(a.dc, b.dc);
+  swap(a.db_name, b.db_name);
+  swap(a.__isset, b.__isset);
+}
+
 const char* Node::ascii_fingerprint = "2B861B7093B3DC2A61450349FC883477";
 const uint8_t Node::binary_fingerprint[16] = {0x2B,0x86,0x1B,0x70,0x93,0xB3,0xDC,0x2A,0x61,0x45,0x03,0x49,0xFC,0x88,0x34,0x77};
 

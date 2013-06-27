@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
+import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -1060,4 +1061,9 @@ public interface IMetaStoreClient {
   public Map<Long, SFile> migrate_in(Table tbl, List<Partition> parts, String from_dc) throws MetaException, TException;
 
   public List<BusiTypeColumn> get_all_busi_type_cols() throws MetaException, TException;
+
+  void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
+      throws InvalidObjectException, MetaException, TException;
+
+  List<BusiTypeDatacenter> get_all_busi_type_datacenters() throws MetaException, TException;
 }

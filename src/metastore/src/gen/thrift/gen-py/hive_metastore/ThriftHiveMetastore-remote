@@ -31,6 +31,8 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  Datacenter get_local_center()'
   print '   get_lucene_index_names(string db_name, string tbl_name, i16 max_indexes)'
   print '   get_all_busi_type_cols()'
+  print '   get_all_busi_type_datacenters()'
+  print '  void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)'
   print '  bool add_datawarehouse_sql(i32 dwNum, string sql)'
   print '  i32 add_partition_files(Partition part,  files)'
   print '  i32 drop_partition_files(Partition part,  files)'
@@ -237,6 +239,18 @@ elif cmd == 'get_all_busi_type_cols':
     print 'get_all_busi_type_cols requires 0 args'
     sys.exit(1)
   pp.pprint(client.get_all_busi_type_cols())
+
+elif cmd == 'get_all_busi_type_datacenters':
+  if len(args) != 0:
+    print 'get_all_busi_type_datacenters requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.get_all_busi_type_datacenters())
+
+elif cmd == 'append_busi_type_datacenter':
+  if len(args) != 1:
+    print 'append_busi_type_datacenter requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.append_busi_type_datacenter(eval(args[0]),))
 
 elif cmd == 'add_datawarehouse_sql':
   if len(args) != 2:

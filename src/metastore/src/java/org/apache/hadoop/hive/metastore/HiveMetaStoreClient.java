@@ -44,6 +44,7 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
+import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -1780,5 +1781,16 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public List<BusiTypeColumn> get_all_busi_type_cols() throws MetaException, TException {
 
     return client.get_all_busi_type_cols();
+  }
+
+  @Override
+  public List<BusiTypeDatacenter> get_all_busi_type_datacenters() throws MetaException,TException {
+    return client.get_all_busi_type_datacenters();
+  }
+
+  @Override
+  public void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
+    throws InvalidObjectException, MetaException, TException {
+    client.append_busi_type_datacenter(busiTypeDatacenter);
   }
 }

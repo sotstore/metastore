@@ -61,6 +61,7 @@ import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.BooleanColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
+import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsData;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
@@ -103,6 +104,7 @@ import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.model.MBusiTypeColumn;
+import org.apache.hadoop.hive.metastore.model.MBusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.model.MColumnDescriptor;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MDatabase;
@@ -141,6 +143,7 @@ import org.apache.hadoop.hive.metastore.parser.ExpressionTree.ANTLRNoCaseStringS
 import org.apache.hadoop.hive.metastore.parser.FilterLexer;
 import org.apache.hadoop.hive.metastore.parser.FilterParser;
 import org.apache.hadoop.util.StringUtils;
+import org.apache.thrift.TException;
 
 import com.taobao.metamorphosis.exception.MetaClientException;
 
@@ -1124,19 +1127,9 @@ public class ObjectStore implements RawStore, Configurable {
       boolean make_table = false;
       if(mtbl.getSd().getCD().getCols() != null){//增加业务类型查询支持
         List<MBusiTypeColumn> bcs = new ArrayList<MBusiTypeColumn>();
-        for(MFieldSchema f : mtbl.getSd().getCD().getCols()){
-          String cmet = f.getComment();
-          if(cmet != null && cmet.indexOf(MetaStoreUtils.BUSI_TYPES_PREFIX)>=0){
-            int pos = cmet.indexOf(MetaStoreUtils.BUSI_TYPES_PREFIX);// ip/tel/time/content
-            for(String type : MetaStoreUtils.BUSI_TYPES){
-              if( cmet.length() - pos >= type.length()
-                  && type.equals(cmet.substring(pos,type.length()).toLowerCase())){
-                MBusiTypeColumn bc = new MBusiTypeColumn(type,mtbl,f.getName());
-                bcs.add(bc);
-              }
-            }
-          }
-        }
+
+        createBusiTypeCol(mtbl, bcs);
+
         if(!bcs.isEmpty()){
 
           LOG.info("--zjw--getPartitions is not null,size:"+bcs.size());
@@ -1188,6 +1181,22 @@ public class ObjectStore implements RawStore, Configurable {
     }
 
 
+  }
+
+  private void createBusiTypeCol(MTable mtbl,List<MBusiTypeColumn> bcs){
+    for(MFieldSchema f : mtbl.getSd().getCD().getCols()){
+      String cmet = f.getComment();
+      if(cmet != null && cmet.indexOf(MetaStoreUtils.BUSI_TYPES_PREFIX)>=0){
+        int pos = cmet.indexOf(MetaStoreUtils.BUSI_TYPES_PREFIX);// ip/tel/time/content
+        for(String type : MetaStoreUtils.BUSI_TYPES){
+          if( cmet.length() - pos >= type.length()
+              && type.equals(cmet.substring(pos,type.length()).toLowerCase())){
+            MBusiTypeColumn bc = new MBusiTypeColumn(type,mtbl,f.getName());
+            bcs.add(bc);
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -7246,6 +7255,7 @@ public class ObjectStore implements RawStore, Configurable {
 
   @Override
   public List<BusiTypeColumn> getAllBusiTypeCols() throws MetaException {
+
     List<BusiTypeColumn> btcols = new ArrayList<BusiTypeColumn>();
 
     boolean success = false;
@@ -7268,6 +7278,52 @@ public class ObjectStore implements RawStore, Configurable {
     }
 
     return btcols;
+  }
+
+  @Override
+  public List<BusiTypeDatacenter> get_all_busi_type_datacenters() throws MetaException, TException {
+
+    List<BusiTypeDatacenter> bdcs = new ArrayList<BusiTypeDatacenter>();
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MBusiTypeDatacenter.class);
+      List<MBusiTypeDatacenter> mbdcs = (List<MBusiTypeDatacenter>) query.execute();
+      pm.retrieveAll(mbdcs);
+      for (Iterator i = mbdcs.iterator(); i.hasNext();) {
+        MBusiTypeDatacenter mdatacenter = (MBusiTypeDatacenter)i.next();
+        BusiTypeDatacenter bdc = new BusiTypeDatacenter(mdatacenter.getBusiType(),
+            convertToDatacenter(mdatacenter.getDc()),mdatacenter.getDb_name());
+        bdcs.add(bdc);
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+
+    return bdcs;
+  }
+
+  @Override
+  public void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
+      throws InvalidObjectException, MetaException, TException {
+    boolean success = false;
+    int now = (int)(System.currentTimeMillis()/1000);
+    try {
+      openTransaction();
+      MBusiTypeDatacenter mtdc = new MBusiTypeDatacenter(busiTypeDatacenter.getBusiType(),
+          convertToMDatacenter(busiTypeDatacenter.getDc()),busiTypeDatacenter.getDb_name());
+      pm.makePersistent(mtdc);
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return ;
+
   }
 
 }

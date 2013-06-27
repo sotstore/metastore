@@ -62,6 +62,7 @@ import org.apache.hadoop.hive.metastore.DiskManager.DMRequest;
 import org.apache.hadoop.hive.metastore.DiskManager.FileLocatingPolicy;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
+import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
@@ -1129,6 +1130,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         ms.createTable(tbl);
         success = ms.commitTransaction();
 
+        this.createBusiTypeDC(ms, tbl);
+
       } finally {
         if (!success) {
           ms.rollbackTransaction();
@@ -1141,6 +1144,34 @@ public class HiveMetaStore extends ThriftHiveMetastore {
               new CreateTableEvent(tbl, success, this);
           createTableEvent.setEnvironmentContext(envContext);
           listener.onCreateTable(createTableEvent);
+        }
+      }
+    }
+
+    private void createBusiTypeDC(final RawStore ms,Table tbl) throws MetaException{
+      for(FieldSchema f : tbl.getSd().getCols()){
+        String cmet = f.getComment();
+        if(cmet != null && cmet.indexOf(MetaStoreUtils.BUSI_TYPES_PREFIX)>=0){
+          int pos = cmet.indexOf(MetaStoreUtils.BUSI_TYPES_PREFIX);// ip/tel/time/content
+          for(String type : MetaStoreUtils.BUSI_TYPES){
+            if( cmet.length() - pos >= type.length()
+                && type.equals(cmet.substring(pos,type.length()).toLowerCase())){
+              try {
+                BusiTypeDatacenter busiTypeDatacenter = new BusiTypeDatacenter(type,ms.getDatabase(tbl.getDbName()).getDatacenter(),tbl.getDbName());
+                if(!isTopDc()){
+                  if(topdcli != null){
+                    topdcli.append_busi_type_datacenter(busiTypeDatacenter);
+                  }else{
+                    throw new MetaException("Top datacenter is not reachable!");
+                  }
+                }else{
+                  append_busi_type_datacenter(busiTypeDatacenter);
+                }
+              } catch (Exception e) {
+                LOG.error(e,e);
+              }
+            }
+          }
         }
       }
     }
@@ -4860,6 +4891,41 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         throw new MetaException("Invalid DiskManager!");
       }
       return dm.getMP(node_name, devid);
+    }
+
+    private boolean isTopDc(){
+      return hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER);
+    }
+
+    @Override
+    public List<BusiTypeDatacenter> get_all_busi_type_datacenters() throws MetaException,
+        TException {
+
+      if(isTopDc()){
+        return this.getMS().get_all_busi_type_datacenters();
+      }else{
+        if(topdcli != null){
+          return topdcli.get_all_busi_type_datacenters();
+        }else{
+          throw new MetaException("Top datacenter is not reachable!");
+        }
+      }
+    }
+
+
+
+    @Override
+    public void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
+        throws InvalidObjectException, MetaException, TException {
+      if(isTopDc()){
+        getMS().append_busi_type_datacenter(busiTypeDatacenter);
+      }else{
+        if(topdcli != null){
+          topdcli.append_busi_type_datacenter(busiTypeDatacenter);
+        }else{
+          throw new MetaException("Top datacenter is not reachable!");
+        }
+      }
     }
 
   }

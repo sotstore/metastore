@@ -2517,6 +2517,91 @@ class BusiTypeColumn:
   def __ne__(self, other):
     return not (self == other)
 
+class BusiTypeDatacenter:
+  """
+  Attributes:
+   - busiType
+   - dc
+   - db_name
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'busiType', None, None, ), # 1
+    (2, TType.STRUCT, 'dc', (Datacenter, Datacenter.thrift_spec), None, ), # 2
+    (3, TType.STRING, 'db_name', None, None, ), # 3
+  )
+
+  def __init__(self, busiType=None, dc=None, db_name=None,):
+    self.busiType = busiType
+    self.dc = dc
+    self.db_name = db_name
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.busiType = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.dc = Datacenter()
+          self.dc.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRING:
+          self.db_name = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('BusiTypeDatacenter')
+    if self.busiType is not None:
+      oprot.writeFieldBegin('busiType', TType.STRING, 1)
+      oprot.writeString(self.busiType)
+      oprot.writeFieldEnd()
+    if self.dc is not None:
+      oprot.writeFieldBegin('dc', TType.STRUCT, 2)
+      self.dc.write(oprot)
+      oprot.writeFieldEnd()
+    if self.db_name is not None:
+      oprot.writeFieldBegin('db_name', TType.STRING, 3)
+      oprot.writeString(self.db_name)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class Node:
   """
   Attributes:
