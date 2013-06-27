@@ -4989,7 +4989,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return dm.getMP(node_name, devid);
     }
 
-<<<<<<< HEAD
     private boolean isTopDc(){
       return hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER);
     }
@@ -5023,6 +5022,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           throw new MetaException("Top datacenter is not reachable!");
         }
       }
+    }
 
     @Override
     public SFile get_file_by_name(String node, String devid, String location)
