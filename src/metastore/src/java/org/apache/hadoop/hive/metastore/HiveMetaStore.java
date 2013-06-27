@@ -60,6 +60,8 @@ import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.DiskManager.BackupEntry;
 import org.apache.hadoop.hive.metastore.DiskManager.DMRequest;
 import org.apache.hadoop.hive.metastore.DiskManager.FileLocatingPolicy;
+import org.apache.hadoop.hive.metastore.DiskManager.MigrateEntry;
+import org.apache.hadoop.hive.metastore.DiskManager.SFLTriple;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
@@ -4686,6 +4688,25 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       getMS().updateDatacenter(datacenter);
     }
 
+    private Partition deepCopy(Partition partition) {
+      Partition copy = null;
+      if (partition != null) {
+        copy = new Partition(partition);
+      }
+      return copy;
+    }
+
+    private List<Partition> deepCopyPartitions(List<Partition> partitions) {
+      List<Partition> copy = null;
+      if (partitions != null) {
+        copy = new ArrayList<Partition>();
+        for (Partition part : partitions) {
+          copy.add(deepCopy(part));
+        }
+      }
+      return copy;
+    }
+
     @Override
     public Map<Long, SFile> migrate_in(Table tbl, List<Partition> parts, String from_dc)
         throws MetaException, TException {
@@ -4719,11 +4740,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       } catch (AlreadyExistsException e) {
         // it is ok, ignore it.
       }
+      LOG.info("Create table " + tbl.getTableName() + " done.");
 
       // try to create the partition, if it doesn't exist
       List<Partition> toAdd = new ArrayList<Partition>();
       List<Partition> toUpdate = new ArrayList<Partition>();
-      for (Partition part : parts) {
+      List<Partition> copy_parts = deepCopyPartitions(parts);
+      for (Partition part : copy_parts) {
+        LOG.info("Handle partition1 " + part.getPartitionName() + ", subparts NR " + part.getSubpartitionsSize());
         try {
           getMS().getPartition(part.getDbName(), part
               .getTableName(), part.getPartitionName());
@@ -4735,10 +4759,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         toUpdate.add(part);
       }
       add_partitions(toAdd);
+      LOG.info("Add partitions done.");
 
       // try to create the file
       for (Partition part : parts) {
-        LOG.info("Handle partition " + part.getPartitionName() + ", subparts NR " + part.getSubpartitionsSize());
+        LOG.info("Handle partition2 " + part.getPartitionName() + ", subparts NR " + part.getSubpartitionsSize());
         if (part.getSubpartitionsSize() > 0) {
           for (Subpartition subpart : part.getSubpartitions()) {
             LOG.info("subparts " + subpart.getPartitionName() + ", " + subpart.getFiles());
@@ -4794,13 +4819,16 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         throws MetaException, TException {
       // prepare datacenter connection
       if (HMSHandler.topdcli == null) {
-        throw new MetaException("Top-level DC metastore is null, please check!");
+        connect_to_top_dc(hiveConf);
+        if (HMSHandler.topdcli == null) {
+          throw new MetaException("Top-level DC metastore is null, please check!");
+        }
       }
       if (hiveConf.getVar(ConfVars.LOCAL_DATACENTER) == null) {
         throw new MetaException("Please set 'hive.datacenter.local' as local datacenter NAME.");
       }
       Datacenter rdc = HMSHandler.topdcli.get_center(to_dc);
-      Datacenter ldc = this.get_center(hiveConf.getVar(ConfVars.LOCAL_DATACENTER));
+      Datacenter ldc = get_center(hiveConf.getVar(ConfVars.LOCAL_DATACENTER));
 
       IMetaStoreClient rcli = new HiveMetaStoreClient(rdc.getLocationUri(),
             HiveConf.getIntVar(hiveConf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
@@ -4808,9 +4836,19 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             null);
 
       // prepare tbl, parts
-      Table tbl = getMS().getTable(dbName, tableName);
+      Table tbl = get_table(dbName, tableName);
+      Map<String, String> kvs = new HashMap<String, String>();
+      kvs.put("store.remote", "both");
+      kvs.put("store.remote.dcs", to_dc + "," + hiveConf.getVar(ConfVars.LOCAL_DATACENTER));
+      if (tbl.getParametersSize() > 0) {
+        LOG.info(tbl.getParameters().toString());
+        kvs.putAll(tbl.getParameters());
+        tbl.setParameters(kvs);
+      } else {
+        tbl.setParameters(kvs);
+      }
       LOG.info("parts: " + partNames.toString());
-      List<Partition> parts = getMS().getPartitionsByNames(dbName, tableName, partNames);
+      List<Partition> parts = get_partitions_by_names(dbName, tableName, partNames);
       if (parts.size() == 0) {
         LOG.info("Zero partition list, do not migrate!");
         rcli.close();
@@ -4840,7 +4878,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       if (rmap.size() > 0) {
         for (Map.Entry<Long, SFile> e : rmap.entrySet()) {
           SFileLocation sfl = e.getValue().getLocations().get(0);
-          LOG.info("------migrate----fid " + e.getKey() + "----to----" + sfl.getNode_name() + ":" +
+          LOG.info("------migrate----fid " + e.getKey() + "----to---->" + sfl.getNode_name() + ":" +
               sfl.getDevid() + ":" + sfl.getLocation());
           SFile source = get_file_by_id(e.getKey());
           DMRequest dmr = new DMRequest(source, e.getValue(), devmap);
@@ -4851,6 +4889,48 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
       }
 
+      // create triple-id map
+      Map<String, Long> timap = new HashMap<String, Long>();
+      for (Map.Entry<Long, SFile> e : rmap.entrySet()) {
+          SFileLocation sfl = e.getValue().getLocations().get(0);
+          timap.put(new SFLTriple(sfl.getNode_name(), sfl.getDevid(), sfl.getLocation()).toString(), e.getKey());
+      }
+
+      // add the entries to migrate set
+      MigrateEntry thisme = null;
+      Map<Long, MigrateEntry> id2me = new HashMap<Long, MigrateEntry>();
+      for (Partition part : parts) {
+        if (part.getSubpartitionsSize() > 0) {
+          for (Subpartition subpart : part.getSubpartitions()) {
+            if (subpart.getFilesSize() > 0) {
+              thisme = new MigrateEntry(to_dc, subpart, subpart.getFiles(), timap);
+              for (Long fid : subpart.getFiles()) {
+                id2me.put(fid, thisme);
+              }
+            }
+          }
+        } else if (part.getFilesSize() > 0) {
+          thisme = new MigrateEntry(to_dc, part, part.getFiles(), timap);
+          for (Long fid : part.getFiles()) {
+            id2me.put(fid, thisme);
+          }
+        }
+      }
+
+      // add to global rrmap: triple to migrateentry
+      if (thisme != null) {
+        for (Map.Entry<Long, SFile> e : rmap.entrySet()) {
+          SFileLocation sfl = e.getValue().getLocations().get(0);
+          synchronized (dm.rrmap) {
+            Long fid = timap.get(new SFLTriple(sfl.getNode_name(), sfl.getDevid(), sfl.getLocation()).toString());
+            dm.rrmap.put(new SFLTriple(sfl.getNode_name(), sfl.getDevid(), sfl.getLocation()).toString(), id2me.get(fid));
+          }
+        }
+      }
+
+      alter_table(dbName, tableName, tbl);
+      LOG.info("Update table properties to reflect the migration.");
+
       return true;
     }
 
@@ -4860,6 +4940,25 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         throw new MetaException("Invalid DiskManager!");
       }
       return dm.getMP(node_name, devid);
+    }
+
+    @Override
+    public SFile get_file_by_name(String node, String devid, String location)
+        throws FileOperationException, MetaException, TException {
+      SFile r = getMS().getSFile(node, devid, location);
+      if (r == null) {
+        throw new FileOperationException("Can not find SFile by name: " + node + ":" + devid + ":" + location, FOFailReason.INVALID_FILE);
+      }
+
+      switch (r.getStore_status()) {
+      case MetaStoreConst.MFileStoreStatus.RM_LOGICAL:
+      case MetaStoreConst.MFileStoreStatus.RM_PHYSICAL:
+        break;
+      default:
+        r.setLocations(getMS().getSFileLocations(r.getFid()));
+      }
+      return r;
+
     }
 
   }

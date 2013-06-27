@@ -865,6 +865,18 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
     return false;
   }
+
+  @Override
+  public SFile getSFile(String node, String devid, String location) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
 }
 
 

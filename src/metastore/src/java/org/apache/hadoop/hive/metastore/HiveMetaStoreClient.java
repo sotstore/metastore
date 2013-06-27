@@ -76,6 +76,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -1772,5 +1773,14 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     assert partNames != null;
     assert to_dc != null;
     return client.migrate_out(dbName, tableName, partNames, to_dc);
+  }
+
+  @Override
+  public SFile get_file_by_name(String node, String devid, String location)
+      throws FileOperationException, MetaException, TException {
+    assert node != null;
+    assert devid != null;
+    assert location != null;
+    return client.get_file_by_name(node, devid, location);
   }
 }

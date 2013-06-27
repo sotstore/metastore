@@ -119,6 +119,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name) = 0;
   virtual int32_t close_file(const SFile& file) = 0;
   virtual void get_file_by_id(SFile& _return, const int64_t fid) = 0;
+  virtual void get_file_by_name(SFile& _return, const std::string& node, const std::string& devid, const std::string& location) = 0;
   virtual int32_t rm_file_logical(const SFile& file) = 0;
   virtual int32_t restore_file(const SFile& file) = 0;
   virtual int32_t rm_file_physical(const SFile& file) = 0;
@@ -501,6 +502,9 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return _return;
   }
   void get_file_by_id(SFile& /* _return */, const int64_t /* fid */) {
+    return;
+  }
+  void get_file_by_name(SFile& /* _return */, const std::string& /* node */, const std::string& /* devid */, const std::string& /* location */) {
     return;
   }
   int32_t rm_file_logical(const SFile& /* file */) {
@@ -14665,6 +14669,152 @@ class ThriftHiveMetastore_get_file_by_id_presult {
 
 };
 
+typedef struct _ThriftHiveMetastore_get_file_by_name_args__isset {
+  _ThriftHiveMetastore_get_file_by_name_args__isset() : node(false), devid(false), location(false) {}
+  bool node;
+  bool devid;
+  bool location;
+} _ThriftHiveMetastore_get_file_by_name_args__isset;
+
+class ThriftHiveMetastore_get_file_by_name_args {
+ public:
+
+  ThriftHiveMetastore_get_file_by_name_args() : node(), devid(), location() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_file_by_name_args() throw() {}
+
+  std::string node;
+  std::string devid;
+  std::string location;
+
+  _ThriftHiveMetastore_get_file_by_name_args__isset __isset;
+
+  void __set_node(const std::string& val) {
+    node = val;
+  }
+
+  void __set_devid(const std::string& val) {
+    devid = val;
+  }
+
+  void __set_location(const std::string& val) {
+    location = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_file_by_name_args & rhs) const
+  {
+    if (!(node == rhs.node))
+      return false;
+    if (!(devid == rhs.devid))
+      return false;
+    if (!(location == rhs.location))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_file_by_name_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_file_by_name_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_get_file_by_name_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_file_by_name_pargs() throw() {}
+
+  const std::string* node;
+  const std::string* devid;
+  const std::string* location;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_file_by_name_result__isset {
+  _ThriftHiveMetastore_get_file_by_name_result__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_get_file_by_name_result__isset;
+
+class ThriftHiveMetastore_get_file_by_name_result {
+ public:
+
+  ThriftHiveMetastore_get_file_by_name_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_file_by_name_result() throw() {}
+
+  SFile success;
+  FileOperationException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_get_file_by_name_result__isset __isset;
+
+  void __set_success(const SFile& val) {
+    success = val;
+  }
+
+  void __set_o1(const FileOperationException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const MetaException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_file_by_name_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_file_by_name_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_file_by_name_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_file_by_name_presult__isset {
+  _ThriftHiveMetastore_get_file_by_name_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_get_file_by_name_presult__isset;
+
+class ThriftHiveMetastore_get_file_by_name_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_file_by_name_presult() throw() {}
+
+  SFile* success;
+  FileOperationException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_get_file_by_name_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 typedef struct _ThriftHiveMetastore_rm_file_logical_args__isset {
   _ThriftHiveMetastore_rm_file_logical_args__isset() : file(false) {}
   bool file;
@@ -16603,6 +16753,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void get_file_by_id(SFile& _return, const int64_t fid);
   void send_get_file_by_id(const int64_t fid);
   void recv_get_file_by_id(SFile& _return);
+  void get_file_by_name(SFile& _return, const std::string& node, const std::string& devid, const std::string& location);
+  void send_get_file_by_name(const std::string& node, const std::string& devid, const std::string& location);
+  void recv_get_file_by_name(SFile& _return);
   int32_t rm_file_logical(const SFile& file);
   void send_rm_file_logical(const SFile& file);
   int32_t recv_rm_file_logical();
@@ -16755,6 +16908,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_create_file(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_close_file(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_file_by_id(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_file_by_name(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_rm_file_logical(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_restore_file(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_rm_file_physical(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -16875,6 +17029,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["create_file"] = &ThriftHiveMetastoreProcessor::process_create_file;
     processMap_["close_file"] = &ThriftHiveMetastoreProcessor::process_close_file;
     processMap_["get_file_by_id"] = &ThriftHiveMetastoreProcessor::process_get_file_by_id;
+    processMap_["get_file_by_name"] = &ThriftHiveMetastoreProcessor::process_get_file_by_name;
     processMap_["rm_file_logical"] = &ThriftHiveMetastoreProcessor::process_rm_file_logical;
     processMap_["restore_file"] = &ThriftHiveMetastoreProcessor::process_restore_file;
     processMap_["rm_file_physical"] = &ThriftHiveMetastoreProcessor::process_rm_file_physical;
@@ -17897,6 +18052,16 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->get_file_by_id(_return, fid);
     }
     ifaces_[i]->get_file_by_id(_return, fid);
+    return;
+  }
+
+  void get_file_by_name(SFile& _return, const std::string& node, const std::string& devid, const std::string& location) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->get_file_by_name(_return, node, devid, location);
+    }
+    ifaces_[i]->get_file_by_name(_return, node, devid, location);
     return;
   }
 

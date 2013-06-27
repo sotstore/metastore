@@ -125,6 +125,8 @@ public interface RawStore extends Configurable {
 
   public SFile getSFile(long fid) throws MetaException;
 
+  public SFile getSFile(String node, String devid, String location) throws MetaException;
+
   public boolean delSFile(long fid) throws MetaException;
 
   public SFile updateSFile(SFile newfile) throws MetaException;

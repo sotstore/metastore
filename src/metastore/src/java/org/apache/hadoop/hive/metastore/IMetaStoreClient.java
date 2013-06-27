@@ -980,6 +980,9 @@ public interface IMetaStoreClient {
 
   public SFile get_file_by_id(long fid) throws FileOperationException, MetaException, TException;
 
+  public SFile get_file_by_name(String node, String devid, String location)
+        throws FileOperationException, MetaException, TException;
+
   public List<SFile> get_files_by_ids(List<Long> fids) throws FileOperationException, MetaException, TException;
 
   public int rm_file_logical(SFile file) throws FileOperationException, MetaException, TException;
