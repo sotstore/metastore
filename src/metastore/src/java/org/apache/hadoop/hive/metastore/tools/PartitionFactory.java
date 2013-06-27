@@ -31,17 +31,17 @@ public class PartitionFactory {
 
   public static long getIntervalSeconds(String interval_unit) throws Exception{
     long interval_seconds=0;
-    if("'Y'".equalsIgnoreCase(interval_unit)){
+    if("'Y'".equalsIgnoreCase(interval_unit) ||"\"Y\"".equalsIgnoreCase(interval_unit)){
       interval_seconds = interval_seconds * 3600 * 24 * 7 *30 * 365;
-    }else if("'M'".equalsIgnoreCase(interval_unit)){
+    }else if("'M'".equalsIgnoreCase(interval_unit) ||"\"M\"".equalsIgnoreCase(interval_unit)){
       interval_seconds = interval_seconds * 3600 * 24 * 7 *30;
-    }else if("'W'".equalsIgnoreCase(interval_unit)){
+    }else if("'W'".equalsIgnoreCase(interval_unit) ||"\"W\"".equalsIgnoreCase(interval_unit)){
       interval_seconds = interval_seconds * 3600 * 24 * 7;
-    }else if("'D'".equalsIgnoreCase(interval_unit)){
+    }else if("'D'".equalsIgnoreCase(interval_unit) ||"\"D\"".equalsIgnoreCase(interval_unit)){
       interval_seconds = interval_seconds * 3600 * 24;
-    }else if("'H'".equalsIgnoreCase(interval_unit)){
+    }else if("'H'".equalsIgnoreCase(interval_unit) ||"\"H\"".equalsIgnoreCase(interval_unit)){
       interval_seconds = interval_seconds * 3600;
-    }else if("'MI'".equalsIgnoreCase(interval_unit)){
+    }else if("'MI'".equalsIgnoreCase(interval_unit) ||"\"MI\"".equalsIgnoreCase(interval_unit)){
       interval_seconds = interval_seconds * 60;
     }else{
       throw new Exception("Not valid interval unit.");
@@ -434,7 +434,7 @@ public class PartitionFactory {
            return;//no need to creat subpartitions
          case hash://creat hash subpartitions
            List<PartitionDefinition> global_sub_parts = new ArrayList<PartitionDefinition>();
-           for(int i=1;i<=global_sub_pd.getPi().getP_num();i++){
+           for(int i=0;i<global_sub_pd.getPi().getP_num();i++){
              PartitionDefinition partition = new PartitionDefinition();
              if(isAuto){
                partition.setPart_name("p"+i);

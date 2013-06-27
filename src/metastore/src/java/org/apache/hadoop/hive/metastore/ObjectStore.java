@@ -1144,7 +1144,7 @@ public class ObjectStore implements RawStore, Configurable {
         }else{
           pm.makePersistent(mtbl);
           make_table =true;
-          LOG.warn("--zjw--getPartitions is null ");
+          LOG.info("--zjw--getPartitions is null view:"+tbl.getViewExpandedText()+"--"+tbl.getViewOriginalText());
         }
       }
       if(!make_table){
@@ -1152,7 +1152,7 @@ public class ObjectStore implements RawStore, Configurable {
       }
 
       if(tbl.getPartitions() != null && !tbl.getPartitions().isEmpty()){//存储分区
-        LOG.warn("--zjw--getPartitions is not null,size:"+tbl.getPartitionsSize());
+        LOG.info("--zjw--getPartitions is not null,size:"+tbl.getPartitionsSize());
         List<MPartition> mparts = convertToMParts(tbl.getPartitions(),false,tbl.getDbName());
         pm.makePersistentAll(mparts);
       }else{
@@ -2409,7 +2409,7 @@ public class ObjectStore implements RawStore, Configurable {
 
       commited = commitTransaction();
       MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_NEW_PARTITION,
-          pm,part,null));
+          pm,mpart,null));
 
       /*****************NOTE oracle does not commit here.*****************/
 //      pm.flush();//

@@ -38,7 +38,7 @@ public class MSGFactory {
      private long db_id;//库ID
      private long node_id;//节点ID
      private long event_time;//事件发生事件
-     private String event_handler;//事件处理函数（可能为空）
+     private String event_handler = "";//事件处理函数（可能为空）
      private HashMap<String,Object> old_object_params;//对于修改操作，提供修改前对象的参数
 
 
@@ -56,7 +56,11 @@ public class MSGFactory {
       this.db_id = db_id;
       this.node_id = node_id;
       this.event_time = event_time;
-      this.event_handler = event_handler;
+      if(event_handler == null){
+        this.event_handler = "";
+      }else{
+        this.event_handler = event_handler;
+      }
       this.old_object_params = old_object_params;
     }
 
@@ -213,20 +217,23 @@ public class MSGFactory {
    public static DDLMsg generateDDLMsg(long event_id ,PersistenceManager pm , Object eventObject,HashMap<String,Object> old_object_params){
 
      String jsonData;
-     Object objectId = pm.getObjectId(eventObject);
+     Long id = -1l;
+     if(eventObject instanceof Long){
+       id = (Long)eventObject;
+     }else{
+       Object objectId = pm.getObjectId(eventObject);
+       LOG.info("Sending DDL message:"+event_id+"---"+objectId.toString());
+       try{
+         id = Long.parseLong(getIDFromJdoObjectId(objectId.toString()));
+       }catch(Exception e){
+
+       }
+     }
      long now = new Date().getTime()/1000;
 
-     LOG.info("Sending DDL message:"+event_id+"---"+objectId.toString());
-     Long id = 1l;
-     try{
-       id = Long.parseLong(getIDFromJdoObjectId(objectId.toString()));
-     }catch(Exception e){
-
-     }
-
-     net.sf.json.JSONObject jsonObject = net.sf.json.JSONObject.fromObject(eventObject);
-     jsonData = jsonObject.toString();
-     LOG.warn("---zjw--json:"+jsonData);
+//     net.sf.json.JSONObject jsonObject = net.sf.json.JSONObject.fromObject(eventObject);
+//     jsonData = jsonObject.toString();
+//     LOG.info("---zjw--json:"+jsonData);
      return new MSGFactory.DDLMsg(event_id, id, null, eventObject, max_msg_id++, -1, -1, now, null,old_object_params);
    }
 
@@ -246,9 +253,9 @@ public class MSGFactory {
 
       }
 
-      net.sf.json.JSONObject jsonObject = net.sf.json.JSONObject.fromObject(eventObject);
-      jsonData = jsonObject.toString();
-      LOG.warn("---zjw--json:"+jsonData);
+//      net.sf.json.JSONObject jsonObject = net.sf.json.JSONObject.fromObject(eventObject);
+//      jsonData = jsonObject.toString();
+//      LOG.warn("---zjw--json:"+jsonData);
       msgs.add(new MSGFactory.DDLMsg(event_id, id, null, eventObject, max_msg_id++, -1, -1, now, null,old_object_params));
     }
     return msgs;
@@ -384,6 +391,10 @@ public class MSGFactory {
           params.put("db_name",p.getTable().getDatabase().getName());
           params.put("table_name",p.getTable().getTableName());
           params.put("partition_name", p.getPartitionName());
+          if(p.getPartition_level() ==2){
+            Long.parseLong(getIDFromJdoObjectId(p.getParent().toString()));
+            params.put("parent_partition_name", p.getPartitionName());
+          }
           params.put("partition_level", p.getPartition_level());
           break;
       case MSGType.MSG_ALT_PARTITION :
@@ -392,6 +403,10 @@ public class MSGFactory {
           params.put("db_name",alt_part.getTable().getDatabase().getName());
           params.put("table_name",alt_part.getTable().getTableName());
           params.put("partition_name", alt_part.getPartitionName());
+          if(alt_part.getPartition_level() ==2){
+            Long.parseLong(getIDFromJdoObjectId(alt_part.getParent().toString()));
+            params.put("parent_partition_name", alt_part.getPartitionName());
+          }
           params.put("partition_level", alt_part.getPartition_level());
           if(msg.getOld_object_params().containsKey("old_partition_name")){
             params.put("old_partition_name",msg.getOld_object_params().get("old_partition_name"));
@@ -403,6 +418,10 @@ public class MSGFactory {
           params.put("db_name",del_part.getTable().getDatabase().getName());
           params.put("table_name",del_part.getTable().getTableName());
           params.put("partition_name", del_part.getPartitionName());
+          if(del_part.getPartition_level() ==2){
+            Long.parseLong(getIDFromJdoObjectId(del_part.getParent().toString()));
+            params.put("parent_partition_name", del_part.getPartitionName());
+          }
           params.put("partition_level", del_part.getPartition_level());
           break;
       case MSGType.MSG_NEW_PARTITION_FILE :
@@ -584,6 +603,9 @@ public class MSGFactory {
     System.out.println(s);
     Map r = MSGFactory.parserJsonToMap(s);
     System.out.println(s);
+
+    DDLMsg msg = new DDLMsg();
+    System.out.println(msg.toJson());
   }
 
 }

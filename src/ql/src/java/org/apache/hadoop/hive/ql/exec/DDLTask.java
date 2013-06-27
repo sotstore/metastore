@@ -4186,6 +4186,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       tbl.clearSerDeInfo();
       tbl.setViewOriginalText(crtView.getViewOriginalText());
       tbl.setViewExpandedText(crtView.getViewExpandedText());
+      LOG.debug("---zjw-- in create view:"+tbl.getViewExpandedText()+"---"+tbl.getViewOriginalText());
       tbl.setFields(crtView.getSchema());
       if (crtView.getComment() != null) {
         tbl.setProperty("comment", crtView.getComment());
