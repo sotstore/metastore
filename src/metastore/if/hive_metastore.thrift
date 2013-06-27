@@ -230,7 +230,7 @@ struct Table {
 struct BusiTypeColumn {
   1: string busiType,  // required @ip,@content,@tel,@time
   2: Table table,         // table
-  3: FieldSchema column      //column
+  3: string column      //column
 }
 
 struct Node {

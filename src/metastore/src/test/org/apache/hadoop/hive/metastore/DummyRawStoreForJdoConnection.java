@@ -865,6 +865,12 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
     return false;
   }
+
+  @Override
+  public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
 }
 
 

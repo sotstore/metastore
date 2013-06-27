@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -1057,4 +1058,6 @@ public interface IMetaStoreClient {
   public String getMP(String node_name, String devid) throws MetaException, TException;
 
   public Map<Long, SFile> migrate_in(Table tbl, List<Partition> parts, String from_dc) throws MetaException, TException;
+
+  public List<BusiTypeColumn> get_all_busi_type_cols() throws MetaException, TException;
 }

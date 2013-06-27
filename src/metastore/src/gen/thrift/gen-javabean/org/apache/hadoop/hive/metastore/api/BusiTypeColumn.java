@@ -36,7 +36,7 @@ public class BusiTypeColumn implements org.apache.thrift.TBase<BusiTypeColumn, B
 
   private static final org.apache.thrift.protocol.TField BUSI_TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("busiType", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField TABLE_FIELD_DESC = new org.apache.thrift.protocol.TField("table", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-  private static final org.apache.thrift.protocol.TField COLUMN_FIELD_DESC = new org.apache.thrift.protocol.TField("column", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+  private static final org.apache.thrift.protocol.TField COLUMN_FIELD_DESC = new org.apache.thrift.protocol.TField("column", org.apache.thrift.protocol.TType.STRING, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -46,7 +46,7 @@ public class BusiTypeColumn implements org.apache.thrift.TBase<BusiTypeColumn, B
 
   private String busiType; // required
   private Table table; // required
-  private FieldSchema column; // required
+  private String column; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -121,7 +121,7 @@ public class BusiTypeColumn implements org.apache.thrift.TBase<BusiTypeColumn, B
     tmpMap.put(_Fields.TABLE, new org.apache.thrift.meta_data.FieldMetaData("table", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Table.class)));
     tmpMap.put(_Fields.COLUMN, new org.apache.thrift.meta_data.FieldMetaData("column", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FieldSchema.class)));
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(BusiTypeColumn.class, metaDataMap);
   }
@@ -132,7 +132,7 @@ public class BusiTypeColumn implements org.apache.thrift.TBase<BusiTypeColumn, B
   public BusiTypeColumn(
     String busiType,
     Table table,
-    FieldSchema column)
+    String column)
   {
     this();
     this.busiType = busiType;
@@ -151,7 +151,7 @@ public class BusiTypeColumn implements org.apache.thrift.TBase<BusiTypeColumn, B
       this.table = new Table(other.table);
     }
     if (other.isSetColumn()) {
-      this.column = new FieldSchema(other.column);
+      this.column = other.column;
     }
   }
 
@@ -212,11 +212,11 @@ public class BusiTypeColumn implements org.apache.thrift.TBase<BusiTypeColumn, B
     }
   }
 
-  public FieldSchema getColumn() {
+  public String getColumn() {
     return this.column;
   }
 
-  public void setColumn(FieldSchema column) {
+  public void setColumn(String column) {
     this.column = column;
   }
 
@@ -257,7 +257,7 @@ public class BusiTypeColumn implements org.apache.thrift.TBase<BusiTypeColumn, B
       if (value == null) {
         unsetColumn();
       } else {
-        setColumn((FieldSchema)value);
+        setColumn((String)value);
       }
       break;
 
@@ -452,9 +452,6 @@ public class BusiTypeColumn implements org.apache.thrift.TBase<BusiTypeColumn, B
     if (table != null) {
       table.validate();
     }
-    if (column != null) {
-      column.validate();
-    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -509,9 +506,8 @@ public class BusiTypeColumn implements org.apache.thrift.TBase<BusiTypeColumn, B
             }
             break;
           case 3: // COLUMN
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-              struct.column = new FieldSchema();
-              struct.column.read(iprot);
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.column = iprot.readString();
               struct.setColumnIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -542,7 +538,7 @@ public class BusiTypeColumn implements org.apache.thrift.TBase<BusiTypeColumn, B
       }
       if (struct.column != null) {
         oprot.writeFieldBegin(COLUMN_FIELD_DESC);
-        struct.column.write(oprot);
+        oprot.writeString(struct.column);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -580,7 +576,7 @@ public class BusiTypeColumn implements org.apache.thrift.TBase<BusiTypeColumn, B
         struct.table.write(oprot);
       }
       if (struct.isSetColumn()) {
-        struct.column.write(oprot);
+        oprot.writeString(struct.column);
       }
     }
 
@@ -598,8 +594,7 @@ public class BusiTypeColumn implements org.apache.thrift.TBase<BusiTypeColumn, B
         struct.setTableIsSet(true);
       }
       if (incoming.get(2)) {
-        struct.column = new FieldSchema();
-        struct.column.read(iprot);
+        struct.column = iprot.readString();
         struct.setColumnIsSet(true);
       }
     }

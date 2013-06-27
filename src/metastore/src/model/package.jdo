@@ -447,7 +447,7 @@
       </field>
     </class>
 
-    <class name="MBusiTypeColumn" table="BUSITPE_COL" identity-type="datastore" detachable="true">
+    <class name="MBusiTypeColumn" table="BUSITYPE_COL" identity-type="datastore" detachable="true">
       <datastore-identity>
         <column name="BC_ID"/>
       </datastore-identity>
@@ -458,8 +458,7 @@
         <column name="TBL_ID"/>
       </field>
       <field name="column">
-        <column name="CD_ID"/>
-        <column name="COLUMN_NAME"/>
+      	<column name="COLUMN_NAME" length="256" jdbc-type="VARCHAR"/>
       </field>
     </class>
     

@@ -23,11 +23,11 @@ public class MBusiTypeColumn {
 
   private String busiType; // partitionname ==>  (key=value/)*(key=value)
   private MTable table;
-  private MFieldSchema column;
+  private String column;
 
   public MBusiTypeColumn() {}
 
-  public MBusiTypeColumn(String busiType, MTable table, MFieldSchema column) {
+  public MBusiTypeColumn(String busiType, MTable table, String column) {
     super();
     this.busiType = busiType;
     this.table = table;
@@ -50,11 +50,11 @@ public class MBusiTypeColumn {
     this.table = table;
   }
 
-  public MFieldSchema getColumn() {
+  public String getColumn() {
     return column;
   }
 
-  public void setColumn(MFieldSchema column) {
+  public void setColumn(String column) {
     this.column = column;
   }
 

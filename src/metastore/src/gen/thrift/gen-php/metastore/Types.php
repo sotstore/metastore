@@ -3949,8 +3949,7 @@ class BusiTypeColumn {
           ),
         3 => array(
           'var' => 'column',
-          'type' => TType::STRUCT,
-          'class' => '\metastore\FieldSchema',
+          'type' => TType::STRING,
           ),
         );
     }
@@ -4002,9 +4001,8 @@ class BusiTypeColumn {
           }
           break;
         case 3:
-          if ($ftype == TType::STRUCT) {
-            $this->column = new \metastore\FieldSchema();
-            $xfer += $this->column->read($input);
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->column);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -4036,11 +4034,8 @@ class BusiTypeColumn {
       $xfer += $output->writeFieldEnd();
     }
     if ($this->column !== null) {
-      if (!is_object($this->column)) {
-        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
-      }
-      $xfer += $output->writeFieldBegin('column', TType::STRUCT, 3);
-      $xfer += $this->column->write($output);
+      $xfer += $output->writeFieldBegin('column', TType::STRING, 3);
+      $xfer += $output->writeString($this->column);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();

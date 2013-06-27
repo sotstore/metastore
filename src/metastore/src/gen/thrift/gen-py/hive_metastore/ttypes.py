@@ -2444,7 +2444,7 @@ class BusiTypeColumn:
     None, # 0
     (1, TType.STRING, 'busiType', None, None, ), # 1
     (2, TType.STRUCT, 'table', (Table, Table.thrift_spec), None, ), # 2
-    (3, TType.STRUCT, 'column', (FieldSchema, FieldSchema.thrift_spec), None, ), # 3
+    (3, TType.STRING, 'column', None, None, ), # 3
   )
 
   def __init__(self, busiType=None, table=None, column=None,):
@@ -2473,9 +2473,8 @@ class BusiTypeColumn:
         else:
           iprot.skip(ftype)
       elif fid == 3:
-        if ftype == TType.STRUCT:
-          self.column = FieldSchema()
-          self.column.read(iprot)
+        if ftype == TType.STRING:
+          self.column = iprot.readString();
         else:
           iprot.skip(ftype)
       else:
@@ -2497,8 +2496,8 @@ class BusiTypeColumn:
       self.table.write(oprot)
       oprot.writeFieldEnd()
     if self.column is not None:
-      oprot.writeFieldBegin('column', TType.STRUCT, 3)
-      self.column.write(oprot)
+      oprot.writeFieldBegin('column', TType.STRING, 3)
+      oprot.writeString(self.column)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

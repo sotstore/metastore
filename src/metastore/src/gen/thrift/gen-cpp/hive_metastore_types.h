@@ -1536,17 +1536,17 @@ typedef struct _BusiTypeColumn__isset {
 class BusiTypeColumn {
  public:
 
-  static const char* ascii_fingerprint; // = "5EE62A78913B77139932A51C30CF5629";
-  static const uint8_t binary_fingerprint[16]; // = {0x5E,0xE6,0x2A,0x78,0x91,0x3B,0x77,0x13,0x99,0x32,0xA5,0x1C,0x30,0xCF,0x56,0x29};
+  static const char* ascii_fingerprint; // = "C5DCADADA0300E1255D699BA497FD949";
+  static const uint8_t binary_fingerprint[16]; // = {0xC5,0xDC,0xAD,0xAD,0xA0,0x30,0x0E,0x12,0x55,0xD6,0x99,0xBA,0x49,0x7F,0xD9,0x49};
 
-  BusiTypeColumn() : busiType() {
+  BusiTypeColumn() : busiType(), column() {
   }
 
   virtual ~BusiTypeColumn() throw() {}
 
   std::string busiType;
   Table table;
-  FieldSchema column;
+  std::string column;
 
   _BusiTypeColumn__isset __isset;
 
@@ -1558,7 +1558,7 @@ class BusiTypeColumn {
     table = val;
   }
 
-  void __set_column(const FieldSchema& val) {
+  void __set_column(const std::string& val) {
     column = val;
   }
 
