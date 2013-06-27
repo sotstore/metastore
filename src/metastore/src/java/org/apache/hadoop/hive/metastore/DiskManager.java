@@ -1500,7 +1500,7 @@ public class DiskManager {
             // determine the target node
             if (r.tfile.getLocationsSize() > 0) {
               // select the 0th location
-              target = r.file.getLocations().get(0);
+              target = r.tfile.getLocations().get(0);
             }
             // indicate file transfer
             JSONObject jo = new JSONObject();
