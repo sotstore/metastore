@@ -756,6 +756,8 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   SFile get_file_by_id(1:i64 fid) throws (1:FileOperationException o1, 2:MetaException o2)
   
+  SFile get_file_by_name(1:string node, 2:string devid, 3:string location) throws (1:FileOperationException o1, 2:MetaException o2)
+  
   i32 rm_file_logical(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
   
   i32 restore_file(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)

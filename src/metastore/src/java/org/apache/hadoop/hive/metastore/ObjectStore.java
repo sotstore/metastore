@@ -1507,6 +1507,22 @@ public class ObjectStore implements RawStore, Configurable {
     return f;
   }
 
+  public SFile getSFile(String node, String devid, String location) throws MetaException {
+    boolean commited = false;
+    SFile f = null;
+    try {
+      openTransaction();
+      f = convertToSFile(getMFile(node, devid, location));
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+
+    return f;
+  }
+
   public List<SFileLocation> getSFileLocations(long fid) throws MetaException {
     boolean commited = false;
     List<SFileLocation> sfl = new ArrayList<SFileLocation>();
@@ -1861,6 +1877,25 @@ public class ObjectStore implements RawStore, Configurable {
       query.setUnique(true);
       mf = (MFile)query.execute(new Long(fid));
       pm.retrieve(mf);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return mf;
+  }
+
+  private MFile getMFile(String node, String devid, String location) {
+    MFile mf = null;
+    MFileLocation mfl = null;
+    boolean commited = false;
+    try {
+      openTransaction();
+      mfl = getMFileLocation(node, devid, location);
+      if (mfl != null) {
+        mf = mfl.getFile();
+      }
       commited = commitTransaction();
     } finally {
       if (!commited) {

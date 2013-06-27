@@ -1762,6 +1762,23 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_file_by_id failed: unknown result')
     end
 
+    def get_file_by_name(node, devid, location)
+      send_get_file_by_name(node, devid, location)
+      return recv_get_file_by_name()
+    end
+
+    def send_get_file_by_name(node, devid, location)
+      send_message('get_file_by_name', Get_file_by_name_args, :node => node, :devid => devid, :location => location)
+    end
+
+    def recv_get_file_by_name()
+      result = receive_message(Get_file_by_name_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_file_by_name failed: unknown result')
+    end
+
     def rm_file_logical(file)
       send_rm_file_logical(file)
       return recv_rm_file_logical()
@@ -3289,6 +3306,19 @@ module ThriftHiveMetastore
         result.o2 = o2
       end
       write_result(result, oprot, 'get_file_by_id', seqid)
+    end
+
+    def process_get_file_by_name(seqid, iprot, oprot)
+      args = read_args(iprot, Get_file_by_name_args)
+      result = Get_file_by_name_result.new()
+      begin
+        result.success = @handler.get_file_by_name(args.node, args.devid, args.location)
+      rescue ::FileOperationException => o1
+        result.o1 = o1
+      rescue ::MetaException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'get_file_by_name', seqid)
     end
 
     def process_rm_file_logical(seqid, iprot, oprot)
@@ -7446,6 +7476,46 @@ module ThriftHiveMetastore
   end
 
   class Get_file_by_id_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::SFile},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::FileOperationException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_file_by_name_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NODE = 1
+    DEVID = 2
+    LOCATION = 3
+
+    FIELDS = {
+      NODE => {:type => ::Thrift::Types::STRING, :name => 'node'},
+      DEVID => {:type => ::Thrift::Types::STRING, :name => 'devid'},
+      LOCATION => {:type => ::Thrift::Types::STRING, :name => 'location'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_file_by_name_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1

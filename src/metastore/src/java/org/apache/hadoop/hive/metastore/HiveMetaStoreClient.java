@@ -1778,8 +1778,16 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   }
 
   @Override
+  public SFile get_file_by_name(String node, String devid, String location)
+      throws FileOperationException, MetaException, TException {
+    assert node != null;
+    assert devid != null;
+    assert location != null;
+    return client.get_file_by_name(node, devid, location);
+  }
+  
+  @Override
   public List<BusiTypeColumn> get_all_busi_type_cols() throws MetaException, TException {
-
     return client.get_all_busi_type_cols();
   }
 

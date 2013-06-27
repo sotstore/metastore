@@ -30,6 +30,8 @@ import net.sf.json.JSONObject;
 
 import org.apache.commons.logging.Log;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
@@ -42,6 +44,7 @@ import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.util.ReflectionUtils;
+import org.apache.thrift.TException;
 
 public class DiskManager {
     public RawStore rs;
@@ -62,7 +65,54 @@ public class DiskManager {
     public final Queue<BackupEntry> backupQ = new ConcurrentLinkedQueue<BackupEntry>();
     public final Map<String, Long> toReRep = new ConcurrentHashMap<String, Long>();
     public final Map<String, Long> toUnspc = new ConcurrentHashMap<String, Long>();
+    public final Map<String, MigrateEntry> rrmap = new ConcurrentHashMap<String, MigrateEntry>();
 
+    public static class SFLTriple implements Comparable<SFLTriple> {
+      public String node;
+      public String devid;
+      public String location;
+
+      public SFLTriple(String node, String devid, String location) {
+        this.node = node;
+        this.devid = devid;
+        this.location = location;
+      }
+
+      @Override
+      public int compareTo(SFLTriple b) {
+        return node.compareTo(b.node) & devid.compareTo(b.devid) & location.compareTo(b.location);
+      }
+
+      @Override
+      public String toString() {
+        return "N:" + node + ",D:" + devid + ",L:" + location;
+      }
+    }
+
+    public static class MigrateEntry {
+      boolean is_part;
+      String to_dc;
+      public Partition part;
+      public Subpartition subpart;
+      public List<Long> files;
+      public Map<String, Long> timap;
+
+      public MigrateEntry(String to_dc, Partition part, List<Long> files, Map<String, Long> timap) {
+        this.is_part = true;
+        this.to_dc = to_dc;
+        this.part = part;
+        this.files = files;
+        this.timap = timap;
+      }
+
+      public MigrateEntry(String to_dc, Subpartition subpart, List<Long> files, Map<String, Long> timap) {
+        this.is_part = false;
+        this.to_dc = to_dc;
+        this.subpart = subpart;
+        this.files = files;
+        this.timap = timap;
+      }
+    }
     public static class BackupEntry {
       public enum FOP {
         ADD_PART, DROP_PART, ADD_SUBPART, DROP_SUBPART,
@@ -1744,6 +1794,7 @@ public class DiskManager {
             // 2.NA update metadata
             Set<SFile> toCheckRep = new HashSet<SFile>();
             Set<SFile> toCheckDel = new HashSet<SFile>();
+            Set<SFLTriple> toCheckMig = new HashSet<SFLTriple>();
             if (report.replies != null) {
               for (DMReply r : report.replies) {
                 String[] args = r.args.split(",");
@@ -1758,8 +1809,10 @@ public class DiskManager {
                       synchronized (rs) {
                         newsfl = rs.getSFileLocation(args[0], args[1], args[2]);
                         if (newsfl == null) {
-                          if (ndmap.get(args[0]) == null) {
+                          SFLTriple t = new SFLTriple(args[0], args[1], args[2]);
+                          if (rrmap.containsKey(t.toString())) {
                             // this means REP might actually MIGRATE
+                            toCheckMig.add(new SFLTriple(args[0], args[1], args[2]));
                             LOG.info("----> MIGRATE to " + args[0] + ":" + args[1] + "/" + args[2] + " DONE.");
                             break;
                           }
@@ -1840,6 +1893,87 @@ public class DiskManager {
                 }
               }
               toCheckDel.clear();
+            }
+            if (!toCheckMig.isEmpty()) {
+              if (HMSHandler.topdcli == null) {
+                try {
+                  HiveMetaStore.connect_to_top_dc(hiveConf);
+                } catch (MetaException e) {
+                  LOG.error(e, e);
+                }
+              }
+              if (HMSHandler.topdcli != null) {
+                for (SFLTriple t : toCheckMig) {
+                  MigrateEntry me = rrmap.get(t.toString());
+                  if (me == null) {
+                    LOG.error("Invalid SFLTriple-MigrateEntry map.");
+                    continue;
+                  } else {
+                    rrmap.remove(t);
+                    // connect to remote DC, and close the file
+                    try {
+                      Datacenter rdc = HMSHandler.topdcli.get_center(me.to_dc);
+                      IMetaStoreClient rcli = new HiveMetaStoreClient(rdc.getLocationUri(),
+                          HiveConf.getIntVar(hiveConf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
+                          hiveConf.getIntVar(HiveConf.ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
+                          null);
+                      SFile sf = rcli.get_file_by_name(t.node, t.devid, t.location);
+                      sf.setDigest("REMOTE-DIGESTED!");
+                      rcli.close_file(sf);
+                      LOG.info("Close remote file: " + t.node + ":" + t.devid + ":" + t.location);
+                      rcli.close();
+                    } catch (NoSuchObjectException e) {
+                      LOG.error(e, e);
+                    } catch (TException e) {
+                      LOG.error(e, e);
+                    }
+                    // remove the partition-file relationship from metastore
+                    if (me.is_part) {
+                      // is partition
+                      synchronized (rs) {
+                        Partition np;
+                        try {
+                          np = rs.getPartition(me.part.getDbName(), me.part.getTableName(), me.part.getPartitionName());
+                          long fid = me.timap.get(t.toString());
+                          me.timap.remove(t.toString());
+                          List<Long> nfiles = new ArrayList<Long>();
+                          nfiles.addAll(np.getFiles());
+                          nfiles.remove(fid);
+                          np.setFiles(nfiles);
+                          rs.updatePartition(np);
+                          LOG.info("Remove file fid " + fid + " from partition " + np.getPartitionName());
+                        } catch (MetaException e) {
+                          LOG.error(e, e);
+                        } catch (NoSuchObjectException e) {
+                          LOG.error(e, e);
+                        } catch (InvalidObjectException e) {
+                          LOG.error(e, e);
+                        }
+                      }
+                    } else {
+                      // subpartition
+                      Subpartition np;
+                      try {
+                        np = rs.getSubpartition(me.subpart.getDbName(), me.subpart.getTableName(), me.subpart.getPartitionName());
+                        long fid = me.timap.get(t.toString());
+                        me.timap.remove(t.toString());
+                        List<Long> nfiles = new ArrayList<Long>();
+                        nfiles.addAll(np.getFiles());
+                        nfiles.remove(fid);
+                        np.setFiles(nfiles);
+                        rs.updateSubpartition(np);
+                        LOG.info("Remove file fid " + fid + " from subpartition " + np.getPartitionName());
+                      } catch (MetaException e) {
+                        LOG.error(e, e);
+                      } catch (NoSuchObjectException e) {
+                        LOG.error(e, e);
+                      } catch (InvalidObjectException e) {
+                        LOG.error(e, e);
+                      }
+                    }
+                  }
+                }
+              }
             }
 
             // 3. append any commands
