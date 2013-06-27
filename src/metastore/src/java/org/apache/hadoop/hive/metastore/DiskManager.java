@@ -1809,7 +1809,8 @@ public class DiskManager {
                       synchronized (rs) {
                         newsfl = rs.getSFileLocation(args[0], args[1], args[2]);
                         if (newsfl == null) {
-                          if (ndmap.get(args[0]) == null) {
+                          SFLTriple t = new SFLTriple(args[0], args[1], args[2]);
+                          if (rrmap.containsKey(t.toString())) {
                             // this means REP might actually MIGRATE
                             toCheckMig.add(new SFLTriple(args[0], args[1], args[2]));
                             LOG.info("----> MIGRATE to " + args[0] + ":" + args[1] + "/" + args[2] + " DONE.");

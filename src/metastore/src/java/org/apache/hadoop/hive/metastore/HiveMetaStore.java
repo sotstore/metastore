@@ -4838,11 +4838,27 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       // prepare tbl, parts
       Table tbl = get_table(dbName, tableName);
       Map<String, String> kvs = new HashMap<String, String>();
-      kvs.put("store.remote", "both");
-      kvs.put("store.remote.dcs", to_dc + "," + hiveConf.getVar(ConfVars.LOCAL_DATACENTER));
       if (tbl.getParametersSize() > 0) {
         LOG.info(tbl.getParameters().toString());
         kvs.putAll(tbl.getParameters());
+        kvs.put("store.remote", "both");
+        if (kvs.get("store.remote.dcs") == null) {
+          kvs.put("store.remote.dcs", to_dc + "," + hiveConf.getVar(ConfVars.LOCAL_DATACENTER));
+        } else {
+          String olddcs = kvs.get("store.remote.dcs");
+          String[] dcsarray = olddcs.split(",");
+          boolean ign = false;
+          for (int i = 0; i < dcsarray.length; i++) {
+            if (dcsarray[i].equals(to_dc)) {
+              ign = true;
+              break;
+            }
+          }
+          if (!ign) {
+            olddcs += "," + to_dc;
+          }
+          kvs.put("store.remote.dcs", olddcs);
+        }
         tbl.setParameters(kvs);
       } else {
         tbl.setParameters(kvs);

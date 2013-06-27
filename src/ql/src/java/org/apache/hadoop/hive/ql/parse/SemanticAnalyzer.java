@@ -2379,6 +2379,13 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 
       }
 
+      LOG.info("in getselectplan exper:"+i+"--"+child.toStringTree()+"=="+expr.toStringTree());
+      LOG.info(
+          (inputRR.hasTableAlias(unescapeIdentifier(expr.getChild(0)
+          .getChild(0).getText().toLowerCase())) +"=="+ (!hasAsClause))
+          +"=="+ (!inputRR.getIsExprResolver())
+          +"=="+ (isRegex(unescapeIdentifier(expr.getChild(1).getText()))) );
+
       if (expr.getType() == HiveParser.TOK_ALLCOLREF) {
         pos = genColListRegex(".*", expr.getChildCount() == 0 ? null
             : getUnescapedName((ASTNode)expr.getChild(0)).toLowerCase(),

@@ -510,7 +510,7 @@ class BusiTypeColumn
   FIELDS = {
     BUSITYPE => {:type => ::Thrift::Types::STRING, :name => 'busiType'},
     TABLE => {:type => ::Thrift::Types::STRUCT, :name => 'table', :class => ::Table},
-    COLUMN => {:type => ::Thrift::Types::STRUCT, :name => 'column', :class => ::FieldSchema}
+    COLUMN => {:type => ::Thrift::Types::STRING, :name => 'column'}
   }
 
   def struct_fields; FIELDS; end

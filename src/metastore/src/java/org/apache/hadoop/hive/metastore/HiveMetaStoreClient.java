@@ -43,6 +43,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -1782,5 +1783,10 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     assert devid != null;
     assert location != null;
     return client.get_file_by_name(node, devid, location);
+  }
+  
+  @Override
+  public List<BusiTypeColumn> get_all_busi_type_cols() throws MetaException, TException {
+    return client.get_all_busi_type_cols();
   }
 }

@@ -1131,7 +1131,7 @@ public class ObjectStore implements RawStore, Configurable {
             for(String type : MetaStoreUtils.BUSI_TYPES){
               if( cmet.length() - pos >= type.length()
                   && type.equals(cmet.substring(pos,type.length()).toLowerCase())){
-                MBusiTypeColumn bc = new MBusiTypeColumn(type,mtbl,f);
+                MBusiTypeColumn bc = new MBusiTypeColumn(type,mtbl,f.getName());
                 bcs.add(bc);
               }
             }
@@ -7292,7 +7292,7 @@ public class ObjectStore implements RawStore, Configurable {
       for (Iterator i = mbtcs.iterator(); i.hasNext();) {
         MBusiTypeColumn col = (MBusiTypeColumn)i.next();
         BusiTypeColumn btc = new BusiTypeColumn(col.getBusiType(),
-            convertToTable(col.getTable()),this.convertToFieldSchema(col.getColumn()));
+            convertToTable(col.getTable()),col.getColumn());
         btcols.add(btc);
       }
       success = commitTransaction();
