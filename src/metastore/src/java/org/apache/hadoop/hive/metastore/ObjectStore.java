@@ -565,11 +565,13 @@ public class ObjectStore implements RawStore, Configurable {
       // currently only allow changing database parameters
       mdb.setParameters(db.getParameters());
       openTransaction();
+      pm.retrieve(mdb);
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(db).toString()));
       pm.makePersistent(mdb);
       committed = commitTransaction();
 
-      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(db).toString()));
-      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALTER_DATABESE,db_id,-1, pm, db,null));
+
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALTER_DATABESE,db_id,-1, pm, mdb,null));
     } finally {
       if (!committed) {
         rollbackTransaction();
@@ -596,10 +598,16 @@ public class ObjectStore implements RawStore, Configurable {
         }
         pm.deletePersistent(db);
       }
-      success = commitTransaction();
-
+      String dc_name = db.getName();
+      String db_name = db.getDatacenter().getName();
       long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(db).toString()));
-      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DROP_DATABESE,db_id,-1, pm, db,null));
+
+      success = commitTransaction();
+      HashMap<String,Object> old_params= new HashMap<String,Object>();
+
+      old_params.put("datacenter_name", dc_name);
+      old_params.put("db_name", db_name);
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DROP_DATABESE,db_id,-1, pm, db,old_params));
     } finally {
       if (!success) {
         rollbackTransaction();
@@ -1183,6 +1191,8 @@ public class ObjectStore implements RawStore, Configurable {
         putPersistentPrivObjects(mtbl, toPersistPrivObjs, now, rolePrivs, PrincipalType.ROLE);
       }
       pm.makePersistentAll(toPersistPrivObjs);
+
+      pm.retrieve(mtbl.getDatabase());
 
       commited = commitTransaction();
 
@@ -3699,6 +3709,8 @@ public class ObjectStore implements RawStore, Configurable {
       // update the files list!
       oldp.setFiles(newPart.getFiles());
       pm.makePersistent(oldp);
+      pm.retrieve(oldp.getTable().getDatabase());
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(oldp.getTable().getDatabase()).toString()));
       success = commitTransaction();
 
       //added by zjw for msg queue
@@ -3714,7 +3726,7 @@ public class ObjectStore implements RawStore, Configurable {
       /**
        * 注意，如果分区文件数量没有变化，消息不会推送到后端
        */
-      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(oldp.getTable().getDatabase()).toString()));
+
       if(new_set.size() > old_set.size()){
         new_set.removeAll(old_set);
 
@@ -3884,9 +3896,10 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       MIndex idx = convertToMIndex(index);
       pm.makePersistent(idx);
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(idx.getOrigTable().getDatabase()).toString()));
       commited = commitTransaction();
 
-      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(idx.getOrigTable().getDatabase()).toString()));
+
       MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_NEW_INDEX,db_id,-1,
           pm,idx,null));
       return true;
