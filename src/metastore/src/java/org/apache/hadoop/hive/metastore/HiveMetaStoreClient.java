@@ -1785,7 +1785,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     assert location != null;
     return client.get_file_by_name(node, devid, location);
   }
-  
+
   @Override
   public List<BusiTypeColumn> get_all_busi_type_cols() throws MetaException, TException {
     return client.get_all_busi_type_cols();

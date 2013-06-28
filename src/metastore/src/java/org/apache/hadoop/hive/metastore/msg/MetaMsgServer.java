@@ -27,8 +27,16 @@ public class MetaMsgServer {
   static int times = 3;
   static MetaMsgServer server = null;
   private static boolean initalized = false;
-  static Semaphore sem  = new Semaphore(1);
-  private static ConcurrentLinkedQueue<DDLMsg> queue = new ConcurrentLinkedQueue<DDLMsg>();
+  private static SendThread send = new SendThread();
+
+  static ConcurrentLinkedQueue<DDLMsg> queue = new ConcurrentLinkedQueue<DDLMsg>();
+
+  private static ConcurrentLinkedQueue<DDLMsg> failed_queue = new ConcurrentLinkedQueue<DDLMsg>();
+
+  static{
+    send.start();
+  }
+
 
   private  static void initalize() throws MetaClientException{
     server = new MetaMsgServer();
@@ -40,33 +48,63 @@ public class MetaMsgServer {
   public static void start() throws MetaClientException{
     if(!initalized){
       initalize();
-      Thread send = new SendThread();
-      send.setDaemon(true);
-      send.start();
+
     }
 
   }
 
-  public static class SendThread extends Thread{
+  public static void sendMsg(DDLMsg msg) {
+    queue.add(msg);
+    send.release();
+  }
 
+
+  public static class SendThread extends Thread{
+    private static final int MSG_SEND_BATCH=0;
+    Semaphore sem  = new Semaphore(MSG_SEND_BATCH);
     @Override
     public void run() {
       // TODO Auto-generated method stub
 
-      while(true && !queue.isEmpty()){
+      while(true ){
         try{
-          sendMsg(queue.poll());
-        }catch(Exception e){
+          if(queue.isEmpty()){
+            LOG.info("---in sendThread before ac");
+            sem.acquire();
+            LOG.info("---in sendThread after ac");
+            if(queue.isEmpty()){
+              continue;
+            }
+          }
+
+          DDLMsg msg = queue.peek();
+          boolean succ = sendDDLMsg(msg);
+          if(!succ){
+            failed_queue.add(msg);
+          }else{
+            queue.poll();
+            if(!failed_queue.isEmpty()){
+              int i=0;
+//              while(i++ < MSG_SEND_BATCH && !failed_queue.isEmpty()){//retry send faild msg
+              while( !failed_queue.isEmpty()){//retry send faild msg,old msg should send as soon as possible.
+                DDLMsg retry_msg =failed_queue.peek();
+                if(!sendDDLMsg(retry_msg)){
+                  break;
+                }else{
+                  failed_queue.poll();
+                }
+              }
+            }
+          }
+        } catch (Exception e) {
           LOG.error(e,e);
-        }
-        try {
-          sem.acquire();
-        } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
         }
       }
 
+    }
+
+    public void release(){
+      sem.release();
     }
 
   }
@@ -81,13 +119,7 @@ public class MetaMsgServer {
     MetaMsgServer.zkAddr = zkAddr;
   }
 
-  public void sendDDLMsg(DDLMsg msg){
-    queue.add(msg);
-    sem.release();
-  }
-
-
-  public static boolean  sendMsg(DDLMsg msg) {
+  public static boolean  sendDDLMsg(DDLMsg msg) {
     String jsonMsg = "";
 
 //    switch((int)msg.getEvent_id()){
@@ -240,15 +272,24 @@ public class MetaMsgServer {
       zkAddr = addr;
     }
 
-    private Producer() throws MetaClientException{
+    private Producer() {
         //设置zookeeper地址
 
         zkConfig.zkConnect = zkAddr;
         metaClientConfig.setZkConfig(zkConfig);
         // New session factory,强烈建议使用单例
+        connect();
+    }
+
+    private void connect(){
+      try{
         sessionFactory = new MetaMessageSessionFactory(metaClientConfig);
         producer = sessionFactory.createProducer();
         producer.publish(topic);
+      }
+      catch(MetaClientException e){
+        LOG.error(e.getMessage());
+      }
     }
 
     public static Producer getInstance() throws MetaClientException {
@@ -259,7 +300,14 @@ public class MetaMsgServer {
     }
 
     boolean sendMsg(String msg) throws MetaClientException, InterruptedException{
-        LOG.info("in send msg.");
+        LOG.info("in send msg:"+msg);
+
+        if(producer == null){
+          connect();
+          if(producer == null){
+            return false;
+          }
+        }
         SendResult sendResult = producer.sendMessage(new Message(topic, msg.getBytes()));
         // check result
 
@@ -273,5 +321,8 @@ public class MetaMsgServer {
         return success;
     }
   }
+
+
+
 
 }

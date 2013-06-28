@@ -149,6 +149,7 @@ public class MSGFactory {
       return jsonData;
     }
 
+
     public static DDLMsg fromJson(String jsonData){
       JSONObject json = (JSONObject)JSONSerializer.toJSON(jsonData);
 
@@ -205,7 +206,7 @@ public class MSGFactory {
  * @return
  */
 
-   private static String  getIDFromJdoObjectId(String objectId){
+   public static String  getIDFromJdoObjectId(String objectId){
     if(objectId == null || objectId.equals("null") || objectId.equals("")){
       return "";
     }
@@ -214,7 +215,7 @@ public class MSGFactory {
     }
   }
 
-   public static DDLMsg generateDDLMsg(long event_id ,PersistenceManager pm , Object eventObject,HashMap<String,Object> old_object_params){
+   public static DDLMsg generateDDLMsg(long event_id,long db_id,long node_id ,PersistenceManager pm , Object eventObject,HashMap<String,Object> old_object_params){
 
      String jsonData;
      Long id = -1l;
@@ -234,10 +235,10 @@ public class MSGFactory {
 //     net.sf.json.JSONObject jsonObject = net.sf.json.JSONObject.fromObject(eventObject);
 //     jsonData = jsonObject.toString();
 //     LOG.info("---zjw--json:"+jsonData);
-     return new MSGFactory.DDLMsg(event_id, id, null, eventObject, max_msg_id++, -1, -1, now, null,old_object_params);
+     return new MSGFactory.DDLMsg(event_id, id, null, eventObject, max_msg_id++, db_id, node_id, now, null,old_object_params);
    }
 
-  public static List<DDLMsg> generateDDLMsg(long event_id ,PersistenceManager pm ,List<Object> eventObjects,HashMap<String,Object> old_object_params){
+  public static List<DDLMsg> generateDDLMsg(long event_id ,long db_id,long node_id,PersistenceManager pm ,List<Object> eventObjects,HashMap<String,Object> old_object_params){
 
     List<DDLMsg> msgs = new ArrayList<DDLMsg>();
     long now = new Date().getTime()/1000;
@@ -256,7 +257,7 @@ public class MSGFactory {
 //      net.sf.json.JSONObject jsonObject = net.sf.json.JSONObject.fromObject(eventObject);
 //      jsonData = jsonObject.toString();
 //      LOG.warn("---zjw--json:"+jsonData);
-      msgs.add(new MSGFactory.DDLMsg(event_id, id, null, eventObject, max_msg_id++, -1, -1, now, null,old_object_params));
+      msgs.add(new MSGFactory.DDLMsg(event_id, id, null, eventObject, max_msg_id++, db_id, node_id, now, null,old_object_params));
     }
     return msgs;
   }
@@ -475,19 +476,19 @@ public class MSGFactory {
       case MSGType.MSG_NEW_INDEX :
             //新建列索引
           MIndex index = (MIndex)msg.getEventObject();
-          params.put("db_name",index.getIndexTable().getDatabase().getName());
+          params.put("db_name",index.getOrigTable().getDatabase().getName());
           params.put("index_name",index.getIndexName());
 
           break;
       case MSGType.MSG_ALT_INDEX :
             //修改列索引
           MIndex alt_index = (MIndex)msg.getEventObject();
-          params.put("db_name",alt_index.getIndexTable().getDatabase().getName());
+          params.put("db_name",alt_index.getOrigTable().getDatabase().getName());
           params.put("index_name",alt_index.getIndexName());
       case MSGType.MSG_ALT_INDEX_PARAM :
             //修改列索引属性
           MIndex alt_param_index = (MIndex)msg.getEventObject();
-          params.put("db_name",alt_param_index.getIndexTable().getDatabase().getName());
+          params.put("db_name",alt_param_index.getOrigTable().getDatabase().getName());
           params.put("index_name",alt_param_index.getIndexName());
           if(msg.getOld_object_params().containsKey("param_name")){
             params.put("param_name",msg.getOld_object_params().get("param_name"));
