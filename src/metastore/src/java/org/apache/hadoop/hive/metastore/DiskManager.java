@@ -112,6 +112,17 @@ public class DiskManager {
         this.files = files;
         this.timap = timap;
       }
+
+      @Override
+      public String toString() {
+        String r;
+        if (is_part) {
+          r = "Part    :" + part.getPartitionName() + ",files:" + files.toString();
+        } else {
+          r = "Subpart :" + subpart.getPartitionName() + ",files:" + files.toString();
+        }
+        return r;
+      }
     }
     public static class BackupEntry {
       public enum FOP {
@@ -131,6 +142,24 @@ public class DiskManager {
         this.subpart = subpart;
         this.files = files;
         this.op = op;
+      }
+      @Override
+      public String toString() {
+        String r;
+
+        switch (op) {
+        case ADD_PART:
+        case DROP_PART:
+          r = "PART: " + part.getPartitionName() + ",files:" + files.toString();
+          break;
+        case ADD_SUBPART:
+        case DROP_SUBPART:
+          r = "SUBPART: " + part.getPartitionName() + ",files:" + files.toString();
+          break;
+        default:
+          r = "BackupEntry: INVALID OP!";
+        }
+        return r;
       }
     }
 
@@ -168,6 +197,7 @@ public class DiskManager {
       SFile tfile; // target file, only valid when op is MIGRATE
       Map<String, String> devmap;
       DMROperation op;
+      String to_dc;
       int begin_idx;
 
       public DMRequest(SFile f, DMROperation o, int idx) {
@@ -176,11 +206,31 @@ public class DiskManager {
         begin_idx = idx;
       }
 
-      public DMRequest(SFile source, SFile target, Map<String, String> devmap) {
+      public DMRequest(SFile source, SFile target, Map<String, String> devmap, String to_dc) {
         this.file = source;
         this.tfile = target;
         this.devmap = devmap;
+        this.to_dc = to_dc;
         op = DMROperation.MIGRATE;
+      }
+
+      @Override
+      public String toString() {
+        String r;
+        switch (op) {
+        case REPLICATE:
+          r = "REPLICATE: file fid " + file.getFid() + " from idx " + begin_idx;
+          break;
+        case RM_PHYSICAL:
+          r = "DELETE   : file fid " + file.getFid();
+          break;
+        case MIGRATE:
+          r = "MIGRATE  : file fid " + file.getFid() + " to DC " + to_dc + "fid " + tfile.getFid();
+          break;
+        default:
+          r = "DMRequest: Invalid OP!";
+        }
+        return r;
       }
     }
 
@@ -527,6 +577,7 @@ public class DiskManager {
       private long last_delTs = System.currentTimeMillis();
       private long last_scbTs = System.currentTimeMillis();
       private long last_rerepTs = System.currentTimeMillis();
+      private long last_unspcTs = System.currentTimeMillis();
 
       public void do_delete(SFile f, int nr) {
         int i = 0;
@@ -841,6 +892,35 @@ public class DiskManager {
           }
           last_rerepTs = System.currentTimeMillis();
         }
+
+        // check files on unspc devices, try to unspc it
+        if (last_unspcTs + repDelCheck < System.currentTimeMillis()) {
+          // Step 1: generate the SUSPECT file list
+          List<SFileLocation> sfl;
+
+          synchronized (rs) {
+            try {
+              sfl = rs.getSFileLocations(MetaStoreConst.MFileLocationVisitStatus.SUSPECT);
+              // Step 2: TODO: try to probe the target file
+              for (SFileLocation fl : sfl) {
+                // check if this device is back
+                if (toUnspc.containsKey(fl.getDevid())) {
+                  fl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
+                  try {
+                    rs.updateSFileLocation(fl);
+                  } catch (MetaException e) {
+                    LOG.error(e, e);
+                    continue;
+                  }
+                }
+              }
+            } catch (MetaException e) {
+              LOG.error(e, e);
+            }
+          }
+
+          last_unspcTs = System.currentTimeMillis();
+        }
       }
     }
 
@@ -947,6 +1027,38 @@ public class DiskManager {
       }
       r += "}\n";
 
+      r += "backupQ: {\n";
+      synchronized (backupQ) {
+        for (BackupEntry be : backupQ) {
+          r += "\t" + be.toString() + "\n";
+        }
+      }
+      r += "}\n";
+
+      r += "repQ: {\n";
+      synchronized (repQ) {
+        for (DMRequest req : repQ) {
+          r += "\t" + req.toString() + "\n";
+        }
+      }
+      r += "}\n";
+
+      r += "cleanQ: {\n";
+      synchronized (cleanQ) {
+        for (DMRequest req : cleanQ) {
+          r += "\t" + req.toString() + "\n";
+        }
+      }
+      r += "}\n";
+
+      r += "RRMAP: {\n";
+      synchronized (rrmap) {
+        for (Map.Entry<String, MigrateEntry> e : rrmap.entrySet()) {
+          r += "\t" + e.getKey() + " -> " + e.getValue().toString();
+        }
+      }
+      r += "}\n";
+
       return r;
     }
 
@@ -1011,6 +1123,7 @@ public class DiskManager {
           synchronized (toReRep) {
             if (!toReRep.containsKey(di.dev)) {
               toReRep.put(di.dev, System.currentTimeMillis());
+              toUnspc.remove(di.dev);
             }
           }
         }

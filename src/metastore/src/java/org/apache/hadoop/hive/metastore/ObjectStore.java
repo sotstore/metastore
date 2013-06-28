@@ -1553,6 +1553,21 @@ public class ObjectStore implements RawStore, Configurable {
     return sfl;
   }
 
+  public List<SFileLocation> getSFileLocations(int status) throws MetaException {
+    boolean commited = false;
+    List<SFileLocation> sfl = new ArrayList<SFileLocation>();
+    try {
+      openTransaction();
+      sfl = convertToSFileLocation(getMFileLocations(status));
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return sfl;
+  }
+
   public SFileLocation getSFileLocation(String node, String devid, String location) throws MetaException {
     boolean commited = false;
     SFileLocation sfl = null;
@@ -1934,6 +1949,29 @@ public class ObjectStore implements RawStore, Configurable {
       Query query = pm.newQuery(MFileLocation.class, "this.file.fid == fid");
       query.declareParameters("long fid");
       List l = (List)query.execute(fid);
+      Iterator iter = l.iterator();
+      while (iter.hasNext()) {
+        MFileLocation mf = (MFileLocation)iter.next();
+        mfl.add(mf);
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return mfl;
+  }
+
+  private List<MFileLocation> getMFileLocations(int status) {
+    List<MFileLocation> mfl = new ArrayList<MFileLocation>();
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MFileLocation.class, "this.visit_status == status");
+      query.declareParameters("int status");
+      List l = (List)query.execute(status);
       Iterator iter = l.iterator();
       while (iter.hasNext()) {
         MFileLocation mf = (MFileLocation)iter.next();

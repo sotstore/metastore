@@ -4928,7 +4928,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           LOG.info("------migrate----fid " + e.getKey() + "----to---->" + sfl.getNode_name() + ":" +
               sfl.getDevid() + ":" + sfl.getLocation());
           SFile source = get_file_by_id(e.getKey());
-          DMRequest dmr = new DMRequest(source, e.getValue(), devmap);
+          DMRequest dmr = new DMRequest(source, e.getValue(), devmap, to_dc);
           synchronized (dm.repQ) {
             dm.repQ.add(dmr);
             dm.repQ.notify();

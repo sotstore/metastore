@@ -137,6 +137,8 @@ public interface RawStore extends Configurable {
 
   public List<SFileLocation> getSFileLocations(long fid) throws MetaException;
 
+  public List<SFileLocation> getSFileLocations(int status) throws MetaException;
+
   public List<SFileLocation> getSFileLocations(String devid, long curts, long timeout) throws MetaException;
 
   public SFileLocation getSFileLocation(String node, String devid, String location) throws MetaException;
