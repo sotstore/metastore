@@ -7430,7 +7430,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         return putOpInsertMap(unionforward, ctasRR);
       }
     }
-    // First generate all the opInfos for the elements in the from clause
+
+  // First generate all the opInfos for the elements in the from clause
     HashMap<String, Operator> aliasToOpInfo = new HashMap<String, Operator>();
 
     // Recurse over the subqueries to fill the subquery part of the plan
@@ -8209,9 +8210,13 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     // modify it below as part of imposing view column names.
     List<FieldSchema> derivedSchema =
         new ArrayList<FieldSchema>();
-    if(resultSchema != null){
-      derivedSchema.addAll(resultSchema);
+    if(this.createVwDesc != null && !this.createVwDesc.isHeter() && resultSchema != null){
+      LOG.info("---zjw -- in saveViewDefinition,result is not null");
+      derivedSchema.addAll(this.resultSchema);
+    }else{
+      LOG.info("---zjw -- in saveViewDefinition,result is null,heter is "+this.createVwDesc.isHeter());
     }
+
     ParseUtils.validateColumnNameUniqueness(derivedSchema);
 
     List<FieldSchema> imposedSchema = createVwDesc.getSchema();

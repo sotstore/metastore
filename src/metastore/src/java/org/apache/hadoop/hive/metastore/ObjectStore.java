@@ -7378,9 +7378,22 @@ public class ObjectStore implements RawStore, Configurable {
     int now = (int)(System.currentTimeMillis()/1000);
     try {
       openTransaction();
-      MBusiTypeDatacenter mtdc = new MBusiTypeDatacenter(busiTypeDatacenter.getBusiType(),
-          convertToMDatacenter(busiTypeDatacenter.getDc()),busiTypeDatacenter.getDb_name());
-      pm.makePersistent(mtdc);
+      MDatacenter datacenter = null;
+      try{
+        datacenter = getMDatacenter(busiTypeDatacenter.getDc().getName());
+      }catch(NoSuchObjectException e){
+        LOG.warn("No datacenter:"+busiTypeDatacenter.getDc().getName());
+      }
+      MBusiTypeDatacenter mtdc = null;
+      if(datacenter !=null){
+        mtdc = new MBusiTypeDatacenter(busiTypeDatacenter.getBusiType(),
+            datacenter,busiTypeDatacenter.getDb_name());
+        pm.makePersistent(mtdc);
+      }else{
+        mtdc = new MBusiTypeDatacenter(busiTypeDatacenter.getBusiType(),
+            convertToMDatacenter(busiTypeDatacenter.getDc()),busiTypeDatacenter.getDb_name());
+        pm.makePersistent(mtdc);
+      }
       success = commitTransaction();
     } finally {
       if (!success) {
