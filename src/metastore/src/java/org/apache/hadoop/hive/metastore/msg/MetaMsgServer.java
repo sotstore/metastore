@@ -1,5 +1,7 @@
 package org.apache.hadoop.hive.metastore.msg;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
@@ -55,6 +57,11 @@ public class MetaMsgServer {
 
   public static void sendMsg(DDLMsg msg) {
     queue.add(msg);
+    send.release();
+  }
+
+  public static void sendMsg(List<DDLMsg> msgs) {
+    queue.addAll(msgs);
     send.release();
   }
 
@@ -322,7 +329,14 @@ public class MetaMsgServer {
     }
   }
 
+  public static void main(String[] args){
+    List<Long> nl = new ArrayList<Long>();
 
+    nl.add(1l);
+    nl.add(2l);
+    List<DDLMsg> msg = MSGFactory.generateDDLMsgs(MSGType.MSG_NEW_PARTITION_FILE,-1l,-1l,null,nl,null);
+    nl.add(3l);
+  }
 
 
 }

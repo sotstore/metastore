@@ -479,10 +479,11 @@ public class CreateTableDesc extends DDLDesc implements Serializable {
                 ErrorMsg.PARTITION_ARGUMENTS_INVALID.getMsg());
           }
           String interval_unit = pi.getArgs().get(0);
-          Long interval_seconds = Long.parseLong(pi.getArgs().get(1));
+          Double d = Double.parseDouble(pi.getArgs().get(1));
           Log.info("---zjw--interval_unit:"+interval_unit);
+          Long interval_seconds = 0L;
           try{
-            interval_seconds = PartitionFactory.getIntervalSeconds(interval_unit);
+            interval_seconds = PartitionFactory.getIntervalSeconds(interval_unit,d);
           }catch(Exception e){
             throw new SemanticException(
                 ErrorMsg.PARTITION_ARGUMENTS_INVALID.getMsg());

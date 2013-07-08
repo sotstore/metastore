@@ -238,20 +238,54 @@ public class MSGFactory {
      return new MSGFactory.DDLMsg(event_id, id, null, eventObject, max_msg_id++, db_id, node_id, now, null,old_object_params);
    }
 
-  public static List<DDLMsg> generateDDLMsg(long event_id ,long db_id,long node_id,PersistenceManager pm ,List<Object> eventObjects,HashMap<String,Object> old_object_params){
+   public static List<DDLMsg> generateDDLMsgs(int event_id ,long db_id,long node_id,PersistenceManager pm ,List<Long> eventObjects,HashMap<String,Object> old_object_params){
+
+     List<DDLMsg> msgs = new ArrayList<DDLMsg>();
+     long now = new Date().getTime()/1000;
+     Long id = 1l;
+     for(Object  eventObject : eventObjects){
+       String jsonData;
+       if(eventObject instanceof Long){
+         id = (Long)eventObject;
+       }else{
+         Object objectId = pm.getObjectId(eventObject);
+
+         LOG.warn("Sending DDL message:"+event_id+"---"+objectId.toString());
+
+         try{
+           id = Long.parseLong(getIDFromJdoObjectId(objectId.toString()));
+         }catch(Exception e){
+
+         }
+       }
+
+//       net.sf.json.JSONObject jsonObject = net.sf.json.JSONObject.fromObject(eventObject);
+//       jsonData = jsonObject.toString();
+//       LOG.warn("---zjw--json:"+jsonData);
+       msgs.add(new MSGFactory.DDLMsg(event_id, id, null, eventObject, max_msg_id++, db_id, node_id, now, null,old_object_params));
+     }
+     return msgs;
+   }
+
+  public static List<DDLMsg> generateDDLMsgs(long event_id ,long db_id,long node_id,PersistenceManager pm ,List<Object> eventObjects,HashMap<String,Object> old_object_params){
 
     List<DDLMsg> msgs = new ArrayList<DDLMsg>();
     long now = new Date().getTime()/1000;
+    Long id = 1l;
     for(Object  eventObject : eventObjects){
       String jsonData;
-      Object objectId = pm.getObjectId(eventObject);
+      if(eventObject instanceof Long){
+        id = (Long)eventObject;
+      }else{
+        Object objectId = pm.getObjectId(eventObject);
 
-      LOG.warn("Sending DDL message:"+event_id+"---"+objectId.toString());
-      Long id = 1l;
-      try{
-        id = Long.parseLong(getIDFromJdoObjectId(objectId.toString()));
-      }catch(Exception e){
+        LOG.warn("Sending DDL message:"+event_id+"---"+objectId.toString());
 
+        try{
+          id = Long.parseLong(getIDFromJdoObjectId(objectId.toString()));
+        }catch(Exception e){
+
+        }
       }
 
 //      net.sf.json.JSONObject jsonObject = net.sf.json.JSONObject.fromObject(eventObject);
@@ -427,10 +461,22 @@ public class MSGFactory {
           break;
       case MSGType.MSG_NEW_PARTITION_FILE :
             //增加分区文件
-          MFile file = (MFile)msg.getEventObject();
-          params.put("file_id",file.getFid());
+//          MFile file = (MFile)msg.getEventObject();
+//          params.put("f_id",file.getFid());
+          if(msg.getOld_object_params().containsKey("f_id")){
+            params.put("f_id",msg.getOld_object_params().get("f_id"));
+          }
           if(msg.getOld_object_params().containsKey("partition_name")){
             params.put("partition_name",msg.getOld_object_params().get("partition_name"));
+          }
+          if(msg.getOld_object_params().containsKey("partition_level")){
+            params.put("partition_level",msg.getOld_object_params().get("partition_level"));
+          }
+          if(msg.getOld_object_params().containsKey("db_name")){
+            params.put("db_name",msg.getOld_object_params().get("db_name"));
+          }
+          if(msg.getOld_object_params().containsKey("table_name")){
+            params.put("table_name",msg.getOld_object_params().get("table_name"));
           }
           break;
       case MSGType.MSG_ALT_PARTITION_FILE :
