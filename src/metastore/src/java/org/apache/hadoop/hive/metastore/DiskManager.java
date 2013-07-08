@@ -703,7 +703,7 @@ public class DiskManager {
               } else {
                 synchronized (ni.toRep) {
                   ni.toRep.add(jo);
-                  LOG.info("----> ADD toRep " + jo);
+                  LOG.info("----> ADD " + node_name + "'s toRep " + jo);
                 }
               }
             }
@@ -793,7 +793,7 @@ public class DiskManager {
                   m.put(f, nr - f.getRep_nr());
                 }
               }
-            } catch (MetaException e) {
+            } catch (Exception e) {
               e.printStackTrace();
             }
           }
