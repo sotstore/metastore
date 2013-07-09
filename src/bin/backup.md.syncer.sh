@@ -1,6 +1,12 @@
 #!/bin/bash
 
-HOME=`pwd`/backup
+if [ x"$RHOME" == "x" ]; then
+	echo "detect RHOME now ..."
+	RHOME=`pwd`/backup
+else
+	echo "Use RHOME=$RHOME"
+fi
+
 
 if [ x"$RUSER" == "x" ]; then
 	echo "Please set RUSER={remote user name}"
@@ -17,22 +23,22 @@ if [ x"$RPATH" == "x" ]; then
 	exit
 fi
 
-echo -n "Try to use $HOME as SYNC Metadata Home."
-if [ -d $HOME ]; then
+echo -n "Try to use $RHOME as SYNC Metadata Home."
+if [ -d $RHOME ]; then
 	echo " ... OK."
 else
 	echo " ... BAD. Directory not exist!"
 	exit
 fi
 
-cd $HOME
-for d in `ls $HOME`; do
+cd $RHOME
+for d in `ls $RHOME`; do
 	echo -n "Scan Directory '$d' ..."
 	if [ -s $d/manifest.desc ]; then
 		echo " OK."
 		# sync it 
-		#scp -r "$HOME/${d//:/\:}" $RUSER@$RNODE:$RPATH/
-		scp -r "$HOME/${d}" $RUSER@$RNODE:$RPATH/
+		#scp -r "$RHOME/${d//:/\:}" $RUSER@$RNODE:$RPATH/
+		scp -r "$RHOME/${d}" $RUSER@$RNODE:$RPATH/
 	else
 		echo " ZERO, do not sync it."
 		# delete it

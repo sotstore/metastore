@@ -67,6 +67,11 @@ public class DiskManager {
     public final Map<String, Long> toUnspc = new ConcurrentHashMap<String, Long>();
     public final Map<String, MigrateEntry> rrmap = new ConcurrentHashMap<String, MigrateEntry>();
 
+    // TODO: fix me: change it to 30 min
+    public long backupTimeout = 1 * 60 * 1000;
+    public long fileSizeThreshold = 64 * 1024 * 1024;
+    public String backupNodeName = "BACKUP-STORE";
+
     public static class SFLTriple implements Comparable<SFLTriple> {
       public String node;
       public String devid;
@@ -280,11 +285,6 @@ public class DiskManager {
     private final Map<String, NodeInfo> ndmap;
 
     public class BackupTimerTask extends TimerTask {
-      // TODO: fix me: change it to 30 min
-      public long backupTimeout = 1 * 60 * 1000;
-      public long fileSizeThreshold = 64 * 1024 * 1024;
-      public String backupNodeName = "BACKUP-STORE";
-
       private long last_backupTs = System.currentTimeMillis();
 
       public boolean generateSyncFiles(Set<Partition> parts, Set<Subpartition> subparts, Set<FileToPart> toAdd, Set<FileToPart> toDrop) {
@@ -360,7 +360,7 @@ public class DiskManager {
         String content = "";
         for (FileToPart ftp : toAdd) {
           for (SFileLocation sfl : ftp.file.getLocations()) {
-            if (sfl.getNode_name().equals(this.backupNodeName)) {
+            if (sfl.getNode_name().equals(backupNodeName)) {
               content += sfl.getLocation().substring(sfl.getLocation().lastIndexOf('/') + 1);
               if (ftp.isPart) {
                 content += "\tADD\t" + ftp.part.getDbName() + "\t" + ftp.part.getTableName() + "\t";
@@ -427,7 +427,7 @@ public class DiskManager {
         }
         for (FileToPart ftp : toDrop) {
           for (SFileLocation sfl : ftp.file.getLocations()) {
-            if (sfl.getNode_name().equals(this.backupNodeName)) {
+            if (sfl.getNode_name().equals(backupNodeName)) {
               content += sfl.getLocation() + "\tRemove\t" + ftp.part.getDbName() + "\t" + ftp.part.getTableName() + "\t";
               for (int i = 0; i < ftp.part.getValuesSize(); i++) {
                 content += ftp.part.getValues().get(i);
@@ -456,6 +456,10 @@ public class DiskManager {
 
       @Override
       public void run() {
+
+        backupTimeout = hiveConf.getLongVar(HiveConf.ConfVars.DM_BACKUP_TIMEOUT);
+        fileSizeThreshold = hiveConf.getLongVar(HiveConf.ConfVars.DM_BACKUP_FILESIZE_THRESHOLD);
+        backupNodeName = hiveConf.getVar(HiveConf.ConfVars.DM_BACKUP_BACKUPNODENAME);
 
         if (last_backupTs + backupTimeout <= System.currentTimeMillis()) {
           // TODO: generate manifest.desc and tableName.desc
@@ -1625,7 +1629,7 @@ public class DiskManager {
                   } else {
                     synchronized (ni.toRep) {
                       ni.toRep.add(jo);
-                      LOG.info("----> ADD toRep " + jo);
+                      LOG.info("----> ADD to Node " + node_name + "'s toRep " + jo);
                     }
                   }
                 }
@@ -2090,25 +2094,43 @@ public class DiskManager {
             }
 
             // 3. append any commands
+            int nr = 0;
+            int nr_max = hiveConf.getIntVar(HiveConf.ConfVars.DM_APPEND_CMD_MAX);
             synchronized (ndmap) {
               NodeInfo ni = ndmap.get(reportNode.getNode_name());
               if (ni != null && ni.toDelete.size() > 0) {
                 synchronized (ni.toDelete) {
+                  Set<SFileLocation> ls = new TreeSet<SFileLocation>();
                   for (SFileLocation loc : ni.toDelete) {
+                    if (nr >= nr_max) {
+                      break;
+                    }
                     sendStr += "+DEL:" + loc.getNode_name() + ":" + loc.getDevid() + ":" +
                         ndmap.get(loc.getNode_name()).getMP(loc.getDevid()) + ":" +
                         loc.getLocation() + "\n";
+                    ls.add(loc);
+                    nr++;
                   }
-                  ni.toDelete.clear();
+                  for (SFileLocation l : ls) {
+                    ni.toDelete.remove(l);
+                  }
                 }
               }
 
               if (ni != null && ni.toRep.size() > 0) {
                 synchronized (ni.toRep) {
+                  List<JSONObject> jos = new ArrayList<JSONObject>();
                   for (JSONObject jo : ni.toRep) {
+                    if (nr >= nr_max) {
+                      break;
+                    }
                     sendStr += "+REP:" + jo.toString() + "\n";
+                    jos.add(jo);
+                    nr++;
                   }
-                  ni.toRep.clear();
+                  for (JSONObject j : jos) {
+                    ni.toRep.remove(j);
+                  }
                 }
               }
             }
