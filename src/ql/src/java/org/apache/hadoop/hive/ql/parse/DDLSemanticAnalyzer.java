@@ -133,6 +133,7 @@ import org.apache.hadoop.hive.ql.plan.ShowFunctionsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
+import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTableStatusDesc;
@@ -489,11 +490,38 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
       analyzeShowSubpartitions(ast);
       break;
+    case HiveParser.TOK_SHOWPARTITIONKEYS:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowPartitionKeys(ast);
+      break;
     default:
       throw new SemanticException("Unsupported command.");
     }
   }
 
+
+  private void analyzeShowPartitionKeys(ASTNode ast) throws SemanticException {
+    ASTNode tabTree = (ASTNode)ast.getChild(0);
+    String tabName = null;
+    Table tab = null;
+    if(tabTree.getChildCount() ==2){
+      String dbName = unescapeIdentifier(tabTree.getChild(0).getText());
+      tabName = unescapeIdentifier(tabTree.getChild(1).getText());
+      tab = validateAndGetTable(dbName,tabName);
+    }else{
+      tabName = unescapeIdentifier(tabTree.getChild(0).getText());
+      tab = validateAndGetTable(tabName);
+    }
+
+    LOG.info("---zjw-- in analyzeShowPartitionKeys, tablename="+tabName);
+    if(tab == null){
+      throw new SemanticException("table:"+tabName+" is not exist!");
+    }
+    ShowPartitionKeysDesc showPartitionKeysDesc = new ShowPartitionKeysDesc(ctx.getResFile().toString(),tabName,tab.getDbName());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showPartitionKeysDesc), conf));
+    setFetchTask(createFetchTask(showPartitionKeysDesc.getSchema()));
+  }
 
   private void analyzeShowSubpartitions(ASTNode ast) throws SemanticException {
     String partName = unescapeIdentifier(ast.getChild(0).getText());

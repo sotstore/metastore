@@ -133,6 +133,9 @@ import org.apache.hadoop.hive.metastore.model.MRole;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
 import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
+import org.apache.hadoop.hive.metastore.msg.MSGFactory;
+import org.apache.hadoop.hive.metastore.msg.MSGType;
+import org.apache.hadoop.hive.metastore.msg.MetaMsgServer;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionDefinition;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
@@ -1762,7 +1765,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         else if(pis.size() == 2 ){
           if(part.getValues().size() ==1){
             try{
-              long interval = PartitionFactory.getIntervalSeconds(pis.get(0).getArgs().get(0))-1;
+              long f_value = Long.parseLong(part.getValues().get(0));
+              Double d = Double.parseDouble(pis.get(0).getArgs().get(1));
+              long interval = f_value + PartitionFactory.getIntervalSeconds(pis.get(0).getArgs().get(0),d)-1;
               part.getValues().add(""+interval);
             }catch(Exception e){
               LOG.error(e,e);
@@ -4594,6 +4599,15 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         BackupEntry be = new BackupEntry(subpart, files, BackupEntry.FOP.ADD_SUBPART);
         dm.backupQ.add(be);
       }
+
+
+      HashMap<String,Object> old_params= new HashMap<String,Object>();
+
+      old_params.put("partition_name", subpart.getPartitionName());
+      old_params.put("partition_level", 1);
+      old_params.put("db_name", subpart.getDbName());
+      old_params.put("table_name", subpart.getTableName());
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsgs(MSGType.MSG_NEW_PARTITION_FILE,-1l,-1l, null,nl,old_params));
       return 0;
     }
 

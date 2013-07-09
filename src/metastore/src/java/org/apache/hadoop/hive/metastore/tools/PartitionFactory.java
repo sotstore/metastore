@@ -29,20 +29,20 @@ public class PartitionFactory {
     public static String DEFAULT="default";
   }
 
-  public static long getIntervalSeconds(String interval_unit) throws Exception{
+  public static long getIntervalSeconds(String interval_unit, Double d) throws Exception{
     long interval_seconds=0;
     if("'Y'".equalsIgnoreCase(interval_unit) ||"\"Y\"".equalsIgnoreCase(interval_unit)){
-      interval_seconds = interval_seconds * 3600 * 24 * 7 *30 * 365;
+      interval_seconds = (long)(d * 3600 * 24 * 7 *30 * 365);
     }else if("'M'".equalsIgnoreCase(interval_unit) ||"\"M\"".equalsIgnoreCase(interval_unit)){
-      interval_seconds = interval_seconds * 3600 * 24 * 7 *30;
+      interval_seconds = (long)(d * 3600 * 24 * 7 *30);
     }else if("'W'".equalsIgnoreCase(interval_unit) ||"\"W\"".equalsIgnoreCase(interval_unit)){
-      interval_seconds = interval_seconds * 3600 * 24 * 7;
+      interval_seconds = (long)(d * 3600 * 24 * 7);
     }else if("'D'".equalsIgnoreCase(interval_unit) ||"\"D\"".equalsIgnoreCase(interval_unit)){
-      interval_seconds = interval_seconds * 3600 * 24;
+      interval_seconds = (long)(d * 3600 * 24);
     }else if("'H'".equalsIgnoreCase(interval_unit) ||"\"H\"".equalsIgnoreCase(interval_unit)){
-      interval_seconds = interval_seconds * 3600;
+      interval_seconds = (long)(d * 3600);
     }else if("'MI'".equalsIgnoreCase(interval_unit) ||"\"MI\"".equalsIgnoreCase(interval_unit)){
-      interval_seconds = interval_seconds * 60;
+      interval_seconds = (long)(d * 60);
     }else{
       throw new Exception("Not valid interval unit.");
     }

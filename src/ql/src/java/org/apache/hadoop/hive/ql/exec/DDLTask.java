@@ -79,6 +79,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory;
 import org.apache.hadoop.hive.ql.Context;
 import org.apache.hadoop.hive.ql.DriverContext;
 import org.apache.hadoop.hive.ql.QueryPlan;
@@ -163,6 +164,7 @@ import org.apache.hadoop.hive.ql.plan.ShowFunctionsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
+import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTableStatusDesc;
@@ -534,6 +536,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         return showSubpartitions(db, showSubpartitionDesc);
       }
 
+      ShowPartitionKeysDesc showPartitionKeysDesc = work.getShowPartitionKeysDesc();
+      if (showPartitionKeysDesc != null) {
+        return showPartitionKeys(db, showPartitionKeysDesc);
+      }
+
 
       AlterTablePartMergeFilesDesc mergeFilesDesc = work.getMergeFilesDesc();
       if(mergeFilesDesc != null) {
@@ -571,6 +578,34 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   }
 
   /////start of zjw need to implement
+
+  private int showPartitionKeys(Hive db, ShowPartitionKeysDesc showPartitionKeysDesc) throws HiveException {
+    Table tbl = db.getTable(showPartitionKeysDesc.getDbName(), showPartitionKeysDesc.getTabName());
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showPartitionKeysDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      formatter.showPartitionKeys(outStream, PartitionFactory.PartitionInfo.getPartitionInfo(tbl.getPartitionKeys()));
+
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show partitions: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show partitions: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
 
   private int showSubpartitions(Hive db, ShowSubpartitionDesc showSubpartitionDesc) throws HiveException {
 //    List<String> subpartNames = new ArrayList<String>();

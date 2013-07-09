@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.Partition;
@@ -136,6 +137,9 @@ public interface MetaDataFormatter {
 
 
     public void showSubpartitions(DataOutputStream outStream, List<String> subpartNames)
+        throws HiveException;
+
+    public void showPartitionKeys(DataOutputStream outStream, List<PartitionInfo> partitionInfo)
         throws HiveException;
 }
 

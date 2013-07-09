@@ -340,6 +340,12 @@ public abstract class BaseSemanticAnalyzer {
         String dbName = unescapeIdentifier(tableOrColumnNode.getChild(0).getText());
         String tableName = unescapeIdentifier(tableOrColumnNode.getChild(1).getText());
         return dbName + "." + tableName;
+      }else if(tableOrColumnNode.getChildCount() == 3) {//added by zjw for datacenter
+        zlog.info("---zjw define datacenter name");
+        String dcName = unescapeIdentifier(tableOrColumnNode.getChild(0).getText());
+        String dbName = unescapeIdentifier(tableOrColumnNode.getChild(1).getText());
+        String tableName = unescapeIdentifier(tableOrColumnNode.getChild(1).getText());
+        return dbName + "." + tableName;
       }
       String tableName = unescapeIdentifier(tableOrColumnNode.getChild(0).getText());
       if (currentDatabase != null) {
