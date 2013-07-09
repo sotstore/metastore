@@ -492,7 +492,7 @@ public interface RawStore extends Configurable {
 
   public List<SFile> findOverReplicatedFiles() throws MetaException;
 
-  public List<SFile> findLingeringFiles() throws MetaException;
+  public List<SFile> findLingeringFiles(long node_nr) throws MetaException;
 
   public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException;
 

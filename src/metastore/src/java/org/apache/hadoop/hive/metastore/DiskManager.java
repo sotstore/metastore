@@ -159,7 +159,7 @@ public class DiskManager {
           break;
         case ADD_SUBPART:
         case DROP_SUBPART:
-          r = "SUBPART: " + part.getPartitionName() + ",files:" + files.toString();
+          r = "SUBPART: " + subpart.getPartitionName() + ",files:" + files.toString();
           break;
         default:
           r = "BackupEntry: INVALID OP!";
@@ -815,7 +815,8 @@ public class DiskManager {
 
           synchronized (rs) {
             try {
-              files = rs.findLingeringFiles();
+              long node_nr = rs.countNode();
+              files = rs.findLingeringFiles(node_nr);
               for (SFile f : files) {
                 LOG.info("check lingering files for fid " + f.getFid());
                 if (f.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_PHYSICAL) {
@@ -837,7 +838,7 @@ public class DiskManager {
               try {
                 rs.delSFileLocation(fl.getNode_name(), fl.getDevid(), fl.getLocation());
               } catch (MetaException e) {
-                e.printStackTrace();
+                LOG.error(e, e);
               }
             }
           }

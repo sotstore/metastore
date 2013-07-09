@@ -823,7 +823,7 @@ public class ObjectStore implements RawStore, Configurable {
     return r;
   }
 
-  public List<SFile> findLingeringFiles() throws MetaException {
+  public List<SFile> findLingeringFiles(long node_nr) throws MetaException {
     List<SFile> r = new ArrayList<SFile>();
     boolean commited = false;
 
@@ -849,7 +849,8 @@ public class ObjectStore implements RawStore, Configurable {
               offnr++;
             }
           }
-          if (s.getRep_nr() <= onnr && offnr > 0) {
+          if ((s.getRep_nr() <= onnr && offnr > 0) ||
+              (onnr + offnr >= node_nr && offnr > 0)) {
             s.setLocations(l);
             r.add(s);
           }
@@ -7006,7 +7007,9 @@ public class ObjectStore implements RawStore, Configurable {
       query.declareParameters("java.lang.String ip");
       query.setUnique(true);
       mn = (MNode)query.execute(ip);
-      pm.retrieve(mn);
+      if (mn != null) {
+        pm.retrieve(mn);
+      }
       commited = commitTransaction();
     } finally {
       if (!commited) {
@@ -7045,7 +7048,9 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       MFile mf = getMFile(fid);
-      pm.deletePersistent(mf);
+      if (mf != null) {
+        pm.deletePersistent(mf);
+      }
       success = commitTransaction();
     } finally {
       if (!success) {
@@ -7061,7 +7066,9 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       MFileLocation mfl = getMFileLocation(node, devid, location);
-      pm.deletePersistent(mfl);
+      if (mfl != null) {
+        pm.deletePersistent(mfl);
+      }
       success = commitTransaction();
     } finally {
       if (!success) {
