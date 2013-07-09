@@ -49,6 +49,12 @@ hive_metastoreConstants::hive_metastoreConstants() {
 
   META_TABLE_STORAGE = "storage_handler";
 
+  META_LUCENE_INDEX = "lucene.stored";
+
+  META_LUCENE_ANALYZE = "lucene.analyzed";
+
+  META_LUCENE_STORE = "lucene.indexd";
+
 }
 
 }}} // namespace

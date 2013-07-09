@@ -261,7 +261,7 @@ class User
   ::Thrift::Struct.generate_accessors self
 end
 
-class Database
+class Datacenter
   include ::Thrift::Struct, ::Thrift::Struct_Union
   NAME = 1
   DESCRIPTION = 2
@@ -275,6 +275,32 @@ class Database
     LOCATIONURI => {:type => ::Thrift::Types::STRING, :name => 'locationUri'},
     PARAMETERS => {:type => ::Thrift::Types::MAP, :name => 'parameters', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}},
     PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
+class Database
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  NAME = 1
+  DESCRIPTION = 2
+  LOCATIONURI = 3
+  PARAMETERS = 4
+  PRIVILEGES = 5
+  DATACENTER = 6
+
+  FIELDS = {
+    NAME => {:type => ::Thrift::Types::STRING, :name => 'name'},
+    DESCRIPTION => {:type => ::Thrift::Types::STRING, :name => 'description'},
+    LOCATIONURI => {:type => ::Thrift::Types::STRING, :name => 'locationUri'},
+    PARAMETERS => {:type => ::Thrift::Types::MAP, :name => 'parameters', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}},
+    PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true},
+    DATACENTER => {:type => ::Thrift::Types::STRUCT, :name => 'datacenter', :class => ::Datacenter, :optional => true}
   }
 
   def struct_fields; FIELDS; end
@@ -381,6 +407,80 @@ class StorageDescriptor
   ::Thrift::Struct.generate_accessors self
 end
 
+class Subpartition
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  VALUES = 1
+  DBNAME = 2
+  TABLENAME = 3
+  CREATETIME = 4
+  LASTACCESSTIME = 5
+  SD = 6
+  PARAMETERS = 7
+  FILES = 8
+  PARTITIONNAME = 9
+  VERSION = 10
+  PRIVILEGES = 11
+
+  FIELDS = {
+    VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRING}},
+    DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+    TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
+    CREATETIME => {:type => ::Thrift::Types::I32, :name => 'createTime'},
+    LASTACCESSTIME => {:type => ::Thrift::Types::I32, :name => 'lastAccessTime'},
+    SD => {:type => ::Thrift::Types::STRUCT, :name => 'sd', :class => ::StorageDescriptor},
+    PARAMETERS => {:type => ::Thrift::Types::MAP, :name => 'parameters', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}},
+    FILES => {:type => ::Thrift::Types::LIST, :name => 'files', :element => {:type => ::Thrift::Types::I64}},
+    PARTITIONNAME => {:type => ::Thrift::Types::STRING, :name => 'partitionName', :optional => true},
+    VERSION => {:type => ::Thrift::Types::I32, :name => 'version', :optional => true},
+    PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
+class Partition
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  VALUES = 1
+  DBNAME = 2
+  TABLENAME = 3
+  CREATETIME = 4
+  LASTACCESSTIME = 5
+  SD = 6
+  PARAMETERS = 7
+  FILES = 8
+  PARTITIONNAME = 9
+  SUBPARTITIONS = 10
+  VERSION = 11
+  PRIVILEGES = 12
+
+  FIELDS = {
+    VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRING}},
+    DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+    TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
+    CREATETIME => {:type => ::Thrift::Types::I32, :name => 'createTime'},
+    LASTACCESSTIME => {:type => ::Thrift::Types::I32, :name => 'lastAccessTime'},
+    SD => {:type => ::Thrift::Types::STRUCT, :name => 'sd', :class => ::StorageDescriptor},
+    PARAMETERS => {:type => ::Thrift::Types::MAP, :name => 'parameters', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}},
+    FILES => {:type => ::Thrift::Types::LIST, :name => 'files', :element => {:type => ::Thrift::Types::I64}},
+    PARTITIONNAME => {:type => ::Thrift::Types::STRING, :name => 'partitionName', :optional => true},
+    SUBPARTITIONS => {:type => ::Thrift::Types::LIST, :name => 'subpartitions', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Subpartition}, :optional => true},
+    VERSION => {:type => ::Thrift::Types::I32, :name => 'version', :optional => true},
+    PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
 class Table
   include ::Thrift::Struct, ::Thrift::Struct_Union
   TABLENAME = 1
@@ -396,6 +496,7 @@ class Table
   VIEWEXPANDEDTEXT = 11
   TABLETYPE = 12
   PRIVILEGES = 13
+  PARTITIONS = 14
 
   FIELDS = {
     TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
@@ -410,7 +511,48 @@ class Table
     VIEWORIGINALTEXT => {:type => ::Thrift::Types::STRING, :name => 'viewOriginalText'},
     VIEWEXPANDEDTEXT => {:type => ::Thrift::Types::STRING, :name => 'viewExpandedText'},
     TABLETYPE => {:type => ::Thrift::Types::STRING, :name => 'tableType'},
-    PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true}
+    PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true},
+    PARTITIONS => {:type => ::Thrift::Types::LIST, :name => 'partitions', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Partition}, :optional => true}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
+class BusiTypeColumn
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  BUSITYPE = 1
+  TABLE = 2
+  COLUMN = 3
+
+  FIELDS = {
+    BUSITYPE => {:type => ::Thrift::Types::STRING, :name => 'busiType'},
+    TABLE => {:type => ::Thrift::Types::STRUCT, :name => 'table', :class => ::Table},
+    COLUMN => {:type => ::Thrift::Types::STRING, :name => 'column'}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
+class BusiTypeDatacenter
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  BUSITYPE = 1
+  DC = 2
+  DB_NAME = 3
+
+  FIELDS = {
+    BUSITYPE => {:type => ::Thrift::Types::STRING, :name => 'busiType'},
+    DC => {:type => ::Thrift::Types::STRUCT, :name => 'dc', :class => ::Datacenter},
+    DB_NAME => {:type => ::Thrift::Types::STRING, :name => 'db_name'}
   }
 
   def struct_fields; FIELDS; end
@@ -481,6 +623,7 @@ class SFile
   RECORD_NR = 6
   ALL_RECORD_NR = 7
   LOCATIONS = 8
+  LENGTH = 9
 
   FIELDS = {
     FID => {:type => ::Thrift::Types::I64, :name => 'fid'},
@@ -490,7 +633,8 @@ class SFile
     DIGEST => {:type => ::Thrift::Types::STRING, :name => 'digest'},
     RECORD_NR => {:type => ::Thrift::Types::I64, :name => 'record_nr'},
     ALL_RECORD_NR => {:type => ::Thrift::Types::I64, :name => 'all_record_nr'},
-    LOCATIONS => {:type => ::Thrift::Types::LIST, :name => 'locations', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFileLocation}}
+    LOCATIONS => {:type => ::Thrift::Types::LIST, :name => 'locations', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFileLocation}},
+    LENGTH => {:type => ::Thrift::Types::I64, :name => 'length'}
   }
 
   def struct_fields; FIELDS; end
@@ -501,26 +645,14 @@ class SFile
   ::Thrift::Struct.generate_accessors self
 end
 
-class Partition
+class SFileRef
   include ::Thrift::Struct, ::Thrift::Struct_Union
-  VALUES = 1
-  DBNAME = 2
-  TABLENAME = 3
-  CREATETIME = 4
-  LASTACCESSTIME = 5
-  SD = 6
-  PARAMETERS = 7
-  PRIVILEGES = 8
+  FILE = 1
+  ORIGIN_FID = 2
 
   FIELDS = {
-    VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRING}},
-    DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
-    TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
-    CREATETIME => {:type => ::Thrift::Types::I32, :name => 'createTime'},
-    LASTACCESSTIME => {:type => ::Thrift::Types::I32, :name => 'lastAccessTime'},
-    SD => {:type => ::Thrift::Types::STRUCT, :name => 'sd', :class => ::StorageDescriptor},
-    PARAMETERS => {:type => ::Thrift::Types::MAP, :name => 'parameters', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}},
-    PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true}
+    FILE => {:type => ::Thrift::Types::STRUCT, :name => 'file', :class => ::SFile},
+    ORIGIN_FID => {:type => ::Thrift::Types::I64, :name => 'origin_fid'}
   }
 
   def struct_fields; FIELDS; end

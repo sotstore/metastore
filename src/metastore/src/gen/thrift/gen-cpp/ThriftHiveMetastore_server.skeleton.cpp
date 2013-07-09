@@ -22,6 +22,141 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     // Your initialization goes here
   }
 
+  void create_datacenter(const Datacenter& datacenter) {
+    // Your implementation goes here
+    printf("create_datacenter\n");
+  }
+
+  void get_center(Datacenter& _return, const std::string& name) {
+    // Your implementation goes here
+    printf("get_center\n");
+  }
+
+  void drop_center(const std::string& name, const bool deleteData, const bool cascade) {
+    // Your implementation goes here
+    printf("drop_center\n");
+  }
+
+  void update_center(const Datacenter& datacenter) {
+    // Your implementation goes here
+    printf("update_center\n");
+  }
+
+  void get_all_centers(std::vector<Datacenter> & _return) {
+    // Your implementation goes here
+    printf("get_all_centers\n");
+  }
+
+  void get_local_center(Datacenter& _return) {
+    // Your implementation goes here
+    printf("get_local_center\n");
+  }
+
+  void get_lucene_index_names(std::vector<std::string> & _return, const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes) {
+    // Your implementation goes here
+    printf("get_lucene_index_names\n");
+  }
+
+  void get_all_busi_type_cols(std::vector<BusiTypeColumn> & _return) {
+    // Your implementation goes here
+    printf("get_all_busi_type_cols\n");
+  }
+
+  void get_all_busi_type_datacenters(std::vector<BusiTypeDatacenter> & _return) {
+    // Your implementation goes here
+    printf("get_all_busi_type_datacenters\n");
+  }
+
+  void append_busi_type_datacenter(const BusiTypeDatacenter& busiTypeDatacenter) {
+    // Your implementation goes here
+    printf("append_busi_type_datacenter\n");
+  }
+
+  bool add_datawarehouse_sql(const int32_t dwNum, const std::string& sql) {
+    // Your implementation goes here
+    printf("add_datawarehouse_sql\n");
+  }
+
+  int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files) {
+    // Your implementation goes here
+    printf("add_partition_files\n");
+  }
+
+  int32_t drop_partition_files(const Partition& part, const std::vector<SFile> & files) {
+    // Your implementation goes here
+    printf("drop_partition_files\n");
+  }
+
+  int32_t add_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files) {
+    // Your implementation goes here
+    printf("add_subpartition_files\n");
+  }
+
+  int32_t drop_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files) {
+    // Your implementation goes here
+    printf("drop_subpartition_files\n");
+  }
+
+  bool add_partition_index(const Index& index, const Partition& part) {
+    // Your implementation goes here
+    printf("add_partition_index\n");
+  }
+
+  bool drop_partition_index(const Index& index, const Partition& part) {
+    // Your implementation goes here
+    printf("drop_partition_index\n");
+  }
+
+  bool add_subpartition_index(const Index& index, const Subpartition& part) {
+    // Your implementation goes here
+    printf("add_subpartition_index\n");
+  }
+
+  bool drop_subpartition_index(const Index& index, const Subpartition& part) {
+    // Your implementation goes here
+    printf("drop_subpartition_index\n");
+  }
+
+  bool add_subpartition(const std::string& dbname, const std::string& tbl_name, const std::vector<std::string> & part_vals, const Subpartition& sub_part) {
+    // Your implementation goes here
+    printf("add_subpartition\n");
+  }
+
+  void get_subpartitions(std::vector<Subpartition> & _return, const std::string& dbname, const std::string& tbl_name, const Partition& part) {
+    // Your implementation goes here
+    printf("get_subpartitions\n");
+  }
+
+  bool add_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file, const std::vector<int64_t> & originfid) {
+    // Your implementation goes here
+    printf("add_partition_index_files\n");
+  }
+
+  void get_partition_index_files(std::vector<SFileRef> & _return, const Index& index, const Partition& part) {
+    // Your implementation goes here
+    printf("get_partition_index_files\n");
+  }
+
+  bool drop_partition_index_files(const Index& index, const Partition& part, const std::vector<SFile> & file) {
+    // Your implementation goes here
+    printf("drop_partition_index_files\n");
+  }
+
+  bool add_subpartition_index_files(const Index& index, const Subpartition& subpart, const std::vector<SFile> & file, const std::vector<int64_t> & originfid) {
+    // Your implementation goes here
+    printf("add_subpartition_index_files\n");
+  }
+
+  void get_subpartition_index_files(std::vector<SFileRef> & _return, const Index& index, const Subpartition& subpart) {
+    // Your implementation goes here
+    printf("get_subpartition_index_files\n");
+  }
+
+  bool drop_subpartition_index_files(const Index& index, const Subpartition& subpart, const std::vector<SFile> & file) {
+    // Your implementation goes here
+    printf("drop_subpartition_index_files\n");
+  }
+
   void create_database(const Database& database) {
     // Your implementation goes here
     printf("create_database\n");
@@ -422,7 +557,7 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("cancel_delegation_token\n");
   }
 
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const int64_t table_id) {
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name) {
     // Your implementation goes here
     printf("create_file\n");
   }
@@ -435,6 +570,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
   void get_file_by_id(SFile& _return, const int64_t fid) {
     // Your implementation goes here
     printf("get_file_by_id\n");
+  }
+
+  void get_file_by_name(SFile& _return, const std::string& node, const std::string& devid, const std::string& location) {
+    // Your implementation goes here
+    printf("get_file_by_name\n");
   }
 
   int32_t rm_file_logical(const SFile& file) {
@@ -475,6 +615,31 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
   void find_best_nodes(std::vector<Node> & _return, const int32_t nr) {
     // Your implementation goes here
     printf("find_best_nodes\n");
+  }
+
+  void get_all_nodes(std::vector<Node> & _return) {
+    // Your implementation goes here
+    printf("get_all_nodes\n");
+  }
+
+  void getDMStatus(std::string& _return) {
+    // Your implementation goes here
+    printf("getDMStatus\n");
+  }
+
+  void migrate_in(std::map<int64_t, SFile> & _return, const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc) {
+    // Your implementation goes here
+    printf("migrate_in\n");
+  }
+
+  bool migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) {
+    // Your implementation goes here
+    printf("migrate_out\n");
+  }
+
+  void getMP(std::string& _return, const std::string& node_name, const std::string& devid) {
+    // Your implementation goes here
+    printf("getMP\n");
   }
 
 };

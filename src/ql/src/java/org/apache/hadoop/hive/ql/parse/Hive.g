@@ -289,6 +289,49 @@ TOK_SKEWED_LOCATIONS;
 TOK_SKEWED_LOCATION_LIST;
 TOK_SKEWED_LOCATION_MAP;
 TOK_STOREDASDIRS;
+
+TOK_PARTITIONED_BY;
+TOK_SUBPARTITIONED_BY;
+TOK_PARTITION_EXPER;
+TOK_SUBPARTITION_EXPER;
+TOK_PARTITION;
+TOK_SUBPARTITION;
+TOK_STR_OR_NUM_OR_FUNC;
+TOK_ALTER_DW;
+TOK_VALUES_LESS;
+TOK_VALUES_GREATER;
+TOK_VALUES;
+
+TOK_CREATEDATACENTER;
+TOK_DATACENTERPROPERTIES;
+TOK_DCPROPLIST;
+TOK_SWITCHDATACENTER;
+TOK_DROPDATACENTER;
+TOK_DATACENTERCOMMENT;
+TOK_ADDNODE;
+TOK_DROPNODE;
+TOK_NODERPROPERTIES;
+TOK_MODIFYNODE;
+TOK_ALTERTABLE_DROP_PARTITION;
+TOK_ALTERTABLE_DROP_SUBPARTITION;
+TOK_ALTERTABLE_ADD_PARTITION;
+TOK_ALTERTABLE_ADD_SUBPARTITION;
+TOK_ALTERTABLE_MODIFY_PARTITION_ADD_FILE;
+TOK_ALTERTABLE_MODIFY_PARTITION_DROP_FILE;
+TOK_ALTERTABLE_MODIFY_SUBPARTITION_ADD_FILE;
+TOK_ALTERTABLE_MODIFY_SUBPARTITION_DROP_FILE;
+TOK_ALTERINDEX_DROP_PARTINDEXS;
+TOK_ALTERINDEX_DROP_SUBPARTINDEXS;
+TOK_ALTERINDEX_ADD_PARTINDEXS;
+TOK_ALTERINDEX_ADD_SUBPARTINDEXS;
+TOK_ALTERINDEX_MODIFY_PARTITION_ADD_FILE;
+TOK_ALTERINDEX_MODIFY_SUBPARTITION_ADD_FILE;
+TOK_ALTERINDEX_MODIFY_PARTINDEX_DROP_FILE;
+TOK_ALTERINDEX_MODIFY_SUBPARTINDEX_DROP_FILE;
+TOK_SHOWSUBPARTITIONS;
+TOK_HETER;
+TOK_SHOWPARTITIONKEYS;
+
 }
 
 
@@ -358,6 +401,9 @@ ddlStatement
 @init { msgs.push("ddl statement"); }
 @after { msgs.pop(); }
     : createDatabaseStatement
+    | createDatacenterStatement
+    | switchDatacenterStatement
+    | dropDatacenterStatement
     | switchDatabaseStatement
     | dropDatabaseStatement
     | createTableStatement
@@ -389,6 +435,10 @@ ddlStatement
     | changePassword
 //    | switchUserStatement
     | authentificationStatement//added by liulichao,end
+    | datawarehouseStatement
+    | addNodeStatement
+    | dropNodeStatement
+    | alterNodeStatement
     ;
 
 ifExists
@@ -427,6 +477,105 @@ orReplace
     : KW_OR KW_REPLACE
     -> ^(TOK_ORREPLACE)
     ;
+    
+//start of datacenter
+
+createDatacenterStatement
+@init { msgs.push("create datacenter statement"); }
+@after { msgs.pop(); }
+    : KW_CREATE (KW_DATACENTER|KW_SCHEMA)
+        ifNotExists?
+        name=Identifier
+        datacenterComment?
+        dcLocation?
+        (KW_WITH KW_DCPROPERTIES dcprops=dcProperties)?
+    -> ^(TOK_CREATEDATACENTER $name ifNotExists? dcLocation? datacenterComment? $dcprops?)
+    ;
+
+dcLocation
+@init { msgs.push("datacenter location specification"); }
+@after { msgs.pop(); }
+    :
+      KW_LOCATION locn=StringLiteral -> ^(TOK_DATABASELOCATION $locn)
+    ;
+
+dcProperties
+@init { msgs.push("dcproperties"); }
+@after { msgs.pop(); }
+    :
+      LPAREN dcPropertiesList RPAREN -> ^(TOK_DATACENTERPROPERTIES dcPropertiesList)
+    ;
+
+dcPropertiesList
+@init { msgs.push("databaCENTER properties list"); }
+@after { msgs.pop(); }
+    :
+      keyValueProperty (COMMA keyValueProperty)* -> ^(TOK_DCPROPLIST keyValueProperty+)
+    ;
+
+
+switchDatacenterStatement
+@init { msgs.push("switch datacenter statement"); }
+@after { msgs.pop(); }
+    : KW_USE Identifier
+    -> ^(TOK_SWITCHDATACENTER Identifier)
+    ;
+
+dropDatacenterStatement
+@init { msgs.push("drop datacenter statement"); }
+@after { msgs.pop(); }
+    : KW_DROP (KW_DATACENTER|KW_SCHEMA) ifExists? Identifier restrictOrCascade?
+    -> ^(TOK_DROPDATACENTER Identifier ifExists? restrictOrCascade?)
+    ;
+
+datacenterComment
+@init { msgs.push("datacenter's comment"); }
+@after { msgs.pop(); }
+    : KW_COMMENT comment=StringLiteral
+    -> ^(TOK_DATACENTERCOMMENT $comment)
+    ;
+    
+//end of datacenter
+
+//start of node
+
+
+addNodeStatement
+@init { msgs.push("add node statement"); }
+@after { msgs.pop(); }
+    : KW_ADD KW_NODE LPAREN name=Identifier COMMA status=Identifier COMMA ip=Identifier RPAREN 
+        (KW_WITH KW_NODEPROPERTIES nodeprops=nodeProperties)?
+    -> ^(TOK_ADDNODE $name $status $ip $nodeprops?)
+        ;
+nodeProperties
+@init { msgs.push("nodeproperties"); }
+@after { msgs.pop(); }
+    :
+      LPAREN nodePropertiesList RPAREN -> ^(TOK_NODERPROPERTIES nodePropertiesList)
+    ;
+nodePropertiesList
+@init { msgs.push("node properties list"); }
+@after { msgs.pop(); }
+    :
+      keyValueProperty (COMMA keyValueProperty)* -> ^(TOK_DCPROPLIST keyValueProperty+)
+    ;
+
+dropNodeStatement
+@init { msgs.push("drop node statement"); }
+@after { msgs.pop(); }
+    : KW_DROP KW_NODE Identifier 
+    -> ^(TOK_DROPNODE Identifier)
+    ;
+    
+    
+alterNodeStatement
+@init { msgs.push("alter node properties statement"); }
+@after { msgs.pop(); }
+    :  KW_MODIFY KW_NODE LPAREN name=Identifier COMMA status=Identifier COMMA ip=Identifier RPAREN 
+        (KW_WITH KW_NODEPROPERTIES nodeprops=nodeProperties)?
+    -> ^(TOK_MODIFYNODE $name $status $ip $nodeprops?)
+    ;
+//end of node
 
 
 createDatabaseStatement
@@ -619,6 +768,8 @@ alterTableStatementSuffix
     | alterStatementSuffixRenameCol
     | alterStatementSuffixDropPartitions
     | alterStatementSuffixAddPartitions
+    | alterStatementSuffixModiFyPartitionDropFiles
+    | alterStatementSuffixModiFyPartitionADDFiles
     | alterStatementSuffixTouch
     | alterStatementSuffixArchive
     | alterStatementSuffixUnArchive
@@ -653,8 +804,70 @@ alterIndexStatementSuffix
       KW_SET KW_IDXPROPERTIES
       indexProperties
       ->^(TOK_ALTERINDEX_PROPERTIES $tableNameId $indexName indexProperties)
+      
+    | KW_DROP KW_PARTITION partition_name=Identifier  
+    -> ^(TOK_ALTERINDEX_DROP_PARTINDEXS $tableNameId $partition_name )
+    |KW_DROP KW_SUBPARTITION partition_name=Identifier 
+    -> ^(TOK_ALTERINDEX_DROP_SUBPARTINDEXS $tableNameId $partition_name )
+    | KW_ADD KW_PARTITION partition_name=Identifier 
+    -> ^(TOK_ALTERINDEX_ADD_PARTINDEXS $tableNameId $partition_name )
+    |KW_ADD KW_SUBPARTITION partition_name=Identifier   
+    -> ^(TOK_ALTERINDEX_ADD_SUBPARTINDEXS $tableNameId $partition_name)
+    | KW_ADD KW_PARTITION KW_ADD partition_name=Identifier  KW_ADD KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERINDEX_MODIFY_PARTITION_ADD_FILE $tableNameId $partition_name $file_id)
+    |KW_MODIFY KW_SUBPARTITION partition_name=Identifier  KW_ADD KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERINDEX_MODIFY_SUBPARTITION_ADD_FILE $tableNameId $partition_name $file_id)
+    | KW_ON KW_PARTITION partition_name=Identifier  KW_DROP KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERINDEX_MODIFY_PARTINDEX_DROP_FILE $tableNameId $partition_name $file_id)
+    |KW_ON KW_SUBPARTITION partition_name=Identifier KW_DROP KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERINDEX_MODIFY_SUBPARTINDEX_DROP_FILE $tableNameId $partition_name $file_id)
+      
+    /*
+    | alterStatementSuffixDropPartitionIndexs
+    | alterStatementSuffixAddPartitionIndexs
+    | alterStatementSuffixModiFyPartitionIndexDropFiles
+    | alterStatementSuffixModiFyPartitionIndexADDFiles  
+    */
     )
+    
     ;
+/*
+ alterStatementSuffixDropPartitionIndexs
+ @init { msgs.push("drop partition index statement"); }
+ @after { msgs.pop(); }
+   :KW_DROP KW_PARTITION partition_name=Identifier  
+    -> ^(TOK_ALTERINDEX_DROP_PARTINDEXS $partition_name )
+    |KW_DROP KW_SUBPARTITION partition_name=Identifier 
+    -> ^(TOK_ALTERINDEX_DROP_SUBPARTINDEXS $partition_name )
+    ;
+    
+  alterStatementSuffixAddPartitionIndexs
+  @init { msgs.push("add partition index statement"); }
+  @after { msgs.pop(); }
+   : KW_ADD KW_PARTITION partition_name=Identifier 
+    -> ^(TOK_ALTERINDEX_ADD_PARTINDEXS $partition_name )
+    |KW_ADD KW_SUBPARTITION partition_name=Identifier   
+    -> ^(TOK_ALTERINDEX_ADD_SUBPARTINDEXS $partition_name)
+    ;
+    
+  alterStatementSuffixModiFyPartitionIndexDropFiles
+  @init { msgs.push("add partition index file statement"); }
+  @after { msgs.pop(); }
+   :KW_ADD KW_PARTITION KW_ADD partition_name=Identifier  KW_ADD KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERINDEX_MODIFY_PARTITION_ADD_FILE $partition_name $file_id)
+    |KW_MODIFY KW_SUBPARTITION partition_name=Identifier  KW_ADD KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERINDEX_MODIFY_SUBPARTITION_ADD_FILE $partition_name $file_id)
+    ;
+    
+  alterStatementSuffixModiFyPartitionIndexADDFiles
+  @init { msgs.push("drop partition index file statement"); }
+  @after { msgs.pop(); }
+   : KW_ON KW_PARTITION partition_name=Identifier  KW_DROP KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERINDEX_MODIFY_PARTINDEX_DROP_FILE $partition_name $file_id)
+    |KW_ON KW_SUBPARTITION partition_name=Identifier KW_DROP KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERINDEX_MODIFY_SUBPARTINDEX_DROP_FILE $partition_name $file_id)
+     ;
+*/
 
 alterDatabaseStatementSuffix
 @init { msgs.push("alter database statement"); }
@@ -697,13 +910,64 @@ alterStatementChangeColPosition
     -> ^(TOK_ALTERTABLE_CHANGECOL_AFTER_POSITION $afterCol)
     ;
 
+//add 2-level  partition operations
+
+
+alterStatementSuffixDropPartitions
+@init { msgs.push("drop partition statement"); }
+@after { msgs.pop(); }
+    : 
+    /*
+    Identifier KW_DROP ifExists? dropPartitionSpec (COMMA dropPartitionSpec)*
+    -> ^(TOK_ALTERTABLE_DROPPARTS Identifier dropPartitionSpec+ ifExists?)
+    | 
+    */
+    Identifier KW_DROP KW_PARTITION partition_name=Identifier  
+    -> ^(TOK_ALTERTABLE_DROP_PARTITION  Identifier $partition_name )
+    | Identifier KW_DROP KW_SUBPARTITION partition_name=Identifier 
+    -> ^(TOK_ALTERTABLE_DROP_SUBPARTITION  Identifier $partition_name )
+    ;
+    
 alterStatementSuffixAddPartitions
 @init { msgs.push("add partition statement"); }
 @after { msgs.pop(); }
-    : Identifier KW_ADD ifNotExists? partitionSpec partitionLocation? (partitionSpec partitionLocation?)*
+    :
+    /*
+     Identifier KW_ADD ifNotExists? partitionSpec partitionLocation? (partitionSpec partitionLocation?)*
     -> ^(TOK_ALTERTABLE_ADDPARTS Identifier ifNotExists? (partitionSpec partitionLocation?)+)
+    |
+    */
+    /*
+    | Identifier KW_ADD KW_PARTITION partition_name=Identifier  partitionValuesExper  subPartitionTemplate?
+    -> ^(TOK_ALTERTABLE_ADD_PARTITION Identifier $partition_name partitionValuesExper subPartitionTemplate?)
+    | Identifier KW_ADD KW_SUBPARTITION partition_name=Identifier  partitionValuesExper 
+    -> ^(TOK_ALTERTABLE_ADD_SUBPARTITION Identifier $partition_name partitionValuesExper)
+    */
+    
+     Identifier KW_ADD KW_PARTITION partitionTemplate 
+    -> ^(TOK_ALTERTABLE_ADD_PARTITION Identifier  partitionTemplate )
+    | Identifier KW_ADD KW_SUBPARTITION subPartitionTemplate   
+    -> ^(TOK_ALTERTABLE_ADD_SUBPARTITION Identifier subPartitionTemplate )
     ;
-
+    
+ alterStatementSuffixModiFyPartitionDropFiles
+ @init { msgs.push("add partition file statement"); }
+@after { msgs.pop(); }
+    : Identifier KW_ADD KW_PARTITION KW_ADD partition_name=Identifier  KW_ADD KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERTABLE_MODIFY_PARTITION_ADD_FILE  Identifier $partition_name $file_id)
+    | Identifier KW_MODIFY KW_SUBPARTITION partition_name=Identifier  KW_ADD KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERTABLE_MODIFY_SUBPARTITION_ADD_FILE  Identifier $partition_name $file_id)
+    ;
+    
+ alterStatementSuffixModiFyPartitionADDFiles
+  @init { msgs.push("drop partition file statement"); }
+  @after { msgs.pop(); }
+   :  Identifier KW_MODIFY KW_PARTITION partition_name=Identifier  KW_DROP KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERTABLE_MODIFY_PARTITION_DROP_FILE  Identifier $partition_name $file_id)
+    | Identifier KW_MODIFY KW_SUBPARTITION partition_name=Identifier KW_DROP KW_FILE file_id=Identifier
+    -> ^(TOK_ALTERTABLE_MODIFY_SUBPARTITION_DROP_FILE  Identifier $partition_name $file_id)
+     ;
+	
 alterStatementSuffixTouch
 @init { msgs.push("touch statement"); }
 @after { msgs.pop(); }
@@ -732,12 +996,6 @@ partitionLocation
       KW_LOCATION locn=StringLiteral -> ^(TOK_PARTITIONLOCATION $locn)
     ;
 
-alterStatementSuffixDropPartitions
-@init { msgs.push("drop partition statement"); }
-@after { msgs.pop(); }
-    : Identifier KW_DROP ifExists? dropPartitionSpec (COMMA dropPartitionSpec)*
-    -> ^(TOK_ALTERTABLE_DROPPARTS Identifier dropPartitionSpec+ ifExists?)
-    ;
 
 alterStatementSuffixProperties
 @init { msgs.push("alter properties statement"); }
@@ -786,7 +1044,7 @@ alterTblPartitionStatementSuffix
   | alterStatementSuffixSerdeProperties
   | alterStatementSuffixRenamePart
   | alterTblPartitionStatementSuffixSkewedLocation
-  ;
+    ;
 
 alterStatementSuffixFileFormat
 @init {msgs.push("alter fileformat statement"); }
@@ -951,6 +1209,8 @@ showStatement
     -> ^(TOK_SHOWCOLUMNS $db_name? $tabname)
     | KW_SHOW KW_FUNCTIONS showStmtIdentifier?  -> ^(TOK_SHOWFUNCTIONS showStmtIdentifier?)
     | KW_SHOW KW_PARTITIONS Identifier partitionSpec? -> ^(TOK_SHOWPARTITIONS Identifier partitionSpec?)
+    | KW_SHOW KW_PARTITION_KEYS (KW_FROM|KW_IN) tabname=tableName -> ^(TOK_SHOWPARTITIONKEYS $tabname)
+    | KW_SHOW KW_SUBPARTITIONS part_name=Identifier KW_ON tabname=tableName -> ^(TOK_SHOWSUBPARTITIONS $part_name $tabname)
     | KW_SHOW KW_CREATE KW_TABLE tabName=tableName -> ^(TOK_SHOW_CREATETABLE $tabName)
     | KW_SHOW KW_TABLE KW_EXTENDED ((KW_FROM|KW_IN) db_name=Identifier)? KW_LIKE showStmtIdentifier partitionSpec?
     -> ^(TOK_SHOW_TABLESTATUS showStmtIdentifier $db_name? partitionSpec?)
@@ -1180,18 +1440,25 @@ dropFunctionStatement
     : KW_DROP KW_TEMPORARY KW_FUNCTION ifExists? Identifier
     -> ^(TOK_DROPFUNCTION Identifier ifExists?)
     ;
+    
+heterOption
+@init { msgs.push("drop temporary function statement"); }
+@after { msgs.pop(); }
+	:KW_HETER
+	-> ^(TOK_HETER)
+	;
 
 createViewStatement
 @init {
     msgs.push("create view statement");
 }
 @after { msgs.pop(); }
-    : KW_CREATE (orReplace)? KW_VIEW (ifNotExists)? name=tableName
+    : KW_CREATE (orReplace)? heterOption? KW_VIEW (ifNotExists)? name=tableName
         (LPAREN columnNameCommentList RPAREN)? tableComment? viewPartition?
         tablePropertiesPrefixed?
         KW_AS
         selectStatement
-    -> ^(TOK_CREATEVIEW $name orReplace?
+    -> ^(TOK_CREATEVIEW $name heterOption? orReplace?
          ifNotExists?
          columnNameCommentList?
          tableComment?
@@ -1231,9 +1498,117 @@ tableComment
 tablePartition
 @init { msgs.push("table partition specification"); }
 @after { msgs.pop(); }
-    : KW_PARTITIONED KW_BY LPAREN columnNameTypeList RPAREN
-    -> ^(TOK_TABLEPARTCOLS columnNameTypeList)
+    : KW_PARTITIONED KW_BY partParamList=partitionParamList
+    tableSubPartition?
+    partitionTemplate?
+    -> ^(TOK_PARTITIONED_BY $partParamList
+    tableSubPartition?
+    partitionTemplate?)
     ;
+    
+tableSubPartition
+@init { msgs.push("table subPartition specification"); }
+@after { msgs.pop(); }
+    :KW_SUBPARTITIONED KW_BY partParamList=partitionParamList
+   subPartitionTemplate?
+    -> ^(TOK_SUBPARTITIONED_BY $partParamList
+    subPartitionTemplate?)
+    ;
+    
+partitionParamList
+@init { msgs.push(" partitionParamList specification"); }
+@after { msgs.pop(); }
+    :(LPAREN (columnNameTypeList
+    	|columnNameList
+   	| functionList
+    ) RPAREN)  
+    | (columnNameTypeList
+    	|columnNameList
+   	| functionList)
+    ;
+    
+partitionTemplate
+@init { msgs.push("table PartitionTemplate specification"); }
+@after { msgs.pop(); }
+    :LPAREN partitionExper (COMMA partitionExper)* RPAREN
+     -> ^(TOK_PARTITION_EXPER partitionExper+)
+    ;
+    
+subPartitionTemplate
+@init { msgs.push(" subPartitionTemplate specification"); }
+@after { msgs.pop(); }
+    :LPAREN  (subPartitionExper (COMMA subPartitionExper)*) RPAREN
+    -> ^(TOK_SUBPARTITION_EXPER subPartitionExper+)
+    ;
+
+partitionExper
+@init { msgs.push("partitionExper specification"); }
+@after { msgs.pop(); }
+    :KW_PARTITION partition_name=partitionName  partitionValuesExper  subPartitionTemplate?
+    -> ^(TOK_PARTITION $partition_name partitionValuesExper subPartitionTemplate?)
+    ;
+    
+partitionValuesExper
+@init { msgs.push(" partitionValuesExper specification"); }
+@after { msgs.pop(); }
+    :KW_VALUES  KW_LESS KW_THAN LPAREN value=stringOrNumOrFunc RPAREN 
+    -> ^(TOK_VALUES_LESS  $value )
+    |KW_VALUES  KW_GREATER KW_THAN LPAREN value=stringOrNumOrFunc RPAREN 
+     -> ^(TOK_VALUES_GREATER  $value )
+    | KW_VALUES LPAREN valueList=stringOrNumOrFuncList RPAREN
+     -> ^(TOK_VALUES   $valueList )
+    ;
+    
+subPartitionExper
+@init { msgs.push("subPartitionExper specification"); }
+@after { msgs.pop(); }
+/*
+    :KW_SUBPARTITION partitionName (
+     (KW_VALUES ((KW_LESS|KW_GREATER) KW_THEN) LPAREN (stringOrNumOrFunc) RPAREN)
+     | KW_VALUES LPAREN (stringOrNumOrFuncList) RPAREN)
+    ;
+    */
+      :KW_SUBPARTITION partition_name=partitionName  partitionValuesExper 
+    -> ^(TOK_SUBPARTITION $partition_name partitionValuesExper)
+    ;
+    
+stringOrNumOrFunc
+ @init { msgs.push("table stringOrNumOrFunc specification"); }
+@after { msgs.pop(); }
+    :StringLiteral
+    |Number
+    |function
+    ;
+    
+ stringOrNumOrFuncList  
+@init { msgs.push("table stringOrNumOrFuncList specification"); }
+@after { msgs.pop(); }
+ :(stringOrNumOrFunc (COMMA stringOrNumOrFunc)*)
+ -> ^(TOK_STR_OR_NUM_OR_FUNC stringOrNumOrFunc+)
+    ;
+      
+partitionName
+@init { msgs.push("table partitionName specification"); }
+@after { msgs.pop(); }
+    :
+      Identifier
+    ;
+    
+ datawarehouseStatement
+@init { msgs.push("table datawarehouseStatement specification"); }
+@after { msgs.pop(); }
+    :
+      KW_ALTER KW_DW  KW_DIRECT LPAREN dwNo=Number COMMA sql=StringLiteral RPAREN
+       -> ^(TOK_ALTER_DW $dwNo $sql)
+    ;
+
+//added by zjw to customize table partition
+functionList
+@init { msgs.push("table partition function specification"); }
+@after { msgs.pop(); }
+    :
+    function  (COMMA function)*  -> ^(TOK_TABLEPARTCOLS (function)+)
+    ;	
 
 tableBuckets
 @init { msgs.push("table buckets specification"); }
@@ -1980,7 +2355,8 @@ groupingSetExpression
    |
    LPAREN
    RPAREN
-   -> ^(TOK_GROUPING_SETS_EXPRESSION groupByExpression*)
+   //-> ^(TOK_GROUPING_SETS_EXPRESSION groupByExpression*)
+   -> ^(TOK_GROUPING_SETS_EXPRESSION )
    ;
 
 
@@ -2637,6 +3013,25 @@ KW_DBA: 'DBA';	//added by liulichao,begin
 KW_SETPASSWD: 'SETPASSWD';
 KW_IDENTIFIED: 'IDENTIFIED';
 KW_CONNECT: 'CONNECT';	//added by liulichao,end
+//added by zjw
+KW_VALUES:	 'VALUES';
+KW_SUBPARTITIONED: 'SUBPARTITIONED';
+KW_SUBPARTITION: 'SUBPARTITION';
+KW_LESS:'LESS';
+KW_GREATER:'GREATER';
+KW_THAN:'THAN';
+KW_DW:'DATAWAREHOUSE';
+KW_DIRECT:'DIRECT';
+
+KW_DATACENTER:'DATACENTER';
+KW_DCPROPERTIES:'DCPROPERTIES';
+KW_NODE:'NODE';
+KW_NODEPROPERTIES:'NODEPROPERTIES';
+KW_MODIFY:'MODIFY';
+KW_FILE:'FILE';
+KW_SUBPARTITIONS:'SUBPARTITIONS';
+KW_HETER: 'HETER';
+KW_PARTITION_KEYS: 'PARTITION_KEYS';
 
 // Operators
 // NOTE: if you add a new function/operator, add it to sysFuncNames so that describe function _FUNC_ will work.

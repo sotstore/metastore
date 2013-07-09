@@ -39,12 +39,16 @@ import javax.security.auth.login.LoginException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
+import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -57,6 +61,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
@@ -64,6 +69,9 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -79,9 +87,11 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TMemoryBuffer;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
+//import org.apache.hadoop.hive.ql.metadata.HiveException;
 
 /**
  * Hive Metastore Client.
@@ -397,6 +407,130 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   }
 
   /**
+   * Creates a partition ,added by zjw
+   *
+   * @param tbl
+   *          table for which partition needs to be created
+   * @param partSpec
+   *          partition keys and their values
+   * @param location
+   *          location of this partition
+   * @param partParams
+   *          partition parameters
+   * @return created partition object
+   * @throws HiveException
+   *           if table doesn't exist or partition already exists
+   */
+  public Partition createPartition(Table tbl, String partitionName, Map<String, String> partSpec) throws MetaException,TException {
+     return this.createPartition(tbl, partitionName, partSpec, null, null, null, null, 0, null, null, null, null, null);
+  }
+
+  /**
+   * Creates a partition  ,added by zjw
+   *
+   * @param tbl
+   *          table for which partition needs to be created
+   * @param partSpec
+   *          partition keys and their values
+   * @param location
+   *          location of this partition
+   * @param partParams
+   *          partition parameters
+   * @param inputFormat the inputformat class
+   * @param outputFormat the outputformat class
+   * @param numBuckets the number of buckets
+   * @param cols the column schema
+   * @param serializationLib the serde class
+   * @param serdeParams the serde parameters
+   * @param bucketCols the bucketing columns
+   * @param sortCols sort columns and order
+   *
+   * @return created partition object
+   * @throws HiveException
+   *           if table doesn't exist or partition already exists
+   */
+  private Partition createPartition(Table tbl, String partitionName, Map<String, String> partSpec,
+      Path location, Map<String, String> partParams, String inputFormat, String outputFormat,
+      int numBuckets, List<FieldSchema> cols,
+      String serializationLib, Map<String, String> serdeParams,
+      List<String> bucketCols, List<Order> sortCols) throws MetaException,TException {
+
+    org.apache.hadoop.hive.metastore.api.Partition partition = null;
+    List<String> pvals = new ArrayList<String>();
+    for (String val : partSpec.values()) {
+        pvals.add(val);
+    }
+
+    org.apache.hadoop.hive.metastore.api.Partition inPart = new org.apache.hadoop.hive.metastore.api.Partition();
+    inPart.setDbName(tbl.getDbName());
+    inPart.setTableName(tbl.getTableName());
+    inPart.setValues(pvals);
+
+    StorageDescriptor sd = new StorageDescriptor();
+    try {
+      // replace with THRIFT-138
+      TMemoryBuffer buffer = new TMemoryBuffer(1024);
+      TBinaryProtocol prot = new TBinaryProtocol(buffer);
+      tbl.getSd().write(prot);
+
+      sd.read(prot);
+    } catch (TException e) {
+      LOG.error("Could not create a copy of StorageDescription");
+      throw new TException("Could not create a copy of StorageDescription",e);
+    }
+
+    inPart.setSd(sd);
+    if(partitionName != null){
+      inPart.setPartitionName(partitionName);
+    }
+
+    if (partParams != null) {
+      inPart.setParameters(partParams);
+    }
+    if (inputFormat != null) {
+      inPart.getSd().setInputFormat(inputFormat);
+    }
+    if (outputFormat != null) {
+      inPart.getSd().setOutputFormat(outputFormat);
+    }
+    if (numBuckets != -1) {
+      inPart.getSd().setNumBuckets(numBuckets);
+    }
+    if (cols != null) {
+      inPart.getSd().setCols(cols);
+    }
+    if (serializationLib != null) {
+        inPart.getSd().getSerdeInfo().setSerializationLib(serializationLib);
+    }
+    if (serdeParams != null) {
+      inPart.getSd().getSerdeInfo().setParameters(serdeParams);
+    }
+    if (bucketCols != null) {
+      inPart.getSd().setBucketCols(bucketCols);
+    }
+    if (sortCols != null) {
+      inPart.getSd().setSortCols(sortCols);
+    }
+
+    if (tbl.getPartitionKeys() == null || tbl.getPartitionKeys().isEmpty()){
+        throw new MetaException("Invalid partition for table " + tbl.getTableName());
+    }
+
+
+    try {
+
+      LOG.warn("---zjw-- before hive add_partition.");
+      partition = add_partition(inPart);
+    } catch (Exception e) {
+      LOG.error(StringUtils.stringifyException(e));
+      throw new TException(e);
+    }
+
+    return partition;
+  }
+
+
+  /**
    * @param new_part
    * @return the added partition
    * @throws InvalidObjectException
@@ -408,6 +542,11 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public Partition add_partition(Partition new_part)
       throws InvalidObjectException, AlreadyExistsException, MetaException,
       TException {
+    if(new_part ==null ||
+        new_part.getPartitionName()== null
+        || "".equals(new_part.getPartitionName().trim())){
+      throw new InvalidObjectException("Partition is null or partition name is not setted.");
+    }
     return deepCopy(client.add_partition(new_part));
   }
 
@@ -1363,17 +1502,23 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   }
 
   @Override
-  public SFile create_file(String node_name, int repnr, long table_id)
+  public SFile create_file(String node_name, int repnr, String db_name, String table_name)
       throws FileOperationException, TException {
 
     if ("".equals(node_name)) {
       node_name = null;
     }
+    if ("".equals(db_name)) {
+      db_name = null;
+    }
+    if ("".equals(table_name)) {
+      table_name = null;
+    }
     if (repnr == 0) {
       repnr = 1;
     }
 
-    return client.create_file(node_name, repnr, table_id);
+    return client.create_file(node_name, repnr, db_name, table_name);
   }
 
   @Override
@@ -1452,4 +1597,242 @@ public boolean authentication(String user_name, String passwd)
 
 
 
+  @Override
+  public Node alter_node(String node_name, List<String> ipl, int status) throws MetaException,
+      TException {
+    assert node_name != null;
+    assert ipl != null;
+    assert (status >= 0 && status < MetaStoreConst.MNodeStatus.__MAX__);
+    return client.alter_node(node_name, ipl, status);
+  }
+
+  @Override
+  public int add_partition_files(Partition part, List<SFile> files) throws TException {
+    assert part != null;
+    assert files != null;
+    return client.add_partition_files(part, files);
+  }
+
+  @Override
+  public int drop_partition_files(Partition part, List<SFile> files) throws TException {
+    assert part != null;
+    assert files != null;
+    return client.drop_partition_files(part, files);
+  }
+
+  @Override
+  public List<String> get_partition_names(String db_name, String tbl_name, short max_parts)
+      throws MetaException, TException {
+      return client.get_partition_names(db_name, tbl_name, max_parts);
+  }
+
+  @Override
+  public boolean add_partition_index(Index index, Partition part) throws TException {
+    assert index != null;
+    assert part != null;
+    return client.add_partition_index(index, part);
+  }
+
+  @Override
+  public List<SFile> get_files_by_ids(List<Long> fids) throws FileOperationException,
+      MetaException, TException {
+    List<SFile> lsf = new ArrayList<SFile>();
+    if (fids.size() > 0) {
+      for (Long id : fids) {
+        lsf.add(client.get_file_by_id(id));
+      }
+    }
+
+    return lsf;
+  }
+
+  @Override
+  public Boolean del_node(String node_name) throws MetaException, TException {
+    assert node_name != null;
+    if (client.del_node(node_name) > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public List<Node> get_all_nodes() throws MetaException, TException {
+    return client.get_all_nodes();
+  }
+
+  @Override
+  public boolean drop_partition_index(Index index, Partition part) throws TException {
+    assert index != null;
+    assert part != null;
+    return client.drop_partition_index(index, part);
+  }
+
+  @Override
+  public boolean add_partition_index_files(Index index, Partition part, List<SFile> file,
+      List<Long> originfid) throws MetaException, TException {
+    assert index != null;
+    assert part != null;
+    assert file != null;
+    assert originfid != null;
+    return client.add_partition_index_files(index, part, file, originfid);
+  }
+
+  @Override
+  public boolean drop_partition_index_files(Index index, Partition part, List<SFile> file)
+      throws MetaException, TException {
+    assert index != null;
+    assert part != null;
+    assert file != null;
+    return client.drop_partition_index_files(index, part, file);
+  }
+
+  @Override
+  public String getDMStatus() throws MetaException, TException {
+    return client.getDMStatus();
+  }
+
+  @Override
+  public boolean addDatawareHouseSql(Integer dwNum, String sql) throws MetaException, TException {
+    return client.add_datawarehouse_sql(dwNum, sql);
+  }
+
+  public List<SFileRef> get_partition_index_files(Index index, Partition part)
+      throws MetaException, TException {
+    assert index != null;
+    assert part != null;
+    return client.get_partition_index_files(index, part);
+  }
+
+  @Override
+  public int add_subpartition_files(Subpartition subpart, List<SFile> files) throws TException {
+    // TODO Auto-generated method stub
+    return client.add_subpartition_files(subpart, files);
+  }
+
+  @Override
+  public int drop_subpartition_files(Subpartition subpart, List<SFile> files) throws TException {
+    // TODO Auto-generated method stub
+    return client.drop_subpartition_files(subpart, files);
+  }
+
+  @Override
+  public boolean add_subpartition_index(Index index, Subpartition subpart) throws TException {
+    // TODO Auto-generated method stub
+    return client.add_subpartition_index(index, subpart);
+  }
+
+  @Override
+  public boolean drop_subpartition_index(Index index, Subpartition subpart) throws TException {
+    // TODO Auto-generated method stub
+    return client.drop_subpartition_index(index, subpart);
+  }
+
+  @Override
+  public boolean add_subpartition_index_files(Index index, Subpartition subpart, List<SFile> file,
+      List<Long> originfid) throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.add_subpartition_index_files(index, subpart, file, originfid);
+  }
+
+  @Override
+  public boolean drop_subpartition_index_files(Index index, Subpartition subpart, List<SFile> file)
+      throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.drop_subpartition_index_files(index, subpart, file);
+  }
+
+  @Override
+  public List<String> getSubPartitions(String dbName, String tabName, String partName)
+      throws MetaException, TException {
+    Partition part = client.get_partition_by_name(dbName, tabName, partName);
+    List<Subpartition> subparts = client.get_subpartitions(dbName, tabName, part);
+    List<String> subpartNames = new ArrayList<String>();
+    for(Subpartition sp : subparts ){
+      subpartNames.add(sp.getPartitionName());
+    }
+    return subpartNames;
+  }
+
+  @Override
+  public Datacenter get_local_center() throws MetaException, TException {
+    return client.get_local_center();
+  }
+
+  @Override
+  public List<Datacenter> get_all_centers() throws MetaException, TException {
+    return client.get_all_centers();
+  }
+
+  @Override
+  public Datacenter get_center(String name) throws NoSuchObjectException, MetaException, TException {
+    assert name != null;
+    return client.get_center(name);
+  }
+
+  @Override
+  public void create_datacenter(Datacenter datacenter) throws AlreadyExistsException,
+      InvalidObjectException, MetaException, TException {
+    assert datacenter != null;
+    client.create_datacenter(datacenter);
+  }
+
+  @Override
+  public void update_center(Datacenter datacenter) throws NoSuchObjectException,
+      InvalidOperationException, MetaException, TException {
+    assert datacenter != null;
+    client.update_center(datacenter);
+  }
+
+  @Override
+  public Map<Long, SFile> migrate_in(Table tbl, List<Partition> parts, String from_dc)
+      throws MetaException, TException {
+    assert tbl != null;
+    assert parts != null;
+    assert from_dc != null;
+    LOG.info("client parts " + parts.get(0).getSubpartitions().get(0).getFiles());
+    return client.migrate_in(tbl, parts, from_dc);
+  }
+
+  @Override
+  public String getMP(String node_name, String devid) throws MetaException, TException {
+    assert node_name != null;
+    assert devid != null;
+    return client.getMP(node_name, devid);
+  }
+
+  @Override
+  public boolean migrate_out(String dbName, String tableName, List<String> partNames, String to_dc)
+      throws MetaException, TException {
+    assert dbName != null;
+    assert tableName != null;
+    assert partNames != null;
+    assert to_dc != null;
+    return client.migrate_out(dbName, tableName, partNames, to_dc);
+  }
+
+  @Override
+  public SFile get_file_by_name(String node, String devid, String location)
+      throws FileOperationException, MetaException, TException {
+    assert node != null;
+    assert devid != null;
+    assert location != null;
+    return client.get_file_by_name(node, devid, location);
+  }
+
+  @Override
+  public List<BusiTypeColumn> get_all_busi_type_cols() throws MetaException, TException {
+    return client.get_all_busi_type_cols();
+  }
+
+  @Override
+  public List<BusiTypeDatacenter> get_all_busi_type_datacenters() throws MetaException,TException {
+    return client.get_all_busi_type_datacenters();
+  }
+
+  @Override
+  public void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
+    throws InvalidObjectException, MetaException, TException {
+    client.append_busi_type_datacenter(busiTypeDatacenter);
+  }
 }

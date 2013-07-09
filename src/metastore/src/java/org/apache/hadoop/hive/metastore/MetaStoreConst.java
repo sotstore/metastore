@@ -12,5 +12,13 @@ public class MetaStoreConst {
   public class MFileLocationVisitStatus {
     public static final int OFFLINE = 0;
     public static final int ONLINE = 1;
+    public static final int SUSPECT = 2;
+  }
+
+  public class MNodeStatus {
+    public static final int ONLINE = 0;
+    public static final int OFFLINE = 1;
+    public static final int SUSPECT = 2;
+    public static final int __MAX__ = 3;
   }
 }

@@ -35,9 +35,11 @@ import org.antlr.runtime.tree.Tree;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Order;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionConstants;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionDefinition;
 import org.apache.hadoop.hive.ql.Context;
 import org.apache.hadoop.hive.ql.ErrorMsg;
 import org.apache.hadoop.hive.ql.QueryProperties;
@@ -57,7 +59,6 @@ import org.apache.hadoop.hive.ql.metadata.InvalidTableException;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.plan.PlanUtils;
-import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.hive.ql.session.SessionState.LogHelper;
 import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe;
@@ -75,6 +76,7 @@ public abstract class BaseSemanticAnalyzer {
   protected List<Task<? extends Serializable>> rootTasks;
   protected FetchTask fetchTask;
   protected final Log LOG;
+  private static Log zlog = LogFactory.getLog(BaseSemanticAnalyzer.class.getName());
   protected final LogHelper console;
 
   protected Context ctx;
@@ -338,6 +340,12 @@ public abstract class BaseSemanticAnalyzer {
         String dbName = unescapeIdentifier(tableOrColumnNode.getChild(0).getText());
         String tableName = unescapeIdentifier(tableOrColumnNode.getChild(1).getText());
         return dbName + "." + tableName;
+      }else if(tableOrColumnNode.getChildCount() == 3) {//added by zjw for datacenter
+        zlog.info("---zjw define datacenter name");
+        String dcName = unescapeIdentifier(tableOrColumnNode.getChild(0).getText());
+        String dbName = unescapeIdentifier(tableOrColumnNode.getChild(1).getText());
+        String tableName = unescapeIdentifier(tableOrColumnNode.getChild(1).getText());
+        return dbName + "." + tableName;
       }
       String tableName = unescapeIdentifier(tableOrColumnNode.getChild(0).getText());
       if (currentDatabase != null) {
@@ -523,6 +531,8 @@ public abstract class BaseSemanticAnalyzer {
 
   /**
    * Get the list of FieldSchema out of the ASTNode.
+   *
+   * added by zjw:we re-use lowerCase indicate part cols retrival.
    */
   public static List<FieldSchema> getColumns(ASTNode ast, boolean lowerCase) throws SemanticException {
     List<FieldSchema> colList = new ArrayList<FieldSchema>();
@@ -530,6 +540,7 @@ public abstract class BaseSemanticAnalyzer {
     for (int i = 0; i < numCh; i++) {
       FieldSchema col = new FieldSchema();
       ASTNode child = (ASTNode) ast.getChild(i);
+
 
       String name = child.getChild(0).getText();
       if(lowerCase) {
@@ -546,8 +557,192 @@ public abstract class BaseSemanticAnalyzer {
         col.setComment(unescapeSQLString(child.getChild(2).getText()));
       }
       colList.add(col);
+
     }
     return colList;
+  }
+
+  /**
+   *目前只支持二级分区
+   *^(TOK_PARTITIONED_BY $partParamList
+    tableSubPartition?
+    partitionTemplate?)
+   *
+   * create table abc( a int,b string) partitioned by list(a) partition pa values(1,2);
+   *
+TOK_TABLEPARTCOLS--text:TOK_TABLEPARTCOLS--tokenType:141
+  TOK_FUNCTION--text:TOK_FUNCTION--tokenType:21----------------------<list(a)>
+TOK_PARTITION_EXPER--text:TOK_PARTITION_EXPER--tokenType:255
+  TOK_PARTITION--text:TOK_PARTITION--tokenType:257-------------------<pa values(1,2)>
+
+
+
+   * @param colList
+   * @return 返回一级分区的列定义
+   * added by zjw for 2-level partition analyze
+   */
+
+  public static List<FieldSchema> analyzePartitionClause(ASTNode ast, PartitionDefinition pd) throws SemanticException {
+      List<FieldSchema> colList = new ArrayList<FieldSchema>();
+      PartitionDefinition global_sub_pd = null;
+    //table partition columns analyze
+      zlog.warn("Ast tree:"+ast.toStringTree());
+      int partChildNum = ast.getChildCount();
+      for (int p = 0; p < partChildNum; p++) {//anyalyze partition by
+
+        ASTNode p_child = (ASTNode) ast.getChild(p);
+        zlog.warn("in part columns-111,tree:"+p_child.toString()
+            +"--text:"+p_child.getText()+"--tokenType:"+p_child.getToken().getType());
+        switch(p_child.getToken().getType()){
+        case  HiveParser.TOK_TABLEPARTCOLS://part function:hash/list/range/interval
+          getPartitionType( p_child,colList, pd);
+          break;
+        case  HiveParser.TOK_PARTITION_EXPER://一级分区定义，子分区定义也在此分支中处理
+          zlog.warn("TOK_PARTITION_EXPER,tree+++++");
+          List<PartitionDefinition> parts = getPartitionDef(p_child,global_sub_pd);
+          pd.setPartitions(parts);
+
+          break;
+        case  HiveParser.TOK_SUBPARTITIONED_BY://直接跟在一级分区定义后，本子分区定义会直接传递给一级分区的所有分区
+          global_sub_pd = new PartitionDefinition();
+          global_sub_pd.setTableName(pd.getTableName());
+          global_sub_pd.getPi().setP_level(2);//设为2级分区
+          List<FieldSchema> subPartCol = analyzePartitionClause( p_child,  global_sub_pd);//递归调用，获取子分区定义
+//          List<SubPartitionFieldSchema> subPartFieldList =
+//              PartitionFactory.toSubPartitionFieldSchemaList(subPartCol);
+          colList.addAll(subPartCol);
+          PartitionFactory.createSubPartition(colList,global_sub_pd,true,null);
+//          assert(colList.size() == 1);
+
+          break;
+        case  HiveParser.TOK_SUBPARTITION_EXPER://用递归调用时，本分支仅在第二层调用，不用递归应放在TOK_SUBPARTITIONED_BY里面解析
+          zlog.warn("TOK_SUBPARTITION_EXPER,tree-----");
+          List<PartitionDefinition> sub_parts = getPartitionDef(p_child,global_sub_pd);
+          pd.setPartitions(sub_parts);
+          break;
+        default:
+          assert(false);
+        }
+
+      }
+//      FieldSchema fieldSchema = pd.toMFieldSchema();
+
+      return colList;
+  }
+
+
+  /**
+   * 解析对分区方法的定义
+   * @param p_child
+   * @param colList
+   * @param pd
+   * @throws SemanticException
+   */
+  protected static void getPartitionType(ASTNode p_child,List<FieldSchema> colList,PartitionDefinition pd) throws SemanticException{
+    ASTNode func_child = (ASTNode) p_child.getChild(0);
+    String func_name = func_child.getChild(0).getText().toLowerCase();
+    if(!PartitionFactory.PartitionType.validate(func_name)){
+      throw new SemanticException("Partition type:"+func_name+" is not suppored.");
+    }else{
+      pd.getPi().setP_type(PartitionFactory.PartitionType.valueOf(func_name));
+//      pd.setPartitionLevel(1);
+    }
+    zlog.warn("p_child,tree:"+func_child.toStringTree()+"--text:"+func_child.getText()
+        +"--tokenType:"+func_child.getChildCount());
+    int paraNum = func_child.getChildCount();
+
+    for (int i = 1; i < paraNum; i++) {//anyalyze partition function params
+      ASTNode func_para = (ASTNode) func_child.getChild(i);
+
+      if(func_para.getToken().getType() ==  HiveParser.TOK_TABLE_OR_COL){
+        FieldSchema col = new FieldSchema();
+        col.setName(func_para.getChild(0).getText());//@todo  add validate partcol in columns
+//        colList.add(col);//@todo remove this
+        pd.getPi().setP_col(col.getName());
+      }else{
+        if(pd.getPi().getP_type()== PartitionFactory.PartitionType.hash && i==2){
+          pd.getPi().setP_num(Integer.parseInt(func_child.getChild(i).getText()));
+        }
+        pd.getPi().getArgs().add(func_child.getChild(i).getText());
+      }
+      zlog.warn("func_para,tree:"+func_para.toStringTree()+"--text:"+func_para.getText()
+        +"--getChildCount:"+func_para.getChildCount());
+    }
+
+    colList.add(pd.toFieldSchema());//@todo remove this
+  }
+
+  /**
+   * 解析对各分区的定义
+   * @param p_child
+   * @return
+   */
+  protected static List<PartitionDefinition> getPartitionDef(ASTNode p_child,PartitionDefinition global_sub_pd){
+    List<PartitionDefinition> parts = new ArrayList<PartitionDefinition>();
+    String last_part_min_value = PartitionConstants.MINVALUE;
+    String last_part_max_value = PartitionConstants.MAXVALUE;
+
+    zlog.warn("getPartitionDef,tree:"+p_child.toStringTree()+"--text:"+p_child.getText()
+        +"--getChildCount:"+p_child.getChildCount());
+    int ptempNum = p_child.getChildCount();
+    for (int t = 0; t < ptempNum; t++) {//anyalyze partition template
+      PartitionDefinition partition = new PartitionDefinition();
+      ASTNode child = (ASTNode) p_child.getChild(t);
+      ASTNode part_name = (ASTNode) child.getChild(0);
+      if(child.getChildCount()>=2){
+        ASTNode part_para = (ASTNode) child.getChild(1);
+        partition.setPart_name(part_name.getText());
+
+        if(global_sub_pd != null){
+          partition.setTableName(global_sub_pd.getTableName());
+          partition.getPi().setP_col(global_sub_pd.getPi().getP_col());
+          partition.getPi().setP_type(global_sub_pd.getPi().getP_type());
+          partition.getPi().setP_level(global_sub_pd.getPi().getP_level());
+          partition.getPi().setP_num(global_sub_pd.getPi().getP_num());
+          partition.getPi().setP_order(global_sub_pd.getPi().getP_order());
+          partition.getPi().setP_version(global_sub_pd.getPi().getP_version());
+          partition.getPi().setArgs(global_sub_pd.getPi().getArgs());
+        }
+        zlog.warn("value_para,tree:"+part_para.toStringTree()+"--text:"+part_para.getText());
+        switch(part_para.getToken().getType()){
+          case  HiveParser.TOK_VALUES:
+            ASTNode paras = (ASTNode) part_para.getChild(0);
+            for (int i = 0; i < paras.getChildCount(); i++) {//anyalyze partition function params
+              ASTNode para_value = (ASTNode) paras.getChild(i);
+              partition.getValues().add(para_value.getText());
+            }
+            break;
+          case  HiveParser.TOK_VALUES_LESS:
+            String value_i = part_para.getChild(0).getText();
+            partition.getValues().add(last_part_min_value);
+            partition.getValues().add(value_i);
+            last_part_min_value = value_i;
+            break;
+          case  HiveParser.TOK_VALUES_GREATER:
+            String value_a = part_para.getChild(0).getText();
+            partition.getValues().add(value_a);
+            partition.getValues().add(last_part_max_value);
+            last_part_max_value = value_a;
+            break;
+          default:
+            assert(false);
+        }
+      }
+      if(child.getChildCount()>=3){//subpartition clause
+        ASTNode sub_part_temp = (ASTNode) child.getChild(2);
+        List<PartitionDefinition> sub_parts = getPartitionDef(sub_part_temp,null);//递归调用
+        partition.setPartitions(sub_parts);
+      }else{
+        if(global_sub_pd != null){
+          partition.cloneToSubpartitions(global_sub_pd.getPartitions());
+        }
+      }
+      parts.add(partition);
+
+      zlog.warn("partition,tree:"+child.toStringTree()+"--text:"+child.getText()
+        +"--getChildCount:"+child.getChildCount());
+    }
+    return parts;
   }
 
   protected List<String> getColumnNames(ASTNode ast) {

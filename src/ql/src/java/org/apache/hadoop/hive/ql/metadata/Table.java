@@ -41,9 +41,11 @@ import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Order;
+import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.io.HiveFileFormatUtils;
 import org.apache.hadoop.hive.ql.io.HiveOutputFormat;
 import org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat;
@@ -82,6 +84,7 @@ public class Table implements Serializable {
   private Class<? extends InputFormat> inputFormatClass;
   private URI uri;
   private HiveStorageHandler storageHandler;
+  private boolean isHeterView = false;//异构试图
 
   /**
    * Used only for serialization.
@@ -165,7 +168,7 @@ public class Table implements Serializable {
         || !MetaStoreUtils.validateName(name)) {
       throw new HiveException("[" + name + "]: is not a valid table name");
     }
-    if (0 == getCols().size()) {
+    if (!isHeterView && 0 == getCols().size()) {
       throw new HiveException(
           "at least one column must be specified for the table");
     }
@@ -189,6 +192,10 @@ public class Table implements Serializable {
       assert(getViewExpandedText() == null);
     }
 
+    if(isHeterView){
+      return;
+    }
+
     Iterator<FieldSchema> iterCols = getCols().iterator();
     List<String> colNames = new ArrayList<String>();
     while (iterCols.hasNext()) {
@@ -209,13 +216,25 @@ public class Table implements Serializable {
       Iterator<FieldSchema> partColsIter = getPartCols().iterator();
       while (partColsIter.hasNext()) {
         String partCol = partColsIter.next().getName();
-        if (colNames.contains(partCol.toLowerCase())) {
-          throw new HiveException("Partition column name " + partCol
-              + " conflicts with table columns.");
+//        if (colNames.contains(partCol.toLowerCase())) {
+//          throw new HiveException("Partition column name " + partCol
+//              + " conflicts with table columns.");
+//        }
+        if (!colNames.contains(partCol.toLowerCase())) {
+        throw new HiveException("Partition column name " + partCol
+            + " not exist in table columns.");
         }
       }
     }
     return;
+  }
+
+  public boolean isHeterView() {
+    return isHeterView;
+  }
+
+  public void setHeterView(boolean isHeterView) {
+    this.isHeterView = isHeterView;
   }
 
   public void setInputFormatClass(Class<? extends InputFormat> inputFormatClass) {
@@ -348,19 +367,20 @@ public class Table implements Serializable {
       }
     }
 
-    if ((spec == null) || (spec.size() != partCols.size())) {
-      throw new HiveException(
-          "table is partitioned but partition spec is not specified or"
-          + " does not fully match table partitioning: "
-          + spec);
-    }
-
-    for (FieldSchema field : partCols) {
-      if (spec.get(field.getName()) == null) {
-        throw new HiveException(field.getName()
-            + " not found in table's partition spec: " + spec);
-      }
-    }
+    //removed by zjw
+//    if ((spec == null) || (spec.size() != partCols.size())) {
+//      throw new HiveException(
+//          "table is partitioned but partition spec is not specified or"
+//          + " does not fully match table partitioning: "
+//          + spec);
+//    }
+//
+//    for (FieldSchema field : partCols) {
+//      if (spec.get(field.getName()) == null) {
+//        throw new HiveException(field.getName()
+//            + " not found in table's partition spec: " + spec);
+//      }
+//    }
 
     return true;
   }
@@ -851,6 +871,14 @@ public class Table implements Serializable {
     tTable.setLastAccessTime(lastAccessTime);
   }
 
+  public List<Partition> getPartitions() {
+    return tTable.getPartitions();
+  }
+
+  public void setPartitions(List<Partition> partitions) {
+    tTable.setPartitions(partitions);
+  }
+
   public boolean isNonNative() {
     return getProperty(
       org.apache.hadoop.hive.metastore.api.hive_metastoreConstants.META_TABLE_STORAGE)
@@ -924,5 +952,15 @@ public class Table implements Serializable {
   public List<Index> getAllIndexes(short max) throws HiveException {
     Hive hive = Hive.get();
     return hive.getIndexes(getTTable().getDbName(), getTTable().getTableName(), max);
+  }
+
+  public List<PartitionInfo> getPartitionInfo(){
+    List<PartitionInfo> pis = new ArrayList<PartitionInfo>();
+    int i = 0;
+    for(FieldSchema fs : this.getPartitionKeys()){
+      PartitionInfo pi = PartitionInfo.fromJson(fs.getComment());
+      pis.add(pi);
+    }
+    return pis;
   }
 };

@@ -79,6 +79,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory;
 import org.apache.hadoop.hive.ql.Context;
 import org.apache.hadoop.hive.ql.DriverContext;
 import org.apache.hadoop.hive.ql.QueryPlan;
@@ -97,7 +98,6 @@ import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveMetaStoreChecker;
 import org.apache.hadoop.hive.ql.metadata.HiveStorageHandler;
-import org.apache.hadoop.hive.ql.metadata.HiveUtils;
 import org.apache.hadoop.hive.ql.metadata.InvalidTableException;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
@@ -107,13 +107,19 @@ import org.apache.hadoop.hive.ql.metadata.formatting.MetaDataFormatter;
 import org.apache.hadoop.hive.ql.metadata.formatting.TextMetaDataFormatter;
 import org.apache.hadoop.hive.ql.parse.AlterTablePartMergeFilesDesc;
 import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
+import org.apache.hadoop.hive.ql.plan.AddNodeDesc;
+import org.apache.hadoop.hive.ql.plan.AddPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
+import org.apache.hadoop.hive.ql.plan.AddSubpartIndexDesc;
+import org.apache.hadoop.hive.ql.plan.AddSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.AlterDatabaseDesc;
+import org.apache.hadoop.hive.ql.plan.AlterDatawareHouseDesc;
 import org.apache.hadoop.hive.ql.plan.AlterIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
+import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableLikeDesc;
@@ -123,11 +129,26 @@ import org.apache.hadoop.hive.ql.plan.DescDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.DescFunctionDesc;
 import org.apache.hadoop.hive.ql.plan.DescTableDesc;
 import org.apache.hadoop.hive.ql.plan.DropDatabaseDesc;
+import org.apache.hadoop.hive.ql.plan.DropDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
+import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
+import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
+import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
+import org.apache.hadoop.hive.ql.plan.DropSubpartIndexDesc;
+import org.apache.hadoop.hive.ql.plan.DropSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.DropTableDesc;
 import org.apache.hadoop.hive.ql.plan.GrantDesc;
 import org.apache.hadoop.hive.ql.plan.GrantRevokeRoleDDL;
 import org.apache.hadoop.hive.ql.plan.LockTableDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyNodeDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyPartIndexAddFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyPartIndexDropFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyPartitionAddFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyPartitionDropFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexAddFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexDropFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifySubpartitionAddFileDesc;
+import org.apache.hadoop.hive.ql.plan.ModifySubpartitionDropFileDesc;
 import org.apache.hadoop.hive.ql.plan.MsckDesc;
 import org.apache.hadoop.hive.ql.plan.PartitionSpec;
 import org.apache.hadoop.hive.ql.plan.PrincipalDesc;
@@ -143,11 +164,14 @@ import org.apache.hadoop.hive.ql.plan.ShowFunctionsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
+import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
+import org.apache.hadoop.hive.ql.plan.ShowSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTableStatusDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
 import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
+import org.apache.hadoop.hive.ql.plan.SwitchDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
 import org.apache.hadoop.hive.ql.plan.UserDDLDesc;
 import org.apache.hadoop.hive.ql.plan.api.StageType;
@@ -224,6 +248,102 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     Hive db;
     try {
       db = Hive.get(conf);
+
+      // added by zjw
+      /*********************added by zjw*******************************/
+      CreateDatacenterDesc createDatacenterDesc = work.getCreateDatacenterDesc();
+      if (null != createDatacenterDesc) {
+        return createDatacenter(db, createDatacenterDesc);
+      }
+      SwitchDatacenterDesc switchDatacenterDesc = work.getSwitchDatacenterDesc();
+      if (null != switchDatacenterDesc) {
+        return switchDatacenter(db, switchDatacenterDesc);
+      }
+      DropDatacenterDesc dropDatacenterDesc = work.getDropDatacenterDesc();
+      if (null != dropDatacenterDesc) {
+        return dropDatacenter(db, dropDatacenterDesc);
+      }
+      ModifyNodeDesc modifyNodeDesc = work.getModifyNodeDesc();
+      if (null != modifyNodeDesc) {
+        return modifyNode(db, modifyNodeDesc);
+      }
+      DropNodeDesc dropNodeDesc = work.getDropNodeDesc();
+      if (null != dropNodeDesc) {
+        return dropNode(db, dropNodeDesc);
+      }
+      AddNodeDesc addNodeDesc = work.getAddNodeDesc();
+      if (null != addNodeDesc) {
+        return addNode(db, addNodeDesc);
+      }
+
+      ModifySubpartIndexDropFileDesc modifySubpartIndexDropFileDesc = work.getModifySubpartIndexDropFileDesc();
+      if (null != modifySubpartIndexDropFileDesc) {
+        return modifySubpartIndexDropFile(db, modifySubpartIndexDropFileDesc);
+      }
+      ModifyPartIndexDropFileDesc modifyPartIndexDropFileDesc = work.getModifyPartIndexDropFileDesc();
+      if (null != modifyPartIndexDropFileDesc) {
+        return modifyPartIndexDropFile(db, modifyPartIndexDropFileDesc);
+      }
+      ModifySubpartIndexAddFileDesc modifySubpartIndexAddFileDesc = work.getModifySubpartIndexAddFileDesc();
+      if (null != modifySubpartIndexAddFileDesc) {
+        return modifySubpartIndexAddFile(db, modifySubpartIndexAddFileDesc);
+      }
+      ModifyPartIndexAddFileDesc modifyPartIndexAddFileDesc = work.getModifyPartIndexAddFileDesc();
+      if (null != modifyPartIndexAddFileDesc) {
+        return modifyPartIndexAddFile(db, modifyPartIndexAddFileDesc);
+      }
+      AddSubpartIndexDesc addSubpartIndexDesc = work.getAddSubpartIndexsDesc();
+      if (null != addSubpartIndexDesc) {
+        return addSubpartIndex(db, addSubpartIndexDesc);
+      }
+      AddPartIndexDesc addPartIndexDesc= work.getAddPartIndexsDesc();
+      if (null != addPartIndexDesc) {
+        return addPartIndex(db, addPartIndexDesc);
+      }
+      DropSubpartIndexDesc dropSubpartIndexDesc = work.getDropSubpartIndexsDesc();
+      if (null != dropSubpartIndexDesc) {
+        return dropSubpartIndex(db, dropSubpartIndexDesc);
+      }
+      DropPartIndexDesc dropPartIndexDesc= work.getDropPartIndexsDesc();
+      if (null != dropPartIndexDesc) {
+        return dropPartIndex(db, dropPartIndexDesc);
+      }
+      ModifySubpartitionDropFileDesc modifySubpartitionDropFileDesc= work.getModifySubpartitionDropFileDesc();
+      if (null != modifySubpartitionDropFileDesc) {
+        return modifySubpartitionDropFile(db, modifySubpartitionDropFileDesc);
+      }
+      ModifySubpartitionAddFileDesc modifySubpartitionAddFileDesc = work.getModifySubpartitionAddFileDesc();
+      if (null != modifySubpartitionAddFileDesc) {
+        return modifySubpartitionAddFile(db, modifySubpartitionAddFileDesc);
+      }
+      ModifyPartitionDropFileDesc modifyPartitionDropFileDesc= work.getModifyPartitionDropFileDesc();
+      if (null != modifyPartitionDropFileDesc) {
+        return modifyPartitionDropFile(db, modifyPartitionDropFileDesc);
+      }
+      ModifyPartitionAddFileDesc modifyPartitionAddFileDesc = work.getModifyPartitionAddFileDesc();
+      if (null != modifyPartitionAddFileDesc) {
+        return modifyPartitionAddFile(db, modifyPartitionAddFileDesc);
+      }
+      AddSubpartitionDesc addSubpartitionDesc = work.getAddSubpartitionDesc();
+      if (null != addSubpartitionDesc) {
+        return addSubpartition(db, addSubpartitionDesc);
+      }
+//      AddPartitionDesc addPartitionDesc
+      DropSubpartitionDesc dropSubpartitionDesc = work.getDropSubpartitionDesc();
+      if (null != dropSubpartitionDesc) {
+        return dropSubpartition(db, dropSubpartitionDesc);
+      }
+      DropPartitionDesc dropPartitionDesc = work.getDropPartitionDesc();
+      if (null != dropPartitionDesc) {
+        return dropPartition(db, dropPartitionDesc);
+      }
+      AlterDatawareHouseDesc alterDatawareHouseDesc = work.getAlterDatawareHouseDesc();
+      if (null != alterDatawareHouseDesc) {
+        return alterDatawareHouse(db, alterDatawareHouseDesc);
+      }
+
+      /**********************end of modification of zjw******************************/
+
 
       CreateDatabaseDesc createDatabaseDesc = work.getCreateDatabaseDesc();
       if (null != createDatabaseDesc) {
@@ -419,6 +539,17 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         return showIndexes(db, showIndexes);
       }
 
+      ShowSubpartitionDesc showSubpartitionDesc = work.getShowSubpartitionDesc();
+      if (showSubpartitionDesc != null) {
+        return showSubpartitions(db, showSubpartitionDesc);
+      }
+
+      ShowPartitionKeysDesc showPartitionKeysDesc = work.getShowPartitionKeysDesc();
+      if (showPartitionKeysDesc != null) {
+        return showPartitionKeys(db, showPartitionKeysDesc);
+      }
+
+
       AlterTablePartMergeFilesDesc mergeFilesDesc = work.getMergeFilesDesc();
       if(mergeFilesDesc != null) {
         return mergeFiles(db, mergeFilesDesc);
@@ -453,6 +584,206 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     assert false;
     return 0;
   }
+
+  /////start of zjw need to implement
+
+  private int showPartitionKeys(Hive db, ShowPartitionKeysDesc showPartitionKeysDesc) throws HiveException {
+    Table tbl = db.getTable(showPartitionKeysDesc.getDbName(), showPartitionKeysDesc.getTabName());
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showPartitionKeysDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      formatter.showPartitionKeys(outStream, PartitionFactory.PartitionInfo.getPartitionInfo(tbl.getPartitionKeys()));
+
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show partitions: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show partitions: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+  private int showSubpartitions(Hive db, ShowSubpartitionDesc showSubpartitionDesc) throws HiveException {
+//    List<String> subpartNames = new ArrayList<String>();
+    Table tbl = db.getTable(showSubpartitionDesc.getDbName(), showSubpartitionDesc.getTabName());
+    List<String> subpartNames = db.getSubPartitions(showSubpartitionDesc.getDbName(), showSubpartitionDesc.getTabName(),showSubpartitionDesc.getPartName());
+    LOG.debug("---zjw--subpartNames"+subpartNames.size());
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showSubpartitionDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      formatter.showSubpartitions(outStream, subpartNames);
+
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show partitions: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show partitions: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+  private int alterDatawareHouse(Hive db,
+      AlterDatawareHouseDesc alterDatawareHouseDesc) throws HiveException {
+    Integer dwNum = alterDatawareHouseDesc.getDwNum();
+    String sql = alterDatawareHouseDesc.getSql();
+
+    db.addDatawareHouseSql(dwNum ,sql);
+    return 0;
+  }
+
+  private int dropPartition(Hive db, DropPartitionDesc dropPartitionDesc) throws HiveException {
+    List<String> partNames = new ArrayList<String>();
+    Table tbl = db.getTable(dropPartitionDesc.getDbName(), dropPartitionDesc.getTableName());
+    partNames.add(dropPartitionDesc.getPartitionName());
+    List<Partition> ps = db.getPartitionsByNames(tbl, partNames);
+    LOG.info("---zjw--size"+ps.size());
+
+    if(ps.size()<=0){
+      throw new HiveException(
+          "partition : "+ dropPartitionDesc.getPartitionName()+" not exist.");
+    }
+
+    org.apache.hadoop.hive.metastore.api.Partition tp = ps.get(0).getTPartition();
+//    LOG.info("---zjw--getPartitionName"+tp.getPartitionName()+"--"+tp.getDbName()+"--"+tp.getTableName()+"--"+tp.getValuesSize());
+//    LOG.info("---zjw--subpartitionsSize"+tp.getSubpartitionsSize());
+//    LOG.info("---zjw--subpartitionName"+tp.getSubpartitions().get(0).getPartitionName());
+
+    db.dropPartition(dropPartitionDesc.getDbName(), dropPartitionDesc.getTableName(), dropPartitionDesc.getPartitionName());
+    return 0;
+  }
+
+  private int dropSubpartition(Hive db, DropSubpartitionDesc dropSubpartitionDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int addSubpartition(Hive db, AddSubpartitionDesc addSubpartitionDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifyPartitionAddFile(Hive db, ModifyPartitionAddFileDesc modifyPartitionAddFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifyPartitionDropFile(Hive db,
+      ModifyPartitionDropFileDesc modifyPartitionDropFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifySubpartitionAddFile(Hive db,
+      ModifySubpartitionAddFileDesc modifySubpartitionAddFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifySubpartitionDropFile(Hive db,
+      ModifySubpartitionDropFileDesc modifySubpartitionDropFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int dropPartIndex(Hive db, DropPartIndexDesc dropPartIndexDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int dropSubpartIndex(Hive db, DropSubpartIndexDesc dropSubpartIndexDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int addPartIndex(Hive db, AddPartIndexDesc addPartIndexDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int addSubpartIndex(Hive db, AddSubpartIndexDesc addSubpartIndexDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifyPartIndexAddFile(Hive db, ModifyPartIndexAddFileDesc modifyPartIndexAddFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifySubpartIndexAddFile(Hive db,
+      ModifySubpartIndexAddFileDesc modifySubpartIndexAddFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifyPartIndexDropFile(Hive db,
+      ModifyPartIndexDropFileDesc modifyPartIndexDropFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifySubpartIndexDropFile(Hive db,
+      ModifySubpartIndexDropFileDesc modifySubpartIndexDropFileDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int addNode(Hive db, AddNodeDesc addNodeDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int dropNode(Hive db, DropNodeDesc dropNodeDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int modifyNode(Hive db, ModifyNodeDesc modifyNodeDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int dropDatacenter(Hive db, DropDatacenterDesc dropDatacenterDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int switchDatacenter(Hive db, SwitchDatacenterDesc switchDatacenterDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  private int createDatacenter(Hive db, CreateDatacenterDesc createDatacenterDesc) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+
+  /////end of zjw need to implement
 
   /**
    * First, make sure the source table/partition is not
@@ -977,14 +1308,15 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         crtIndex.getSerdeProps(), crtIndex.getCollItemDelim(), crtIndex.getFieldDelim(), crtIndex.getFieldEscape(),
         crtIndex.getLineDelim(), crtIndex.getMapKeyDelim(), crtIndex.getIndexComment()
         );
-    if (HiveUtils.getIndexHandler(conf, crtIndex.getIndexTypeHandlerClass()).usesIndexTable()) {
-        String indexTableName =
-            crtIndex.getIndexTableName() != null ? crtIndex.getIndexTableName() :
-            MetaStoreUtils.getIndexTableName(db.getCurrentDatabase(),
-            crtIndex.getTableName(), crtIndex.getIndexName());
-        Table indexTable = db.getTable(indexTableName);
-        work.getOutputs().add(new WriteEntity(indexTable));
-    }
+    //remove by zjw
+//    if (HiveUtils.getIndexHandler(conf, crtIndex.getIndexTypeHandlerClass()).usesIndexTable()) {
+//        String indexTableName =
+//            crtIndex.getIndexTableName() != null ? crtIndex.getIndexTableName() :
+//            MetaStoreUtils.getIndexTableName(db.getCurrentDatabase(),
+//            crtIndex.getTableName(), crtIndex.getIndexName());
+//        Table indexTable = db.getTable(indexTableName);
+//        work.getOutputs().add(new WriteEntity(indexTable));
+//    }
     return 0;
   }
 
@@ -1086,7 +1418,18 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
     // If the add partition was created with IF NOT EXISTS, then we should
     // not throw an error if the specified part does exist.
-    Partition checkPart = db.getPartition(tbl, addPartitionDesc.getPartSpec(), false);
+
+    //removed by zjw
+//    Partition checkPart = db.getPartition(tbl, addPartitionDesc.getPartSpec(), false);
+    ArrayList<String> partNames = new  ArrayList<String>();
+    partNames.add(addPartitionDesc.getPartitionName());
+    List<Partition> checkParts = db.getPartitionsByNames(tbl, partNames);
+    Partition checkPart = null;
+    if(checkParts !=  null && checkParts.size() >0) {
+      checkPart = checkParts.get(0);
+    }
+
+
     if (checkPart != null && addPartitionDesc.getIfNotExists()) {
       return 0;
     }
@@ -1094,7 +1437,8 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
 
     if (addPartitionDesc.getLocation() == null) {
-      db.createPartition(tbl, addPartitionDesc.getPartSpec(), null,
+
+      db.createPartition(tbl,addPartitionDesc.getPartitionName(), addPartitionDesc.getPartSpec(), null,
           addPartitionDesc.getPartParams(),
                     addPartitionDesc.getInputFormat(),
                     addPartitionDesc.getOutputFormat(),
@@ -1110,7 +1454,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         throw new HiveException("LOCATION clause illegal for view partition");
       }
       // set partition path relative to table
-      db.createPartition(tbl, addPartitionDesc.getPartSpec(), new Path(tbl
+      db.createPartition(tbl,addPartitionDesc.getPartitionName(), addPartitionDesc.getPartSpec(), new Path(tbl
                     .getPath(), addPartitionDesc.getLocation()), addPartitionDesc.getPartParams(),
                     addPartitionDesc.getInputFormat(),
                     addPartitionDesc.getOutputFormat(),
@@ -2358,7 +2702,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       outStream = fs.create(resFile);
 
       List<FieldSchema> cols = table.getCols();
-      cols.addAll(table.getPartCols());
+//      cols.addAll(table.getPartCols());
       outStream.writeBytes(MetaDataFormatUtils.displayColsUnformatted(cols));
       ((FSDataOutputStream) outStream).close();
       outStream = null;
@@ -2929,11 +3273,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         cols = (part == null || tbl.getTableType() == TableType.VIRTUAL_VIEW) ?
             tbl.getCols() : part.getCols();
 
-        if (!descTbl.isFormatted()) {
-          if (tableName.equals(colPath)) {
-            cols.addAll(tbl.getPartCols());
-          }
-        }
+//        if (!descTbl.isFormatted()) {
+//          if (tableName.equals(colPath)) {
+//            cols.addAll(tbl.getPartCols());
+//          }
+//        }
       } else {
         cols = Hive.getFieldsFromDeserializer(colPath, tbl.getDeserializer());
       }
@@ -3789,8 +4133,29 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       return rc;
     }
 
+
+
+    if(crtTbl.getPartitions() != null){
+      tbl.setPartitions(crtTbl.getPartitions());
+      LOG.warn("---zjw--sub size:"+tbl.getPartitions().get(0).getSubpartitionsSize());
+    }
+
     // create the table
     db.createTable(tbl, crtTbl.getIfNotExists());
+//    if(crtTbl.getPartitions() != null){
+//      for(org.apache.hadoop.hive.metastore.api.Partition p : crtTbl.getPartitions()){
+//
+//        HashMap<String, String> part_spec = new HashMap<String, String>();
+//        part_spec.put(p.getPartitionName(), PartitionFactory.arrayToJson(p.getValues()));
+//        db.createPartition(tbl, part_spec);
+//        for(org.apache.hadoop.hive.metastore.api.Subpartition sub_p : p.getSubpartitions()){
+//          HashMap<String, String> sub_part_value = new HashMap<String, String>();
+//          sub_part_value.put(sub_p.getPartitionName(), PartitionFactory.arrayToJson(sub_p.getValues()));
+//          db.createPartition(tbl, sub_part_value);
+//        }
+//      }
+//    }
+
     work.getOutputs().add(new WriteEntity(tbl));
     return 0;
   }
@@ -3951,6 +4316,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       tbl.clearSerDeInfo();
       tbl.setViewOriginalText(crtView.getViewOriginalText());
       tbl.setViewExpandedText(crtView.getViewExpandedText());
+      LOG.debug("---zjw-- in create view:"+tbl.getViewExpandedText()+"---"+tbl.getViewOriginalText());
       tbl.setFields(crtView.getSchema());
       if (crtView.getComment() != null) {
         tbl.setProperty("comment", crtView.getComment());
@@ -3966,6 +4332,10 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       int rc = setGenericTableAttributes(tbl);
       if (rc != 0) {
         return rc;
+      }
+
+      if(crtView.isHeter()){
+        tbl.setHeterView(true);
       }
 
       db.createTable(tbl, crtView.getIfNotExists());
@@ -4016,4 +4386,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   protected void localizeMRTmpFilesImpl(Context ctx) {
     // no-op
   }
+
+
+
 }

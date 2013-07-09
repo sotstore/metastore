@@ -34,6 +34,9 @@ class hive_metastoreConstants {
   std::string FILE_INPUT_FORMAT;
   std::string FILE_OUTPUT_FORMAT;
   std::string META_TABLE_STORAGE;
+  std::string META_LUCENE_INDEX;
+  std::string META_LUCENE_ANALYZE;
+  std::string META_LUCENE_STORE;
 };
 
 extern const hive_metastoreConstants g_hive_metastore_constants;

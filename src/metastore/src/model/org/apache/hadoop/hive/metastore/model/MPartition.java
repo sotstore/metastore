@@ -18,22 +18,45 @@
 
 package org.apache.hadoop.hive.metastore.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class MPartition {
 
   private String partitionName; // partitionname ==>  (key=value/)*(key=value)
-  private MTable table; 
+  private MTable table;
   private List<String> values;
+  private List<Long> files;
   private int createTime;
   private int lastAccessTime;
   private MStorageDescriptor sd;
   private Map<String, String> parameters;
-  
-  
+  private int partition_level;
+  private int version;
+  private MPartition parent;
+  private List<MPartition> subPartitions = new ArrayList<MPartition>();
+
   public MPartition() {}
-  
+
+
+  public MPartition(String partitionName, MTable table, List<MPartition> subPartitions,List<String> values, List<Long> files, int createTime,
+      int lastAccessTime, MStorageDescriptor sd, Map<String, String> parameters,int partition_level, int version) {
+    this.partitionName = partitionName;
+    if(subPartitions != null){
+      this.subPartitions = subPartitions;
+    }
+    this.table = table;
+    this.values = values;
+    this.files = files;
+    this.createTime = createTime;
+    this.lastAccessTime = lastAccessTime;
+    this.sd = sd;
+    this.parameters = parameters;
+    this.partition_level = partition_level;
+    this.version = version;
+  }
+
   /**
    * @param partitionName
    * @param table
@@ -43,16 +66,21 @@ public class MPartition {
    * @param sd
    * @param parameters
    */
-  public MPartition(String partitionName, MTable table, List<String> values, int createTime,
+  public MPartition(String partitionName, MTable table, List<MPartition> subPartitions,List<String> values, List<Long> files, int createTime,
       int lastAccessTime, MStorageDescriptor sd, Map<String, String> parameters) {
     this.partitionName = partitionName;
+    if(subPartitions != null){
+      this.subPartitions = subPartitions;
+    }
     this.table = table;
     this.values = values;
+    this.files = files;
     this.createTime = createTime;
     this.lastAccessTime = lastAccessTime;
     this.sd = sd;
     this.parameters = parameters;
   }
+
 
   /**
    * @return the lastAccessTime
@@ -151,5 +179,47 @@ public class MPartition {
   public void setCreateTime(int createTime) {
     this.createTime = createTime;
   }
+
+  public int getPartition_level() {
+    return partition_level;
+  }
+
+  public void setPartition_level(int partition_level) {
+    this.partition_level = partition_level;
+  }
+
+  public int getVersion() {
+    return version;
+  }
+
+  public void setVersion(int version) {
+    this.version = version;
+  }
+
+
+  public MPartition getParent() {
+    return parent;
+  }
+
+  public void setParent(MPartition parent) {
+    this.parent = parent;
+  }
+
+  public List<MPartition> getSubPartitions() {
+    return subPartitions;
+  }
+
+  public void setSubPartitions(List<MPartition> subPartitions) {
+    this.subPartitions = subPartitions;
+  }
+
+  public List<Long> getFiles() {
+    return files;
+  }
+
+  public void setFiles(List<Long> files) {
+    this.files = files;
+  }
+
 
 }

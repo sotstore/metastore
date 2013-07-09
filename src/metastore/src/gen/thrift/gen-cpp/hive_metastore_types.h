@@ -692,20 +692,99 @@ class User {
 
 void swap(User &a, User &b);
 
-typedef struct _Database__isset {
-  _Database__isset() : name(false), description(false), locationUri(false), parameters(false), privileges(false) {}
+typedef struct _Datacenter__isset {
+  _Datacenter__isset() : name(false), description(false), locationUri(false), parameters(false), privileges(false) {}
   bool name;
   bool description;
   bool locationUri;
   bool parameters;
   bool privileges;
+} _Datacenter__isset;
+
+class Datacenter {
+ public:
+
+  static const char* ascii_fingerprint; // = "213967572143E49C9F1A23F7A866E2F5";
+  static const uint8_t binary_fingerprint[16]; // = {0x21,0x39,0x67,0x57,0x21,0x43,0xE4,0x9C,0x9F,0x1A,0x23,0xF7,0xA8,0x66,0xE2,0xF5};
+
+  Datacenter() : name(), description(), locationUri() {
+  }
+
+  virtual ~Datacenter() throw() {}
+
+  std::string name;
+  std::string description;
+  std::string locationUri;
+  std::map<std::string, std::string>  parameters;
+  PrincipalPrivilegeSet privileges;
+
+  _Datacenter__isset __isset;
+
+  void __set_name(const std::string& val) {
+    name = val;
+  }
+
+  void __set_description(const std::string& val) {
+    description = val;
+  }
+
+  void __set_locationUri(const std::string& val) {
+    locationUri = val;
+  }
+
+  void __set_parameters(const std::map<std::string, std::string> & val) {
+    parameters = val;
+  }
+
+  void __set_privileges(const PrincipalPrivilegeSet& val) {
+    privileges = val;
+    __isset.privileges = true;
+  }
+
+  bool operator == (const Datacenter & rhs) const
+  {
+    if (!(name == rhs.name))
+      return false;
+    if (!(description == rhs.description))
+      return false;
+    if (!(locationUri == rhs.locationUri))
+      return false;
+    if (!(parameters == rhs.parameters))
+      return false;
+    if (__isset.privileges != rhs.__isset.privileges)
+      return false;
+    else if (__isset.privileges && !(privileges == rhs.privileges))
+      return false;
+    return true;
+  }
+  bool operator != (const Datacenter &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Datacenter & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(Datacenter &a, Datacenter &b);
+
+typedef struct _Database__isset {
+  _Database__isset() : name(false), description(false), locationUri(false), parameters(false), privileges(false), datacenter(false) {}
+  bool name;
+  bool description;
+  bool locationUri;
+  bool parameters;
+  bool privileges;
+  bool datacenter;
 } _Database__isset;
 
 class Database {
  public:
 
-  static const char* ascii_fingerprint; // = "213967572143E49C9F1A23F7A866E2F5";
-  static const uint8_t binary_fingerprint[16]; // = {0x21,0x39,0x67,0x57,0x21,0x43,0xE4,0x9C,0x9F,0x1A,0x23,0xF7,0xA8,0x66,0xE2,0xF5};
+  static const char* ascii_fingerprint; // = "36BDAA0C78A7BCB4FF0F4C4A5901C8D3";
+  static const uint8_t binary_fingerprint[16]; // = {0x36,0xBD,0xAA,0x0C,0x78,0xA7,0xBC,0xB4,0xFF,0x0F,0x4C,0x4A,0x59,0x01,0xC8,0xD3};
 
   Database() : name(), description(), locationUri() {
   }
@@ -717,6 +796,7 @@ class Database {
   std::string locationUri;
   std::map<std::string, std::string>  parameters;
   PrincipalPrivilegeSet privileges;
+  Datacenter datacenter;
 
   _Database__isset __isset;
 
@@ -741,6 +821,11 @@ class Database {
     __isset.privileges = true;
   }
 
+  void __set_datacenter(const Datacenter& val) {
+    datacenter = val;
+    __isset.datacenter = true;
+  }
+
   bool operator == (const Database & rhs) const
   {
     if (!(name == rhs.name))
@@ -754,6 +839,10 @@ class Database {
     if (__isset.privileges != rhs.__isset.privileges)
       return false;
     else if (__isset.privileges && !(privileges == rhs.privileges))
+      return false;
+    if (__isset.datacenter != rhs.__isset.datacenter)
+      return false;
+    else if (__isset.datacenter && !(datacenter == rhs.datacenter))
       return false;
     return true;
   }
@@ -1076,8 +1165,283 @@ class StorageDescriptor {
 
 void swap(StorageDescriptor &a, StorageDescriptor &b);
 
+typedef struct _Subpartition__isset {
+  _Subpartition__isset() : values(false), dbName(false), tableName(false), createTime(false), lastAccessTime(false), sd(false), parameters(false), files(false), partitionName(false), version(false), privileges(false) {}
+  bool values;
+  bool dbName;
+  bool tableName;
+  bool createTime;
+  bool lastAccessTime;
+  bool sd;
+  bool parameters;
+  bool files;
+  bool partitionName;
+  bool version;
+  bool privileges;
+} _Subpartition__isset;
+
+class Subpartition {
+ public:
+
+  static const char* ascii_fingerprint; // = "5E14B7D697E9830C2EBE14229B67F381";
+  static const uint8_t binary_fingerprint[16]; // = {0x5E,0x14,0xB7,0xD6,0x97,0xE9,0x83,0x0C,0x2E,0xBE,0x14,0x22,0x9B,0x67,0xF3,0x81};
+
+  Subpartition() : dbName(), tableName(), createTime(0), lastAccessTime(0), partitionName(), version(0) {
+  }
+
+  virtual ~Subpartition() throw() {}
+
+  std::vector<std::string>  values;
+  std::string dbName;
+  std::string tableName;
+  int32_t createTime;
+  int32_t lastAccessTime;
+  StorageDescriptor sd;
+  std::map<std::string, std::string>  parameters;
+  std::vector<int64_t>  files;
+  std::string partitionName;
+  int32_t version;
+  PrincipalPrivilegeSet privileges;
+
+  _Subpartition__isset __isset;
+
+  void __set_values(const std::vector<std::string> & val) {
+    values = val;
+  }
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_tableName(const std::string& val) {
+    tableName = val;
+  }
+
+  void __set_createTime(const int32_t val) {
+    createTime = val;
+  }
+
+  void __set_lastAccessTime(const int32_t val) {
+    lastAccessTime = val;
+  }
+
+  void __set_sd(const StorageDescriptor& val) {
+    sd = val;
+  }
+
+  void __set_parameters(const std::map<std::string, std::string> & val) {
+    parameters = val;
+  }
+
+  void __set_files(const std::vector<int64_t> & val) {
+    files = val;
+  }
+
+  void __set_partitionName(const std::string& val) {
+    partitionName = val;
+    __isset.partitionName = true;
+  }
+
+  void __set_version(const int32_t val) {
+    version = val;
+    __isset.version = true;
+  }
+
+  void __set_privileges(const PrincipalPrivilegeSet& val) {
+    privileges = val;
+    __isset.privileges = true;
+  }
+
+  bool operator == (const Subpartition & rhs) const
+  {
+    if (!(values == rhs.values))
+      return false;
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(tableName == rhs.tableName))
+      return false;
+    if (!(createTime == rhs.createTime))
+      return false;
+    if (!(lastAccessTime == rhs.lastAccessTime))
+      return false;
+    if (!(sd == rhs.sd))
+      return false;
+    if (!(parameters == rhs.parameters))
+      return false;
+    if (!(files == rhs.files))
+      return false;
+    if (__isset.partitionName != rhs.__isset.partitionName)
+      return false;
+    else if (__isset.partitionName && !(partitionName == rhs.partitionName))
+      return false;
+    if (__isset.version != rhs.__isset.version)
+      return false;
+    else if (__isset.version && !(version == rhs.version))
+      return false;
+    if (__isset.privileges != rhs.__isset.privileges)
+      return false;
+    else if (__isset.privileges && !(privileges == rhs.privileges))
+      return false;
+    return true;
+  }
+  bool operator != (const Subpartition &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Subpartition & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(Subpartition &a, Subpartition &b);
+
+typedef struct _Partition__isset {
+  _Partition__isset() : values(false), dbName(false), tableName(false), createTime(false), lastAccessTime(false), sd(false), parameters(false), files(false), partitionName(false), subpartitions(false), version(false), privileges(false) {}
+  bool values;
+  bool dbName;
+  bool tableName;
+  bool createTime;
+  bool lastAccessTime;
+  bool sd;
+  bool parameters;
+  bool files;
+  bool partitionName;
+  bool subpartitions;
+  bool version;
+  bool privileges;
+} _Partition__isset;
+
+class Partition {
+ public:
+
+  static const char* ascii_fingerprint; // = "D84F7D1325F7F2EFEF519502732AE04A";
+  static const uint8_t binary_fingerprint[16]; // = {0xD8,0x4F,0x7D,0x13,0x25,0xF7,0xF2,0xEF,0xEF,0x51,0x95,0x02,0x73,0x2A,0xE0,0x4A};
+
+  Partition() : dbName(), tableName(), createTime(0), lastAccessTime(0), partitionName(), version(0) {
+  }
+
+  virtual ~Partition() throw() {}
+
+  std::vector<std::string>  values;
+  std::string dbName;
+  std::string tableName;
+  int32_t createTime;
+  int32_t lastAccessTime;
+  StorageDescriptor sd;
+  std::map<std::string, std::string>  parameters;
+  std::vector<int64_t>  files;
+  std::string partitionName;
+  std::vector<Subpartition>  subpartitions;
+  int32_t version;
+  PrincipalPrivilegeSet privileges;
+
+  _Partition__isset __isset;
+
+  void __set_values(const std::vector<std::string> & val) {
+    values = val;
+  }
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_tableName(const std::string& val) {
+    tableName = val;
+  }
+
+  void __set_createTime(const int32_t val) {
+    createTime = val;
+  }
+
+  void __set_lastAccessTime(const int32_t val) {
+    lastAccessTime = val;
+  }
+
+  void __set_sd(const StorageDescriptor& val) {
+    sd = val;
+  }
+
+  void __set_parameters(const std::map<std::string, std::string> & val) {
+    parameters = val;
+  }
+
+  void __set_files(const std::vector<int64_t> & val) {
+    files = val;
+  }
+
+  void __set_partitionName(const std::string& val) {
+    partitionName = val;
+    __isset.partitionName = true;
+  }
+
+  void __set_subpartitions(const std::vector<Subpartition> & val) {
+    subpartitions = val;
+    __isset.subpartitions = true;
+  }
+
+  void __set_version(const int32_t val) {
+    version = val;
+    __isset.version = true;
+  }
+
+  void __set_privileges(const PrincipalPrivilegeSet& val) {
+    privileges = val;
+    __isset.privileges = true;
+  }
+
+  bool operator == (const Partition & rhs) const
+  {
+    if (!(values == rhs.values))
+      return false;
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(tableName == rhs.tableName))
+      return false;
+    if (!(createTime == rhs.createTime))
+      return false;
+    if (!(lastAccessTime == rhs.lastAccessTime))
+      return false;
+    if (!(sd == rhs.sd))
+      return false;
+    if (!(parameters == rhs.parameters))
+      return false;
+    if (!(files == rhs.files))
+      return false;
+    if (__isset.partitionName != rhs.__isset.partitionName)
+      return false;
+    else if (__isset.partitionName && !(partitionName == rhs.partitionName))
+      return false;
+    if (__isset.subpartitions != rhs.__isset.subpartitions)
+      return false;
+    else if (__isset.subpartitions && !(subpartitions == rhs.subpartitions))
+      return false;
+    if (__isset.version != rhs.__isset.version)
+      return false;
+    else if (__isset.version && !(version == rhs.version))
+      return false;
+    if (__isset.privileges != rhs.__isset.privileges)
+      return false;
+    else if (__isset.privileges && !(privileges == rhs.privileges))
+      return false;
+    return true;
+  }
+  bool operator != (const Partition &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Partition & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(Partition &a, Partition &b);
+
 typedef struct _Table__isset {
-  _Table__isset() : tableName(false), dbName(false), owner(false), createTime(false), lastAccessTime(false), retention(false), sd(false), partitionKeys(false), parameters(false), viewOriginalText(false), viewExpandedText(false), tableType(false), privileges(false) {}
+  _Table__isset() : tableName(false), dbName(false), owner(false), createTime(false), lastAccessTime(false), retention(false), sd(false), partitionKeys(false), parameters(false), viewOriginalText(false), viewExpandedText(false), tableType(false), privileges(false), partitions(false) {}
   bool tableName;
   bool dbName;
   bool owner;
@@ -1091,13 +1455,14 @@ typedef struct _Table__isset {
   bool viewExpandedText;
   bool tableType;
   bool privileges;
+  bool partitions;
 } _Table__isset;
 
 class Table {
  public:
 
-  static const char* ascii_fingerprint; // = "68640B4B66B355CF317429AF70D2C260";
-  static const uint8_t binary_fingerprint[16]; // = {0x68,0x64,0x0B,0x4B,0x66,0xB3,0x55,0xCF,0x31,0x74,0x29,0xAF,0x70,0xD2,0xC2,0x60};
+  static const char* ascii_fingerprint; // = "F28A70F6571CDAEFDA4B1A57B0E0D5D5";
+  static const uint8_t binary_fingerprint[16]; // = {0xF2,0x8A,0x70,0xF6,0x57,0x1C,0xDA,0xEF,0xDA,0x4B,0x1A,0x57,0xB0,0xE0,0xD5,0xD5};
 
   Table() : tableName(), dbName(), owner(), createTime(0), lastAccessTime(0), retention(0), viewOriginalText(), viewExpandedText(), tableType() {
   }
@@ -1117,6 +1482,7 @@ class Table {
   std::string viewExpandedText;
   std::string tableType;
   PrincipalPrivilegeSet privileges;
+  std::vector<Partition>  partitions;
 
   _Table__isset __isset;
 
@@ -1173,6 +1539,11 @@ class Table {
     __isset.privileges = true;
   }
 
+  void __set_partitions(const std::vector<Partition> & val) {
+    partitions = val;
+    __isset.partitions = true;
+  }
+
   bool operator == (const Table & rhs) const
   {
     if (!(tableName == rhs.tableName))
@@ -1203,6 +1574,10 @@ class Table {
       return false;
     else if (__isset.privileges && !(privileges == rhs.privileges))
       return false;
+    if (__isset.partitions != rhs.__isset.partitions)
+      return false;
+    else if (__isset.partitions && !(partitions == rhs.partitions))
+      return false;
     return true;
   }
   bool operator != (const Table &rhs) const {
@@ -1217,6 +1592,124 @@ class Table {
 };
 
 void swap(Table &a, Table &b);
+
+typedef struct _BusiTypeColumn__isset {
+  _BusiTypeColumn__isset() : busiType(false), table(false), column(false) {}
+  bool busiType;
+  bool table;
+  bool column;
+} _BusiTypeColumn__isset;
+
+class BusiTypeColumn {
+ public:
+
+  static const char* ascii_fingerprint; // = "C5DCADADA0300E1255D699BA497FD949";
+  static const uint8_t binary_fingerprint[16]; // = {0xC5,0xDC,0xAD,0xAD,0xA0,0x30,0x0E,0x12,0x55,0xD6,0x99,0xBA,0x49,0x7F,0xD9,0x49};
+
+  BusiTypeColumn() : busiType(), column() {
+  }
+
+  virtual ~BusiTypeColumn() throw() {}
+
+  std::string busiType;
+  Table table;
+  std::string column;
+
+  _BusiTypeColumn__isset __isset;
+
+  void __set_busiType(const std::string& val) {
+    busiType = val;
+  }
+
+  void __set_table(const Table& val) {
+    table = val;
+  }
+
+  void __set_column(const std::string& val) {
+    column = val;
+  }
+
+  bool operator == (const BusiTypeColumn & rhs) const
+  {
+    if (!(busiType == rhs.busiType))
+      return false;
+    if (!(table == rhs.table))
+      return false;
+    if (!(column == rhs.column))
+      return false;
+    return true;
+  }
+  bool operator != (const BusiTypeColumn &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const BusiTypeColumn & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(BusiTypeColumn &a, BusiTypeColumn &b);
+
+typedef struct _BusiTypeDatacenter__isset {
+  _BusiTypeDatacenter__isset() : busiType(false), dc(false), db_name(false) {}
+  bool busiType;
+  bool dc;
+  bool db_name;
+} _BusiTypeDatacenter__isset;
+
+class BusiTypeDatacenter {
+ public:
+
+  static const char* ascii_fingerprint; // = "EDFBA234DD8D4DEF7CF51A8F3112D35D";
+  static const uint8_t binary_fingerprint[16]; // = {0xED,0xFB,0xA2,0x34,0xDD,0x8D,0x4D,0xEF,0x7C,0xF5,0x1A,0x8F,0x31,0x12,0xD3,0x5D};
+
+  BusiTypeDatacenter() : busiType(), db_name() {
+  }
+
+  virtual ~BusiTypeDatacenter() throw() {}
+
+  std::string busiType;
+  Datacenter dc;
+  std::string db_name;
+
+  _BusiTypeDatacenter__isset __isset;
+
+  void __set_busiType(const std::string& val) {
+    busiType = val;
+  }
+
+  void __set_dc(const Datacenter& val) {
+    dc = val;
+  }
+
+  void __set_db_name(const std::string& val) {
+    db_name = val;
+  }
+
+  bool operator == (const BusiTypeDatacenter & rhs) const
+  {
+    if (!(busiType == rhs.busiType))
+      return false;
+    if (!(dc == rhs.dc))
+      return false;
+    if (!(db_name == rhs.db_name))
+      return false;
+    return true;
+  }
+  bool operator != (const BusiTypeDatacenter &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const BusiTypeDatacenter & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(BusiTypeDatacenter &a, BusiTypeDatacenter &b);
 
 typedef struct _Node__isset {
   _Node__isset() : node_name(false), ips(false), status(false) {}
@@ -1377,7 +1870,7 @@ class SFileLocation {
 void swap(SFileLocation &a, SFileLocation &b);
 
 typedef struct _SFile__isset {
-  _SFile__isset() : fid(false), placement(false), store_status(false), rep_nr(false), digest(false), record_nr(false), all_record_nr(false), locations(false) {}
+  _SFile__isset() : fid(false), placement(false), store_status(false), rep_nr(false), digest(false), record_nr(false), all_record_nr(false), locations(false), length(false) {}
   bool fid;
   bool placement;
   bool store_status;
@@ -1386,15 +1879,16 @@ typedef struct _SFile__isset {
   bool record_nr;
   bool all_record_nr;
   bool locations;
+  bool length;
 } _SFile__isset;
 
 class SFile {
  public:
 
-  static const char* ascii_fingerprint; // = "F8BCCC012E518BD2A73D13E4CDD96AE1";
-  static const uint8_t binary_fingerprint[16]; // = {0xF8,0xBC,0xCC,0x01,0x2E,0x51,0x8B,0xD2,0xA7,0x3D,0x13,0xE4,0xCD,0xD9,0x6A,0xE1};
+  static const char* ascii_fingerprint; // = "A35168FCF9B6081CDC8FE76BE711767A";
+  static const uint8_t binary_fingerprint[16]; // = {0xA3,0x51,0x68,0xFC,0xF9,0xB6,0x08,0x1C,0xDC,0x8F,0xE7,0x6B,0xE7,0x11,0x76,0x7A};
 
-  SFile() : fid(0), placement(0), store_status(0), rep_nr(0), digest(), record_nr(0), all_record_nr(0) {
+  SFile() : fid(0), placement(0), store_status(0), rep_nr(0), digest(), record_nr(0), all_record_nr(0), length(0) {
   }
 
   virtual ~SFile() throw() {}
@@ -1407,6 +1901,7 @@ class SFile {
   int64_t record_nr;
   int64_t all_record_nr;
   std::vector<SFileLocation>  locations;
+  int64_t length;
 
   _SFile__isset __isset;
 
@@ -1442,6 +1937,10 @@ class SFile {
     locations = val;
   }
 
+  void __set_length(const int64_t val) {
+    length = val;
+  }
+
   bool operator == (const SFile & rhs) const
   {
     if (!(fid == rhs.fid))
@@ -1460,6 +1959,8 @@ class SFile {
       return false;
     if (!(locations == rhs.locations))
       return false;
+    if (!(length == rhs.length))
+      return false;
     return true;
   }
   bool operator != (const SFile &rhs) const {
@@ -1475,107 +1976,56 @@ class SFile {
 
 void swap(SFile &a, SFile &b);
 
-typedef struct _Partition__isset {
-  _Partition__isset() : values(false), dbName(false), tableName(false), createTime(false), lastAccessTime(false), sd(false), parameters(false), privileges(false) {}
-  bool values;
-  bool dbName;
-  bool tableName;
-  bool createTime;
-  bool lastAccessTime;
-  bool sd;
-  bool parameters;
-  bool privileges;
-} _Partition__isset;
+typedef struct _SFileRef__isset {
+  _SFileRef__isset() : file(false), origin_fid(false) {}
+  bool file;
+  bool origin_fid;
+} _SFileRef__isset;
 
-class Partition {
+class SFileRef {
  public:
 
-  static const char* ascii_fingerprint; // = "31A52241B88A426C34087FE38343FF51";
-  static const uint8_t binary_fingerprint[16]; // = {0x31,0xA5,0x22,0x41,0xB8,0x8A,0x42,0x6C,0x34,0x08,0x7F,0xE3,0x83,0x43,0xFF,0x51};
+  static const char* ascii_fingerprint; // = "8CB1CFF74F7571F121B4D5D494ED385F";
+  static const uint8_t binary_fingerprint[16]; // = {0x8C,0xB1,0xCF,0xF7,0x4F,0x75,0x71,0xF1,0x21,0xB4,0xD5,0xD4,0x94,0xED,0x38,0x5F};
 
-  Partition() : dbName(), tableName(), createTime(0), lastAccessTime(0) {
+  SFileRef() : origin_fid(0) {
   }
 
-  virtual ~Partition() throw() {}
+  virtual ~SFileRef() throw() {}
 
-  std::vector<std::string>  values;
-  std::string dbName;
-  std::string tableName;
-  int32_t createTime;
-  int32_t lastAccessTime;
-  StorageDescriptor sd;
-  std::map<std::string, std::string>  parameters;
-  PrincipalPrivilegeSet privileges;
+  SFile file;
+  int64_t origin_fid;
 
-  _Partition__isset __isset;
+  _SFileRef__isset __isset;
 
-  void __set_values(const std::vector<std::string> & val) {
-    values = val;
+  void __set_file(const SFile& val) {
+    file = val;
   }
 
-  void __set_dbName(const std::string& val) {
-    dbName = val;
+  void __set_origin_fid(const int64_t val) {
+    origin_fid = val;
   }
 
-  void __set_tableName(const std::string& val) {
-    tableName = val;
-  }
-
-  void __set_createTime(const int32_t val) {
-    createTime = val;
-  }
-
-  void __set_lastAccessTime(const int32_t val) {
-    lastAccessTime = val;
-  }
-
-  void __set_sd(const StorageDescriptor& val) {
-    sd = val;
-  }
-
-  void __set_parameters(const std::map<std::string, std::string> & val) {
-    parameters = val;
-  }
-
-  void __set_privileges(const PrincipalPrivilegeSet& val) {
-    privileges = val;
-    __isset.privileges = true;
-  }
-
-  bool operator == (const Partition & rhs) const
+  bool operator == (const SFileRef & rhs) const
   {
-    if (!(values == rhs.values))
+    if (!(file == rhs.file))
       return false;
-    if (!(dbName == rhs.dbName))
-      return false;
-    if (!(tableName == rhs.tableName))
-      return false;
-    if (!(createTime == rhs.createTime))
-      return false;
-    if (!(lastAccessTime == rhs.lastAccessTime))
-      return false;
-    if (!(sd == rhs.sd))
-      return false;
-    if (!(parameters == rhs.parameters))
-      return false;
-    if (__isset.privileges != rhs.__isset.privileges)
-      return false;
-    else if (__isset.privileges && !(privileges == rhs.privileges))
+    if (!(origin_fid == rhs.origin_fid))
       return false;
     return true;
   }
-  bool operator != (const Partition &rhs) const {
+  bool operator != (const SFileRef &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Partition & ) const;
+  bool operator < (const SFileRef & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-void swap(Partition &a, Partition &b);
+void swap(SFileRef &a, SFileRef &b);
 
 typedef struct _Index__isset {
   _Index__isset() : indexName(false), indexHandlerClass(false), dbName(false), origTableName(false), createTime(false), lastAccessTime(false), indexTableName(false), sd(false), parameters(false), deferredRebuild(false) {}

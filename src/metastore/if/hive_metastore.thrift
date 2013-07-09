@@ -41,6 +41,7 @@ struct FieldSchema {
   3: string comment
 }
 
+
 struct Type {
   1: string          name,             // one of the types in PrimitiveTypes or CollectionTypes or User defined types
   2: optional string type1,            // object type if the name is 'list' (LIST_TYPE), key type if the name is 'map' (MAP_TYPE)
@@ -129,13 +130,23 @@ struct User {
   4: string ownerName
 }
 
+// namespace for dbs
+struct Datacenter {
+  1: string name,
+  2: string description,
+  3: string locationUri,
+  4: map<string, string> parameters, // properties associated with the database
+  5: optional PrincipalPrivilegeSet privileges
+}
+
 // namespace for tables
 struct Database {
   1: string name,
   2: string description,
   3: string locationUri,
   4: map<string, string> parameters, // properties associated with the database
-  5: optional PrincipalPrivilegeSet privileges
+  5: optional PrincipalPrivilegeSet privileges,
+  6: optional Datacenter datacenter
 }
 
 // This object holds the information needed by SerDes
@@ -174,6 +185,36 @@ struct StorageDescriptor {
   12: optional bool   storedAsSubDirectories       // stored as subdirectories or not
 }
 
+  
+struct Subpartition {
+  1: list<string> values // string value is converted to appropriate partition key type
+  2: string       dbName,
+  3: string       tableName,
+  4: i32          createTime,
+  5: i32          lastAccessTime,
+  6: StorageDescriptor   sd,
+  7: map<string, string> parameters,
+  8: list<i64>    files,
+  9: optional string       partitionName,
+  10: optional i32 version,
+  11: optional PrincipalPrivilegeSet privileges
+}
+
+struct Partition {
+  1: list<string> values // string value is converted to appropriate partition key type
+  2: string       dbName,
+  3: string       tableName,
+  4: i32          createTime,
+  5: i32          lastAccessTime,
+  6: StorageDescriptor   sd,
+  7: map<string, string> parameters,
+  8: list<i64>    files,
+  9: optional string       partitionName,
+  10: optional list<Subpartition> subpartitions,
+  11: optional i32 version,
+  12: optional PrincipalPrivilegeSet privileges
+}
+
 // table information
 struct Table {
   1: string tableName,                // name of the table
@@ -189,6 +230,21 @@ struct Table {
   11: string viewExpandedText,         // expanded view text, null for non-view
   12: string tableType,                 // table type enum, e.g. EXTERNAL_TABLE
   13: optional PrincipalPrivilegeSet privileges,
+  14: optional list<Partition> partitions,
+}
+
+
+
+struct BusiTypeColumn {
+  1: string busiType,  // required @ip,@content,@tel,@time
+  2: Table table,         // table
+  3: string column      //column
+}
+
+struct BusiTypeDatacenter {
+  1: string busiType,  // required @ip,@content,@tel,@time
+  2: Datacenter dc,         // Datacenter 
+  3: string db_name      //db_name
 }
 
 struct Node {
@@ -217,17 +273,12 @@ struct SFile {
   6: i64	record_nr,
   7: i64	all_record_nr,
   8: list<SFileLocation> locations,
+  9: i64    length,
 }
 
-struct Partition {
-  1: list<string> values // string value is converted to appropriate partition key type
-  2: string       dbName,
-  3: string       tableName,
-  4: i32          createTime,
-  5: i32          lastAccessTime,
-  6: StorageDescriptor   sd,
-  7: map<string, string> parameters,
-  8: optional PrincipalPrivilegeSet privileges
+struct SFileRef {
+  1: SFile  file,
+  2: i64    origin_fid,
 }
 
 struct Index {
@@ -377,6 +428,54 @@ exception FileOperationException {
 */
 service ThriftHiveMetastore extends fb303.FacebookService
 {
+//added by zjw
+  void create_datacenter(1:Datacenter datacenter) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
+  Datacenter get_center(1:string name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
+  void drop_center(1:string name, 2:bool deleteData, 3:bool cascade) throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)
+  void update_center(1:Datacenter datacenter) throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)
+  list<Datacenter> get_all_centers() throws(1:MetaException o1)
+  Datacenter get_local_center() throws(1:MetaException o1)
+  list<string> get_lucene_index_names(1:string db_name, 2:string tbl_name, 3:i16 max_indexes=-1)
+                       throws(1:MetaException o2)
+  list<BusiTypeColumn> get_all_busi_type_cols() throws(1:MetaException o1)
+                       
+  list<BusiTypeDatacenter> get_all_busi_type_datacenters() throws(1:MetaException o1) 
+  
+  void append_busi_type_datacenter(1:BusiTypeDatacenter busiTypeDatacenter) throws(1:InvalidObjectException o1, 2:MetaException o2)
+                        
+  //start of partition,RPC for now is enough,subparttion operation can be done within partition rpc
+  //end of partiton
+  
+  bool add_datawarehouse_sql(1:i32 dwNum, 2:string sql) throws(1:InvalidObjectException o1, 2:MetaException o2)
+  
+
+  
+  //start of partition file
+  i32 add_partition_files(1:Partition part, 2:list<SFile> files)
+  i32 drop_partition_files(1:Partition part, 2:list<SFile> files)
+  i32 add_subpartition_files(1:Subpartition subpart, 2:list<SFile> files)
+  i32 drop_subpartition_files(1:Subpartition subpart, 2:list<SFile> files)
+  
+  //start of partition index
+  bool add_partition_index(1:Index index, 2:Partition part)
+  bool drop_partition_index(1:Index index, 2:Partition part)
+  
+  bool add_subpartition_index(1:Index index, 2:Subpartition part)
+  bool drop_subpartition_index(1:Index index, 2:Subpartition part)
+  
+  bool add_subpartition(1:string dbname, 2:string tbl_name, 3:list<string> part_vals,4:Subpartition sub_part)
+  list<Subpartition> get_subpartitions(1:string dbname, 2:string tbl_name, 3:Partition part)
+ 
+  //start of partition index file
+  bool add_partition_index_files(1:Index index, 2: Partition part,3:list<SFile> file, 4:list<i64> originfid) throws(1:MetaException o1)
+  list<SFileRef> get_partition_index_files(1:Index index, 2: Partition part) throws(1:MetaException o1)
+  bool drop_partition_index_files(1:Index index, 2: Partition part,3:list<SFile> file) throws(1:MetaException o1)
+  
+  bool add_subpartition_index_files(1:Index index, 2: Subpartition subpart,3:list<SFile> file, 4:list<i64> originfid) throws(1:MetaException o1)
+  list<SFileRef> get_subpartition_index_files(1:Index index, 2: Subpartition subpart) throws(1:MetaException o1)
+  bool drop_subpartition_index_files(1:Index index, 2: Subpartition subpart,3:list<SFile> file) throws(1:MetaException o1)
+  
+//end of zjw
   void create_database(1:Database database) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
   Database get_database(1:string name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
   void drop_database(1:string name, 2:bool deleteData, 3:bool cascade) throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)
@@ -671,11 +770,13 @@ service ThriftHiveMetastore extends fb303.FacebookService
   void cancel_delegation_token(1:string token_str_form) throws (1:MetaException o1)
   
   // method for file operations
-  SFile create_file(1:string node_name, 2:i32 repnr, 3:i64 table_id) throws (1:FileOperationException o1)
+  SFile create_file(1:string node_name, 2:i32 repnr, 3:string db_name, 4:string table_name) throws (1:FileOperationException o1)
   
   i32 close_file(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
   
   SFile get_file_by_id(1:i64 fid) throws (1:FileOperationException o1, 2:MetaException o2)
+  
+  SFile get_file_by_name(1:string node, 2:string devid, 3:string location) throws (1:FileOperationException o1, 2:MetaException o2)
   
   i32 rm_file_logical(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
   
@@ -693,6 +794,16 @@ service ThriftHiveMetastore extends fb303.FacebookService
   Node alter_node(1:string node_name, 2:list<string> ipl, 3:i32 status) throws (1:MetaException o1)
   
   list<Node> find_best_nodes(1:i32 nr) throws (1:MetaException o1)
+
+  list<Node> get_all_nodes() throws(1:MetaException o1)
+  
+  string getDMStatus() throws(1:MetaException o1)
+  
+  map<i64, SFile> migrate_in(1:Table tbl, 2:list<Partition> parts, 3:string from_dc) throws (1:MetaException o1)
+  
+  bool migrate_out(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc) throws (1:MetaException o2)
+  
+  string getMP(1:string node_name, 2:string devid) throws (1:MetaException o1) 
 }
 
 // * Note about the DDL_TIME: When creating or altering a table or a partition,
@@ -721,6 +832,11 @@ const string META_TABLE_PARTITION_COLUMNS = "partition_columns",
 const string FILE_INPUT_FORMAT    = "file.inputformat",
 const string FILE_OUTPUT_FORMAT   = "file.outputformat",
 const string META_TABLE_STORAGE   = "storage_handler",
+
+//added by zjw
+const string META_LUCENE_INDEX   = "lucene.stored",
+const string META_LUCENE_ANALYZE   = "lucene.analyzed",
+const string META_LUCENE_STORE   = "lucene.indexd",
 
 
 

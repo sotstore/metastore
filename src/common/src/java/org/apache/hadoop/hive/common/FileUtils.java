@@ -22,12 +22,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.BitSet;
 import java.util.List;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
-
 import org.apache.hadoop.util.Shell;
 
 
@@ -110,6 +110,13 @@ public final class FileUtils {
   public static String makePartName(List<String> partCols, List<String> vals,
       String defaultStr) {
     StringBuilder name = new StringBuilder();
+    if(partCols.size() != vals.size()){
+      if(vals.size() > 0) {
+        return "p_"+vals.get(0);
+      } else {
+        return "";
+      }
+    }
     for (int i = 0; i < partCols.size(); i++) {
       if (i > 0) {
         name.append(Path.SEPARATOR);
@@ -157,7 +164,7 @@ public final class FileUtils {
     for (char c : clist) {
       charToEscape.set(c);
     }
-    
+
     if(Shell.WINDOWS){
       //On windows, following chars need to be escaped as well
       char [] winClist = {' ', '<','>','|'};

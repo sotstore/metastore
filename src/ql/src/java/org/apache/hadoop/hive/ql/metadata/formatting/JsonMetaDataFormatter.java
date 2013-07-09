@@ -36,6 +36,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.Partition;
@@ -476,5 +477,25 @@ public class JsonMetaDataFormatter implements MetaDataFormatter {
                .put("params", params)
                .build());
         }
+    }
+
+    @Override
+    public void showSubpartitions(DataOutputStream outStream, List<String> subpartNames)
+        throws HiveException {
+      asJson(outStream,
+          MapBuilder.create()
+          .put("databases", subpartNames)
+          .build());
+
+    }
+
+    @Override
+    public void showPartitionKeys(DataOutputStream outStream, List<PartitionInfo> partitionInfo)
+        throws HiveException {
+      asJson(outStream,
+          MapBuilder.create()
+          .put("keys", partitionInfo.toString())
+          .build());
+
     }
 }

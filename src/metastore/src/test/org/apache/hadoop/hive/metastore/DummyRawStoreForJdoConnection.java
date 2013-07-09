@@ -26,8 +26,11 @@ import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
+import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
+import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -43,6 +46,8 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
+import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
@@ -55,6 +60,7 @@ import org.apache.hadoop.hive.metastore.model.MPartitionPrivilege;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
 import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
+import org.apache.thrift.TException;
 
 /**
  *
@@ -188,13 +194,6 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public Partition getPartition(String dbName, String tableName, List<String> part_vals)
-      throws MetaException, NoSuchObjectException {
-
-    return null;
-  }
-
-  @Override
   public boolean dropPartition(String dbName, String tableName, List<String> part_vals)
       throws MetaException {
 
@@ -253,20 +252,6 @@ public class DummyRawStoreForJdoConnection implements RawStore {
       short max_parts) throws MetaException {
 
     return null;
-  }
-
-  @Override
-  public void alterPartition(String db_name, String tbl_name, List<String> part_vals,
-      Partition new_part) throws InvalidObjectException, MetaException {
-
-
-  }
-
-  @Override
-  public void alterPartitions(String db_name, String tbl_name, List<List<String>> part_vals_list,
-      List<Partition> new_parts) throws InvalidObjectException, MetaException {
-
-
   }
 
 
@@ -668,6 +653,244 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   public boolean delSFileLocation(String node, String devid, String location) throws MetaException {
     // TODO Auto-generated method stub
     return false;
+  }
+
+  @Override
+  public List<Node> getAllNodes() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Partition getPartition(String dbName, String tableName, String partName)
+      throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void updatePartition(Partition newPart) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void alterPartition(String db_name, String tbl_name, String partName,
+      List<String> part_vals, Partition new_part) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void alterPartitions(String db_name, String tbl_name, List<String> partNames,
+      List<List<String>> part_vals_list, List<Partition> new_parts) throws InvalidObjectException,
+      MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public List<SFile> findUnderReplicatedFiles() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<SFile> findOverReplicatedFiles() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<SFile> findLingeringFiles() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Partition getPartition(String db_name, String tbl_name, List<String> part_vals)
+      throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<SFileLocation> getSFileLocations(String devid, long curts, long timeout)
+      throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Subpartition getSubpartition(String dbName, String tableName, String partName)
+      throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void updateSubpartition(Subpartition newPart) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException,
+      MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void createPartitionIndex(Index index, Subpartition part) throws InvalidObjectException,
+      MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public boolean dropPartitionIndex(Index index, Partition part) throws InvalidObjectException,
+      NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean dropPartitionIndex(Index index, Subpartition part) throws InvalidObjectException,
+      NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void createPartitionIndexStores(Index index, Partition part, List<SFile> store,
+      List<Long> originFid) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void createPartitionIndexStores(Index index, Subpartition part, List<SFile> store,
+      List<Long> originFid) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public boolean dropPartitionIndexStores(Index index, Partition part, List<SFile> store)
+      throws InvalidObjectException, NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean dropPartitionIndexStores(Index index, Subpartition part, List<SFile> store)
+      throws InvalidObjectException, NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean dropPartition(String dbName, String tableName, String part_name)
+      throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void createDatacenter(Datacenter dc) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public boolean add_datawarehouse_sql(int dwNum, String sql) throws InvalidObjectException,
+      MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public List<SFileRef> getPartitionIndexFiles(Index index, Partition part)
+      throws InvalidObjectException, NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<SFileRef> getSubpartitionIndexFiles(Index index, Subpartition subpart)
+      throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<Subpartition> getSubpartitions(String dbname, String tbl_name, Partition part)
+      throws InvalidObjectException, NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void setThisDC(String thisDC) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public List<BusiTypeColumn> getAllBusiTypeCols() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Partition getParentPartition(String dbName, String tableName, String subpart_name)
+      throws NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<Datacenter> getAllDatacenters() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public SFile getSFile(String node, String devid, String location) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public List<BusiTypeDatacenter> get_all_busi_type_datacenters() throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
+      throws InvalidObjectException, MetaException, TException {
+    // TODO Auto-generated method stub
+
   }
 }
 

@@ -23,8 +23,11 @@ import java.util.Map;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
+import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
+import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -40,6 +43,8 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
+import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
@@ -53,6 +58,7 @@ import org.apache.hadoop.hive.metastore.model.MRoleMap;
 import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
 import org.apache.hadoop.hive.metastore.model.MUser;
+import org.apache.thrift.TException;
 
 public interface RawStore extends Configurable {
 
@@ -114,11 +120,15 @@ public interface RawStore extends Configurable {
 
   public abstract Node getNode(String node_name) throws MetaException;
 
+  public List<Node> getAllNodes() throws MetaException;
+
   public long countNode() throws MetaException;
 
   public void createFile(SFile file) throws InvalidObjectException, MetaException;
 
   public SFile getSFile(long fid) throws MetaException;
+
+  public SFile getSFile(String node, String devid, String location) throws MetaException;
 
   public boolean delSFile(long fid) throws MetaException;
 
@@ -127,6 +137,10 @@ public interface RawStore extends Configurable {
   public boolean createFileLocation(SFileLocation location) throws InvalidObjectException, MetaException;
 
   public List<SFileLocation> getSFileLocations(long fid) throws MetaException;
+
+  public List<SFileLocation> getSFileLocations(int status) throws MetaException;
+
+  public List<SFileLocation> getSFileLocations(String devid, long curts, long timeout) throws MetaException;
 
   public SFileLocation getSFileLocation(String node, String devid, String location) throws MetaException;
 
@@ -148,11 +162,25 @@ public interface RawStore extends Configurable {
       throws InvalidObjectException, MetaException;
 
   public abstract Partition getPartition(String dbName, String tableName,
+      String partName) throws MetaException, NoSuchObjectException;
+
+  public abstract Subpartition getSubpartition(String dbName, String tableName,
+      String partName) throws MetaException, NoSuchObjectException;
+
+  public abstract Partition getPartition(String db_name, String tbl_name,
       List<String> part_vals) throws MetaException, NoSuchObjectException;
+
+  public void updatePartition(Partition newPart) throws InvalidObjectException, MetaException;
+
+  public void updateSubpartition(Subpartition newPart) throws InvalidObjectException, MetaException;
 
   public abstract boolean dropPartition(String dbName, String tableName,
       List<String> part_vals) throws MetaException, NoSuchObjectException, InvalidObjectException,
       InvalidInputException;
+
+  public boolean dropPartition(String dbName, String tableName,
+    String part_name) throws MetaException, NoSuchObjectException, InvalidObjectException,
+    InvalidInputException;
 
   public abstract List<Partition> getPartitions(String dbName,
       String tableName, int max) throws MetaException;
@@ -199,10 +227,10 @@ public interface RawStore extends Configurable {
   public abstract List<String> listPartitionNamesByFilter(String db_name,
       String tbl_name, String filter, short max_parts) throws MetaException;
 
-  public abstract void alterPartition(String db_name, String tbl_name, List<String> part_vals,
+  public abstract void alterPartition(String db_name, String tbl_name, String partName, List<String> part_vals,
       Partition new_part) throws InvalidObjectException, MetaException;
 
-  public abstract void alterPartitions(String db_name, String tbl_name,
+  public abstract void alterPartitions(String db_name, String tbl_name, List<String> partNames,
       List<List<String>> part_vals_list, List<Partition> new_parts)
       throws InvalidObjectException, MetaException;
 
@@ -475,4 +503,55 @@ public interface RawStore extends Configurable {
   //authentication and authorization with user by liulichao, end
 
   public abstract MUser getMUser(String user);  //added by liulichao
+
+  public List<SFile> findUnderReplicatedFiles() throws MetaException;
+
+  public List<SFile> findOverReplicatedFiles() throws MetaException;
+
+  public List<SFile> findLingeringFiles() throws MetaException;
+
+  public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException;
+
+  public void createPartitionIndex(Index index, Subpartition part) throws InvalidObjectException, MetaException;
+
+  public boolean dropPartitionIndex(Index index, Partition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+  public boolean dropPartitionIndex(Index index, Subpartition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+  public void createPartitionIndexStores(Index index, Partition part, List<SFile> store, List<Long> originFid) throws InvalidObjectException, MetaException;
+
+  public void createPartitionIndexStores(Index index, Subpartition part, List<SFile> store, List<Long> originFid) throws InvalidObjectException, MetaException;
+
+  public boolean dropPartitionIndexStores(Index index, Partition part, List<SFile> store) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+  public boolean dropPartitionIndexStores(Index index, Subpartition part, List<SFile> store) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+  public List<SFileRef> getPartitionIndexFiles(Index index, Partition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+  public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException;
+
+  public void createDatacenter(Datacenter dc) throws InvalidObjectException, MetaException;
+
+  public boolean add_datawarehouse_sql(int dwNum, String sql)throws InvalidObjectException, MetaException;
+
+  public void setThisDC(String thisDC);
+
+  public abstract List<SFileRef> getSubpartitionIndexFiles(Index index, Subpartition subpart) throws InvalidObjectException, MetaException ;
+
+  public abstract List<Subpartition> getSubpartitions(String dbname, String tbl_name, Partition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
+
+
+  public abstract List<BusiTypeColumn> getAllBusiTypeCols()throws MetaException;
+
+  public Partition getParentPartition(String dbName, String tableName, String subpart_name) throws NoSuchObjectException, MetaException;
+
+  public List<Datacenter> getAllDatacenters() throws MetaException;
+
+  public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException;
+
+  public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException;
+
+  public abstract List<BusiTypeDatacenter> get_all_busi_type_datacenters()throws  MetaException, TException ;
+
+  public abstract void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)throws InvalidObjectException, MetaException, TException;
 }

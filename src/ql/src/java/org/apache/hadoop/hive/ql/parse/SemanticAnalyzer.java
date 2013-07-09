@@ -44,9 +44,11 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.Warehouse;
+import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Order;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionDefinition;
 import org.apache.hadoop.hive.ql.Context;
 import org.apache.hadoop.hive.ql.ErrorMsg;
 import org.apache.hadoop.hive.ql.QueryProperties;
@@ -2376,6 +2378,13 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         }
 
       }
+
+      LOG.info("in getselectplan exper:"+i+"--"+child.toStringTree()+"=="+expr.toStringTree());
+//      LOG.info(
+//          (inputRR.hasTableAlias(unescapeIdentifier(expr.getChild(0)
+//          .getChild(0).getText().toLowerCase())) +"=="+ (!hasAsClause))
+//          +"=="+ (!inputRR.getIsExprResolver())
+//          +"=="+ (isRegex(unescapeIdentifier(expr.getChild(1).getText()))) );
 
       if (expr.getType() == HiveParser.TOK_ALLCOLREF) {
         pos = genColListRegex(".*", expr.getChildCount() == 0 ? null
@@ -6612,9 +6621,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 
   @SuppressWarnings("nls")
   private Operator genBodyPlan(QB qb, Operator input) throws SemanticException {
-    QBParseInfo qbp = qb.getParseInfo();
-
-    TreeSet<String> ks = new TreeSet<String>(qbp.getClauseNames());
+    QBParseInfo qbp = qb.getParseInfo();  TreeSet<String> ks = new TreeSet<String>(qbp.getClauseNames());
     // For multi-group by with the same distinct, we ignore all user hints
     // currently. It doesnt matter whether he has asked to do
     // map-side aggregation or not. Map side aggregation is turned off
@@ -6663,6 +6670,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       if (commonGroupByDestGroups == null) {
         commonGroupByDestGroups = new ArrayList<List<String>>();
         commonGroupByDestGroups.add(new ArrayList<String>(ks));
+        LOG.info("in commonGroupByDestGroups setting: ks="+ks.toString()+"--"+ks.size());
       }
 
       if (!commonGroupByDestGroups.isEmpty()) {
@@ -7397,6 +7405,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       Operator qbexpr1Ops = genPlan(qbexpr.getQBExpr1());
       Operator qbexpr2Ops = genPlan(qbexpr.getQBExpr2());
 
+
       return genUnionPlan(qbexpr.getAlias(), qbexpr.getQBExpr1().getAlias(),
           qbexpr1Ops, qbexpr.getQBExpr2().getAlias(), qbexpr2Ops);
     }
@@ -7406,7 +7415,23 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
   @SuppressWarnings("nls")
   public Operator genPlan(QB qb) throws SemanticException {
 
-    // First generate all the opInfos for the elements in the from clause
+    if(qb.isCVAS() || this.createVwDesc != null){
+      LOG.info("---zjw -- is isCVAS DDL");
+//      String isHeter = qb.getViewDesc().getTblProps().get(Constants.META_HETER_VIEW);
+//      if(isHeter != null && "true".equalsIgnoreCase(isHeter)){
+      if(createVwDesc.isHeter()) {
+        LOG.info("---zjw -- is isCVAS DDL");
+        RowResolver ctasRR = new RowResolver();
+        Operator<? extends OperatorDesc> unionforward = OperatorFactory
+            .getAndMakeChild(new UnionDesc(), new RowSchema(ctasRR
+            .getColumnInfos()));
+
+
+        return putOpInsertMap(unionforward, ctasRR);
+      }
+    }
+
+  // First generate all the opInfos for the elements in the from clause
     HashMap<String, Operator> aliasToOpInfo = new HashMap<String, Operator>();
 
     // Recurse over the subqueries to fill the subquery part of the plan
@@ -8113,6 +8138,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       viewsExpanded.add(db.getCurrentDatabase()+"."+createVwDesc.getViewName());
     }
 
+
     // continue analyzing from the child ASTNode.
     if (!doPhase1(child, qb, initPhase1Ctx())) {
       // if phase1Result false return
@@ -8128,6 +8154,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     // by genPlan.  This has the correct column names, which clients
     // such as JDBC would prefer instead of the c0, c1 we'll end
     // up with later.
+
+    LOG.info("--zjw---"+qb.isCVAS());
     Operator sinkOp = genPlan(qb);
 
     resultSchema =
@@ -8181,7 +8209,14 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     // Make a copy of the statement's result schema, since we may
     // modify it below as part of imposing view column names.
     List<FieldSchema> derivedSchema =
-        new ArrayList<FieldSchema>(resultSchema);
+        new ArrayList<FieldSchema>();
+    if(this.createVwDesc != null && !this.createVwDesc.isHeter() && resultSchema != null){
+      LOG.info("---zjw -- in saveViewDefinition,result is not null");
+      derivedSchema.addAll(this.resultSchema);
+    }else{
+      LOG.info("---zjw -- in saveViewDefinition,result is null,heter is "+this.createVwDesc.isHeter());
+    }
+
     ParseUtils.validateColumnNameUniqueness(derivedSchema);
 
     List<FieldSchema> imposedSchema = createVwDesc.getSchema();
@@ -8288,6 +8323,11 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 
   private List<FieldSchema> convertRowSchemaToViewSchema(RowResolver rr) {
     List<FieldSchema> fieldSchemas = new ArrayList<FieldSchema>();
+
+    //added by zjw for heter-view
+    if(rr.getColumnInfos() == null){
+      return null;
+    }
     for (ColumnInfo colInfo : rr.getColumnInfos()) {
       if (colInfo.isHiddenVirtualCol()) {
         continue;
@@ -8595,6 +8635,9 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     StorageFormat storageFormat = new StorageFormat();
     AnalyzeCreateCommonVars shared = new AnalyzeCreateCommonVars();
 
+    //added by zjw
+    PartitionDefinition pd = new PartitionDefinition();
+
     LOG.info("Creating table " + tableName + " position="
         + ast.getCharPositionInLine());
     int numCh = ast.getChildCount();
@@ -8661,8 +8704,14 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       case HiveParser.TOK_TABLECOMMENT:
         comment = unescapeSQLString(child.getChild(0).getText());
         break;
-      case HiveParser.TOK_TABLEPARTCOLS:
-        partCols = getColumns((ASTNode) child.getChild(0), false);
+//      case HiveParser.TOK_TABLEPARTCOLS:
+//        partCols = getColumns((ASTNode) child.getChild(0), false);
+      case HiveParser.TOK_PARTITIONED_BY:
+        pd.setTableName(tableName);
+        partCols = analyzePartitionClause((ASTNode) child, pd);
+
+        List<org.apache.hadoop.hive.metastore.api.Partition> ps = pd.toPartitionList();
+        int g=1;
         break;
       case HiveParser.TOK_TABLEBUCKETS:
         bucketCols = getColumnNames((ASTNode) child.getChild(0));
@@ -8752,6 +8801,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
           storageFormat.storageHandler, shared.serdeProps, tblProps, ifNotExists, skewedColNames,
           skewedValues);
       crtTblDesc.setStoredAsSubDirectories(storedAsDirs);
+      //added by zjw
+      crtTblDesc.setPartitions(pd.toPartitionList());
 
       crtTblDesc.validate();
       // outputs is empty, which means this create table happens in the current
@@ -8811,6 +8862,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     String tableName = getUnescapedName((ASTNode)ast.getChild(0));
     List<FieldSchema> cols = null;
     boolean ifNotExists = false;
+    boolean isHeter = false;
     boolean orReplace = false;
     String comment = null;
     ASTNode selectStmt = null;
@@ -8823,6 +8875,9 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     for (int num = 1; num < numCh; num++) {
       ASTNode child = (ASTNode) ast.getChild(num);
       switch (child.getToken().getType()) {
+      case HiveParser.TOK_HETER:
+        isHeter = true;
+        break;
       case HiveParser.TOK_IFNOTEXISTS:
         ifNotExists = true;
         break;
@@ -8852,13 +8907,19 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     if (ifNotExists && orReplace){
       throw new SemanticException("Can't combine IF NOT EXISTS and OR REPLACE.");
     }
+    if(isHeter){
+      if(tblProps == null){
+        tblProps = new HashMap<String, String>();
+      }
+      tblProps.put(Constants.META_HETER_VIEW, "true");
+    }
 
     createVwDesc = new CreateViewDesc(
-      tableName, cols, comment, tblProps, partColNames, ifNotExists, orReplace);
+      tableName, cols, comment, tblProps, partColNames, ifNotExists,isHeter, orReplace);
     unparseTranslator.enable();
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         createVwDesc), conf));
-
+    qb.setViewDesc(createVwDesc);
     return selectStmt;
   }
 

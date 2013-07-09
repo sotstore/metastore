@@ -483,8 +483,8 @@ public class Driver implements CommandProcessor {
 
       if (HiveConf.getBoolVar(conf,
           //HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED)) {
-          HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED)
-          && !ss.getAuthenticator().getUserName().equals(rootName)) {//this line, added by liulichao, to be checked........
+          HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED) 
+          && !ss.getAuthenticator().getUserName().equals(rootName)) {//added by liulichao, the root user doesn't need to be checked.
         try {
           perfLogger.PerfLogBegin(LOG, PerfLogger.DO_AUTHORIZATION);
           doAuthorization(sem);

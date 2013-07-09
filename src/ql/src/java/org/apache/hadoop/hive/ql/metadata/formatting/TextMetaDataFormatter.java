@@ -35,6 +35,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
@@ -476,4 +477,46 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
             throw new HiveException(e);
         }
     }
+
+    @Override
+    public void showSubpartitions(DataOutputStream outStream, List<String> subpartNames)
+        throws HiveException {
+      try {
+        LOG.debug("---zjw--subpartNames"+subpartNames.size());
+        int i=0;
+        for (String part : subpartNames) {
+            LOG.debug("---zjw--subpartNames "+i++);
+            outStream.writeBytes(part);
+            outStream.write(terminator);
+        }
+    } catch (IOException e) {
+        throw new HiveException(e);
+    }
+
+    }
+
+    @Override
+    public void showPartitionKeys(DataOutputStream outStream, List<PartitionInfo> partitionInfo)
+        throws HiveException {
+        try {
+          for (PartitionInfo pi : partitionInfo) {
+            outStream.writeInt(pi.getP_level());
+            outStream.write(separator);
+
+            outStream.writeBytes(pi.getP_col());
+            outStream.write(separator);
+            outStream.writeInt(pi.getP_order());
+            outStream.write(separator);
+
+            outStream.writeBytes(pi.getP_type().toString());
+            outStream.write(separator);
+            outStream.writeInt(pi.getP_version());
+            outStream.write(terminator);
+          }
+      } catch (IOException e) {
+          throw new HiveException(e);
+      }
+    }
+
+
 }

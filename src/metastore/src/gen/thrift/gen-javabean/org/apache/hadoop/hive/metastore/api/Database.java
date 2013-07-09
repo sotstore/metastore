@@ -39,6 +39,7 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
   private static final org.apache.thrift.protocol.TField LOCATION_URI_FIELD_DESC = new org.apache.thrift.protocol.TField("locationUri", org.apache.thrift.protocol.TType.STRING, (short)3);
   private static final org.apache.thrift.protocol.TField PARAMETERS_FIELD_DESC = new org.apache.thrift.protocol.TField("parameters", org.apache.thrift.protocol.TType.MAP, (short)4);
   private static final org.apache.thrift.protocol.TField PRIVILEGES_FIELD_DESC = new org.apache.thrift.protocol.TField("privileges", org.apache.thrift.protocol.TType.STRUCT, (short)5);
+  private static final org.apache.thrift.protocol.TField DATACENTER_FIELD_DESC = new org.apache.thrift.protocol.TField("datacenter", org.apache.thrift.protocol.TType.STRUCT, (short)6);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -51,6 +52,7 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
   private String locationUri; // required
   private Map<String,String> parameters; // required
   private PrincipalPrivilegeSet privileges; // optional
+  private Datacenter datacenter; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -58,7 +60,8 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
     DESCRIPTION((short)2, "description"),
     LOCATION_URI((short)3, "locationUri"),
     PARAMETERS((short)4, "parameters"),
-    PRIVILEGES((short)5, "privileges");
+    PRIVILEGES((short)5, "privileges"),
+    DATACENTER((short)6, "datacenter");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -83,6 +86,8 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
           return PARAMETERS;
         case 5: // PRIVILEGES
           return PRIVILEGES;
+        case 6: // DATACENTER
+          return DATACENTER;
         default:
           return null;
       }
@@ -123,7 +128,7 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
   }
 
   // isset id assignments
-  private _Fields optionals[] = {_Fields.PRIVILEGES};
+  private _Fields optionals[] = {_Fields.PRIVILEGES,_Fields.DATACENTER};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -139,6 +144,8 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
     tmpMap.put(_Fields.PRIVILEGES, new org.apache.thrift.meta_data.FieldMetaData("privileges", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PrincipalPrivilegeSet.class)));
+    tmpMap.put(_Fields.DATACENTER, new org.apache.thrift.meta_data.FieldMetaData("datacenter", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Datacenter.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Database.class, metaDataMap);
   }
@@ -190,6 +197,9 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
     if (other.isSetPrivileges()) {
       this.privileges = new PrincipalPrivilegeSet(other.privileges);
     }
+    if (other.isSetDatacenter()) {
+      this.datacenter = new Datacenter(other.datacenter);
+    }
   }
 
   public Database deepCopy() {
@@ -203,6 +213,7 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
     this.locationUri = null;
     this.parameters = null;
     this.privileges = null;
+    this.datacenter = null;
   }
 
   public String getName() {
@@ -331,6 +342,29 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
     }
   }
 
+  public Datacenter getDatacenter() {
+    return this.datacenter;
+  }
+
+  public void setDatacenter(Datacenter datacenter) {
+    this.datacenter = datacenter;
+  }
+
+  public void unsetDatacenter() {
+    this.datacenter = null;
+  }
+
+  /** Returns true if field datacenter is set (has been assigned a value) and false otherwise */
+  public boolean isSetDatacenter() {
+    return this.datacenter != null;
+  }
+
+  public void setDatacenterIsSet(boolean value) {
+    if (!value) {
+      this.datacenter = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case NAME:
@@ -373,6 +407,14 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
       }
       break;
 
+    case DATACENTER:
+      if (value == null) {
+        unsetDatacenter();
+      } else {
+        setDatacenter((Datacenter)value);
+      }
+      break;
+
     }
   }
 
@@ -392,6 +434,9 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
 
     case PRIVILEGES:
       return getPrivileges();
+
+    case DATACENTER:
+      return getDatacenter();
 
     }
     throw new IllegalStateException();
@@ -414,6 +459,8 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
       return isSetParameters();
     case PRIVILEGES:
       return isSetPrivileges();
+    case DATACENTER:
+      return isSetDatacenter();
     }
     throw new IllegalStateException();
   }
@@ -476,6 +523,15 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
         return false;
     }
 
+    boolean this_present_datacenter = true && this.isSetDatacenter();
+    boolean that_present_datacenter = true && that.isSetDatacenter();
+    if (this_present_datacenter || that_present_datacenter) {
+      if (!(this_present_datacenter && that_present_datacenter))
+        return false;
+      if (!this.datacenter.equals(that.datacenter))
+        return false;
+    }
+
     return true;
   }
 
@@ -507,6 +563,11 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
     builder.append(present_privileges);
     if (present_privileges)
       builder.append(privileges);
+
+    boolean present_datacenter = true && (isSetDatacenter());
+    builder.append(present_datacenter);
+    if (present_datacenter)
+      builder.append(datacenter);
 
     return builder.toHashCode();
   }
@@ -565,6 +626,16 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
     }
     if (isSetPrivileges()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.privileges, typedOther.privileges);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetDatacenter()).compareTo(typedOther.isSetDatacenter());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetDatacenter()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.datacenter, typedOther.datacenter);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -630,6 +701,16 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
       }
       first = false;
     }
+    if (isSetDatacenter()) {
+      if (!first) sb.append(", ");
+      sb.append("datacenter:");
+      if (this.datacenter == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.datacenter);
+      }
+      first = false;
+    }
     sb.append(")");
     return sb.toString();
   }
@@ -639,6 +720,9 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
     // check for sub-struct validity
     if (privileges != null) {
       privileges.validate();
+    }
+    if (datacenter != null) {
+      datacenter.validate();
     }
   }
 
@@ -703,15 +787,15 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
           case 4: // PARAMETERS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map78 = iprot.readMapBegin();
-                struct.parameters = new HashMap<String,String>(2*_map78.size);
-                for (int _i79 = 0; _i79 < _map78.size; ++_i79)
+                org.apache.thrift.protocol.TMap _map88 = iprot.readMapBegin();
+                struct.parameters = new HashMap<String,String>(2*_map88.size);
+                for (int _i89 = 0; _i89 < _map88.size; ++_i89)
                 {
-                  String _key80; // required
-                  String _val81; // required
-                  _key80 = iprot.readString();
-                  _val81 = iprot.readString();
-                  struct.parameters.put(_key80, _val81);
+                  String _key90; // required
+                  String _val91; // required
+                  _key90 = iprot.readString();
+                  _val91 = iprot.readString();
+                  struct.parameters.put(_key90, _val91);
                 }
                 iprot.readMapEnd();
               }
@@ -725,6 +809,15 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
               struct.privileges = new PrincipalPrivilegeSet();
               struct.privileges.read(iprot);
               struct.setPrivilegesIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 6: // DATACENTER
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.datacenter = new Datacenter();
+              struct.datacenter.read(iprot);
+              struct.setDatacenterIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -761,10 +854,10 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
         oprot.writeFieldBegin(PARAMETERS_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.parameters.size()));
-          for (Map.Entry<String, String> _iter82 : struct.parameters.entrySet())
+          for (Map.Entry<String, String> _iter92 : struct.parameters.entrySet())
           {
-            oprot.writeString(_iter82.getKey());
-            oprot.writeString(_iter82.getValue());
+            oprot.writeString(_iter92.getKey());
+            oprot.writeString(_iter92.getValue());
           }
           oprot.writeMapEnd();
         }
@@ -774,6 +867,13 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
         if (struct.isSetPrivileges()) {
           oprot.writeFieldBegin(PRIVILEGES_FIELD_DESC);
           struct.privileges.write(oprot);
+          oprot.writeFieldEnd();
+        }
+      }
+      if (struct.datacenter != null) {
+        if (struct.isSetDatacenter()) {
+          oprot.writeFieldBegin(DATACENTER_FIELD_DESC);
+          struct.datacenter.write(oprot);
           oprot.writeFieldEnd();
         }
       }
@@ -810,7 +910,10 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
       if (struct.isSetPrivileges()) {
         optionals.set(4);
       }
-      oprot.writeBitSet(optionals, 5);
+      if (struct.isSetDatacenter()) {
+        optionals.set(5);
+      }
+      oprot.writeBitSet(optionals, 6);
       if (struct.isSetName()) {
         oprot.writeString(struct.name);
       }
@@ -823,22 +926,25 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
       if (struct.isSetParameters()) {
         {
           oprot.writeI32(struct.parameters.size());
-          for (Map.Entry<String, String> _iter83 : struct.parameters.entrySet())
+          for (Map.Entry<String, String> _iter93 : struct.parameters.entrySet())
           {
-            oprot.writeString(_iter83.getKey());
-            oprot.writeString(_iter83.getValue());
+            oprot.writeString(_iter93.getKey());
+            oprot.writeString(_iter93.getValue());
           }
         }
       }
       if (struct.isSetPrivileges()) {
         struct.privileges.write(oprot);
       }
+      if (struct.isSetDatacenter()) {
+        struct.datacenter.write(oprot);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, Database struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(5);
+      BitSet incoming = iprot.readBitSet(6);
       if (incoming.get(0)) {
         struct.name = iprot.readString();
         struct.setNameIsSet(true);
@@ -853,15 +959,15 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
       }
       if (incoming.get(3)) {
         {
-          org.apache.thrift.protocol.TMap _map84 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.parameters = new HashMap<String,String>(2*_map84.size);
-          for (int _i85 = 0; _i85 < _map84.size; ++_i85)
+          org.apache.thrift.protocol.TMap _map94 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.parameters = new HashMap<String,String>(2*_map94.size);
+          for (int _i95 = 0; _i95 < _map94.size; ++_i95)
           {
-            String _key86; // required
-            String _val87; // required
-            _key86 = iprot.readString();
-            _val87 = iprot.readString();
-            struct.parameters.put(_key86, _val87);
+            String _key96; // required
+            String _val97; // required
+            _key96 = iprot.readString();
+            _val97 = iprot.readString();
+            struct.parameters.put(_key96, _val97);
           }
         }
         struct.setParametersIsSet(true);
@@ -870,6 +976,11 @@ public class Database implements org.apache.thrift.TBase<Database, Database._Fie
         struct.privileges = new PrincipalPrivilegeSet();
         struct.privileges.read(iprot);
         struct.setPrivilegesIsSet(true);
+      }
+      if (incoming.get(5)) {
+        struct.datacenter = new Datacenter();
+        struct.datacenter.read(iprot);
+        struct.setDatacenterIsSet(true);
       }
     }
   }

@@ -20,14 +20,20 @@ package org.apache.hadoop.hive.ql.plan;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hive.common.JavaUtils;
+import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Order;
+import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionType;
 import org.apache.hadoop.hive.ql.ErrorMsg;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.io.HiveFileFormatUtils;
@@ -37,6 +43,7 @@ import org.apache.hadoop.hive.ql.parse.ParseUtils;
 import org.apache.hadoop.hive.ql.parse.SemanticException;
 import org.apache.hadoop.hive.serde2.SerDeUtils;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorUtils;
+import org.mortbay.log.Log;
 
 /**
  * CreateTableDesc.
@@ -50,6 +57,11 @@ public class CreateTableDesc extends DDLDesc implements Serializable {
   boolean isExternal;
   ArrayList<FieldSchema> cols;
   ArrayList<FieldSchema> partCols;
+  /**
+   * added by zjw for partition
+   */
+  List<Partition> partitions;
+
   ArrayList<String> bucketCols;
   ArrayList<Order> sortCols;
   int numBuckets;
@@ -94,6 +106,7 @@ public class CreateTableDesc extends DDLDesc implements Serializable {
     this.databaseName = databaseName;
   }
 
+  //add partition columns
   public CreateTableDesc(String tableName, boolean isExternal,
       List<FieldSchema> cols, List<FieldSchema> partCols,
       List<String> bucketCols, List<Order> sortCols, int numBuckets,
@@ -456,6 +469,33 @@ public class CreateTableDesc extends DDLDesc implements Serializable {
     }
 
     if (this.getPartCols() != null) {
+
+
+      //added by zjw
+      for(PartitionInfo pi:PartitionFactory.PartitionInfo.getPartitionInfo(partCols)){
+        if(pi.getP_type() == PartitionType.interval){
+          if(pi.getArgs().size() != 2){
+            throw new SemanticException(
+                ErrorMsg.PARTITION_ARGUMENTS_INVALID.getMsg());
+          }
+          String interval_unit = pi.getArgs().get(0);
+          Double d = Double.parseDouble(pi.getArgs().get(1));
+          Log.info("---zjw--interval_unit:"+interval_unit);
+          Long interval_seconds = 0L;
+          try{
+            interval_seconds = PartitionFactory.getIntervalSeconds(interval_unit,d);
+          }catch(Exception e){
+            throw new SemanticException(
+                ErrorMsg.PARTITION_ARGUMENTS_INVALID.getMsg());
+          }
+          if(this.getTblProps() == null){
+            this.setTblProps(new HashMap<String,String>());
+          }
+          this.getTblProps().put(Constants.META_LOAD_ROUND_SECONDS, interval_seconds.toString());
+        }
+      }
+
+
       // there is no overlap between columns and partitioning columns
       Iterator<FieldSchema> partColsIter = this.getPartCols().iterator();
       while (partColsIter.hasNext()) {
@@ -464,17 +504,25 @@ public class CreateTableDesc extends DDLDesc implements Serializable {
         PrimitiveObjectInspectorUtils.PrimitiveTypeEntry pte = PrimitiveObjectInspectorUtils
             .getTypeEntryFromTypeName(
             fs.getType());
-        if(null == pte){
-          throw new SemanticException(ErrorMsg.PARTITION_COLUMN_NON_PRIMITIVE.getMsg() + " Found "
-        + partCol + " of type: " + fs.getType());
-        }
+//        if(null == pte){
+//          throw new SemanticException(ErrorMsg.PARTITION_COLUMN_NON_PRIMITIVE.getMsg() + " Found "
+//        + partCol + " of type: " + fs.getType());
+//        }
         Iterator<String> colNamesIter = colNames.iterator();
+        boolean partColExist = false;
         while (colNamesIter.hasNext()) {
           String colName = BaseSemanticAnalyzer.unescapeIdentifier(colNamesIter.next());
+//          if (partCol.equalsIgnoreCase(colName)) {
+//            throw new SemanticException(
+//                ErrorMsg.COLUMN_REPEATED_IN_PARTITIONING_COLS.getMsg());
+//          }
           if (partCol.equalsIgnoreCase(colName)) {
-            throw new SemanticException(
-                ErrorMsg.COLUMN_REPEATED_IN_PARTITIONING_COLS.getMsg());
+            partColExist = true;
           }
+        }
+        if(!partColExist) {//分区列必须是已经定义的列
+          throw new SemanticException(
+            ErrorMsg.PARTITIONCOLUMNNOTEXIST_ERROR.getMsg());
         }
       }
     }
@@ -497,4 +545,14 @@ public class CreateTableDesc extends DDLDesc implements Serializable {
   public void setStoredAsSubDirectories(boolean isStoredAsSubDirectories) {
     this.isStoredAsSubDirectories = isStoredAsSubDirectories;
   }
+
+  public List<Partition> getPartitions() {
+    return partitions;
+  }
+
+  public void setPartitions(List<Partition> partitions) {
+    this.partitions = partitions;
+  }
+
+
 }

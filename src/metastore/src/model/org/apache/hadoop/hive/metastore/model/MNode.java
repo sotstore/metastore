@@ -8,11 +8,6 @@ import java.util.List;
 public class MNode {
   private String node_name;
   private String ips;
-  public class NodeStatus {
-    public static final int ONLINE = 0;
-    public static final int OFFLINE = 1;
-    public static final int SUSPECT = 2;
-  }
   private int status;
 
   public MNode(String node_name, List<String> ips, int status) {

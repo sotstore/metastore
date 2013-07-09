@@ -24,6 +24,7 @@ import static org.apache.hadoop.hive.metastore.MetaStoreUtils.DEFAULT_DATABASE_N
 import static org.apache.hadoop.hive.metastore.MetaStoreUtils.validateName;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +41,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.Timer;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import org.apache.commons.cli.OptionBuilder;
@@ -55,13 +57,20 @@ import org.apache.hadoop.hive.common.cli.CommonCliOptions;
 import org.apache.hadoop.hive.common.metrics.Metrics;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
+import org.apache.hadoop.hive.metastore.DiskManager.BackupEntry;
 import org.apache.hadoop.hive.metastore.DiskManager.DMRequest;
+import org.apache.hadoop.hive.metastore.DiskManager.FileLocatingPolicy;
+import org.apache.hadoop.hive.metastore.DiskManager.MigrateEntry;
+import org.apache.hadoop.hive.metastore.DiskManager.SFLTriple;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
+import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
 import org.apache.hadoop.hive.metastore.api.FOFailReason;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -87,6 +96,8 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
+import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -117,13 +128,19 @@ import org.apache.hadoop.hive.metastore.events.PreEventContext;
 import org.apache.hadoop.hive.metastore.events.PreLoadPartitionDoneEvent;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
-import org.apache.hadoop.hive.metastore.model.MNode.NodeStatus;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MPartitionPrivilege;
 import org.apache.hadoop.hive.metastore.model.MRole;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
 import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
+import org.apache.hadoop.hive.metastore.msg.MSGFactory;
+import org.apache.hadoop.hive.metastore.msg.MSGType;
+import org.apache.hadoop.hive.metastore.msg.MetaMsgServer;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionDefinition;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
+import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionType;
 import org.apache.hadoop.hive.serde2.Deserializer;
 import org.apache.hadoop.hive.serde2.SerDeException;
 import org.apache.hadoop.hive.serde2.SerDeUtils;
@@ -184,6 +201,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
   public static class HMSHandler extends FacebookBase implements
       IHMSHandler {
+    public static IMetaStoreClient topdcli = null;
+    public static String msUri = null;
     public static final Log LOG = HiveMetaStore.LOG;
 
     private static boolean createDefaultDB = false;
@@ -409,12 +428,69 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     private void createDefaultDB_core(RawStore ms) throws MetaException, InvalidObjectException {
+      Datacenter ldc = null, mdc = null;
+
+      if (hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER) == null) {
+        throw new MetaException("Please set 'hive.datacenter.local' as the local DC name");
+      }
+      try {
+        ldc = ms.getDatacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
+      } catch (NoSuchObjectException e) {
+        ldc = new Datacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER), null, HMSHandler.msUri == null ? "DEFAULT_URI" : HMSHandler.msUri, null);
+        ms.createDatacenter(ldc);
+      }
+      if (!hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER) && HMSHandler.topdcli != null) {
+        try {
+          LOG.info(HMSHandler.topdcli + ", " + hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
+          mdc = HMSHandler.topdcli.get_center(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
+        } catch (NoSuchObjectException e) {
+          mdc = new Datacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER), null, HMSHandler.msUri == null ? "DEFAULT_URI" : HMSHandler.msUri, null);
+          try {
+            HMSHandler.topdcli.create_datacenter(mdc);
+          } catch (AlreadyExistsException e1) {
+            LOG.error(e, e);
+          } catch (TException e1) {
+            LOG.error(e, e);
+            throw new MetaException("Try to create dc to top-level datacenter failed!");
+          }
+        } catch (TException e) {
+          LOG.error(e, e);
+          throw new MetaException("Try to get dc from top-level datacenter failed!");
+        }
+      }
+
+      if (HMSHandler.msUri != null && !ldc.getLocationUri().equals(HMSHandler.msUri)) {
+        // update the msUri now
+        ldc.setLocationUri(HMSHandler.msUri);
+        try {
+          ms.updateDatacenter(ldc);
+        } catch (NoSuchObjectException e) {
+          LOG.error(e, e);
+          throw new MetaException("Try to update datacenter's locationUri failed!");
+        }
+      }
+      if (mdc != null && HMSHandler.msUri != null && !mdc.getLocationUri().equals(HMSHandler.msUri) && HMSHandler.topdcli != null) {
+        // update the msUri now
+        mdc.setLocationUri(HMSHandler.msUri);
+        try {
+          HMSHandler.topdcli.update_center(mdc);
+        } catch (NoSuchObjectException e) {
+          LOG.error(e, e);
+          throw new MetaException("Try to update datacenter's locationUri failed!");
+        } catch (TException e) {
+          LOG.error(e, e);
+          throw new MetaException("Try to update datacenter's locationUri failed!");
+        }
+      }
+      ms.setThisDC(ldc.getName());
+
       try {
         ms.getDatabase(DEFAULT_DATABASE_NAME);
       } catch (NoSuchObjectException e) {
-        ms.createDatabase(
-            new Database(DEFAULT_DATABASE_NAME, DEFAULT_DATABASE_COMMENT,
-                wh.getDefaultDatabasePath(DEFAULT_DATABASE_NAME).toString(), null));
+        Database db = new Database(DEFAULT_DATABASE_NAME, DEFAULT_DATABASE_COMMENT,
+                wh.getDefaultDatabasePath(DEFAULT_DATABASE_NAME).toString(), null);
+        db.setDatacenter(ldc);
+        ms.createDatabase(db);
       }
       HMSHandler.createDefaultDB = true;
     }
@@ -1061,6 +1137,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         ms.createTable(tbl);
         success = ms.commitTransaction();
 
+        this.createBusiTypeDC(ms, tbl);
+
       } finally {
         if (!success) {
           ms.rollbackTransaction();
@@ -1073,6 +1151,34 @@ public class HiveMetaStore extends ThriftHiveMetastore {
               new CreateTableEvent(tbl, success, this);
           createTableEvent.setEnvironmentContext(envContext);
           listener.onCreateTable(createTableEvent);
+        }
+      }
+    }
+
+    private void createBusiTypeDC(final RawStore ms,Table tbl) throws MetaException{
+      for(FieldSchema f : tbl.getSd().getCols()){
+        String cmet = f.getComment();
+        if(cmet != null && cmet.indexOf(MetaStoreUtils.BUSI_TYPES_PREFIX)>=0){
+          int pos = cmet.indexOf(MetaStoreUtils.BUSI_TYPES_PREFIX);// ip/tel/time/content
+          for(String type : MetaStoreUtils.BUSI_TYPES){
+            if( cmet.length() - pos >= type.length()
+                && type.equals(cmet.substring(pos,type.length()).toLowerCase())){
+              try {
+                BusiTypeDatacenter busiTypeDatacenter = new BusiTypeDatacenter(type,ms.getDatabase(tbl.getDbName()).getDatacenter(),tbl.getDbName());
+                if(!isTopDc()){
+                  if(topdcli != null){
+                    topdcli.append_busi_type_datacenter(busiTypeDatacenter);
+                  }else{
+                    throw new MetaException("Top datacenter is not reachable!");
+                  }
+                }else{
+                  append_busi_type_datacenter(busiTypeDatacenter);
+                }
+              } catch (Exception e) {
+                LOG.error(e,e);
+              }
+            }
+          }
         }
       }
     }
@@ -1094,6 +1200,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         final EnvironmentContext envContext) throws AlreadyExistsException,
         MetaException, InvalidObjectException {
       startFunction("create_table", ": " + tbl.toString());
+
+      LOG.warn("----zjw--creating table");
       boolean success = false;
       Exception ex = null;
       try {
@@ -1497,6 +1605,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
         Partition old_part = null;
         try {
+          // TODO: fix it
           old_part = ms.getPartition(part.getDbName(), part
               .getTableName(), part.getValues());
         } catch (NoSuchObjectException e) {
@@ -1602,7 +1711,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           addedPartitions.put(e.getKey(), e.getValue());
         }
         success = true;
-        ms.commitTransaction();
+        success = ms.commitTransaction();
       } finally {
         if (!success) {
           ms.rollbackTransaction();
@@ -1647,6 +1756,36 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return ret;
     }
 
+
+    private PartitionDefinition createSubpartitions(Table tab,Partition part, String part_name) throws MetaException{
+      List<PartitionInfo> pis = PartitionInfo.getPartitionInfo(tab.getPartitionKeys());
+      PartitionDefinition global_sub_pd = null;
+      if( pis != null && pis.size() > 0){
+        if(pis.get(0).getP_type() != PartitionType.interval){
+          throw new MetaException("Add partition operation only supprots interval partition.");
+        }
+        else if(pis.size() == 2 ){
+          if(part.getValues().size() ==1){
+            try{
+              long f_value = Long.parseLong(part.getValues().get(0));
+              Double d = Double.parseDouble(pis.get(0).getArgs().get(1));
+              long interval = f_value + PartitionFactory.getIntervalSeconds(pis.get(0).getArgs().get(0),d)-1;
+              part.getValues().add(""+interval);
+            }catch(Exception e){
+              LOG.error(e,e);
+            }
+          }
+          global_sub_pd = new PartitionDefinition();
+          global_sub_pd.setPi(pis.get(1));
+          global_sub_pd.setDbName(tab.getDbName());
+          global_sub_pd.setTableName(tab.getTableName());
+          global_sub_pd.getPi().setP_level(2);//设为2级分区
+          PartitionFactory.createSubPartition(tab.getPartitionKeys(),global_sub_pd,false,part_name);
+        }
+      }
+      return global_sub_pd;
+    }
+
     /**
      * An implementation of add_partition_core that does not commit
      * transaction or rollback transaction as part of its operation
@@ -1674,7 +1813,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         Partition old_part = null;
         try {
           old_part = ms.getPartition(part.getDbName(), part
-              .getTableName(), part.getValues());
+              .getTableName(), part.getPartitionName());
         } catch (NoSuchObjectException e) {
           // this means there is no existing partition
           old_part = null;
@@ -1682,10 +1821,27 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         if (old_part != null) {
           throw new AlreadyExistsException("Partition already exists:" + part);
         }
+        if(part.getPartitionName() == null || part.getPartitionName().isEmpty()){
+          throw new AlreadyExistsException("Partition name not identified!");
+        }else{
+          String pn = part.getPartitionName();
+          for(int i=0 ; i < pn.length(); i++){
+            if(pn.charAt(i) == '\t' || pn.charAt(i) == '\n' || pn.charAt(i) == ' ') {
+              throw new AlreadyExistsException("Partition name "+part.getPartitionName()+" not valid,contains space/tab/\n character!");
+            }
+          }
+        }
         tbl = ms.getTable(part.getDbName(), part.getTableName());
         if (tbl == null) {
           throw new InvalidObjectException(
               "Unable to add partition because table or database do not exist");
+        }
+        LOG.warn("---zjw-- int add_partition_core_notxn.");
+        PartitionDefinition global_sub_pd = this.createSubpartitions(tbl,part,part.getPartitionName());
+        if(global_sub_pd != null){
+          List<Subpartition> subpartitions = global_sub_pd.toSubpartitionList();
+          LOG.warn("---zjw-- subpartitions size:"+subpartitions.size());
+          part.setSubpartitions(subpartitions);
         }
 
         String partLocationStr = null;
@@ -1708,8 +1864,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           }
           partLocation = wh.getDnsPath(new Path(partLocationStr));
         }
-
-        if (partLocation != null) {
+        LOG.info("---zjw-- before partLocation.");
+        if (partLocation != null && part.getSd() != null) {
           part.getSd().setLocation(partLocation.toString());
 
 
@@ -1733,6 +1889,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           part.putToParameters(hive_metastoreConstants.DDL_TIME, Long.toString(time));
         }
 
+        LOG.info("---zjw-- before getParameters.");
+
         // Inherit table properties into partition properties.
         Map<String, String> tblParams = tbl.getParameters();
         String inheritProps = hiveConf.getVar(ConfVars.METASTORE_PART_INHERIT_TBL_PROPS).trim();
@@ -1749,7 +1907,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             part.putToParameters(key, paramVal);
           }
         }
-
+        LOG.info("---zjw-- before addPartition.");
         success = ms.addPartition(part);
 
       } finally {
@@ -1813,6 +1971,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         ret = add_partition_core(getMS(), part, envContext);
       } catch (Exception e) {
+        LOG.error(e,e);
         ex = e;
         if (e instanceof MetaException) {
           throw (MetaException) e;
@@ -1831,6 +1990,80 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return ret;
     }
 
+    private boolean drop_partition_common_by_name(RawStore ms, String db_name, String tbl_name,
+        String part_name, final boolean deleteData)
+        throws MetaException, NoSuchObjectException, IOException, InvalidObjectException,
+        InvalidInputException {
+        boolean success = false;
+        Path partPath = null;
+        Table tbl = null;
+        Partition part = null;
+        boolean isArchived = false;
+        Path archiveParentDir = null;
+
+        try {
+          LOG.debug("--zjw--before drop_partition_common_by_name open ");
+//          ms.openTransaction();
+          LOG.debug("--zjw--after drop_partition_common_by_name open ");
+          // TODO: fix it
+          part = ms.getPartition(db_name, tbl_name, part_name);
+
+          firePreEvent(new PreDropPartitionEvent(part, this));
+
+          if (part == null) {
+            throw new NoSuchObjectException("Partition doesn't exist. "
+                + part_name);
+          }
+
+          isArchived = MetaStoreUtils.isArchived(part);
+          if (isArchived) {
+            archiveParentDir = MetaStoreUtils.getOriginalLocation(part);
+            if (!wh.isWritable(archiveParentDir.getParent())) {
+              throw new MetaException("Table partition not deleted since " +
+                  archiveParentDir.getParent() + " is not writable by " +
+                  hiveConf.getUser());
+            }
+          }
+          if (!ms.dropPartition(db_name, tbl_name, part_name)) {
+            throw new MetaException("Unable to drop partition");
+          }
+
+          LOG.debug("--zjw--before drop_partition_common_by_name cmt open=");
+//          success = ms.commitTransaction();
+          LOG.debug("--zjw--after drop_partition_common_by_name cmt ");
+          if ((part.getSd() != null) && (part.getSd().getLocation() != null)) {
+            partPath = new Path(part.getSd().getLocation());
+            if (!wh.isWritable(partPath.getParent())) {
+              throw new MetaException("Table partition not deleted since " +
+                  partPath.getParent() + " is not writable by " +
+                  hiveConf.getUser());
+            }
+          }
+          tbl = get_table(db_name, tbl_name);
+        } finally {
+          if (!success) {
+            ms.rollbackTransaction();
+          } else if (deleteData && ((partPath != null) || (archiveParentDir != null))) {
+            if (tbl != null && !isExternal(tbl)) {
+              // Archived partitions have har:/to_har_file as their location.
+              // The original directory was saved in params
+              if (isArchived) {
+                assert (archiveParentDir != null);
+                wh.deleteDir(archiveParentDir, true);
+              } else {
+                assert (partPath != null);
+                wh.deleteDir(partPath, true);
+              }
+              // ok even if the data is not deleted
+            }
+          }
+          for (MetaStoreEventListener listener : listeners) {
+            listener.onDropPartition(new DropPartitionEvent(tbl, part, success, this));
+          }
+        }
+        return true;
+      }
+
     private boolean drop_partition_common(RawStore ms, String db_name, String tbl_name,
       List<String> part_vals, final boolean deleteData)
       throws MetaException, NoSuchObjectException, IOException, InvalidObjectException,
@@ -1844,6 +2077,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
       try {
         ms.openTransaction();
+        // TODO: fix it
         part = ms.getPartition(db_name, tbl_name, part_vals);
 
         firePreEvent(new PreDropPartitionEvent(part, this));
@@ -1939,6 +2173,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Partition ret = null;
       Exception ex = null;
       try {
+        // TODO: fix it
         ret = getMS().getPartition(db_name, tbl_name, part_vals);
       } catch (Exception e) {
         ex = e;
@@ -2120,7 +2355,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         firePreEvent(new PreAlterPartitionEvent(db_name, tbl_name, part_vals, new_part, this));
 
-        oldPart = alterHandler.alterPartition(getMS(), wh, db_name, tbl_name, part_vals, new_part);
+        Table table = getMS().getTable(db_name, tbl_name);
+        String partName = Warehouse
+              .makePartName(table.getPartitionKeys(), part_vals);
+
+        oldPart = alterHandler.alterPartition(getMS(), wh, db_name, tbl_name, partName, part_vals, new_part);
 
         for (MetaStoreEventListener listener : listeners) {
           AlterPartitionEvent alterPartitionEvent =
@@ -2333,6 +2572,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public List<String> get_tables(final String dbname, final String pattern)
         throws MetaException {
       startFunction("get_tables", ": db=" + dbname + " pat=" + pattern);
+
+      LOG.warn("-----zjw--haha ");
 
       List<String> ret = null;
       Exception ex = null;
@@ -2564,13 +2805,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     private Partition get_partition_by_name_core(final RawStore ms, final String db_name,
         final String tbl_name, final String part_name)
         throws MetaException, NoSuchObjectException, TException {
-      List<String> partVals = null;
-      try {
-        partVals = getPartValsFromName(ms, db_name, tbl_name, part_name);
-      } catch (InvalidObjectException e) {
-        throw new NoSuchObjectException(e.getMessage());
-      }
-      Partition p = ms.getPartition(db_name, tbl_name, partVals);
+      Partition p = ms.getPartition(db_name, tbl_name, part_name);
 
       if (p == null) {
         throw new NoSuchObjectException(db_name + "." + tbl_name
@@ -2646,14 +2881,15 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         final boolean deleteData) throws NoSuchObjectException,
         MetaException, TException, IOException, InvalidObjectException, InvalidInputException {
 
-      List<String> partVals = null;
-      try {
-        partVals = getPartValsFromName(ms, db_name, tbl_name, part_name);
-      } catch (InvalidObjectException e) {
-        throw new NoSuchObjectException(e.getMessage());
-      }
-
-      return drop_partition_common(ms, db_name, tbl_name, partVals, deleteData);
+//      List<String> partVals = null;
+//      try {
+//        partVals = getPartValsFromName(ms, db_name, tbl_name, part_name);
+//      } catch (InvalidObjectException e) {
+//        throw new NoSuchObjectException(e.getMessage());
+//      }
+//
+//      return drop_partition_common(ms, db_name, tbl_name, partVals, deleteData);
+      return drop_partition_common_by_name(ms, db_name, tbl_name, part_name, deleteData);
     }
 
     @Override
@@ -2808,7 +3044,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public Index add_index(final Index newIndex, final Table indexTable)
         throws InvalidObjectException, AlreadyExistsException, MetaException, TException {
-      startFunction("add_index", ": " + newIndex.toString() + " " + indexTable.toString());
+      startFunction("add_index", ": " + newIndex.toString() + " " );
       Index ret = null;
       Exception ex = null;
       try {
@@ -2858,19 +3094,24 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
         // set create time
         long time = System.currentTimeMillis() / 1000;
-        Table indexTbl = indexTable;
-        if (indexTbl != null) {
-          try {
-            indexTbl = ms.getTable(index.getDbName(), index.getIndexTableName());
-          } catch (Exception e) {
-          }
-          if (indexTbl != null) {
-            throw new InvalidObjectException(
-                "Unable to add index because index table already exists");
-          }
-          this.create_table(indexTable);
-          indexTableCreated = true;
-        }
+
+        //removed by zjw
+
+//        Table indexTbl = indexTable;
+//        if (indexTbl != null) {
+//          try {
+//            indexTbl = ms.getTable(index.getDbName(), index.getIndexTableName());
+//          } catch (Exception e) {
+//          }
+//          if (indexTbl != null) {
+//            throw new InvalidObjectException(
+//                "Unable to add index because index table already exists");
+//          }
+//          this.create_table(indexTable);
+//          indexTableCreated = true;
+//        }
+
+        LOG.warn("---zjw-- creating index"+index.getIndexName());
 
         index.setCreateTime((int) time);
         index.putToParameters(hive_metastoreConstants.DDL_TIME, Long.toString(time));
@@ -4010,7 +4251,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public SFile create_file(String node_name, int repnr, long table_id)
+    public SFile create_file(String node_name, int repnr, String db_name, String table_name)
         throws FileOperationException, TException {
 
       if (node_name == null) {
@@ -4018,8 +4259,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         try {
           node_name = dm.findBestNode();
         } catch (IOException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+          LOG.error(e, e);
           throw new FileOperationException("Can not find any Best Available Node now, please retry", FOFailReason.SAFEMODE);
         }
       }
@@ -4031,25 +4271,33 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         return null;
       }
       try {
-        String devid = dm.findBestDevice(node_name);
-        String table_name = null;
+        FileLocatingPolicy flp = new FileLocatingPolicy(null, null, FileLocatingPolicy.EXCLUDE_NODES_DEVS, true);
+        String devid = dm.findBestDevice(node_name, flp);
+        long table_id = -1;
 
+        if (devid == null) {
+          throw new FileOperationException("Can not find any available device on node '" + node_name + "' now", FOFailReason.NOTEXIST);
+        }
         // try to parse table_name
-        if (table_id >= 0) {
+        if (db_name != null && table_name != null) {
           Table tbl;
           try {
-            tbl = getMS().getTableByID(table_id);
+            tbl = getMS().getTable(db_name, table_name);
+            table_id = getMS().getTableOID(db_name, table_name);
           } catch (MetaException me) {
-            throw new FileOperationException("Invalid Table ID:" + table_id, FOFailReason.INVALID_TABLE);
+            throw new FileOperationException("Invalid Table name:" + db_name + "/" + table_name, FOFailReason.INVALID_TABLE);
           }
           table_name = tbl.getDbName() + "/" + tbl.getTableName();
         }
 
         // how to convert table_name to tbl_id?
         cfile = new SFile(0, table_id, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
-            "SFILE_DEFALUT", 0, 0, null);
+            "SFILE_DEFALUT", 0, 0, null, 0);
         getMS().createFile(cfile);
         cfile = getMS().getSFile(cfile.getFid());
+        if (cfile == null) {
+          throw new FileOperationException("Creating file with internal error, metadata inconsistent?", FOFailReason.INVALID_FILE);
+        }
 
         do {
           String location = "/data/";
@@ -4070,7 +4318,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           break;
         } while (true);
       } catch (IOException e) {
-        throw new FileOperationException("System might in Safe Mode, please wait ...", FOFailReason.SAFEMODE);
+        throw new FileOperationException("System might in Safe Mode, please wait ... {" + e + "}", FOFailReason.SAFEMODE);
       }
 
       return cfile;
@@ -4179,14 +4427,20 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public Node add_node(String node_name, List<String> ipl) throws MetaException, TException {
-      Node node = new Node(node_name, ipl, NodeStatus.ONLINE);
+      Node node = new Node(node_name, ipl, MetaStoreConst.MNodeStatus.ONLINE);
       getMS().createNode(node);
+      if (dm != null) {
+        dm.SafeModeStateChange();
+      }
       return node;
     }
 
     @Override
     public int del_node(String node_name) throws MetaException, TException {
       if (getMS().delNode(node_name)) {
+        if (dm != null) {
+          dm.SafeModeStateChange();
+        }
         return 1;
       } else {
         return 0;
@@ -4200,21 +4454,599 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       if (getMS().updateNode(node)) {
         return node;
       } else {
-        return null;
+        throw new MetaException("Alter node " + node_name + " failed.");
       }
     }
 
     @Override
     public Node get_node(String node_name) throws MetaException, TException {
-      return getMS().getNode(node_name);
+      Node n = getMS().getNode(node_name);
+      if (n == null) {
+        throw new MetaException("Can not find Node " + node_name);
+      }
+      return n;
     }
 
     @Override
     public List<Node> find_best_nodes(int nr) throws MetaException, TException {
+      if (nr > 0) {
+        try {
+          return dm.findBestNodes(nr);
+        } catch (IOException e) {
+          throw new MetaException(e.getMessage());
+        }
+      } else if (nr < 0) {
+        // call findBestNodesBySingleDev
+        try {
+          return dm.findBestNodesBySingleDev(-nr);
+        } catch (IOException e) {
+          throw new MetaException(e.getMessage());
+        }
+      }
+
+      return new ArrayList<Node>();
+    }
+
+    @Override
+    public List<Node> get_all_nodes() throws MetaException, TException {
+      return getMS().getAllNodes();
+    }
+
+    @Override
+    public void create_datacenter(Datacenter datacenter) throws AlreadyExistsException,
+        InvalidObjectException, MetaException, TException {
+      getMS().createDatacenter(datacenter);
+    }
+
+    @Override
+    public Datacenter get_center(String name) throws NoSuchObjectException, MetaException,
+        TException {
+      if (hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER)) {
+        return getMS().getDatacenter(name);
+      } else {
+        if (HMSHandler.topdcli == null) {
+          connect_to_top_dc(hiveConf);
+        }
+        return HMSHandler.topdcli.get_center(name);
+      }
+    }
+
+    @Override
+    public void drop_center(String name, boolean deleteData, boolean cascade)
+        throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+      // TODO Auto-generated method stub
+      throw new MetaException("Not implemented yet!");
+    }
+
+    @Override
+    public List<Datacenter> get_all_centers() throws MetaException, TException {
+      // try to get all centers from top-level metastore
+      if (hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER)) {
+        return getMS().getAllDatacenters();
+      } else {
+        if (HMSHandler.topdcli == null) {
+          connect_to_top_dc(hiveConf);
+        }
+        return HMSHandler.topdcli.get_all_centers();
+      }
+    }
+
+    @Override
+    public Datacenter get_local_center() throws MetaException, TException {
+      String local_dc = hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER);
+      if (local_dc == null) {
+        throw new MetaException("Please set hive.datacenter.local=NAME in config file.");
+      }
+      return getMS().getDatacenter(local_dc);
+    }
+
+    @Override
+    public List<String> get_lucene_index_names(String db_name, String tbl_name, short max_indexes)
+        throws MetaException, TException {
+      // TODO Auto-generated method stub
+      throw new MetaException("Not implemented yet!");
+    }
+
+    @Override
+    public int add_partition_files(Partition part, List<SFile> files) throws TException {
+      Partition p = getMS().getPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
+      List<Long> nl = new ArrayList<Long>();
+      Set<Long> tmp = new TreeSet<Long>();
+
+      for (SFile f : files) {
+        tmp.add(new Long(f.getFid()));
+      }
+      if (p.getFiles() != null) {
+        tmp.addAll(p.getFiles());
+      }
+      for (Long l : tmp) {
+        nl.add(l);
+      }
+      p.setFiles(nl);
+
+      LOG.info("Begin add partition files " + part.getPartitionName() + " fileset's size " + nl.size());
+      getMS().updatePartition(p);
+      synchronized (dm.backupQ) {
+        BackupEntry be = new BackupEntry(part, files, BackupEntry.FOP.ADD_PART);
+        dm.backupQ.add(be);
+      }
+      return 0;
+    }
+
+    @Override
+    public int drop_partition_files(Partition part, List<SFile> files) throws TException {
+      Partition p = getMS().getPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
+      List<Long> new_files = part.getFiles();
+      new_files.removeAll(files);
+      p.setFiles(new_files);
+      LOG.info("Begin drop partition files " + p.getPartitionName() + " fileset's size " + new_files.size());
+      getMS().updatePartition(p);
+      synchronized (dm.backupQ) {
+        BackupEntry be = new BackupEntry(part, files, BackupEntry.FOP.DROP_PART);
+        dm.backupQ.add(be);
+      }
+      return 0;
+    }
+
+    @Override
+    public int add_subpartition_files(Subpartition subpart, List<SFile> files) throws TException {
+      Subpartition p = getMS().getSubpartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
+      List<Long> nl = new ArrayList<Long>();
+      Set<Long> tmp = new TreeSet<Long>();
+
+      for (SFile f : files) {
+        tmp.add(new Long(f.getFid()));
+      }
+      if (p.getFiles() != null) {
+        tmp.addAll(p.getFiles());
+      }
+      for (Long l : tmp) {
+        nl.add(l);
+      }
+      p.setFiles(nl);
+
+      LOG.info("Begin add subpartition files " + subpart.getPartitionName() + " fileset's size " + nl.size());
+      getMS().updateSubpartition(p);
+      synchronized (dm.backupQ) {
+        BackupEntry be = new BackupEntry(subpart, files, BackupEntry.FOP.ADD_SUBPART);
+        dm.backupQ.add(be);
+      }
+
+
+      HashMap<String,Object> old_params= new HashMap<String,Object>();
+
+      old_params.put("partition_name", subpart.getPartitionName());
+      old_params.put("partition_level", 1);
+      old_params.put("db_name", subpart.getDbName());
+      old_params.put("table_name", subpart.getTableName());
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsgs(MSGType.MSG_NEW_PARTITION_FILE,-1l,-1l, null,nl,old_params));
+      return 0;
+    }
+
+    @Override
+    public int drop_subpartition_files(Subpartition subpart, List<SFile> files) throws TException {
+      Subpartition p = getMS().getSubpartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
+      List<Long> new_files = subpart.getFiles();
+      new_files.removeAll(files);
+      p.setFiles(new_files);
+      LOG.info("Begin drop subpartition files " + subpart.getPartitionName() + " fileset's size " + new_files.size());
+      getMS().updateSubpartition(p);
+      synchronized (dm.backupQ) {
+        BackupEntry be = new BackupEntry(subpart, files, BackupEntry.FOP.DROP_SUBPART);
+        dm.backupQ.add(be);
+      }
+      return 0;
+    }
+
+    @Override
+    public boolean add_partition_index(Index index, Partition part) throws TException {
+      getMS().createPartitionIndex(index, part);
+      return true;
+    }
+
+    @Override
+    public boolean drop_partition_index(Index index, Partition part) throws TException {
+      getMS().dropPartitionIndex(index, part);
+      return true;
+    }
+
+    @Override
+    public boolean add_subpartition_index(Index index, Subpartition part) throws TException {
+      getMS().createPartitionIndex(index, part);
+      return true;
+    }
+
+    @Override
+    public boolean drop_subpartition_index(Index index, Subpartition part) throws TException {
+      getMS().dropPartitionIndex(index, part);
+      return true;
+    }
+
+    @Override
+    public boolean add_partition_index_files(Index index, Partition part, List<SFile> file,
+        List<Long> originfid) throws MetaException, TException {
+      if (file.size() != originfid.size()) {
+        return false;
+      }
+      getMS().createPartitionIndexStores(index, part, file, originfid);
+      return true;
+    }
+
+    @Override
+    public boolean add_subpartition(String dbname, String tbl_name, List<String> part_vals,
+        Subpartition sub_part) throws TException {
+      // TODO Auto-generated method stub
+      return true;
+    }
+
+    @Override
+    public boolean drop_partition_index_files(Index index, Partition part, List<SFile> file)
+        throws MetaException, TException {
+      return getMS().dropPartitionIndexStores(index, part, file);
+    }
+
+    @Override
+    public List<Subpartition> get_subpartitions(String dbname, String tbl_name, Partition part)
+        throws TException {
+      return getMS().getSubpartitions(dbname, tbl_name, part);
+    }
+
+    @Override
+    public String getDMStatus() throws MetaException, TException {
+      if (dm != null) {
+        return dm.getDMStatus();
+      }
+      return "+FAIL: No DiskManger!\n";
+    }
+
+    @Override
+    public boolean add_datawarehouse_sql(int dwnum, String sql) throws InvalidObjectException,
+        MetaException, TException {
+      getMS().add_datawarehouse_sql(dwnum,  sql);
+      return false;
+    }
+
+
+
+    public List<SFileRef> get_partition_index_files(Index index, Partition part)
+        throws MetaException, TException {
+      return getMS().getPartitionIndexFiles(index, part);
+    }
+
+    @Override
+    public boolean add_subpartition_index_files(Index index, Subpartition subpart,
+        List<SFile> file, List<Long> originfid) throws MetaException, TException {
+      if (file.size() != originfid.size()) {
+        return false;
+      }
+      getMS().createPartitionIndexStores(index, subpart, file, originfid);
+      return true;
+    }
+
+    @Override
+    public List<SFileRef> get_subpartition_index_files(Index index, Subpartition subpart)
+        throws MetaException, TException {
+      return getMS().getSubpartitionIndexFiles(index, subpart);
+    }
+
+    @Override
+    public boolean drop_subpartition_index_files(Index index, Subpartition subpart, List<SFile> file)
+        throws MetaException, TException {
+      return getMS().dropPartitionIndexStores(index, subpart, file);
+    }
+
+    @Override
+    public List<BusiTypeColumn> get_all_busi_type_cols() throws MetaException, TException {
+      return getMS().getAllBusiTypeCols();
+    }
+
+    public void update_center(Datacenter datacenter) throws NoSuchObjectException,
+        InvalidOperationException, MetaException, TException {
+      getMS().updateDatacenter(datacenter);
+    }
+
+    private Partition deepCopy(Partition partition) {
+      Partition copy = null;
+      if (partition != null) {
+        copy = new Partition(partition);
+      }
+      return copy;
+    }
+
+    private List<Partition> deepCopyPartitions(List<Partition> partitions) {
+      List<Partition> copy = null;
+      if (partitions != null) {
+        copy = new ArrayList<Partition>();
+        for (Partition part : partitions) {
+          copy.add(deepCopy(part));
+        }
+      }
+      return copy;
+    }
+
+    @Override
+    public Map<Long, SFile> migrate_in(Table tbl, List<Partition> parts, String from_dc)
+        throws MetaException, TException {
+      LOG.info("server parts2 " + parts.get(0).getSubpartitions().get(0).getPartitionName() + ", " + parts.get(0).getSubpartitions().get(0).getFiles());
+      Map<Long, SFile> rmap = new HashMap<Long, SFile>();
+
+      // try to create the database, if it doesn't exist
+      Datacenter ldc = null;
+
+      if (hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER) == null) {
+        throw new MetaException("Please set 'hive.datacenter.local' as the local DC name");
+      }
       try {
-        return dm.findBestNodes(nr);
-      } catch (IOException e) {
-        throw new MetaException(e.getMessage());
+        ldc = getMS().getDatacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
+      } catch (NoSuchObjectException e) {
+        ldc = new Datacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER), null, HMSHandler.msUri == null ? "DEFAULT_URI" : HMSHandler.msUri, null);
+        getMS().createDatacenter(ldc);
+      }
+
+      try {
+        getMS().getDatabase(tbl.getDbName());
+      } catch (NoSuchObjectException e) {
+        Database db = new Database(tbl.getDbName(), DEFAULT_DATABASE_COMMENT,
+                wh.getDefaultDatabasePath(tbl.getDbName()).toString(), null);
+        db.setDatacenter(ldc);
+        getMS().createDatabase(db);
+      }
+      // try to create the table, if it doesn't exist
+      try {
+        create_table(tbl);
+      } catch (AlreadyExistsException e) {
+        // it is ok, ignore it.
+      }
+      LOG.info("Create table " + tbl.getTableName() + " done.");
+
+      // try to create the partition, if it doesn't exist
+      List<Partition> toAdd = new ArrayList<Partition>();
+      List<Partition> toUpdate = new ArrayList<Partition>();
+      List<Partition> copy_parts = deepCopyPartitions(parts);
+      for (Partition part : copy_parts) {
+        LOG.info("Handle partition1 " + part.getPartitionName() + ", subparts NR " + part.getSubpartitionsSize());
+        try {
+          getMS().getPartition(part.getDbName(), part
+              .getTableName(), part.getPartitionName());
+        } catch (NoSuchObjectException e) {
+          // this means there is no existing partition, it is ok
+          toAdd.add(part);
+          continue;
+        }
+        toUpdate.add(part);
+      }
+      add_partitions(toAdd);
+      LOG.info("Add partitions done.");
+
+      // try to create the file
+      for (Partition part : parts) {
+        LOG.info("Handle partition2 " + part.getPartitionName() + ", subparts NR " + part.getSubpartitionsSize());
+        if (part.getSubpartitionsSize() > 0) {
+          for (Subpartition subpart : part.getSubpartitions()) {
+            LOG.info("subparts " + subpart.getPartitionName() + ", " + subpart.getFiles());
+            // handle files
+            Subpartition localsubpart = getMS().getSubpartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
+            List<SFile> files = new ArrayList<SFile>();
+
+            if (localsubpart == null) {
+              throw new MetaException("Invalid local subpart: " + subpart.getPartitionName());
+            }
+
+            if (subpart.getFilesSize() > 0) {
+              for (long fid : subpart.getFiles()) {
+                // create a new target file
+                SFile f = create_file(null, 3, tbl.getDbName(), tbl.getTableName());
+                files.add(f);
+                rmap.put(fid, f);
+              }
+            }
+            add_subpartition_files(localsubpart, files);
+          }
+        } else {
+          // handle files
+          if (part.getFilesSize() > 0) {
+            Partition localpart = getMS().getPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
+            List<SFile> files = new ArrayList<SFile>();
+
+            if (localpart == null) {
+              throw new MetaException("Invalid local part: " + part.getPartitionName());
+            }
+            LOG.info("parts " + part.getPartitionName() + ", " + part.getFiles().toString());
+
+            for (long fid : part.getFiles()) {
+              // create a new target file
+              SFile f = create_file(null, 3, tbl.getDbName(), tbl.getTableName());
+              files.add(f);
+              rmap.put(fid, f);
+            }
+            add_partition_files(localpart, files);
+          }
+        }
+      }
+
+      LOG.info("OK, we will migrate DC " + from_dc + " DB " + tbl.getDbName() + " Table " +
+          tbl.getTableName() + "'s " + parts.size() + " Partition(s) w/ " + rmap.size() +
+          " files to local DC.");
+
+      return rmap;
+    }
+
+    @Override
+    public boolean migrate_out(String dbName, String tableName, List<String> partNames, String to_dc)
+        throws MetaException, TException {
+      // prepare datacenter connection
+      if (HMSHandler.topdcli == null) {
+        connect_to_top_dc(hiveConf);
+        if (HMSHandler.topdcli == null) {
+          throw new MetaException("Top-level DC metastore is null, please check!");
+        }
+      }
+      if (hiveConf.getVar(ConfVars.LOCAL_DATACENTER) == null) {
+        throw new MetaException("Please set 'hive.datacenter.local' as local datacenter NAME.");
+      }
+      Datacenter rdc = HMSHandler.topdcli.get_center(to_dc);
+      Datacenter ldc = get_center(hiveConf.getVar(ConfVars.LOCAL_DATACENTER));
+
+      IMetaStoreClient rcli = new HiveMetaStoreClient(rdc.getLocationUri(),
+            HiveConf.getIntVar(hiveConf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
+            hiveConf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
+            null);
+
+      // prepare tbl, parts
+      Table tbl = get_table(dbName, tableName);
+      Map<String, String> kvs = new HashMap<String, String>();
+      if (tbl.getParametersSize() > 0) {
+        LOG.info(tbl.getParameters().toString());
+        kvs.putAll(tbl.getParameters());
+        kvs.put("store.remote", "both");
+        if (kvs.get("store.remote.dcs") == null) {
+          kvs.put("store.remote.dcs", to_dc + "," + hiveConf.getVar(ConfVars.LOCAL_DATACENTER));
+        } else {
+          String olddcs = kvs.get("store.remote.dcs");
+          String[] dcsarray = olddcs.split(",");
+          boolean ign = false;
+          for (int i = 0; i < dcsarray.length; i++) {
+            if (dcsarray[i].equals(to_dc)) {
+              ign = true;
+              break;
+            }
+          }
+          if (!ign) {
+            olddcs += "," + to_dc;
+          }
+          kvs.put("store.remote.dcs", olddcs);
+        }
+        tbl.setParameters(kvs);
+      } else {
+        tbl.setParameters(kvs);
+      }
+      LOG.info("parts: " + partNames.toString());
+      List<Partition> parts = get_partitions_by_names(dbName, tableName, partNames);
+      if (parts.size() == 0) {
+        LOG.info("Zero partition list, do not migrate!");
+        rcli.close();
+        return false;
+      }
+      for (Partition p : parts) {
+        LOG.info("p " + p.getPartitionName() + " subparts " + p.getSubpartitionsSize());
+        for (Subpartition sp : p.getSubpartitions()) {
+          LOG.info("sp " + sp.getPartitionName() + " files " + sp.getFiles().toString());
+        }
+      }
+
+      // call remote metastore's migrate_in to prepare metadata
+      Map<Long, SFile> rmap = rcli.migrate_in(tbl, parts, ldc.getName());
+
+      // iterate the value set to generate a devmap
+      Map<String, String> devmap = new HashMap<String, String>();
+      for (Map.Entry<Long, SFile> e : rmap.entrySet()) {
+        SFileLocation sfl = e.getValue().getLocations().get(0);
+        String mp = rcli.getMP(sfl.getNode_name(), sfl.getDevid());
+        devmap.put(sfl.getDevid(), mp);
+      }
+
+      rcli.close();
+
+      // construct a replicate request to source node
+      if (rmap.size() > 0) {
+        for (Map.Entry<Long, SFile> e : rmap.entrySet()) {
+          SFileLocation sfl = e.getValue().getLocations().get(0);
+          LOG.info("------migrate----fid " + e.getKey() + "----to---->" + sfl.getNode_name() + ":" +
+              sfl.getDevid() + ":" + sfl.getLocation());
+          SFile source = get_file_by_id(e.getKey());
+          DMRequest dmr = new DMRequest(source, e.getValue(), devmap, to_dc);
+          synchronized (dm.repQ) {
+            dm.repQ.add(dmr);
+            dm.repQ.notify();
+          }
+        }
+      }
+
+      // create triple-id map
+      Map<String, Long> timap = new HashMap<String, Long>();
+      for (Map.Entry<Long, SFile> e : rmap.entrySet()) {
+          SFileLocation sfl = e.getValue().getLocations().get(0);
+          timap.put(new SFLTriple(sfl.getNode_name(), sfl.getDevid(), sfl.getLocation()).toString(), e.getKey());
+      }
+
+      // add the entries to migrate set
+      MigrateEntry thisme = null;
+      Map<Long, MigrateEntry> id2me = new HashMap<Long, MigrateEntry>();
+      for (Partition part : parts) {
+        if (part.getSubpartitionsSize() > 0) {
+          for (Subpartition subpart : part.getSubpartitions()) {
+            if (subpart.getFilesSize() > 0) {
+              thisme = new MigrateEntry(to_dc, subpart, subpart.getFiles(), timap);
+              for (Long fid : subpart.getFiles()) {
+                id2me.put(fid, thisme);
+              }
+            }
+          }
+        } else if (part.getFilesSize() > 0) {
+          thisme = new MigrateEntry(to_dc, part, part.getFiles(), timap);
+          for (Long fid : part.getFiles()) {
+            id2me.put(fid, thisme);
+          }
+        }
+      }
+
+      // add to global rrmap: triple to migrateentry
+      if (thisme != null) {
+        for (Map.Entry<Long, SFile> e : rmap.entrySet()) {
+          SFileLocation sfl = e.getValue().getLocations().get(0);
+          synchronized (dm.rrmap) {
+            Long fid = timap.get(new SFLTriple(sfl.getNode_name(), sfl.getDevid(), sfl.getLocation()).toString());
+            dm.rrmap.put(new SFLTriple(sfl.getNode_name(), sfl.getDevid(), sfl.getLocation()).toString(), id2me.get(fid));
+          }
+        }
+      }
+
+      alter_table(dbName, tableName, tbl);
+      LOG.info("Update table properties to reflect the migration.");
+
+      return true;
+    }
+
+    @Override
+    public String getMP(String node_name, String devid) throws MetaException, TException {
+      if (dm == null) {
+        throw new MetaException("Invalid DiskManager!");
+      }
+      return dm.getMP(node_name, devid);
+    }
+
+    private boolean isTopDc(){
+      return hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER);
+    }
+
+    @Override
+    public List<BusiTypeDatacenter> get_all_busi_type_datacenters() throws MetaException,
+        TException {
+
+      if(isTopDc()){
+        return this.getMS().get_all_busi_type_datacenters();
+      }else{
+        if(topdcli != null){
+          return topdcli.get_all_busi_type_datacenters();
+        }else{
+          throw new MetaException("Top datacenter is not reachable!");
+        }
+      }
+    }
+
+
+
+    @Override
+    public void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
+        throws InvalidObjectException, MetaException, TException {
+      if(isTopDc()){
+        getMS().append_busi_type_datacenter(busiTypeDatacenter);
+      }else{
+        if(topdcli != null){
+          topdcli.append_busi_type_datacenter(busiTypeDatacenter);
+        }else{
+          throw new MetaException("Top datacenter is not reachable!");
+        }
       }
     }
 
@@ -4300,6 +5132,26 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     return ret;
   }
    //added by liulichao
+
+    @Override
+    public SFile get_file_by_name(String node, String devid, String location)
+        throws FileOperationException, MetaException, TException {
+      SFile r = getMS().getSFile(node, devid, location);
+      if (r == null) {
+        throw new FileOperationException("Can not find SFile by name: " + node + ":" + devid + ":" + location, FOFailReason.INVALID_FILE);
+      }
+
+      switch (r.getStore_status()) {
+      case MetaStoreConst.MFileStoreStatus.RM_LOGICAL:
+      case MetaStoreConst.MFileStoreStatus.RM_PHYSICAL:
+        break;
+      default:
+        r.setLocations(getMS().getSFileLocations(r.getFid()));
+      }
+      return r;
+
+    }
+
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {
@@ -4450,6 +5302,25 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
   }
 
+  static void connect_to_top_dc(HiveConf conf) throws MetaException {
+    boolean is_top_dc = conf.getBoolVar(ConfVars.IS_TOP_DATACENTER);
+    if (!is_top_dc) {
+      LOG.info("Begin connecting to Top-level Datacenter Metastore ...");
+      String top_dc_uri = conf.getVar(ConfVars.TOP_DATACENTER);
+      if (top_dc_uri == null) {
+        throw new MetaException("Please set 'hive.datacenter.top' as top-level metastore URI." );
+      }
+      try {
+      HMSHandler.topdcli = new HiveMetaStoreClient(top_dc_uri,
+          HiveConf.getIntVar(conf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
+          conf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
+          null);
+      } catch (MetaException me) {
+        LOG.info("Connect to top-level Datacenter failed!");
+      }
+    }
+  }
+
   /**
    * Start Metastore based on a passed {@link HadoopThriftAuthBridge}
    *
@@ -4474,6 +5345,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
   public static void startMetaStore(int port, HadoopThriftAuthBridge bridge,
       HiveConf conf) throws Throwable {
     try {
+      // init connection to top-level datacenter if it is not top-level dc
+      connect_to_top_dc(conf);
+
+      // generate this msuri
+      HMSHandler.msUri = "thrift://" + InetAddress.getLocalHost().getHostName() + ":" + port;
 
       // Server will create new threads up to max as necessary. After an idle
       // period, it will destory threads to keep the number of threads in the

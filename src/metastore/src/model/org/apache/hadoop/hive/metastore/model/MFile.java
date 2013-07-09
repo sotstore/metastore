@@ -9,9 +9,10 @@ public class MFile {
   private long record_nr;
   private long all_record_nr;
   //private List<MFileLocation> locations;
+  private long length;
 
   public MFile(long fid, long placement, int store_status, int rep_nr, String digest,
-      long record_nr, long all_record_nr) {
+      long record_nr, long all_record_nr, long length) {
     this.setFid(fid);
     this.placement = placement;
     this.store_status = store_status;
@@ -19,6 +20,7 @@ public class MFile {
     this.digest = digest;
     this.record_nr = record_nr;
     this.all_record_nr = all_record_nr;
+    this.setLength(length);
   }
 
   public int getStore_status() {
@@ -63,5 +65,13 @@ public class MFile {
 
   public void setFid(long fid) {
     this.fid = fid;
+  }
+
+  public long getLength() {
+    return length;
+  }
+
+  public void setLength(long length) {
+    this.length = length;
   }
 }

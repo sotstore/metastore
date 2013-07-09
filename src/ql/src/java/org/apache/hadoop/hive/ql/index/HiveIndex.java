@@ -33,7 +33,9 @@ public class HiveIndex {
     AGGREGATE_TABLE("aggregate", "org.apache.hadoop.hive.ql.AggregateIndexHandler"),
     COMPACT_SUMMARY_TABLE("compact", "org.apache.hadoop.hive.ql.index.compact.CompactIndexHandler"),
     BITMAP_TABLE("bitmap",
-"org.apache.hadoop.hive.ql.index.bitmap.BitmapIndexHandler");
+        "org.apache.hadoop.hive.ql.index.bitmap.BitmapIndexHandler"),
+    LUCENE_TABLE("lucene","lucene"),
+    BLOOMFILTER_TABLE("bloomfilter","bloomfilter");
 
     private IndexType(String indexType, String className) {
       indexTypeName = indexType;

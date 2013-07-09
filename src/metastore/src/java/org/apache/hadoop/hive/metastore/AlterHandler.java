@@ -76,7 +76,7 @@ public interface AlterHandler extends Configurable {
    * @throws MetaException
    */
   public abstract Partition alterPartition(final RawStore msdb, Warehouse wh, final String dbname,
-      final String name, final List<String> part_vals, final Partition new_part)
+      final String name, final String partName, final List<String> part_vals, final Partition new_part)
       throws InvalidOperationException, InvalidObjectException, AlreadyExistsException,
       MetaException;
 

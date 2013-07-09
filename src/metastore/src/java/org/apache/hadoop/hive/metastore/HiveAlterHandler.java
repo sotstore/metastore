@@ -30,7 +30,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
-import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
@@ -38,6 +37,7 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
 
 /**
  * Hive specific implementation of alter
@@ -175,7 +175,7 @@ public class HiveAlterHandler implements AlterHandler {
                                       oldUri.getAuthority(),
                                       newPath);
             part.getSd().setLocation(newPartLocPath.toString());
-            msdb.alterPartition(dbname, name, part.getValues(), part);
+            msdb.alterPartition(dbname, name, part.getPartitionName(), part.getValues(), part);
           }
         }
       }
@@ -228,7 +228,7 @@ public class HiveAlterHandler implements AlterHandler {
   }
 
   public Partition alterPartition(final RawStore msdb, Warehouse wh, final String dbname,
-      final String name, final List<String> part_vals, final Partition new_part)
+      final String name, final String partName, final List<String> part_vals, final Partition new_part)
       throws InvalidOperationException, InvalidObjectException, AlreadyExistsException,
       MetaException {
     boolean success = false;
@@ -251,8 +251,8 @@ public class HiveAlterHandler implements AlterHandler {
     //alter partition
     if (part_vals == null || part_vals.size() == 0) {
       try {
-        oldPart = msdb.getPartition(dbname, name, new_part.getValues());
-        msdb.alterPartition(dbname, name, new_part.getValues(), new_part);
+        oldPart = msdb.getPartition(dbname, name, new_part.getPartitionName());
+        msdb.alterPartition(dbname, name, new_part.getPartitionName(), new_part.getValues(), new_part);
       } catch (InvalidObjectException e) {
         throw new InvalidOperationException("alter is not possible");
       } catch (NoSuchObjectException e){
@@ -265,7 +265,7 @@ public class HiveAlterHandler implements AlterHandler {
     try {
       msdb.openTransaction();
       try {
-        oldPart = msdb.getPartition(dbname, name, part_vals);
+        oldPart = msdb.getPartition(dbname, name, partName);
       } catch (NoSuchObjectException e) {
         // this means there is no existing partition
         throw new InvalidObjectException(
@@ -273,7 +273,7 @@ public class HiveAlterHandler implements AlterHandler {
       }
       Partition check_part = null;
       try {
-        check_part = msdb.getPartition(dbname, name, new_part.getValues());
+        check_part = msdb.getPartition(dbname, name, new_part.getPartitionName());
       } catch(NoSuchObjectException e) {
         // this means there is no existing partition
         check_part = null;
@@ -291,7 +291,7 @@ public class HiveAlterHandler implements AlterHandler {
       // if the external partition is renamed, the file should not change
       if (tbl.getTableType().equals(TableType.EXTERNAL_TABLE.toString())) {
         new_part.getSd().setLocation(oldPart.getSd().getLocation());
-        msdb.alterPartition(dbname, name, part_vals, new_part);
+        msdb.alterPartition(dbname, name, partName, part_vals, new_part);
       } else {
         try {
           destPath = new Path(wh.getTablePath(msdb.getDatabase(dbname), name),
@@ -334,7 +334,7 @@ public class HiveAlterHandler implements AlterHandler {
               + tbl.getTableName() + " " + new_part.getValues());
           }
           new_part.getSd().setLocation(newPartLoc);
-          msdb.alterPartition(dbname, name, part_vals, new_part);
+          msdb.alterPartition(dbname, name, partName, part_vals, new_part);
         }
       }
 
@@ -359,7 +359,7 @@ public class HiveAlterHandler implements AlterHandler {
           boolean revertMetaDataTransaction = false;
           try {
             msdb.openTransaction();
-            msdb.alterPartition(dbname, name, new_part.getValues(), oldPart);
+            msdb.alterPartition(dbname, name, new_part.getPartitionName(), new_part.getValues(), oldPart);
             revertMetaDataTransaction = msdb.commitTransaction();
           } catch (Exception e1) {
             LOG.error("Reverting metadata opeation failed During HDFS operation failed", e1);
@@ -381,6 +381,7 @@ public class HiveAlterHandler implements AlterHandler {
       throws InvalidOperationException, InvalidObjectException, AlreadyExistsException,
       MetaException {
     List<Partition> oldParts = new ArrayList<Partition>();
+    List<String> partNames = new ArrayList<String>();
     List<List<String>> partValsList = new ArrayList<List<String>>();
     try {
       for (Partition tmpPart: new_parts) {
@@ -391,11 +392,12 @@ public class HiveAlterHandler implements AlterHandler {
           tmpPart.putToParameters(hive_metastoreConstants.DDL_TIME, Long.toString(System
               .currentTimeMillis() / 1000));
         }
-        Partition oldTmpPart = msdb.getPartition(dbname, name, tmpPart.getValues());
+        Partition oldTmpPart = msdb.getPartition(dbname, name, tmpPart.getPartitionName());
         oldParts.add(oldTmpPart);
         partValsList.add(tmpPart.getValues());
+        partNames.add(tmpPart.getPartitionName());
       }
-      msdb.alterPartitions(dbname, name, partValsList, new_parts);
+      msdb.alterPartitions(dbname, name, partNames, partValsList, new_parts);
     } catch (InvalidObjectException e) {
       throw new InvalidOperationException("alter is not possible");
     } catch (NoSuchObjectException e){

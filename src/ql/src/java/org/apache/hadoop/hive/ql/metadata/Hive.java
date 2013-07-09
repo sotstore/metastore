@@ -57,6 +57,7 @@ import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
+import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -75,7 +76,7 @@ import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
 import org.apache.hadoop.hive.ql.exec.Utilities;
-import org.apache.hadoop.hive.ql.index.HiveIndexHandler;
+import org.apache.hadoop.hive.ql.index.HiveIndex.IndexType;
 import org.apache.hadoop.hive.ql.session.CreateTableAutomaticGrant;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.hive.serde2.Deserializer;
@@ -552,7 +553,7 @@ public class Hive {
       if (tbl.getDbName() == null || "".equals(tbl.getDbName().trim())) {
         tbl.setDbName(getCurrentDatabase());
       }
-      if (tbl.getCols().size() == 0) {
+      if (tbl.getCols().size() == 0 && !tbl.isHeterView()) {
         tbl.setFields(MetaStoreUtils.getFieldsFromDeserializer(tbl.getTableName(),
             tbl.getDeserializer()));
       }
@@ -641,18 +642,20 @@ public class Hive {
         throw new HiveException("tableName="+ tableName +" is a VIRTUAL VIEW. Index on VIRTUAL VIEW is not supported.");
       }
 
-      if (indexTblName == null) {
-        indexTblName = MetaStoreUtils.getIndexTableName(dbName, tableName, indexName);
-      } else {
-        org.apache.hadoop.hive.metastore.api.Table temp = null;
-        try {
-          temp = getMSC().getTable(dbName, indexTblName);
-        } catch (Exception e) {
-        }
-        if (temp != null) {
-          throw new HiveException("Table name " + indexTblName + " already exists. Choose another name.");
-        }
-      }
+
+      //removed by zjw , do not store index as an additional talbe
+//      if (indexTblName == null) {
+//        indexTblName = MetaStoreUtils.getIndexTableName(dbName, tableName, indexName);
+//      } else {
+//        org.apache.hadoop.hive.metastore.api.Table temp = null;
+//        try {
+//          temp = getMSC().getTable(dbName, indexTblName);
+//        } catch (Exception e) {
+//        }
+//        if (temp != null) {
+//          throw new HiveException("Table name " + indexTblName + " already exists. Choose another name.");
+//        }
+//      }
 
       org.apache.hadoop.hive.metastore.api.StorageDescriptor storageDescriptor = baseTbl.getSd().deepCopy();
       SerDeInfo serdeInfo = storageDescriptor.getSerdeInfo();
@@ -725,19 +728,20 @@ public class Hive {
 
       int time = (int) (System.currentTimeMillis() / 1000);
       org.apache.hadoop.hive.metastore.api.Table tt = null;
-      HiveIndexHandler indexHandler = HiveUtils.getIndexHandler(this.getConf(), indexHandlerClass);
+    //removed by zjw , do not store index as an additional talbe
 
-      if (indexHandler.usesIndexTable()) {
-        tt = new org.apache.hadoop.hive.ql.metadata.Table(dbName, indexTblName).getTTable();
-        List<FieldSchema> partKeys = baseTbl.getPartitionKeys();
-        tt.setPartitionKeys(partKeys);
-        tt.setTableType(TableType.INDEX_TABLE.toString());
-        if (tblProps != null) {
-          for (Entry<String, String> prop : tblProps.entrySet()) {
-            tt.putToParameters(prop.getKey(), prop.getValue());
-          }
-        }
-      }
+//      HiveIndexHandler indexHandler = HiveUtils.getIndexHandler(this.getConf(), indexHandlerClass);
+//      if (indexHandler.usesIndexTable()) {
+//        tt = new org.apache.hadoop.hive.ql.metadata.Table(dbName, indexTblName).getTTable();
+//        List<FieldSchema> partKeys = baseTbl.getPartitionKeys();
+//        tt.setPartitionKeys(partKeys);
+//        tt.setTableType(TableType.INDEX_TABLE.toString());
+//        if (tblProps != null) {
+//          for (Entry<String, String> prop : tblProps.entrySet()) {
+//            tt.putToParameters(prop.getKey(), prop.getValue());
+//          }
+//        }
+//      }
 
       if(!deferredRebuild) {
         throw new RuntimeException("Please specify deferred rebuild using \" WITH DEFERRED REBUILD \".");
@@ -754,13 +758,34 @@ public class Hive {
         indexDesc.getParameters().putAll(idxProps);
       }
 
-      indexHandler.analyzeIndexDefinition(baseTbl, indexDesc, tt);
+//      indexHandler.analyzeIndexDefinition(baseTbl, indexDesc, tt);
+      //added by zjw
+      analyzeValidIndexDefinition(baseTbl, indexDesc, tt);
 
       this.getMSC().createIndex(indexDesc, tt);
 
     } catch (Exception e) {
       throw new HiveException(e);
     }
+  }
+
+  private void analyzeValidIndexDefinition(org.apache.hadoop.hive.metastore.api.Table baseTable,
+      org.apache.hadoop.hive.metastore.api.Index index,
+      org.apache.hadoop.hive.metastore.api.Table indexTable)
+      throws HiveException{
+      if(IndexType.LUCENE_TABLE.getHandlerClsName()
+          .equals(index.getIndexHandlerClass())){
+        Map<String, String> params = index.getParameters();
+        for(String key:params.keySet()){
+          LOG.warn("---jzw--lucene.prop.name:"+key);
+        }
+
+        if( !params.containsKey(Constants.META_LUCENE_ANALYZE)
+            || !params.containsKey(Constants.META_LUCENE_ANALYZE)
+            || !params.containsKey(Constants.META_LUCENE_ANALYZE)){
+          throw new HiveException("Lucene properties have to be setted.");
+        }
+      }
   }
 
   public Index getIndex(String qualifiedIndexName) throws HiveException {
@@ -1324,7 +1349,23 @@ public class Hive {
    */
   public Partition createPartition(Table tbl, Map<String, String> partSpec)
       throws HiveException {
-    return createPartition(tbl, partSpec, null, null, null, null, -1,
+    return createPartition(tbl, null ,partSpec);
+  }
+
+  /**
+   * Creates a partition.
+   *
+   * @param tbl
+   *          table for which partition needs to be created
+   * @param partSpec
+   *          partition keys and their values
+   * @return created partition object
+   * @throws HiveException
+   *           if table doesn't exist or partition already exists
+   */
+  public Partition createPartition(Table tbl, String partitionName ,Map<String, String> partSpec)
+      throws HiveException {
+    return createPartition(tbl, partitionName,partSpec, null, null, null, null, -1,
         null, null, null, null, null);
   }
 
@@ -1352,7 +1393,7 @@ public class Hive {
    * @throws HiveException
    *           if table doesn't exist or partition already exists
    */
-  public Partition createPartition(Table tbl, Map<String, String> partSpec,
+  public Partition createPartition(Table tbl, String partitionName, Map<String, String> partSpec,
       Path location, Map<String, String> partParams, String inputFormat, String outputFormat,
       int numBuckets, List<FieldSchema> cols,
       String serializationLib, Map<String, String> serdeParams,
@@ -1360,13 +1401,13 @@ public class Hive {
 
     org.apache.hadoop.hive.metastore.api.Partition partition = null;
 
-    for (FieldSchema field : tbl.getPartCols()) {
-      String val = partSpec.get(field.getName());
-      if (val == null || val.length() == 0) {
-        throw new HiveException("add partition: Value for key "
-            + field.getName() + " is null or empty");
-      }
-    }
+//    for (FieldSchema field : tbl.getPartCols()) {
+//      String val = partSpec.get(field.getName());
+//      if (val == null || val.length() == 0) {
+//        throw new HiveException("add partition: Value for key "
+//            + field.getName() + " is null or empty");
+//      }
+//    }
 
     try {
       Partition tmpPart = new Partition(tbl, partSpec, location);
@@ -1374,6 +1415,10 @@ public class Hive {
       // not populated on construction.
       org.apache.hadoop.hive.metastore.api.Partition inPart
         = tmpPart.getTPartition();
+      if(partitionName != null){
+        inPart.setPartitionName(partitionName);
+      }
+
       if (partParams != null) {
         inPart.setParameters(partParams);
       }
@@ -1401,6 +1446,7 @@ public class Hive {
       if (sortCols != null) {
         inPart.getSd().setSortCols(sortCols);
       }
+      LOG.warn("---zjw-- before hive add_partition.");
       partition = getMSC().add_partition(inPart);
     } catch (Exception e) {
       LOG.error(StringUtils.stringifyException(e));
@@ -1436,17 +1482,23 @@ public class Hive {
       throw new HiveException("Invalid partition: " + partSpec);
     }
     List<String> pvals = new ArrayList<String>();
-    for (FieldSchema field : tbl.getPartCols()) {
-      String val = partSpec.get(field.getName());
-      // enable dynamic partitioning
-      if (val == null && !HiveConf.getBoolVar(conf, HiveConf.ConfVars.DYNAMICPARTITIONING)
-          || val.length() == 0) {
-        throw new HiveException("get partition: Value for key "
-            + field.getName() + " is null or empty");
-      } else if (val != null){
+//    for (FieldSchema field : tbl.getPartCols()) {
+//      String val = partSpec.get(field.getName());
+//      // enable dynamic partitioning
+//      if (val == null && !HiveConf.getBoolVar(conf, HiveConf.ConfVars.DYNAMICPARTITIONING)
+//          || val.length() == 0) {
+//        throw new HiveException("get partition: Value for key "
+//            + field.getName() + " is null or empty");
+//      } else if (val != null){
+//        pvals.add(val);
+//      }
+//    }
+
+    //modified by zjw
+    for (String val : partSpec.values()) {
         pvals.add(val);
-      }
     }
+
     org.apache.hadoop.hive.metastore.api.Partition tpart = null;
     try {
       tpart = getMSC().getPartitionWithAuthInfo(tbl.getDbName(),
@@ -2461,4 +2513,36 @@ public class Hive {
   private static String[] getQualifiedNames(String qualifiedName) {
     return qualifiedName.split("\\.");
   }
+
+  /*******************************added by zjw
+   * @throws HiveException ***************************************/
+  public void dropPartition(String db_name,String tbl_name,String part_name) throws HiveException{
+    try{
+      Table t = this.getTable(db_name, tbl_name);
+      getMSC().dropPartition(t.getDbName(), tbl_name, part_name, false);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public boolean addDatawareHouseSql(Integer dwNum, String sql) throws HiveException{
+    try{
+      getMSC().addDatawareHouseSql(dwNum, sql);
+
+      return true;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public List<String> getSubPartitions(String dbName, String tabName, String partName) throws HiveException {
+    try{
+//      Table t = this.getTable(db_name, tbl_name);
+      return getMSC().getSubPartitions(dbName, tabName, partName);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
 };

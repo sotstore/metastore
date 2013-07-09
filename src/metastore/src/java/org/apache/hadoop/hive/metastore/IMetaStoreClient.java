@@ -22,9 +22,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
+import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -44,6 +47,8 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
@@ -971,12 +976,17 @@ public interface IMetaStoreClient {
    */
   public void cancelDelegationToken(String tokenStrForm) throws MetaException, TException;
 
-  public SFile create_file(String node_name, int repnr, long table_id)
+  public SFile create_file(String node_name, int repnr, String db_name, String table_name)
       throws FileOperationException, TException;
 
   public int close_file(SFile file) throws FileOperationException, TException;
 
   public SFile get_file_by_id(long fid) throws FileOperationException, MetaException, TException;
+
+  public SFile get_file_by_name(String node, String devid, String location)
+        throws FileOperationException, MetaException, TException;
+
+  public List<SFile> get_files_by_ids(List<Long> fids) throws FileOperationException, MetaException, TException;
 
   public int rm_file_logical(SFile file) throws FileOperationException, MetaException, TException;
 
@@ -1035,4 +1045,77 @@ public interface IMetaStoreClient {
 
   public List<String> list_users_names() throws MetaException, TException;
   //authentication and authorization with user by liulichao, end
+
+  public Boolean del_node(String node_name) throws MetaException, TException;
+
+  public Node alter_node(String node_name, List<String> ipl, int status) throws MetaException, TException;
+
+  public List<Node> get_all_nodes() throws MetaException, TException;
+
+  public int add_partition_files(Partition part, List<SFile> files) throws TException;
+
+  public int drop_partition_files(Partition part, List<SFile> files) throws TException;
+  //added by zjw
+  public int add_subpartition_files(Subpartition subpart, List<SFile> files) throws TException;
+
+  public int drop_subpartition_files(Subpartition subpart, List<SFile> files) throws TException;
+
+  public List<String> get_partition_names(final String db_name, final String tbl_name,
+        final short max_parts) throws MetaException, TException;
+
+  public boolean add_partition_index(Index index, Partition part) throws TException;
+
+  public boolean drop_partition_index(Index index, Partition part) throws TException;
+//added by zjw
+  public boolean add_subpartition_index(Index index, Subpartition subpart) throws TException;
+
+  public boolean drop_subpartition_index(Index index, Subpartition subpart) throws TException;
+
+  public boolean add_partition_index_files(Index index, Partition part, List<SFile> file,
+        List<Long> originfid) throws MetaException, TException;
+
+  public boolean drop_partition_index_files(Index index, Partition part, List<SFile> file)
+        throws MetaException, TException;
+//added by zjw
+  public boolean add_subpartition_index_files(Index index, Subpartition subpart, List<SFile> file,
+      List<Long> originfid) throws MetaException, TException;
+
+  public boolean drop_subpartition_index_files(Index index, Subpartition subpart, List<SFile> file)
+      throws MetaException, TException;
+
+  public List<SFileRef> get_partition_index_files(Index index, Partition part)
+      throws MetaException, TException;
+
+  public String getDMStatus() throws MetaException, TException;
+
+  public boolean addDatawareHouseSql(Integer dwNum, String sql)throws MetaException, TException;
+
+  public List<String> getSubPartitions(String dbName, String tabName, String partName) throws MetaException, TException;
+
+  public Datacenter get_local_center() throws MetaException, TException;
+
+  public List<Datacenter> get_all_centers() throws MetaException, TException;
+
+  public Datacenter get_center(String name) throws NoSuchObjectException, MetaException,
+        TException;
+
+  public void create_datacenter(Datacenter datacenter) throws AlreadyExistsException,
+        InvalidObjectException, MetaException, TException;
+
+  public void update_center(Datacenter datacenter) throws NoSuchObjectException,
+        InvalidOperationException, MetaException, TException;
+
+  public boolean migrate_out(String dbName, String tableName, List<String> partNames, String to_dc)
+        throws MetaException, TException;
+
+  public String getMP(String node_name, String devid) throws MetaException, TException;
+
+  public Map<Long, SFile> migrate_in(Table tbl, List<Partition> parts, String from_dc) throws MetaException, TException;
+
+  public List<BusiTypeColumn> get_all_busi_type_cols() throws MetaException, TException;
+
+  void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
+      throws InvalidObjectException, MetaException, TException;
+
+  List<BusiTypeDatacenter> get_all_busi_type_datacenters() throws MetaException, TException;
 }

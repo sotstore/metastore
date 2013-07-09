@@ -31,6 +31,7 @@ public class MDatabase {
   private String name;
   private String locationUri;
   private String description;
+  private MDatacenter datacenter;
   private Map<String, String> parameters;
 
   /**
@@ -44,11 +45,12 @@ public class MDatabase {
    * @param locationUri Location of the database in the warehouse
    * @param description Comment describing the database
    */
-  public MDatabase(String name, String locationUri, String description,
+  public MDatabase(String name, String locationUri, String description, MDatacenter datacenter,
       Map<String, String> parameters) {
     this.name = name;
     this.locationUri = locationUri;
     this.description = description;
+    this.datacenter = datacenter;
     this.parameters = parameters;
   }
 
@@ -107,4 +109,14 @@ public class MDatabase {
   public void setParameters(Map<String, String> parameters) {
     this.parameters = parameters;
   }
+
+  public MDatacenter getDatacenter() {
+    return datacenter;
+  }
+
+  public void setDatacenter(MDatacenter datacenter) {
+    this.datacenter = datacenter;
+  }
+
+
 }

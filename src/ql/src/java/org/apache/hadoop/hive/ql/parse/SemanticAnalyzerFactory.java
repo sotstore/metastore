@@ -200,6 +200,31 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_CHANGE_PWD:     //added by liulichao
       case HiveParser.TOK_AUTHENTICATION: //added by liulichao
       case HiveParser.TOK_SHOW_USERNAMES: //added by liulichao
+      case HiveParser.TOK_CREATEDATACENTER:
+      case HiveParser.TOK_DROPDATACENTER:
+      case HiveParser.TOK_DATACENTERCOMMENT:
+      case HiveParser.TOK_ADDNODE:
+      case HiveParser.TOK_DROPNODE:
+      case HiveParser.TOK_MODIFYNODE:
+      case HiveParser.TOK_ALTERTABLE_DROP_PARTITION:
+      case HiveParser.TOK_ALTERTABLE_DROP_SUBPARTITION:
+      case HiveParser.TOK_ALTERTABLE_ADD_PARTITION:
+      case HiveParser.TOK_ALTERTABLE_ADD_SUBPARTITION:
+      case HiveParser.TOK_ALTERTABLE_MODIFY_PARTITION_ADD_FILE:
+      case HiveParser.TOK_ALTERTABLE_MODIFY_PARTITION_DROP_FILE:
+      case HiveParser.TOK_ALTERTABLE_MODIFY_SUBPARTITION_ADD_FILE:
+      case HiveParser.TOK_ALTERTABLE_MODIFY_SUBPARTITION_DROP_FILE:
+      case HiveParser.TOK_ALTERINDEX_DROP_PARTINDEXS:
+      case HiveParser.TOK_ALTERINDEX_DROP_SUBPARTINDEXS:
+      case HiveParser.TOK_ALTERINDEX_ADD_PARTINDEXS:
+      case HiveParser.TOK_ALTERINDEX_ADD_SUBPARTINDEXS:
+      case HiveParser.TOK_ALTERINDEX_MODIFY_PARTITION_ADD_FILE:
+      case HiveParser.TOK_ALTERINDEX_MODIFY_SUBPARTITION_ADD_FILE:
+      case HiveParser.TOK_ALTERINDEX_MODIFY_PARTINDEX_DROP_FILE:
+      case HiveParser.TOK_ALTERINDEX_MODIFY_SUBPARTINDEX_DROP_FILE:
+      case HiveParser.TOK_ALTER_DW:
+      case HiveParser.TOK_SHOWSUBPARTITIONS:
+      case HiveParser.TOK_SHOWPARTITIONKEYS:
 
         return new DDLSemanticAnalyzer(conf);
       case HiveParser.TOK_ALTERTABLE_PARTITION:
