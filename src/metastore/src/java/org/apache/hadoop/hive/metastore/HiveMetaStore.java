@@ -1819,6 +1819,16 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         if (old_part != null) {
           throw new AlreadyExistsException("Partition already exists:" + part);
         }
+        if(part.getPartitionName() == null || part.getPartitionName().isEmpty()){
+          throw new AlreadyExistsException("Partition name not identified!");
+        }else{
+          String pn = part.getPartitionName();
+          for(int i=0 ; i < pn.length(); i++){
+            if(pn.charAt(i) == '\t' || pn.charAt(i) == '\n' || pn.charAt(i) == ' ') {
+              throw new AlreadyExistsException("Partition name "+part.getPartitionName()+" not valid,contains space/tab/\n character!");
+            }
+          }
+        }
         tbl = ms.getTable(part.getDbName(), part.getTableName());
         if (tbl == null) {
           throw new InvalidObjectException(
