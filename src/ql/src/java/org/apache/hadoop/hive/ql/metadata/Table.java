@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -37,6 +38,7 @@ import org.apache.hadoop.hive.common.JavaUtils;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.ProtectMode;
 import org.apache.hadoop.hive.metastore.TableType;
+import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.MetaException;
@@ -99,6 +101,12 @@ public class Table implements Serializable {
       getInputFormatClass();
       // This will set up field: outputFormatClass
       getOutputFormatClass();
+    }
+    for(Entry<String,String> param :table.getParameters().entrySet()){
+      LOG.info("---zjw--getParameters:"+param.getKey()+"--"+param.getValue());
+    }
+    if(table.getParameters().containsKey(Constants.META_HETER_VIEW)){
+      isHeterView = true;
     }
   }
 

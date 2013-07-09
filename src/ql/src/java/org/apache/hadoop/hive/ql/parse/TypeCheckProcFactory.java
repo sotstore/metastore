@@ -163,7 +163,7 @@ public final class TypeCheckProcFactory {
     ArrayList<Node> topNodes = new ArrayList<Node>();
     topNodes.add(expr);
     HashMap<Node, Object> nodeOutputs = new HashMap<Node, Object>();
-    LOG.info("---zjw ---before ogw.startWalking,expr:"+expr.toStringTree());
+    LOG.info("---zjw ---before ogw.startWalking,expr:"+expr.toStringTree()+"--HiveParser.TOK_TABLE_OR_COL:"+HiveParser.TOK_TABLE_OR_COL);
     ogw.startWalking(topNodes, nodeOutputs);
 
     return nodeOutputs;

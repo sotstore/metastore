@@ -38,7 +38,7 @@ public class RuleRegExp implements Rule {
    * expression is specified in terms of Node name. For eg: TS.*RS -> means
    * TableScan Node followed by anything any number of times followed by
    * ReduceSink
-   * 
+   *
    * @param ruleName
    *          name of the rule
    * @param regExp
@@ -52,7 +52,7 @@ public class RuleRegExp implements Rule {
   /**
    * This function returns the cost of the rule for the specified stack. Lower
    * the cost, the better the rule is matched
-   * 
+   *
    * @param stack
    *          Node stack encountered so far
    * @return cost of the function

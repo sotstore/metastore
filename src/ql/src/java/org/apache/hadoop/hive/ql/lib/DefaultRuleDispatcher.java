@@ -36,7 +36,7 @@ public class DefaultRuleDispatcher implements Dispatcher {
 
   /**
    * Constructor.
-   * 
+   *
    * @param defaultProc
    *          default processor to be fired if no rule matches
    * @param rules
@@ -53,7 +53,7 @@ public class DefaultRuleDispatcher implements Dispatcher {
 
   /**
    * Dispatcher function.
-   * 
+   *
    * @param nd
    *          operator to process
    * @param ndStack

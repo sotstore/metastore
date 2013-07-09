@@ -6621,7 +6621,9 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 
   @SuppressWarnings("nls")
   private Operator genBodyPlan(QB qb, Operator input) throws SemanticException {
-    QBParseInfo qbp = qb.getParseInfo();  TreeSet<String> ks = new TreeSet<String>(qbp.getClauseNames());
+    QBParseInfo qbp = qb.getParseInfo();
+
+    TreeSet<String> ks = new TreeSet<String>(qbp.getClauseNames());
     // For multi-group by with the same distinct, we ignore all user hints
     // currently. It doesnt matter whether he has asked to do
     // map-side aggregation or not. Map side aggregation is turned off
@@ -6836,6 +6838,190 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     return curr;
   }
 
+  /**
+   * added by zjw 异构视图的实现
+   * @param unionalias
+   * @param leftalias
+   * @param leftOp
+   * @param rightalias
+   * @param rightOp
+   * @return
+   * @throws SemanticException
+   */
+  @SuppressWarnings("nls")
+  private Operator genHeterUnionPlan(String unionalias, String leftalias,
+      Operator leftOp, String rightalias, Operator rightOp)
+      throws SemanticException {
+
+    // Currently, the unions are not merged - each union has only 2 parents. So,
+    // a n-way union will lead to (n-1) union operators.
+    // This can be easily merged into 1 union
+    RowResolver leftRR = opParseCtx.get(leftOp).getRowResolver();
+    RowResolver rightRR = opParseCtx.get(rightOp).getRowResolver();
+    HashMap<String, ColumnInfo> leftmap = leftRR.getFieldMap(leftalias);
+    HashMap<String, ColumnInfo> rightmap = rightRR.getFieldMap(rightalias);
+    // make sure the schemas of both sides are the same
+    ASTNode tabref = qb.getAliases().isEmpty() ? null :
+                       qb.getParseInfo().getSrcForAlias(qb.getAliases().get(0));
+//    if (leftmap.size() != rightmap.size()) {
+//      throw new SemanticException("Schema of both sides of union should match.");
+//    }
+    /**
+     * 处理步骤 :
+     *  1 union号两边fields个数是否匹配
+     *  2 两边alias是否匹配
+     *  3 检查两边不同类型是否可以相互转换
+     *  4 返回union的共同类型
+     *  5 返回两边的operator，如果需要类型转换，则产生新的select operator
+     *  6 将新建的union operator 同两边的operator关联起来
+     */
+
+
+    for (Map.Entry<String, ColumnInfo> lEntry : leftmap.entrySet()) {
+      String field = lEntry.getKey();
+      ColumnInfo lInfo = lEntry.getValue();
+      ColumnInfo rInfo = rightmap.get(field);
+      if (rInfo == null) {
+//        throw new SemanticException(generateErrorMessage(tabref,
+//            "Schema of both sides of union should match. " + rightalias
+//            + " does not have the field " + field));
+        continue;
+      }
+      if (lInfo == null) {
+//        throw new SemanticException(generateErrorMessage(tabref,
+//            "Schema of both sides of union should match. " + leftalias
+//            + " does not have the field " + field));
+        continue;
+      }
+//      if (!lInfo.getInternalName().equals(rInfo.getInternalName())) {
+//        throw new SemanticException(generateErrorMessage(tabref,
+//            "Schema of both sides of union should match: field " + field + ":"
+//            + " appears on the left side of the UNION at column position: " +
+//            getPositionFromInternalName(lInfo.getInternalName())
+//            + ", and on the right side of the UNION at column position: " +
+//            getPositionFromInternalName(rInfo.getInternalName())
+//            + ". Column positions should match for a UNION"));
+//      }
+      //try widening coversion, otherwise fail union
+      TypeInfo commonTypeInfo = FunctionRegistry.getCommonClassForUnionAll(lInfo.getType(),
+          rInfo.getType());
+      if (commonTypeInfo == null) {
+        throw new SemanticException(generateErrorMessage(tabref,
+            "Schema of both sides of union should match: Column " + field
+            + " is of type " + lInfo.getType().getTypeName()
+            + " on first table and type " + rInfo.getType().getTypeName()
+            + " on second table"));
+      }
+    }
+
+    // construct the forward operator
+    /**
+     * union all the fields of both union sides
+     */
+    RowResolver unionoutRR = new RowResolver();
+    for (Map.Entry<String, ColumnInfo> lEntry : leftmap.entrySet()) {
+      String field = lEntry.getKey();
+      ColumnInfo lInfo = lEntry.getValue();
+      ColumnInfo rInfo = rightmap.get(field);
+      if (lInfo == null) {
+        unionoutRR.put(unionalias, field, rInfo);
+        continue;
+      }
+
+      if (rInfo == null) {
+        unionoutRR.put(unionalias, field, lInfo);
+        continue;
+      }
+
+      ColumnInfo unionColInfo = new ColumnInfo(lInfo);
+      unionColInfo.setType(FunctionRegistry.getCommonClassForUnionAll(lInfo.getType(),
+            rInfo.getType()));
+      unionoutRR.put(unionalias, field, unionColInfo);
+    }
+
+    for (Map.Entry<String, ColumnInfo> rEntry : rightmap.entrySet()) {
+      String field = rEntry.getKey();
+      ColumnInfo lInfo = rEntry.getValue();
+      ColumnInfo rInfo = leftmap.get(field);
+      if (lInfo == null) {
+        unionoutRR.put(unionalias, field, rInfo);
+        continue;
+      }
+
+      if (rInfo == null) {
+        unionoutRR.put(unionalias, field, lInfo);
+        continue;
+      }
+    }
+    //merge all the fields done.
+
+//    if (!(leftOp instanceof UnionOperator)) {
+//      leftOp = genInputSelectForUnion(leftOp, leftmap, leftalias, unionoutRR, unionalias);
+//    }
+//
+//    if (!(rightOp instanceof UnionOperator)) {
+//      rightOp = genInputSelectForUnion(rightOp, rightmap, rightalias, unionoutRR, unionalias);
+//    }
+
+    // If one of the children is a union, merge with it
+    // else create a new one
+    if ((leftOp instanceof UnionOperator) || (rightOp instanceof UnionOperator)) {
+      if (leftOp instanceof UnionOperator) {
+        // make left a child of right
+        List<Operator<? extends OperatorDesc>> child =
+          new ArrayList<Operator<? extends OperatorDesc>>();
+        child.add(leftOp);
+        rightOp.setChildOperators(child);
+
+        List<Operator<? extends OperatorDesc>> parent = leftOp
+            .getParentOperators();
+        parent.add(rightOp);
+
+        UnionDesc uDesc = ((UnionOperator) leftOp).getConf();
+        uDesc.setNumInputs(uDesc.getNumInputs() + 1);
+        return putOpInsertMap(leftOp, unionoutRR);
+      } else {
+        // make right a child of left
+        List<Operator<? extends OperatorDesc>> child =
+          new ArrayList<Operator<? extends OperatorDesc>>();
+        child.add(rightOp);
+        leftOp.setChildOperators(child);
+
+        List<Operator<? extends OperatorDesc>> parent = rightOp
+            .getParentOperators();
+        parent.add(leftOp);
+        UnionDesc uDesc = ((UnionOperator) rightOp).getConf();
+        uDesc.setNumInputs(uDesc.getNumInputs() + 1);
+
+        return putOpInsertMap(rightOp, unionoutRR);
+      }
+    }
+
+    // Create a new union operator
+    Operator<? extends OperatorDesc> unionforward = OperatorFactory
+        .getAndMakeChild(new UnionDesc(), new RowSchema(unionoutRR
+        .getColumnInfos()));
+
+    // set union operator as child of each of leftOp and rightOp
+    List<Operator<? extends OperatorDesc>> child =
+      new ArrayList<Operator<? extends OperatorDesc>>();
+    child.add(unionforward);
+    rightOp.setChildOperators(child);
+
+    child = new ArrayList<Operator<? extends OperatorDesc>>();
+    child.add(unionforward);
+    leftOp.setChildOperators(child);
+
+    List<Operator<? extends OperatorDesc>> parent =
+      new ArrayList<Operator<? extends OperatorDesc>>();
+    parent.add(leftOp);
+    parent.add(rightOp);
+    unionforward.setParentOperators(parent);
+
+    // create operator info list to return
+    return putOpInsertMap(unionforward, unionoutRR);
+  }
+
   @SuppressWarnings("nls")
   private Operator genUnionPlan(String unionalias, String leftalias,
       Operator leftOp, String rightalias, Operator rightOp)
@@ -6851,6 +7037,23 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     // make sure the schemas of both sides are the same
     ASTNode tabref = qb.getAliases().isEmpty() ? null :
                        qb.getParseInfo().getSrcForAlias(qb.getAliases().get(0));
+
+    /**
+     * 处理步骤 :
+     *  1 union号两边fields个数是否匹配
+     *  2 两边alias是否匹配
+     *  3 检查两边不同类型是否可以相互转换
+     *  4 返回union的共同类型
+     *  5 返回两边的operator，如果需要类型转换，则产生新的select operator
+     *  6 将新建的union operator 同两边的operator关联起来
+     */
+
+    if(this.createVwDesc != null && createVwDesc.isHeter()) {
+        LOG.info("---zjw -- in gen union isHeter CVAS DDL");
+        return this.genHeterUnionPlan(unionalias, leftalias, leftOp, rightalias, rightOp);
+    }else{
+      LOG.info("---zjw --in gen union  is not Heter CVAS DDL");
+    }
     if (leftmap.size() != rightmap.size()) {
       throw new SemanticException("Schema of both sides of union should match.");
     }
@@ -7420,14 +7623,14 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 //      String isHeter = qb.getViewDesc().getTblProps().get(Constants.META_HETER_VIEW);
 //      if(isHeter != null && "true".equalsIgnoreCase(isHeter)){
       if(createVwDesc.isHeter()) {
-        LOG.info("---zjw -- is isCVAS DDL");
-        RowResolver ctasRR = new RowResolver();
-        Operator<? extends OperatorDesc> unionforward = OperatorFactory
-            .getAndMakeChild(new UnionDesc(), new RowSchema(ctasRR
-            .getColumnInfos()));
-
-
-        return putOpInsertMap(unionforward, ctasRR);
+        LOG.info("---zjw -- is isHeter CVAS DDL");
+//        RowResolver ctasRR = new RowResolver();
+//        Operator<? extends OperatorDesc> unionforward = OperatorFactory
+//            .getAndMakeChild(new UnionDesc(), new RowSchema(ctasRR
+//            .getColumnInfos()));
+//
+//
+//        return putOpInsertMap(unionforward, ctasRR);
       }
     }
 
@@ -8214,6 +8417,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       LOG.info("---zjw -- in saveViewDefinition,result is not null");
       derivedSchema.addAll(this.resultSchema);
     }else{
+      derivedSchema.addAll(this.resultSchema);
       LOG.info("---zjw -- in saveViewDefinition,result is null,heter is "+this.createVwDesc.isHeter());
     }
 
@@ -8917,6 +9121,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     createVwDesc = new CreateViewDesc(
       tableName, cols, comment, tblProps, partColNames, ifNotExists,isHeter, orReplace);
     unparseTranslator.enable();
+    LOG.info("---zjw--createView.isHeter:"+createVwDesc.isHeter());
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         createVwDesc), conf));
     qb.setViewDesc(createVwDesc);

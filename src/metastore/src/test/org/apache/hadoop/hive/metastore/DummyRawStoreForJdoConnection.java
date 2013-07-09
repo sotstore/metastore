@@ -892,6 +892,12 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
 
   }
+
+  @Override
+  public List<SFileLocation> getSFileLocations(int status) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }
 
 
