@@ -47,6 +47,7 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -1014,13 +1015,13 @@ public interface IMetaStoreClient {
   public List<String> get_partition_names(final String db_name, final String tbl_name,
         final short max_parts) throws MetaException, TException;
 
-  public boolean add_partition_index(Index index, Partition part) throws TException;
+  public boolean add_partition_index(Index index, Partition part) throws MetaException, AlreadyExistsException, TException;
 
-  public boolean drop_partition_index(Index index, Partition part) throws TException;
+  public boolean drop_partition_index(Index index, Partition part) throws MetaException, InvalidObjectException, TException;
 //added by zjw
-  public boolean add_subpartition_index(Index index, Subpartition subpart) throws TException;
+  public boolean add_subpartition_index(Index index, Subpartition subpart) throws MetaException, AlreadyExistsException, TException;
 
-  public boolean drop_subpartition_index(Index index, Subpartition subpart) throws TException;
+  public boolean drop_subpartition_index(Index index, Subpartition subpart) throws MetaException, InvalidObjectException, TException;
 
   public boolean add_partition_index_files(Index index, Partition part, List<SFile> file,
         List<Long> originfid) throws MetaException, TException;
@@ -1036,6 +1037,9 @@ public interface IMetaStoreClient {
 
   public List<SFileRef> get_partition_index_files(Index index, Partition part)
       throws MetaException, TException;
+
+  public List<SFileRef> get_subpartition_index_files(Index index, Subpartition subpart)
+        throws MetaException, TException;
 
   public String getDMStatus() throws MetaException, TException;
 
@@ -1058,6 +1062,15 @@ public interface IMetaStoreClient {
 
   public boolean migrate_out(String dbName, String tableName, List<String> partNames, String to_dc)
         throws MetaException, TException;
+
+  public List<SFileLocation> migrate2_stage1(String dbName, String tableName, List<String> partNames, String to_dc)
+      throws MetaException, TException;
+
+  public boolean migrate2_in(Table tbl, List<Partition> parts, String from_dc,
+        String to_nas_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException;
+
+  public boolean migrate2_stage2(String dbName, String tableName, List<String> partNames,
+      String to_dc, String to_nas_devid) throws MetaException, TException;
 
   public String getMP(String node_name, String devid) throws MetaException, TException;
 

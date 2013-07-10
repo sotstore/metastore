@@ -647,7 +647,7 @@ public class DiskManager {
             excludes.add(node_name);
             String devid = findBestDevice(node_name, flp);
             if (devid == null) {
-              LOG.info("Could not find any best device to replicate file " + f.getFid());
+              LOG.info("Could not find any best device on node " + node_name + " to replicate file " + f.getFid());
               break;
             }
             excl_dev.add(devid);
@@ -836,7 +836,7 @@ public class DiskManager {
           for (SFileLocation fl : s) {
             synchronized (rs) {
               try {
-                rs.delSFileLocation(fl.getNode_name(), fl.getDevid(), fl.getLocation());
+                rs.delSFileLocation(fl.getDevid(), fl.getLocation());
               } catch (MetaException e) {
                 LOG.error(e, e);
               }
@@ -949,6 +949,19 @@ public class DiskManager {
       dmrt = new DMRepThread("DiskManagerRepThread");
       timer.schedule(dmtt, 0, 5000);
       bktimer.schedule(bktt, 0, 5000);
+    }
+
+    public String getAnyNode() {
+      String r = null;
+
+      synchronized (ndmap) {
+        for (Map.Entry<String, NodeInfo> e : ndmap.entrySet()) {
+          r = e.getKey();
+          break;
+        }
+      }
+
+      return r;
     }
 
     public List<String> getActiveNodes() throws MetaException {
@@ -1335,6 +1348,9 @@ public class DiskManager {
     public String findBestNode(FileLocatingPolicy flp) throws IOException {
       boolean isExclude = true;
 
+      if (flp == null) {
+        return findBestNode();
+      }
       if (safeMode) {
         throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
       }
@@ -1420,6 +1436,39 @@ public class DiskManager {
       return largestNode;
     }
 
+    private boolean isBackupNode(String node_name) {
+      if (node_name.equalsIgnoreCase(backupNodeName)) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    private List<DeviceInfo> filterNASDevice(String node_name, List<DeviceInfo> orig) {
+      List<DeviceInfo> r = new ArrayList<DeviceInfo>();
+
+      for (DeviceInfo di : orig) {
+        if (!di.dev.contains("nas")) {
+          r.add(di);
+        } else if (isBackupNode(node_name)) {
+          r.add(di);
+        }
+      }
+
+      return r;
+    }
+
+    public void identifyNASDevice(List<SFileLocation> lsfl) {
+      if (lsfl == null) {
+        return;
+      }
+      for (SFileLocation sfl : lsfl) {
+        if (sfl.getDevid().contains("nas")) {
+          sfl.setNode_name("");
+        }
+      }
+    }
+
     public List<DeviceInfo> findDevices(String node) throws IOException {
       if (safeMode) {
         throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
@@ -1428,7 +1477,7 @@ public class DiskManager {
       if (ni == null) {
         return null;
       } else {
-        return ni.dis;
+        return filterNASDevice(node, ni.dis);
       }
     }
 
@@ -1441,7 +1490,7 @@ public class DiskManager {
         throw new IOException("Node '" + node + "' does not exist in NDMap, are you sure node '" + node + "' belongs to this MetaStore?" + hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER) + "\n");
       }
       List<DeviceInfo> dilist;
-      synchronized (ni) {dilist = ni.dis;}
+      synchronized (ni) {dilist = filterNASDevice(node, ni.dis);}
       String bestDev = null;
       long free = 0;
 
@@ -1450,6 +1499,7 @@ public class DiskManager {
       }
       for (DeviceInfo di : dilist) {
         boolean ignore = false;
+
         if (flp.mode == FileLocatingPolicy.EXCLUDE_NODES_DEVS) {
           if (flp.devs != null && flp.devs.contains(di.dev)) {
             ignore = true;
@@ -1556,6 +1606,7 @@ public class DiskManager {
               try {
                 String node_name = findBestNode(flp);
                 if (node_name == null) {
+                  LOG.info("Could not find any best node to replicate file " + r.file.getFid());
                   r.begin_idx = i;
                   // insert back to the queue;
                   synchronized (repQ) {
@@ -1565,8 +1616,8 @@ public class DiskManager {
                 }
                 excludes.add(node_name);
                 String devid = findBestDevice(node_name, flp);
-                excl_dev.add(devid);
                 if (devid == null) {
+                  LOG.info("Could not find any best device on node " + node_name + " to replicate file " + r.file.getFid());
                   r.begin_idx = i;
                   // insert back to the queue;
                   synchronized (repQ) {
@@ -1574,6 +1625,8 @@ public class DiskManager {
                   }
                   break;
                 }
+                excl_dev.add(devid);
+
                 String location = "/data/";
                 Random rand = new Random();
 
@@ -1925,7 +1978,7 @@ public class DiskManager {
                       SFileLocation newsfl;
 
                       synchronized (rs) {
-                        newsfl = rs.getSFileLocation(args[0], args[1], args[2]);
+                        newsfl = rs.getSFileLocation(args[1], args[2]);
                         if (newsfl == null) {
                           SFLTriple t = new SFLTriple(args[0], args[1], args[2]);
                           if (rrmap.containsKey(t.toString())) {
@@ -1957,11 +2010,11 @@ public class DiskManager {
                     try {
                       LOG.warn("Begin delete FLoc " + args[0] + "," + args[1] + "," + args[2]);
                       synchronized (rs) {
-                        SFileLocation sfl = rs.getSFileLocation(args[0], args[1], args[2]);
+                        SFileLocation sfl = rs.getSFileLocation(args[1], args[2]);
                         if (sfl != null) {
                           SFile file = rs.getSFile(sfl.getFid());
                           toCheckDel.add(file);
-                          rs.delSFileLocation(args[0], args[1], args[2]);
+                          rs.delSFileLocation(args[1], args[2]);
                         }
                       }
                     } catch (MetaException e) {
