@@ -592,11 +592,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       ((FSDataOutputStream) outStream).close();
       outStream = null;
     } catch (FileNotFoundException e) {
-        formatter.logWarn(outStream, "show partitions: " + stringifyException(e),
+        formatter.logWarn(outStream, "show partition keys: " + stringifyException(e),
                           MetaDataFormatter.ERROR);
         return 1;
       } catch (IOException e) {
-        formatter.logWarn(outStream, "show partitions: " + stringifyException(e),
+        formatter.logWarn(outStream, "show partition keys: " + stringifyException(e),
                           MetaDataFormatter.ERROR);
         return 1;
     } catch (Exception e) {
