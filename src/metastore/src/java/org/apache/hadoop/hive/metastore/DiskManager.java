@@ -1345,6 +1345,27 @@ public class DiskManager {
       }
     }
 
+    private boolean canFindDevices(NodeInfo ni, Set<String> devs) {
+      boolean canFind = false;
+
+      if (devs == null || devs.size() == 0) {
+        return true;
+      }
+      if (ni != null) {
+        List<DeviceInfo> dis = ni.dis;
+        if (dis != null) {
+          for (DeviceInfo di : dis) {
+            if (!devs.contains(di.dev)) {
+              canFind = true;
+              break;
+            }
+          }
+        }
+      }
+
+      return canFind;
+    }
+
     public String findBestNode(FileLocatingPolicy flp) throws IOException {
       boolean isExclude = true;
 
@@ -1381,6 +1402,9 @@ public class DiskManager {
 
           if (isExclude) {
             if (flp.nodes.contains(entry.getKey())) {
+              ignore = true;
+            }
+            if (!canFindDevices(ni, flp.devs)) {
               ignore = true;
             }
           } else {

@@ -1974,7 +1974,9 @@ public class ObjectStore implements RawStore, Configurable {
       query.declareParameters("java.lang.String devid, java.lang.String location");
       query.setUnique(true);
       mfl = (MFileLocation)query.execute(devid, location);
-      pm.retrieve(mfl);
+      if (mfl != null) {
+        pm.retrieve(mfl);
+      }
       commited = commitTransaction();
     } finally {
       if (!commited) {

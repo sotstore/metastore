@@ -4627,8 +4627,15 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public int drop_partition_files(Partition part, List<SFile> files) throws TException {
       Partition p = getMS().getPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
-      List<Long> new_files = part.getFiles();
-      new_files.removeAll(files);
+      if (part.getFilesSize() == 0 || files == null || files.size() == 0) {
+        return 0;
+      }
+      List<Long> old_files = part.getFiles();
+      List<Long> new_files = new ArrayList<Long>();
+      new_files.addAll(old_files);
+      for (SFile f : files) {
+        new_files.remove(f.getFid());
+      }
       p.setFiles(new_files);
       LOG.info("Begin drop partition files " + p.getPartitionName() + " fileset's size " + new_files.size());
       getMS().updatePartition(p);
@@ -4677,8 +4684,15 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public int drop_subpartition_files(Subpartition subpart, List<SFile> files) throws TException {
       Subpartition p = getMS().getSubpartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
-      List<Long> new_files = subpart.getFiles();
-      new_files.removeAll(files);
+      if (subpart.getFilesSize() == 0 || files == null || files.size() == 0) {
+        return 0;
+      }
+      List<Long> old_files = subpart.getFiles();
+      List<Long> new_files = new ArrayList<Long>();
+      new_files.addAll(old_files);
+      for (SFile f : files) {
+        new_files.remove(f.getFid());
+      }
       p.setFiles(new_files);
       LOG.info("Begin drop subpartition files " + subpart.getPartitionName() + " fileset's size " + new_files.size());
       getMS().updateSubpartition(p);
@@ -5078,13 +5092,22 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           if (sp.getFilesSize() > 0) {
             for (long fid : sp.getFiles()) {
               SFile f = get_file_by_id(fid);
+              boolean added = false;
               if (f != null && f.getLocationsSize() > 0) {
                 for (SFileLocation sfl : f.getLocations()) {
                   if (sfl.getNode_name().equals("")) {
                     // this is the NAS location, record it
                     r.add(sfl);
-                    LOG.info("sp -> SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+                    LOG.info("sp -> NAS SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+                    added = true;
+                    break;
                   }
+                }
+                if (!added) {
+                  // record a non-NAS location
+                  SFileLocation sfl = f.getLocations().get(0);
+                  r.add(sfl);
+                  LOG.info("sp -> NAS SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
                 }
               }
             }
