@@ -953,7 +953,9 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       List<String> tabAliases = new ArrayList<String>(qb.getTabAliases());
       Map<String, String> aliasToViewName = new HashMap<String, String>();
       for (String alias : tabAliases) {
+
         String tab_name = qb.getTabNameForAlias(alias);
+        LOG.info("---zjw--getting metadata table:"+tab_name+" alias:"+alias);
         Table tab = null;
         try {
           tab = db.getTable(tab_name);

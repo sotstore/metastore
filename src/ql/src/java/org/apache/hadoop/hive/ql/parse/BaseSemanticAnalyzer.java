@@ -344,8 +344,8 @@ public abstract class BaseSemanticAnalyzer {
         zlog.info("---zjw define datacenter name");
         String dcName = unescapeIdentifier(tableOrColumnNode.getChild(0).getText());
         String dbName = unescapeIdentifier(tableOrColumnNode.getChild(1).getText());
-        String tableName = unescapeIdentifier(tableOrColumnNode.getChild(1).getText());
-        return dbName + "." + tableName;
+        String tableName = unescapeIdentifier(tableOrColumnNode.getChild(2).getText());
+        return dcName + "." +dbName + "." + tableName;
       }
       String tableName = unescapeIdentifier(tableOrColumnNode.getChild(0).getText());
       if (currentDatabase != null) {
