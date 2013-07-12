@@ -2206,8 +2206,8 @@ tableSource
 tableName
 @init { msgs.push("table name"); }
 @after { msgs.pop(); }
-    : (db=Identifier DOT)? tab=Identifier
-    -> ^(TOK_TABNAME $db? $tab)
+    :(dc=Identifier DOT)? (db=Identifier DOT)? tab=Identifier
+    -> ^(TOK_TABNAME $dc? $db? $tab)
     ;
 
 viewName
