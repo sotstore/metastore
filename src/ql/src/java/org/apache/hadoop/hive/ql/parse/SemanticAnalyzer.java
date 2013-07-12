@@ -49,6 +49,7 @@ import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionDefinition;
+import org.apache.hadoop.hive.metastore.tools.SchemaUtil;
 import org.apache.hadoop.hive.ql.Context;
 import org.apache.hadoop.hive.ql.ErrorMsg;
 import org.apache.hadoop.hive.ql.QueryProperties;
@@ -223,6 +224,14 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
   //Max characters when auto generating the column name with func name
   private static final int AUTOGEN_COLALIAS_PRFX_MAXLENGTH = 20;
 
+  /**
+   * map(视图列名，map（表名，表列名）)
+   * 一个试图列可以对应多个表的列，但对一个表来说，一个试图列只能表中的一个列
+   */
+  private final LinkedHashMap<String,LinkedHashMap<String,String>> view_cols = new LinkedHashMap<String,LinkedHashMap<String,String>>();
+  private boolean first_union_tab = true;
+  private final HashMap<String,String> view_alia2tabname = new HashMap<String,String>();
+
   private static class Phase1Ctx {
     String dest;
     int nextNum;
@@ -316,6 +325,11 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       doPhase1(ast, qb, initPhase1Ctx());
       qbexpr.setOpcode(QBExpr.Opcode.NULLOP);
       qbexpr.setQB(qb);
+      String tabName = qb.getTabAliases().toArray(new String[0])[0];
+      qbexpr.setTabName(tabName);
+      LOG.info("---zjw--int doPhase1QBExpr,tabName:"+tabName+"--alias:"+alias+"--id:"+id);
+
+      view_alia2tabname.put(alias,qbexpr.getTabName());
     }
       break;
     case HiveParser.TOK_UNION: {
@@ -2372,11 +2386,16 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
                                              autogenColAliasPrfxIncludeFuncName, i);
         tabAlias = colRef[0];
         colAlias = colRef[1];
+        LOG.info("----"+tabAlias+"--"+colAlias);
         if (hasAsClause) {
           unparseTranslator.addIdentifierTranslation((ASTNode) child
               .getChild(1));
         }
 
+      }
+      //added by zjw for table name populate
+      if(tabAlias == null){
+        tabAlias = inputRR.getTableNames().iterator().next();
       }
 
       LOG.info("in getselectplan exper:"+i+"--"+child.toStringTree()+"=="+expr.toStringTree());
@@ -2426,13 +2445,35 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 
         ColumnInfo colInfo = new ColumnInfo(getColumnInternalName(pos),
           exp.getWritableObjectInspector(), tabAlias, false);
+
+
         colInfo.setSkewedCol((exp instanceof ExprNodeColumnDesc) ? ((ExprNodeColumnDesc) exp)
           .isSkewedCol() : false);
         out_rwsch.put(tabAlias, colAlias, colInfo);
 
         pos = Integer.valueOf(pos.intValue() + 1);
+
+      }
+      //added by zjw
+      if(inputRR.getOriginTabNameMap() != null && inputRR.getOriginTabNameMap().size() == 1){//若映射表列表为1，说明是原始表
+        out_rwsch.putOriginColName(tabAlias, colAlias, inputRR.getColumnInfos().get(pos).getInternalName());
+        //FIX
+        out_rwsch.putOriginTabName(tabAlias, inputRR.getTableNames().iterator().next());
+      }else{
+        if(inputRR.getOriginNameMap() != null){
+          out_rwsch.setOriginNameMap(inputRR.getOriginNameMap());
+          LOG.info("---in select zjw setting origin col name.");
+        }
+
+        if(inputRR.getOriginTabNameMap() != null){
+          out_rwsch.setOriginTabNameMap(inputRR.getOriginTabNameMap());
+          LOG.info("---in select zjw setting origin tab name.");
+        }
       }
     }
+
+    LOG.info("---zjw--out_rwsch:"+out_rwsch.toString());
+    LOG.info("---zjw--out_rwsch:"+out_rwsch.getOriginNameMap().toString());
     selectStar = selectStar && exprList.getChildCount() == posn + 1;
 
     ArrayList<String> columnNames = new ArrayList<String>();
@@ -6738,7 +6779,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Created Body Plan for Query Block " + qb.getId());
+      RowResolver source = opParseCtx.get(curr).getRowResolver();
+      LOG.debug("Created Body Plan for Query Block " + qb.getId()+"---"+source.getOriginNameMap()+"---"+source.toString());
     }
 
     return curr;
@@ -6832,12 +6874,42 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         String[] tmp = rr.reverseLookup(name);
         newRR.put(alias, tmp[1], colInfo);
       }
+      if(rr.getOriginNameMap() != null){
+        newRR.setOriginNameMap(rr.getOriginNameMap());
+        LOG.info("---zjw setting origin col name.");
+      }
+
+      if(rr.getOriginTabNameMap() != null){
+        newRR.setOriginTabNameMap(rr.getOriginTabNameMap());
+        LOG.info("---zjw setting origin tab name.");
+      }
       opParseCtx.get(curr).setRowResolver(newRR);
     }
 
     return curr;
   }
 
+  /**
+   * 添加试图列 对应的表的列到map中
+   * @param field
+   * @param alias
+   */
+  private void addToViewColsMap(String field,String alias){
+    if(!view_cols.containsKey(field)){
+      view_cols.put(field,new LinkedHashMap<String,String>());
+    }
+    LOG.info("---zjw-- alias:"+alias);
+//    LOG.info("---zjw-- table:"+qb.getSubqForAlias(alias).getTabName());
+//    view_cols.get(field).put(qb.getSubqForAlias(alias).getTabName(), field);
+    LOG.info("---zjw-- table:"+view_alia2tabname.get(alias));
+    view_cols.get(field).put(view_alia2tabname.get(alias), field);
+
+  }
+
+  private String getInternalName(RowResolver rr,String field, String alias){
+
+    return alias+"."+rr.getFieldOriginNameMap(field);
+  }
   /**
    * added by zjw 异构视图的实现
    * @param unionalias
@@ -6866,6 +6938,18 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 //    if (leftmap.size() != rightmap.size()) {
 //      throw new SemanticException("Schema of both sides of union should match.");
 //    }
+
+    String left_alias = leftRR.getTableNames().iterator().next();
+    String right_alias = rightRR.getTableNames().iterator().next();
+
+    String left_tb_name = view_alia2tabname.get(left_alias);
+    String rtght_tb_name = view_alia2tabname.get(right_alias);
+
+    LOG.info("---zjw-- left tab:"+left_tb_name+" alias:"+left_alias);
+    LOG.info("---zjw-- right tab:"+rtght_tb_name+" alias:"+right_alias);
+
+    LOG.info("---zjw--leftRR:"+leftRR.getOriginNameMap());
+    LOG.info("---zjw--rightRR:"+rightRR.getOriginNameMap());
     /**
      * 处理步骤 :
      *  1 union号两边fields个数是否匹配
@@ -6914,24 +6998,40 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       }
     }
 
+
+
     // construct the forward operator
     /**
+     * 对于异构试图，在unionall的过程中，自左至右做列的合并，列的映射信息存储再hashmap中
+     * 任何时候，hashmap存储的是左边操作表所属列的所有信息
      * union all the fields of both union sides
      */
+
+    QBExpr root_subq = qb.getAliasToSubq().get(qb.getAliases().get(0));
     RowResolver unionoutRR = new RowResolver();
     for (Map.Entry<String, ColumnInfo> lEntry : leftmap.entrySet()) {
       String field = lEntry.getKey();
       ColumnInfo lInfo = lEntry.getValue();
       ColumnInfo rInfo = rightmap.get(field);
+      LOG.info("---zjw--"+field+"--"+leftRR.getOriginNameMap().get(field)+"--"+rightRR.getOriginNameMap().get(field));
       if (lInfo == null) {
         unionoutRR.put(unionalias, field, rInfo);
+//        addToViewColsMap(field, getInternalName(rightRR, field, left_tb_name));
         continue;
       }
 
       if (rInfo == null) {
         unionoutRR.put(unionalias, field, lInfo);
+//        if(first_union_tab){
+//          addToViewColsMap(field,getInternalName(leftRR, field, left_tb_name));
+//        }
         continue;
       }
+
+//      if(first_union_tab){//left table cols have been add to map if not first tab
+//        addToViewColsMap(field, getInternalName(leftRR, field, left_tb_name));
+//      }
+//      addToViewColsMap(field, getInternalName(rightRR, field, rtght_tb_name));
 
       ColumnInfo unionColInfo = new ColumnInfo(lInfo);
       unionColInfo.setType(FunctionRegistry.getCommonClassForUnionAll(lInfo.getType(),
@@ -6941,19 +7041,39 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 
     for (Map.Entry<String, ColumnInfo> rEntry : rightmap.entrySet()) {
       String field = rEntry.getKey();
-      ColumnInfo lInfo = rEntry.getValue();
-      ColumnInfo rInfo = leftmap.get(field);
+      ColumnInfo rInfo = rEntry.getValue();
+      ColumnInfo lInfo = leftmap.get(field);
       if (lInfo == null) {
         unionoutRR.put(unionalias, field, rInfo);
+//        addToViewColsMap(field, getInternalName(rightRR, field, rtght_tb_name));
         continue;
       }
 
       if (rInfo == null) {
         unionoutRR.put(unionalias, field, lInfo);
+//        if(first_union_tab){
+//          addToViewColsMap(field, getInternalName(leftRR, field, left_tb_name));
+//        }
         continue;
       }
     }
-    //merge all the fields done.
+    if(first_union_tab){
+      first_union_tab = false;
+    }
+    //merge all the view fields done.
+
+
+    for(Map.Entry<String, LinkedHashMap<String,String>> collEntry :rightRR.getOriginNameMap().entrySet()){
+
+      if(leftRR.getOriginNameMap().containsKey(collEntry.getKey())){
+        leftRR.getOriginNameMap().get(collEntry.getKey()).putAll(rightRR.getOriginNameMap().get(collEntry.getKey()));
+      }else{
+        leftRR.getOriginNameMap().put(collEntry.getKey(),rightRR.getOriginNameMap().get(collEntry.getKey()));
+      }
+    }
+    leftRR.getOriginTabNameMap().putAll(rightRR.getOriginTabNameMap());
+    unionoutRR.setOriginNameMap(leftRR.getOriginNameMap());
+    //merge all the table shoot done.
 
 //    if (!(leftOp instanceof UnionOperator)) {
 //      leftOp = genInputSelectForUnion(leftOp, leftmap, leftalias, unionoutRR, unionalias);
@@ -7104,6 +7224,20 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       unionoutRR.put(unionalias, field, unionColInfo);
     }
 
+    ///////////added by zjw for
+    for(Map.Entry<String, LinkedHashMap<String,String>> collEntry :rightRR.getOriginNameMap().entrySet()){
+
+      if(leftRR.getOriginNameMap().containsKey(collEntry.getKey())){
+        leftRR.getOriginNameMap().get(collEntry.getKey()).putAll(rightRR.getOriginNameMap().get(collEntry.getKey()));
+      }else{
+        leftRR.getOriginNameMap().put(collEntry.getKey(),rightRR.getOriginNameMap().get(collEntry.getKey()));
+      }
+    }
+    leftRR.getOriginTabNameMap().putAll(rightRR.getOriginTabNameMap());
+    unionoutRR.setOriginNameMap(leftRR.getOriginNameMap());
+    ////////////////////////////
+
+
     if (!(leftOp instanceof UnionOperator)) {
       leftOp = genInputSelectForUnion(leftOp, leftmap, leftalias, unionoutRR, unionalias);
     }
@@ -7223,6 +7357,14 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       rowResolver.put(origInputAlias, name, new ColumnInfo(name, columns.get(i)
           .getTypeInfo(), "", false));
       colName.add(name);
+    }
+
+    if(unionoutRR.getOriginNameMap() != null){
+      rowResolver.setOriginNameMap(unionoutRR.getOriginNameMap());
+    }
+
+    if(unionoutRR.getOriginTabNameMap() != null){
+      rowResolver.setOriginTabNameMap(unionoutRR.getOriginTabNameMap());
     }
 
     Operator<SelectDesc> newInputOp = OperatorFactory.getAndMakeChild(
@@ -7523,6 +7665,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     }
 
     Operator output = putOpInsertMap(tableOp, rwsch);
+    //added by zjw for table name and col name track
+    rwsch.putOriginTabName(alias, tab.getTableName());
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Created Table Plan for " + alias + " " + tableOp.toString());
@@ -7608,6 +7752,14 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       Operator qbexpr1Ops = genPlan(qbexpr.getQBExpr1());
       Operator qbexpr2Ops = genPlan(qbexpr.getQBExpr2());
 
+      RowResolver source = opParseCtx.get(qbexpr1Ops).getRowResolver();
+      if(source != null) {
+        LOG.debug("---zjw genPlan for Query Block 1:" + qb.getId()+"---"+source.getOriginNameMap()+"---"+source.toString());
+      }
+      RowResolver source2 = opParseCtx.get(qbexpr2Ops).getRowResolver();
+      if(source2 != null) {
+        LOG.debug("---zjw genPlan for Query Block 2:" + qb.getId()+"---"+source2.getOriginNameMap()+"---"+source2.toString());
+      }
 
       return genUnionPlan(qbexpr.getAlias(), qbexpr.getQBExpr1().getAlias(),
           qbexpr1Ops, qbexpr.getQBExpr2().getAlias(), qbexpr2Ops);
@@ -7682,7 +7834,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     Operator bodyOpInfo = genBodyPlan(qb, srcOpInfo);
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Created Plan for Query Block " + qb.getId());
+      RowResolver source = opParseCtx.get(bodyOpInfo).getRowResolver();
+      LOG.debug("Created Plan for Query Block " + qb.getId()+"---"+source.getOriginNameMap()+"---"+source.toString());
     }
 
     this.qb = qb;
@@ -8364,7 +8517,48 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     resultSchema =
         convertRowSchemaToViewSchema(opParseCtx.get(sinkOp).getRowResolver());
 
+//    LOG.info("--zjw---print view_cols,size"+view_cols.size());
+//    for(Entry<String,LinkedHashMap<String,String>> e : view_cols.entrySet()){
+//      LOG.info("--zjw---key:"+e.getKey());
+//      for(Entry<String,String> v : e.getValue().entrySet()){
+//        LOG.info("--zjw------value.key:"+v.getKey()+"--value.value:"+v.getValue());
+//      }
+//    }
+
+    RowResolver resRR = opParseCtx.get(sinkOp).getRowResolver();
+    LOG.info("--zjw------resRR:"+resRR);
+
+
+
     if (createVwDesc != null) {
+
+      //added by zjw here only for view creation
+      for(Entry<String,LinkedHashMap<String,String>> e : resRR.getOriginNameMap().entrySet()){
+        LOG.info("--zjw---view.col:"+e.getKey());
+        for(Entry<String,String> v : e.getValue().entrySet()){
+          LOG.info("--zjw------view.tab:"+v.getKey()+"--view.tab.col:"+v.getValue());
+        }
+      }
+
+      SchemaUtil su = new SchemaUtil();
+      su.setOriginNameMap(resRR.getOriginNameMap());
+      for(FieldSchema col : resultSchema){
+        LinkedHashMap<String,String> tab_cols = resRR.getOriginNameMap().get(col.getName());
+        String col_cmt = "";
+        for(Entry<String,String> v : tab_cols.entrySet()){
+          col_cmt += "{"+v.getKey()+"."+v.getValue()+"}";
+        }
+        if(col.getComment() != null){
+          col.setComment(col.getComment()+",COLUMN_MAP="+col_cmt);
+        }else{
+          col.setComment("COLUMN_MAP="+col_cmt);
+        }
+      }
+      if(createVwDesc.getTblProps() == null){
+        createVwDesc.setTblProps(new HashMap<String,String>());
+      }
+      createVwDesc.getTblProps().put(Constants.META_VIEW_COL_PROP,su.toJson());
+      LOG.info("--zjw------view."+Constants.META_VIEW_COL_PROP+":"+su.toJson());
       saveViewDefinition();
       // Since we're only creating a view (not executing it), we
       // don't need to optimize or translate the plan (and in fact, those

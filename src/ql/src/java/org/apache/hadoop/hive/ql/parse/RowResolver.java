@@ -47,6 +47,10 @@ public class RowResolver implements Serializable{
   // TODO: Refactor this and do in a more object oriented manner
   private boolean isExprResolver;
 
+  //added by zjw for real name track
+  private  HashMap<String, LinkedHashMap<String, String>> originNameMap;
+  private  HashMap<String, String> originTabNameMap;
+
   @SuppressWarnings("unused")
   private static final Log LOG = LogFactory.getLog(RowResolver.class.getName());
 
@@ -56,6 +60,9 @@ public class RowResolver implements Serializable{
     invRslvMap = new HashMap<String, String[]>();
     expressionMap = new HashMap<String, ASTNode>();
     isExprResolver = false;
+
+    originNameMap =  new HashMap<String, LinkedHashMap<String, String>>();
+    originTabNameMap = new HashMap<String, String>();
   }
 
   /**
@@ -109,6 +116,27 @@ public class RowResolver implements Serializable{
     qualifiedAlias[0] = tab_alias;
     qualifiedAlias[1] = col_alias;
     invRslvMap.put(colInfo.getInternalName(), qualifiedAlias);
+  }
+
+  public void putOriginColName(String tab_alias, String col_alias, String origin_col_name) {
+//      throws SemanticException{
+    LinkedHashMap<String, String> f_map = originNameMap.get(col_alias);
+    if (f_map == null) {
+      f_map = new LinkedHashMap<String, String>();
+      originNameMap.put(col_alias, f_map);
+    }
+//    if(f_map.containsKey(tab_alias)){
+//      throw new SemanticException("No identified table acurr triwce in create view DDL.");
+//    }else{
+      f_map.put(tab_alias, origin_col_name);
+//    }
+
+  }
+
+  public void putOriginTabName(String tab_alias, String origin_tab_name){
+
+    originTabNameMap.put(tab_alias, origin_tab_name);
+
   }
 
   public boolean hasTableAlias(String tab_alias) {
@@ -220,6 +248,14 @@ public class RowResolver implements Serializable{
     }
   }
 
+  public HashMap<String, String> getFieldOriginNameMap(String tabAlias) {
+    if (tabAlias == null) {
+      return originNameMap.get(null);
+    } else {
+      return originNameMap.get(tabAlias.toLowerCase());
+    }
+  }
+
   public int getPosition(String internalName) {
     int pos = -1;
 
@@ -305,5 +341,22 @@ public class RowResolver implements Serializable{
   public void setExpressionMap(Map<String, ASTNode> expressionMap) {
     this.expressionMap = expressionMap;
   }
+
+  public HashMap<String, LinkedHashMap<String, String>> getOriginNameMap() {
+    return originNameMap;
+  }
+
+  public void setOriginNameMap(HashMap<String, LinkedHashMap<String, String>> originNameMap) {
+    this.originNameMap = originNameMap;
+  }
+
+  public HashMap<String, String> getOriginTabNameMap() {
+    return originTabNameMap;
+  }
+
+  public void setOriginTabNameMap(HashMap<String, String> originTabNameMap) {
+    this.originTabNameMap = originTabNameMap;
+  }
+
 
 }

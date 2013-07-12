@@ -112,10 +112,12 @@ public class QB {
   }
 
   public void setTabAlias(String alias, String tabName) {
+    LOG.info("---zjw-- tab alias:"+alias+"--table:"+tabName);
     aliasToTabs.put(alias.toLowerCase(), tabName);
   }
 
   public void setSubqAlias(String alias, QBExpr qbexpr) {
+    LOG.info("---zjw-- subq alias:"+alias+"--qbexpr:"+qbexpr.toString());
     aliasToSubq.put(alias.toLowerCase(), qbexpr);
   }
 
@@ -251,4 +253,23 @@ public class QB {
   public void setAnalyzeRewrite(boolean isAnalyzeRewrite) {
     this.isAnalyzeRewrite = isAnalyzeRewrite;
   }
+
+  public HashMap<String, String> getAliasToTabs() {
+    return aliasToTabs;
+  }
+
+  public void setAliasToTabs(HashMap<String, String> aliasToTabs) {
+    this.aliasToTabs = aliasToTabs;
+  }
+
+  public HashMap<String, QBExpr> getAliasToSubq() {
+    return aliasToSubq;
+  }
+
+  public void setAliasToSubq(HashMap<String, QBExpr> aliasToSubq) {
+    this.aliasToSubq = aliasToSubq;
+  }
+
+
+
 }

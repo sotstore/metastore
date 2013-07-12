@@ -482,17 +482,17 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
         throws HiveException {
         try {
           for (PartitionInfo pi : partitionInfo) {
-            outStream.writeInt(pi.getP_level());
+            outStream.writeBytes(""+pi.getP_level());
             outStream.write(separator);
 
             outStream.writeBytes(pi.getP_col());
             outStream.write(separator);
-            outStream.writeInt(pi.getP_order());
+            outStream.writeBytes(""+pi.getP_order());
             outStream.write(separator);
 
             outStream.writeBytes(pi.getP_type().toString());
             outStream.write(separator);
-            outStream.writeInt(pi.getP_version());
+            outStream.writeBytes(""+pi.getP_version());
             outStream.write(terminator);
           }
       } catch (IOException e) {

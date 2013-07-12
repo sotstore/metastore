@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * Implementation of the query block expression.
- * 
+ *
  **/
 
 public class QBExpr {
@@ -43,6 +43,7 @@ public class QBExpr {
   private QBExpr qbexpr2;
   private QB qb;
   private String alias;
+  private String tabName;
 
   public String getAlias() {
     return alias;
@@ -97,6 +98,16 @@ public class QBExpr {
 
   public QBExpr getQBExpr2() {
     return qbexpr2;
+  }
+
+
+
+  public String getTabName() {
+    return tabName;
+  }
+
+  public void setTabName(String tabName) {
+    this.tabName = tabName;
   }
 
   public void print(String msg) {

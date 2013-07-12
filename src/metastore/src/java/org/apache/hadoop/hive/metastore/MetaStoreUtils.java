@@ -72,7 +72,7 @@ public class MetaStoreUtils {
 
   public static String BUSI_TYPES_PREFIX = "@";
 
-  public static String[] BUSI_TYPES = new String[]{"@ip","@tel","@time","@content"};
+  public static String[] BUSI_TYPES = new String[]{"@ip","@tel","@time","@ct"};
 
   /**
    * printStackTrace
