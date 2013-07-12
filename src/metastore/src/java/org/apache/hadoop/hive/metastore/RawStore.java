@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
+import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
@@ -127,7 +128,7 @@ public interface RawStore extends Configurable {
 
   public SFile getSFile(long fid) throws MetaException;
 
-  public SFile getSFile(String node, String devid, String location) throws MetaException;
+  public SFile getSFile(String devid, String location) throws MetaException;
 
   public boolean delSFile(long fid) throws MetaException;
 
@@ -141,11 +142,11 @@ public interface RawStore extends Configurable {
 
   public List<SFileLocation> getSFileLocations(String devid, long curts, long timeout) throws MetaException;
 
-  public SFileLocation getSFileLocation(String node, String devid, String location) throws MetaException;
+  public SFileLocation getSFileLocation(String devid, String location) throws MetaException;
 
   public SFileLocation updateSFileLocation(SFileLocation newsfl) throws MetaException;
 
-  public boolean delSFileLocation(String node, String devid, String location) throws MetaException;
+  public boolean delSFileLocation(String devid, String location) throws MetaException;
 
   public abstract boolean dropTable(String dbName, String tableName)
       throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException;
@@ -492,11 +493,11 @@ public interface RawStore extends Configurable {
 
   public List<SFile> findOverReplicatedFiles() throws MetaException;
 
-  public List<SFile> findLingeringFiles() throws MetaException;
+  public List<SFile> findLingeringFiles(long node_nr) throws MetaException;
 
-  public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException;
+  public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException, AlreadyExistsException;
 
-  public void createPartitionIndex(Index index, Subpartition part) throws InvalidObjectException, MetaException;
+  public void createPartitionIndex(Index index, Subpartition part) throws InvalidObjectException, MetaException, AlreadyExistsException;
 
   public boolean dropPartitionIndex(Index index, Partition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
 

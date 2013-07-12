@@ -58,6 +58,7 @@ import org.apache.hadoop.hive.common.classification.InterfaceStability;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
+import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.BooleanColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
@@ -823,7 +824,7 @@ public class ObjectStore implements RawStore, Configurable {
     return r;
   }
 
-  public List<SFile> findLingeringFiles() throws MetaException {
+  public List<SFile> findLingeringFiles(long node_nr) throws MetaException {
     List<SFile> r = new ArrayList<SFile>();
     boolean commited = false;
 
@@ -849,7 +850,8 @@ public class ObjectStore implements RawStore, Configurable {
               offnr++;
             }
           }
-          if (s.getRep_nr() <= onnr && offnr > 0) {
+          if ((s.getRep_nr() <= onnr && offnr > 0) ||
+              (onnr + offnr >= node_nr && offnr > 0)) {
             s.setLocations(l);
             r.add(s);
           }
@@ -941,7 +943,7 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
-  public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException {
+  public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException, AlreadyExistsException {
     MPartition mp;
     MIndex mi;
 
@@ -950,7 +952,12 @@ public class ObjectStore implements RawStore, Configurable {
     if (mi == null || mp == null) {
       throw new InvalidObjectException("Invalid Partition or Index provided!");
     }
-    MPartitionIndex mpi = new MPartitionIndex(mi, mp);
+    MPartitionIndex mpi = getMPartitionIndex(mi, mp);
+    if (mpi != null) {
+      throw new AlreadyExistsException("This Index " + index.getIndexName() + " and part " + part.getPartitionName() + " has already exist.");
+    } else {
+      mpi = new MPartitionIndex(mi, mp);
+    }
     boolean commited = false;
 
     try {
@@ -964,7 +971,7 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
-  public void createPartitionIndex(Index index, Subpartition part) throws InvalidObjectException, MetaException {
+  public void createPartitionIndex(Index index, Subpartition part) throws InvalidObjectException, MetaException, AlreadyExistsException {
     MPartition mp;
     MIndex mi;
 
@@ -973,7 +980,12 @@ public class ObjectStore implements RawStore, Configurable {
     if (mi == null || mp == null) {
       throw new InvalidObjectException("Invalid Partition or Index provided!");
     }
-    MPartitionIndex mpi = new MPartitionIndex(mi, mp);
+    MPartitionIndex mpi = getMPartitionIndex(mi, mp);
+    if (mpi != null) {
+      throw new AlreadyExistsException("This Index " + index.getIndexName() + " and subpart " + part.getPartitionName() + " has already exist.");
+    } else {
+      mpi = new MPartitionIndex(mi, mp);
+    }
     boolean commited = false;
 
     try {
@@ -1061,7 +1073,7 @@ public class ObjectStore implements RawStore, Configurable {
   public boolean createFileLocation(SFileLocation location) throws InvalidObjectException, MetaException {
     boolean r = true;
     boolean commited = false;
-    SFileLocation old = getSFileLocation(location.getNode_name(), location.getDevid(), location.getLocation());
+    SFileLocation old = getSFileLocation(location.getDevid(), location.getLocation());
     if (old != null) {
       r = false;
     }
@@ -1496,7 +1508,7 @@ public class ObjectStore implements RawStore, Configurable {
     return mpi;
   }
 
-  public MPartitionIndex getSubpartitionIndex(Index index, Subpartition subpart) throws InvalidObjectException, MetaException {
+  public MPartitionIndex getSubpartitionIndex(Index index, Subpartition subpart) throws InvalidObjectException, NoSuchObjectException, MetaException {
     boolean commited = false;
     MPartitionIndex mpi = null;
     try {
@@ -1505,12 +1517,18 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       mp = getMPartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
       mi = getMIndex(index.getDbName(), index.getOrigTableName(), index.getIndexName());
+      if (mp == null || mi == null) {
+        throw new InvalidObjectException("Invalid Index or subPartition provided!");
+      }
       mpi = getMPartitionIndex(mi, mp);
       commited = commitTransaction();
     } finally {
       if (!commited) {
         rollbackTransaction();
       }
+    }
+    if (mpi == null) {
+      throw new NoSuchObjectException("Can not find the PartitionIndex, please check it!");
     }
     return mpi;
   }
@@ -1531,12 +1549,12 @@ public class ObjectStore implements RawStore, Configurable {
     return f;
   }
 
-  public SFile getSFile(String node, String devid, String location) throws MetaException {
+  public SFile getSFile(String devid, String location) throws MetaException {
     boolean commited = false;
     SFile f = null;
     try {
       openTransaction();
-      f = convertToSFile(getMFile(node, devid, location));
+      f = convertToSFile(getMFile(devid, location));
       commited = commitTransaction();
     } finally {
       if (!commited) {
@@ -1592,12 +1610,12 @@ public class ObjectStore implements RawStore, Configurable {
     return sfl;
   }
 
-  public SFileLocation getSFileLocation(String node, String devid, String location) throws MetaException {
+  public SFileLocation getSFileLocation(String devid, String location) throws MetaException {
     boolean commited = false;
     SFileLocation sfl = null;
     try {
       openTransaction();
-      sfl = convertToSFileLocation(getMFileLocation(node, devid, location));
+      sfl = convertToSFileLocation(getMFileLocation(devid, location));
       commited = commitTransaction();
     } finally {
       if (!commited) {
@@ -1638,7 +1656,7 @@ public class ObjectStore implements RawStore, Configurable {
     boolean commited = false;
     SFileLocation sfl = null;
     try {
-      MFileLocation mfl = getMFileLocation(newsfl.getNode_name(), newsfl.getDevid(), newsfl.getLocation());
+      MFileLocation mfl = getMFileLocation(newsfl.getDevid(), newsfl.getLocation());
       mfl.setUpdate_time(System.currentTimeMillis());
       mfl.setVisit_status(newsfl.getVisit_status());
       mfl.setDigest(newsfl.getDigest());
@@ -1788,7 +1806,9 @@ public class ObjectStore implements RawStore, Configurable {
       query.declareParameters("java.lang.String indexName, java.lang.String partName");
       query.setUnique(true);
       mpi = (MPartitionIndex)query.execute(index.getIndexName(), part.getPartitionName());
-      pm.retrieve(mpi);
+      if (mpi != null) {
+        pm.retrieve(mpi);
+      }
       commited = commitTransaction();
     } finally {
       if (!commited) {
@@ -1925,13 +1945,13 @@ public class ObjectStore implements RawStore, Configurable {
     return mf;
   }
 
-  private MFile getMFile(String node, String devid, String location) {
+  private MFile getMFile(String devid, String location) {
     MFile mf = null;
     MFileLocation mfl = null;
     boolean commited = false;
     try {
       openTransaction();
-      mfl = getMFileLocation(node, devid, location);
+      mfl = getMFileLocation(devid, location);
       if (mfl != null) {
         mf = mfl.getFile();
       }
@@ -1944,17 +1964,19 @@ public class ObjectStore implements RawStore, Configurable {
     return mf;
   }
 
-  private MFileLocation getMFileLocation(String node, String devid, String location) {
+  private MFileLocation getMFileLocation(String devid, String location) {
     MFileLocation mfl = null;
     boolean commited = false;
     try {
       openTransaction();
       Query query = pm.newQuery(MFileLocation.class,
-          "this.node.node_name == node && this.dev.dev_name == devid && this.location == location");
-      query.declareParameters("java.lang.String node, java.lang.String devid, java.lang.String location");
+          "this.dev.dev_name == devid && this.location == location");
+      query.declareParameters("java.lang.String devid, java.lang.String location");
       query.setUnique(true);
-      mfl = (MFileLocation)query.execute(node, devid, location);
-      pm.retrieve(mfl);
+      mfl = (MFileLocation)query.execute(devid, location);
+      if (mfl != null) {
+        pm.retrieve(mfl);
+      }
       commited = commitTransaction();
     } finally {
       if (!commited) {
@@ -7006,7 +7028,9 @@ public class ObjectStore implements RawStore, Configurable {
       query.declareParameters("java.lang.String ip");
       query.setUnique(true);
       mn = (MNode)query.execute(ip);
-      pm.retrieve(mn);
+      if (mn != null) {
+        pm.retrieve(mn);
+      }
       commited = commitTransaction();
     } finally {
       if (!commited) {
@@ -7045,7 +7069,9 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       MFile mf = getMFile(fid);
-      pm.deletePersistent(mf);
+      if (mf != null) {
+        pm.deletePersistent(mf);
+      }
       success = commitTransaction();
     } finally {
       if (!success) {
@@ -7055,13 +7081,14 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
-  @Override
-  public boolean delSFileLocation(String node, String devid, String location) throws MetaException {
+  public boolean delSFileLocation(String devid, String location) throws MetaException {
     boolean success = false;
     try {
       openTransaction();
-      MFileLocation mfl = getMFileLocation(node, devid, location);
-      pm.deletePersistent(mfl);
+      MFileLocation mfl = getMFileLocation(devid, location);
+      if (mfl != null) {
+        pm.deletePersistent(mfl);
+      }
       success = commitTransaction();
     } finally {
       if (!success) {
@@ -7300,10 +7327,14 @@ public class ObjectStore implements RawStore, Configurable {
 
   public List<SFileRef> getPartitionIndexFiles(Index index, Partition part)
       throws InvalidObjectException, NoSuchObjectException, MetaException {
-    MPartitionIndex mpi = getPartitionIndex(index, part);
-    List<SFileRef> sfr = getMPartitionIndexFiles(mpi);
+    try {
+      MPartitionIndex mpi = getPartitionIndex(index, part);
+      List<SFileRef> sfr = getMPartitionIndexFiles(mpi);
 
-    return sfr;
+      return sfr;
+    } catch (NoSuchObjectException e) {
+      return new ArrayList<SFileRef>();
+    }
   }
 
 //added by zjw for subparition index files operations
@@ -7311,10 +7342,14 @@ public class ObjectStore implements RawStore, Configurable {
 
   @Override
   public List<SFileRef> getSubpartitionIndexFiles(Index index, Subpartition subpart)  throws InvalidObjectException, MetaException{
-    MPartitionIndex mpi = getSubpartitionIndex(index, subpart);
-    List<SFileRef> sfr = getMPartitionIndexFiles(mpi);
+    try {
+      MPartitionIndex mpi = getSubpartitionIndex(index, subpart);
+      List<SFileRef> sfr = getMPartitionIndexFiles(mpi);
 
-    return sfr;
+      return sfr;
+    } catch (NoSuchObjectException e) {
+      return new ArrayList<SFileRef>();
+    }
   }
 
   @Override

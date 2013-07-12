@@ -702,7 +702,7 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public List<SFile> findLingeringFiles() throws MetaException {
+  public List<SFile> findLingeringFiles(long node_nr) throws MetaException {
     // TODO Auto-generated method stub
     return null;
   }

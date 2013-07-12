@@ -265,6 +265,8 @@ module ThriftHiveMetastore
     def recv_add_partition_index()
       result = receive_message(Add_partition_index_result)
       return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_partition_index failed: unknown result')
     end
 
@@ -280,6 +282,8 @@ module ThriftHiveMetastore
     def recv_drop_partition_index()
       result = receive_message(Drop_partition_index_result)
       return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_partition_index failed: unknown result')
     end
 
@@ -295,6 +299,8 @@ module ThriftHiveMetastore
     def recv_add_subpartition_index()
       result = receive_message(Add_subpartition_index_result)
       return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_subpartition_index failed: unknown result')
     end
 
@@ -310,6 +316,8 @@ module ThriftHiveMetastore
     def recv_drop_subpartition_index()
       result = receive_message(Drop_subpartition_index_result)
       return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_subpartition_index failed: unknown result')
     end
 
@@ -1958,6 +1966,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate_in failed: unknown result')
     end
 
+    def migrate2_in(tbl, parts, from_dc, to_nas_devid, fileMap)
+      send_migrate2_in(tbl, parts, from_dc, to_nas_devid, fileMap)
+      return recv_migrate2_in()
+    end
+
+    def send_migrate2_in(tbl, parts, from_dc, to_nas_devid, fileMap)
+      send_message('migrate2_in', Migrate2_in_args, :tbl => tbl, :parts => parts, :from_dc => from_dc, :to_nas_devid => to_nas_devid, :fileMap => fileMap)
+    end
+
+    def recv_migrate2_in()
+      result = receive_message(Migrate2_in_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate2_in failed: unknown result')
+    end
+
     def migrate_out(dbName, tableName, partNames, to_dc)
       send_migrate_out(dbName, tableName, partNames, to_dc)
       return recv_migrate_out()
@@ -1970,8 +1994,40 @@ module ThriftHiveMetastore
     def recv_migrate_out()
       result = receive_message(Migrate_out_result)
       return result.success unless result.success.nil?
-      raise result.o2 unless result.o2.nil?
+      raise result.o1 unless result.o1.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate_out failed: unknown result')
+    end
+
+    def migrate2_stage1(dbName, tableName, partNames, to_dc)
+      send_migrate2_stage1(dbName, tableName, partNames, to_dc)
+      return recv_migrate2_stage1()
+    end
+
+    def send_migrate2_stage1(dbName, tableName, partNames, to_dc)
+      send_message('migrate2_stage1', Migrate2_stage1_args, :dbName => dbName, :tableName => tableName, :partNames => partNames, :to_dc => to_dc)
+    end
+
+    def recv_migrate2_stage1()
+      result = receive_message(Migrate2_stage1_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate2_stage1 failed: unknown result')
+    end
+
+    def migrate2_stage2(dbName, tableName, partNames, to_dc, to_nas_devid)
+      send_migrate2_stage2(dbName, tableName, partNames, to_dc, to_nas_devid)
+      return recv_migrate2_stage2()
+    end
+
+    def send_migrate2_stage2(dbName, tableName, partNames, to_dc, to_nas_devid)
+      send_message('migrate2_stage2', Migrate2_stage2_args, :dbName => dbName, :tableName => tableName, :partNames => partNames, :to_dc => to_dc, :to_nas_devid => to_nas_devid)
+    end
+
+    def recv_migrate2_stage2()
+      result = receive_message(Migrate2_stage2_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate2_stage2 failed: unknown result')
     end
 
     def getMP(node_name, devid)
@@ -2165,28 +2221,52 @@ module ThriftHiveMetastore
     def process_add_partition_index(seqid, iprot, oprot)
       args = read_args(iprot, Add_partition_index_args)
       result = Add_partition_index_result.new()
-      result.success = @handler.add_partition_index(args.index, args.part)
+      begin
+        result.success = @handler.add_partition_index(args.index, args.part)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      rescue ::AlreadyExistsException => o2
+        result.o2 = o2
+      end
       write_result(result, oprot, 'add_partition_index', seqid)
     end
 
     def process_drop_partition_index(seqid, iprot, oprot)
       args = read_args(iprot, Drop_partition_index_args)
       result = Drop_partition_index_result.new()
-      result.success = @handler.drop_partition_index(args.index, args.part)
+      begin
+        result.success = @handler.drop_partition_index(args.index, args.part)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      rescue ::AlreadyExistsException => o2
+        result.o2 = o2
+      end
       write_result(result, oprot, 'drop_partition_index', seqid)
     end
 
     def process_add_subpartition_index(seqid, iprot, oprot)
       args = read_args(iprot, Add_subpartition_index_args)
       result = Add_subpartition_index_result.new()
-      result.success = @handler.add_subpartition_index(args.index, args.part)
+      begin
+        result.success = @handler.add_subpartition_index(args.index, args.part)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      rescue ::AlreadyExistsException => o2
+        result.o2 = o2
+      end
       write_result(result, oprot, 'add_subpartition_index', seqid)
     end
 
     def process_drop_subpartition_index(seqid, iprot, oprot)
       args = read_args(iprot, Drop_subpartition_index_args)
       result = Drop_subpartition_index_result.new()
-      result.success = @handler.drop_subpartition_index(args.index, args.part)
+      begin
+        result.success = @handler.drop_subpartition_index(args.index, args.part)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      rescue ::AlreadyExistsException => o2
+        result.o2 = o2
+      end
       write_result(result, oprot, 'drop_subpartition_index', seqid)
     end
 
@@ -3448,15 +3528,48 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'migrate_in', seqid)
     end
 
+    def process_migrate2_in(seqid, iprot, oprot)
+      args = read_args(iprot, Migrate2_in_args)
+      result = Migrate2_in_result.new()
+      begin
+        result.success = @handler.migrate2_in(args.tbl, args.parts, args.from_dc, args.to_nas_devid, args.fileMap)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'migrate2_in', seqid)
+    end
+
     def process_migrate_out(seqid, iprot, oprot)
       args = read_args(iprot, Migrate_out_args)
       result = Migrate_out_result.new()
       begin
         result.success = @handler.migrate_out(args.dbName, args.tableName, args.partNames, args.to_dc)
-      rescue ::MetaException => o2
-        result.o2 = o2
+      rescue ::MetaException => o1
+        result.o1 = o1
       end
       write_result(result, oprot, 'migrate_out', seqid)
+    end
+
+    def process_migrate2_stage1(seqid, iprot, oprot)
+      args = read_args(iprot, Migrate2_stage1_args)
+      result = Migrate2_stage1_result.new()
+      begin
+        result.success = @handler.migrate2_stage1(args.dbName, args.tableName, args.partNames, args.to_dc)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'migrate2_stage1', seqid)
+    end
+
+    def process_migrate2_stage2(seqid, iprot, oprot)
+      args = read_args(iprot, Migrate2_stage2_args)
+      result = Migrate2_stage2_result.new()
+      begin
+        result.success = @handler.migrate2_stage2(args.dbName, args.tableName, args.partNames, args.to_dc, args.to_nas_devid)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'migrate2_stage2', seqid)
     end
 
     def process_getMP(seqid, iprot, oprot)
@@ -4021,9 +4134,13 @@ module ThriftHiveMetastore
   class Add_partition_index_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
+    O1 = 1
+    O2 = 2
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'}
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::AlreadyExistsException}
     }
 
     def struct_fields; FIELDS; end
@@ -4055,9 +4172,13 @@ module ThriftHiveMetastore
   class Drop_partition_index_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
+    O1 = 1
+    O2 = 2
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'}
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::AlreadyExistsException}
     }
 
     def struct_fields; FIELDS; end
@@ -4089,9 +4210,13 @@ module ThriftHiveMetastore
   class Add_subpartition_index_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
+    O1 = 1
+    O2 = 2
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'}
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::AlreadyExistsException}
     }
 
     def struct_fields; FIELDS; end
@@ -4123,9 +4248,13 @@ module ThriftHiveMetastore
   class Drop_subpartition_index_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
+    O1 = 1
+    O2 = 2
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'}
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::AlreadyExistsException}
     }
 
     def struct_fields; FIELDS; end
@@ -7923,6 +8052,48 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
+  class Migrate2_in_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    TBL = 1
+    PARTS = 2
+    FROM_DC = 3
+    TO_NAS_DEVID = 4
+    FILEMAP = 5
+
+    FIELDS = {
+      TBL => {:type => ::Thrift::Types::STRUCT, :name => 'tbl', :class => ::Table},
+      PARTS => {:type => ::Thrift::Types::LIST, :name => 'parts', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Partition}},
+      FROM_DC => {:type => ::Thrift::Types::STRING, :name => 'from_dc'},
+      TO_NAS_DEVID => {:type => ::Thrift::Types::STRING, :name => 'to_nas_devid'},
+      FILEMAP => {:type => ::Thrift::Types::MAP, :name => 'fileMap', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::SFileLocation}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate2_in_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class Migrate_out_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     DBNAME = 1
@@ -7948,11 +8119,93 @@ module ThriftHiveMetastore
   class Migrate_out_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
-    O2 = 1
+    O1 = 1
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate2_stage1_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    TABLENAME = 2
+    PARTNAMES = 3
+    TO_DC = 4
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+      TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
+      PARTNAMES => {:type => ::Thrift::Types::LIST, :name => 'partNames', :element => {:type => ::Thrift::Types::STRING}},
+      TO_DC => {:type => ::Thrift::Types::STRING, :name => 'to_dc'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate2_stage1_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFileLocation}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate2_stage2_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    TABLENAME = 2
+    PARTNAMES = 3
+    TO_DC = 4
+    TO_NAS_DEVID = 5
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+      TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
+      PARTNAMES => {:type => ::Thrift::Types::LIST, :name => 'partNames', :element => {:type => ::Thrift::Types::STRING}},
+      TO_DC => {:type => ::Thrift::Types::STRING, :name => 'to_dc'},
+      TO_NAS_DEVID => {:type => ::Thrift::Types::STRING, :name => 'to_nas_devid'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate2_stage2_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end

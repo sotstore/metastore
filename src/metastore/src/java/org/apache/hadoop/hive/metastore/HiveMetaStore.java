@@ -4251,11 +4251,54 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public SFile create_file(String node_name, int repnr, String db_name, String table_name)
         throws FileOperationException, TException {
+      // TODO: if repnr less than 1, we should increase it to replicate to BACKUP-STORE
+      if (repnr <= 1) {
+        repnr++;
+      }
+      // do not select the backup node
+      Set<String> nonbackup = new TreeSet<String>();
+      nonbackup.add(dm.backupNodeName);
+
+      FileLocatingPolicy flp = new FileLocatingPolicy(nonbackup, null, FileLocatingPolicy.EXCLUDE_NODES_DEVS, false);
+      return create_file(flp, node_name, repnr, db_name, table_name);
+    }
+
+    private SFile create_file_wo_location(int repnr, String dbName, String tableName)
+      throws FileOperationException, TException {
+      long table_id = -1;
+
+      // try to parse table_name
+      if (dbName != null && tableName != null) {
+        Table tbl;
+        try {
+          tbl = getMS().getTable(dbName, tableName);
+          table_id = getMS().getTableOID(dbName, tableName);
+        } catch (MetaException me) {
+          throw new FileOperationException("Invalid Table name:" + dbName + "/" + tableName, FOFailReason.INVALID_TABLE);
+        }
+        tableName = tbl.getDbName() + "/" + tbl.getTableName();
+      }
+      SFile cfile = new SFile(0, table_id, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
+          "SFILE_DEFAULT_X", 0, 0, null, 0);
+      getMS().createFile(cfile);
+      cfile = getMS().getSFile(cfile.getFid());
+      if (cfile == null) {
+          throw new FileOperationException("Creating file with internal error, metadata inconsistent?", FOFailReason.INVALID_FILE);
+      }
+
+      return cfile;
+    }
+
+    private SFile create_file(FileLocatingPolicy flp, String node_name, int repnr, String db_name, String table_name)
+        throws FileOperationException, TException {
 
       if (node_name == null) {
         // this means we should select Best Available Node and Best Available Device;
         try {
-          node_name = dm.findBestNode();
+          node_name = dm.findBestNode(flp);
+          if (node_name == null) {
+            throw new IOException("Folloing the FLP, we can't find any available node now.");
+          }
         } catch (IOException e) {
           LOG.error(e, e);
           throw new FileOperationException("Can not find any Best Available Node now, please retry", FOFailReason.SAFEMODE);
@@ -4269,7 +4312,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         return null;
       }
       try {
-        FileLocatingPolicy flp = new FileLocatingPolicy(null, null, FileLocatingPolicy.EXCLUDE_NODES_DEVS, true);
+        if (flp == null) {
+          flp = new FileLocatingPolicy(null, null, FileLocatingPolicy.EXCLUDE_NODES_DEVS, true);
+        }
         String devid = dm.findBestDevice(node_name, flp);
         long table_id = -1;
 
@@ -4366,6 +4411,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       default:
         r.setLocations(getMS().getSFileLocations(fid));
       }
+      dm.identifyNASDevice(r.getLocations());
+
       return r;
     }
 
@@ -4525,7 +4572,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         if (HMSHandler.topdcli == null) {
           connect_to_top_dc(hiveConf);
         }
-        return HMSHandler.topdcli.get_all_centers();
+        try {
+          return HMSHandler.topdcli.get_all_centers();
+        } catch (TException e) {
+          LOG.error(e, e);
+          HMSHandler.topdcli = null;
+          throw e;
+        }
       }
     }
 
@@ -4574,8 +4627,15 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public int drop_partition_files(Partition part, List<SFile> files) throws TException {
       Partition p = getMS().getPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
-      List<Long> new_files = part.getFiles();
-      new_files.removeAll(files);
+      if (part.getFilesSize() == 0 || files == null || files.size() == 0) {
+        return 0;
+      }
+      List<Long> old_files = part.getFiles();
+      List<Long> new_files = new ArrayList<Long>();
+      new_files.addAll(old_files);
+      for (SFile f : files) {
+        new_files.remove(f.getFid());
+      }
       p.setFiles(new_files);
       LOG.info("Begin drop partition files " + p.getPartitionName() + " fileset's size " + new_files.size());
       getMS().updatePartition(p);
@@ -4624,8 +4684,15 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public int drop_subpartition_files(Subpartition subpart, List<SFile> files) throws TException {
       Subpartition p = getMS().getSubpartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
-      List<Long> new_files = subpart.getFiles();
-      new_files.removeAll(files);
+      if (subpart.getFilesSize() == 0 || files == null || files.size() == 0) {
+        return 0;
+      }
+      List<Long> old_files = subpart.getFiles();
+      List<Long> new_files = new ArrayList<Long>();
+      new_files.addAll(old_files);
+      for (SFile f : files) {
+        new_files.remove(f.getFid());
+      }
       p.setFiles(new_files);
       LOG.info("Begin drop subpartition files " + subpart.getPartitionName() + " fileset's size " + new_files.size());
       getMS().updateSubpartition(p);
@@ -4637,25 +4704,25 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public boolean add_partition_index(Index index, Partition part) throws TException {
+    public boolean add_partition_index(Index index, Partition part) throws MetaException, AlreadyExistsException, TException {
       getMS().createPartitionIndex(index, part);
       return true;
     }
 
     @Override
-    public boolean drop_partition_index(Index index, Partition part) throws TException {
+    public boolean drop_partition_index(Index index, Partition part) throws MetaException, InvalidObjectException, TException {
       getMS().dropPartitionIndex(index, part);
       return true;
     }
 
     @Override
-    public boolean add_subpartition_index(Index index, Subpartition part) throws TException {
+    public boolean add_subpartition_index(Index index, Subpartition part) throws MetaException, AlreadyExistsException, TException {
       getMS().createPartitionIndex(index, part);
       return true;
     }
 
     @Override
-    public boolean drop_subpartition_index(Index index, Subpartition part) throws TException {
+    public boolean drop_subpartition_index(Index index, Subpartition part) throws MetaException, InvalidObjectException, TException {
       getMS().dropPartitionIndex(index, part);
       return true;
     }
@@ -5005,6 +5072,52 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return true;
     }
 
+    // Migrate2 use NAS-WAN-NAS fashion migration,
+    // In stage1, we get the file list and generate NAS file location list.
+    public List<SFileLocation> migrate2_stage1(String dbName, String tableName, List<String> partNames, String to_dc)
+      throws MetaException, TException {
+      List<SFileLocation> r = new ArrayList<SFileLocation>();
+
+      // prepare parts
+      LOG.info("parts: " + partNames.toString());
+      List<Partition> parts = get_partitions_by_names(dbName, tableName, partNames);
+      if (parts.size() == 0) {
+        LOG.info("Zero partition list, do not migrate!");
+        return r;
+      }
+      for (Partition p : parts) {
+        LOG.info("p " + p.getPartitionName() + " subparts " + p.getSubpartitionsSize());
+        for (Subpartition sp : p.getSubpartitions()) {
+          LOG.info("sp " + sp.getPartitionName() + " files " + sp.getFiles().toString());
+          if (sp.getFilesSize() > 0) {
+            for (long fid : sp.getFiles()) {
+              SFile f = get_file_by_id(fid);
+              boolean added = false;
+              if (f != null && f.getLocationsSize() > 0) {
+                for (SFileLocation sfl : f.getLocations()) {
+                  if (sfl.getNode_name().equals("")) {
+                    // this is the NAS location, record it
+                    r.add(sfl);
+                    LOG.info("sp -> NAS SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+                    added = true;
+                    break;
+                  }
+                }
+                if (!added) {
+                  // record a non-NAS location
+                  SFileLocation sfl = f.getLocations().get(0);
+                  r.add(sfl);
+                  LOG.info("sp -> NAS SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return r;
+    }
+
     @Override
     public String getMP(String node_name, String devid) throws MetaException, TException {
       if (dm == null) {
@@ -5051,7 +5164,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public SFile get_file_by_name(String node, String devid, String location)
         throws FileOperationException, MetaException, TException {
-      SFile r = getMS().getSFile(node, devid, location);
+      SFile r = getMS().getSFile(devid, location);
       if (r == null) {
         throw new FileOperationException("Can not find SFile by name: " + node + ":" + devid + ":" + location, FOFailReason.INVALID_FILE);
       }
@@ -5063,8 +5176,317 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       default:
         r.setLocations(getMS().getSFileLocations(r.getFid()));
       }
+      dm.identifyNASDevice(r.getLocations());
+
       return r;
 
+    }
+
+    @Override
+    // Migrate2 use NAS-WAN-NAS fashion migration
+    // In stage2, we create the metadata structures in remote dc, and update remote/local file relations
+    public boolean migrate2_stage2(String dbName, String tableName, List<String> partNames,
+        String to_dc, String to_nas_devid) throws MetaException, TException {
+      // prepare datacenter connection
+      if (HMSHandler.topdcli == null) {
+        connect_to_top_dc(hiveConf);
+        if (HMSHandler.topdcli == null) {
+          throw new MetaException("Top-level DC metastore is null, please check!");
+        }
+      }
+      if (hiveConf.getVar(ConfVars.LOCAL_DATACENTER) == null) {
+        throw new MetaException("Please set 'hive.datacenter.local' as local datacenter NAME.");
+      }
+      Datacenter rdc = HMSHandler.topdcli.get_center(to_dc);
+      Datacenter ldc = get_center(hiveConf.getVar(ConfVars.LOCAL_DATACENTER));
+
+      IMetaStoreClient rcli = new HiveMetaStoreClient(rdc.getLocationUri(),
+            HiveConf.getIntVar(hiveConf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
+            hiveConf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
+            null);
+
+      // prepare tbl, parts
+      Table tbl = get_table(dbName, tableName);
+      Map<String, String> kvs = new HashMap<String, String>();
+      if (tbl.getParametersSize() > 0) {
+        LOG.info(tbl.getParameters().toString());
+        kvs.putAll(tbl.getParameters());
+        kvs.put("store.remote", "both");
+        if (kvs.get("store.remote.dcs") == null) {
+          kvs.put("store.remote.dcs", to_dc + "," + hiveConf.getVar(ConfVars.LOCAL_DATACENTER));
+        } else {
+          String olddcs = kvs.get("store.remote.dcs");
+          String[] dcsarray = olddcs.split(",");
+          boolean ign = false;
+          for (int i = 0; i < dcsarray.length; i++) {
+            if (dcsarray[i].equals(to_dc)) {
+              ign = true;
+              break;
+            }
+          }
+          if (!ign) {
+            olddcs += "," + to_dc;
+          }
+          kvs.put("store.remote.dcs", olddcs);
+        }
+        tbl.setParameters(kvs);
+      } else {
+        tbl.setParameters(kvs);
+      }
+      LOG.info("parts: " + partNames.toString());
+      List<Partition> parts = get_partitions_by_names(dbName, tableName, partNames);
+      if (parts.size() == 0) {
+        LOG.info("Zero partition list, do not migrate!");
+        rcli.close();
+        return false;
+      }
+      Map<Long, SFileLocation> targetFileMap = new HashMap<Long, SFileLocation>();
+
+      for (Partition p : parts) {
+        LOG.info("p " + p.getPartitionName() + " subparts " + p.getSubpartitionsSize());
+        if (p.getSubpartitionsSize() > 0) {
+          for (Subpartition sp : p.getSubpartitions()) {
+            LOG.info("sp " + sp.getPartitionName() + " files " + sp.getFiles().toString());
+            if (sp.getFilesSize() > 0) {
+              for (long fid : sp.getFiles()) {
+                SFile f = get_file_by_id(fid);
+                if (f != null && f.getLocationsSize() > 0) {
+                  for (SFileLocation sfl : f.getLocations()) {
+                    if (sfl.getNode_name().equals("")) {
+                      // this is the NAS location, record it
+                      LOG.info("sp -> SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+                      sfl.setDevid(to_nas_devid);
+                      sfl.setDigest("MIGRATE2-DIGESTED!");
+                      targetFileMap.put(fid, sfl);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          if (p.getFilesSize() > 0) {
+            for (long fid : p.getFiles()) {
+              SFile f = get_file_by_id(fid);
+              if (f != null && f.getLocationsSize() > 0) {
+                for (SFileLocation sfl : f.getLocations()) {
+                  if (sfl.getNode_name().equals("")) {
+                    // this is the NAS location, record it
+                    LOG.info("p -> SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+                    sfl.setDevid(to_nas_devid);
+                    sfl.setDigest("MIGRATE2-DIGESTED!");
+                    targetFileMap.put(fid, sfl);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // call remote metastore's migrate2_in to construct metadata
+      if (rcli.migrate2_in(tbl, parts, ldc.getName(), to_nas_devid, targetFileMap)) {
+        // wow, it is success
+        alter_table(dbName, tableName, tbl);
+        LOG.info("Update table properties to reflect the migration.");
+      } else {
+        LOG.info("Migrate2 through NAS-WAN-NAS failed at remote Datacenter " + to_dc);
+        return false;
+      }
+      rcli.close();
+
+      // finally, remove local partition_file relationship
+      for (Partition p : parts) {
+        if (p.getSubpartitionsSize() > 0) {
+          for (Subpartition sp : p.getSubpartitions()) {
+            List<SFile> files = new ArrayList<SFile>();
+
+            if (sp.getFilesSize() > 0) {
+              for (long fid : sp.getFiles()) {
+                SFile f = get_file_by_id(fid);
+                if (f != null) {
+                  files.add(f);
+                }
+              }
+            }
+            drop_subpartition_files(sp, files);
+          }
+        } else {
+          List<SFile> files = new ArrayList<SFile>();
+
+          if (p.getFilesSize() > 0) {
+            for (long fid : p.getFiles()) {
+              SFile f = get_file_by_id(fid);
+              if (f != null) {
+                files.add(f);
+              }
+            }
+          }
+          drop_partition_files(p, files);
+        }
+      }
+
+      return true;
+    }
+
+    @Override
+    public boolean migrate2_in(Table tbl, List<Partition> parts, String from_dc,
+        String to_nas_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException {
+      LOG.info("server parts2 " + parts.get(0).getSubpartitions().get(0).getPartitionName() + ", " + parts.get(0).getSubpartitions().get(0).getFiles());
+
+      // try to create the database, if it doesn't exist
+      Datacenter ldc = null;
+
+      if (hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER) == null) {
+        throw new MetaException("Please set 'hive.datacenter.local' as the local DC name");
+      }
+      try {
+        ldc = getMS().getDatacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
+      } catch (NoSuchObjectException e) {
+        ldc = new Datacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER), null, HMSHandler.msUri == null ? "DEFAULT_URI" : HMSHandler.msUri, null);
+        getMS().createDatacenter(ldc);
+      }
+
+      try {
+        getMS().getDatabase(tbl.getDbName());
+      } catch (NoSuchObjectException e) {
+        Database db = new Database(tbl.getDbName(), DEFAULT_DATABASE_COMMENT,
+                wh.getDefaultDatabasePath(tbl.getDbName()).toString(), null);
+        db.setDatacenter(ldc);
+        getMS().createDatabase(db);
+      }
+      // try to create the table, if it doesn't exist
+      try {
+        create_table(tbl);
+      } catch (AlreadyExistsException e) {
+        // it is ok, ignore it.
+      }
+      LOG.info("Create table " + tbl.getTableName() + " done.");
+
+      // try to create the partition, if it doesn't exist
+      List<Partition> toAdd = new ArrayList<Partition>();
+      List<Partition> toUpdate = new ArrayList<Partition>();
+      List<Partition> copy_parts = deepCopyPartitions(parts);
+      for (Partition part : copy_parts) {
+        LOG.info("Handle partition1 " + part.getPartitionName() + ", subparts NR " + part.getSubpartitionsSize());
+        try {
+          getMS().getPartition(part.getDbName(), part
+              .getTableName(), part.getPartitionName());
+        } catch (NoSuchObjectException e) {
+          // this means there is no existing partition, it is ok
+          toAdd.add(part);
+          continue;
+        }
+        toUpdate.add(part);
+      }
+      add_partitions(toAdd);
+      LOG.info("Add partitions done.");
+
+      // try to create the file without any active locations.
+      Set<SFile> fileToDel = new TreeSet<SFile>();
+      Set<SFileLocation> sflToDel = new TreeSet<SFileLocation>();
+      Map<Long, SFile> oldFidToNewFile = new HashMap<Long, SFile>();
+
+      for (Map.Entry<Long, SFileLocation> entry : fileMap.entrySet()) {
+        SFileLocation sfl = entry.getValue();
+
+        LOG.info("Add NEW SFL DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+        SFile nfile = create_file_wo_location(3, tbl.getDbName(), tbl.getTableName());
+        fileToDel.add(nfile);
+
+        sfl.setNode_name(dm.getAnyNode());
+        while (sfl.getNode_name() == null) {
+          LOG.warn("No active node in ndmap ... retry it.");
+          sfl.setNode_name(dm.getAnyNode());
+          try {
+            Thread.sleep(1000);
+          } catch (InterruptedException e) {
+            LOG.error(e, e);
+          }
+        }
+        sfl.setFid(nfile.getFid());
+        sfl.setRep_id(0);
+        sfl.setUpdate_time(System.currentTimeMillis());
+        sfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
+
+        if (!getMS().createFileLocation(sfl)) {
+          LOG.info("[ROLLBACK] Failed to create SFL " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+          // rollback to delete all files and locations
+          for (SFileLocation fl : sflToDel) {
+            getMS().delSFileLocation(fl.getDevid(), fl.getLocation());
+          }
+          for (SFile f : fileToDel) {
+            getMS().delSFile(f.getFid());
+          }
+          return false;
+        } else {
+          sflToDel.add(sfl);
+          List<SFileLocation> locations = new ArrayList<SFileLocation>();
+          locations.add(sfl);
+          nfile.setLocations(locations);
+          oldFidToNewFile.put(entry.getKey(), nfile);
+        }
+
+      }
+
+      // finally, add SFile to part or subpart
+      for (Partition part : parts) {
+        LOG.info("Handle partition2 " + part.getPartitionName() + ", subparts NR " + part.getSubpartitionsSize());
+        if (part.getSubpartitionsSize() > 0) {
+          // call add subpartition_files()
+          for (Subpartition subpart : part.getSubpartitions()) {
+            LOG.info("subparts " + subpart.getPartitionName() + ", " + subpart.getFiles());
+            List<SFile> files = new ArrayList<SFile>();
+            for (Long fid : subpart.getFiles()) {
+              SFile lookup = oldFidToNewFile.get(fid);
+              if (lookup == null) {
+                LOG.info("Lookup old FID " + fid + " failed in oldFidToNewFile map, ignore this file [data loss].");
+              } else {
+                files.add(lookup);
+              }
+            }
+            Subpartition localsubpart = getMS().getSubpartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
+
+            if (localsubpart == null) {
+              throw new MetaException("Invalid local subpart: " + subpart.getPartitionName());
+            }
+
+            add_subpartition_files(localsubpart, files);
+          }
+        } else {
+          // call add_partition_files()
+          if (part.getFilesSize() > 0) {
+            List<SFile> files = new ArrayList<SFile>();
+            for (Long fid : part.getFiles()) {
+              SFile lookup = oldFidToNewFile.get(fid);
+              if (lookup == null) {
+                LOG.info("Lookup old FID " + fid + " failed in oldFidToNewFile map, ignore this file [data loss].");
+              } else {
+                files.add(lookup);
+              }
+            }
+            Partition localpart = getMS().getPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
+
+            if (localpart == null) {
+              throw new MetaException("Invalid local part: " + part.getPartitionName());
+            }
+            LOG.info("parts " + part.getPartitionName() + ", " + part.getFiles().toString());
+
+            add_partition_files(localpart, files);
+          }
+        }
+      }
+
+      // close the files
+      for (Map.Entry<Long, SFile> entry : oldFidToNewFile.entrySet()) {
+        close_file(entry.getValue());
+      }
+
+      LOG.info("OK, we will migrate DC " + from_dc + " DB " + tbl.getDbName() + " Table " +
+          tbl.getTableName() + "'s " + parts.size() + " Partition(s) w/ " + fileMap.size() +
+          " files to local DC.");
+
+      return true;
     }
 
   }

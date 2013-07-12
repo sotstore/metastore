@@ -69,6 +69,7 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
@@ -1593,7 +1594,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   }
 
   @Override
-  public boolean add_partition_index(Index index, Partition part) throws TException {
+  public boolean add_partition_index(Index index, Partition part) throws MetaException, AlreadyExistsException, TException {
     assert index != null;
     assert part != null;
     return client.add_partition_index(index, part);
@@ -1628,7 +1629,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   }
 
   @Override
-  public boolean drop_partition_index(Index index, Partition part) throws TException {
+  public boolean drop_partition_index(Index index, Partition part) throws MetaException, InvalidObjectException, TException {
     assert index != null;
     assert part != null;
     return client.drop_partition_index(index, part);
@@ -1683,13 +1684,13 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   }
 
   @Override
-  public boolean add_subpartition_index(Index index, Subpartition subpart) throws TException {
+  public boolean add_subpartition_index(Index index, Subpartition subpart) throws MetaException, AlreadyExistsException, TException {
     // TODO Auto-generated method stub
     return client.add_subpartition_index(index, subpart);
   }
 
   @Override
-  public boolean drop_subpartition_index(Index index, Subpartition subpart) throws TException {
+  public boolean drop_subpartition_index(Index index, Subpartition subpart) throws MetaException, InvalidObjectException, TException {
     // TODO Auto-generated method stub
     return client.drop_subpartition_index(index, subpart);
   }
@@ -1800,5 +1801,45 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
     throws InvalidObjectException, MetaException, TException {
     client.append_busi_type_datacenter(busiTypeDatacenter);
+  }
+
+  @Override
+  public List<SFileRef> get_subpartition_index_files(Index index, Subpartition subpart)
+      throws MetaException, TException {
+    assert index != null;
+    assert subpart != null;
+    return client.get_subpartition_index_files(index, subpart);
+  }
+
+  @Override
+  public List<SFileLocation> migrate2_stage1(String dbName, String tableName,
+      List<String> partNames, String to_dc) throws MetaException, TException {
+    assert dbName != null;
+    assert tableName != null;
+    assert partNames != null;
+    assert to_dc != null;
+    return client.migrate2_stage1(dbName, tableName, partNames, to_dc);
+  }
+
+  @Override
+  public boolean migrate2_stage2(String dbName, String tableName, List<String> partNames,
+      String to_dc, String to_nas_devid) throws MetaException, TException {
+    assert dbName != null;
+    assert tableName != null;
+    assert partNames != null;
+    assert to_dc != null;
+    assert to_nas_devid != null;
+    return client.migrate2_stage2(dbName, tableName, partNames, to_dc, to_nas_devid);
+  }
+
+  @Override
+  public boolean migrate2_in(Table tbl, List<Partition> parts, String from_dc, String to_nas_devid,
+      Map<Long, SFileLocation> fileMap) throws MetaException, TException {
+    assert tbl != null;
+    assert parts != null;
+    assert from_dc != null;
+    assert to_nas_devid != null;
+    assert fileMap != null;
+    return client.migrate2_in(tbl, parts, from_dc, to_nas_devid, fileMap);
   }
 }

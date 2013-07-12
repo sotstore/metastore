@@ -449,11 +449,11 @@ service ThriftHiveMetastore extends fb303.FacebookService
   i32 drop_subpartition_files(1:Subpartition subpart, 2:list<SFile> files)
   
   //start of partition index
-  bool add_partition_index(1:Index index, 2:Partition part)
-  bool drop_partition_index(1:Index index, 2:Partition part)
+  bool add_partition_index(1:Index index, 2:Partition part) throws (1:MetaException o1, 2:AlreadyExistsException o2);
+  bool drop_partition_index(1:Index index, 2:Partition part) throws (1:MetaException o1, 2:AlreadyExistsException o2);
   
-  bool add_subpartition_index(1:Index index, 2:Subpartition part)
-  bool drop_subpartition_index(1:Index index, 2:Subpartition part)
+  bool add_subpartition_index(1:Index index, 2:Subpartition part) throws (1:MetaException o1, 2:AlreadyExistsException o2);
+  bool drop_subpartition_index(1:Index index, 2:Subpartition part) throws (1:MetaException o1, 2:AlreadyExistsException o2);
   
   bool add_subpartition(1:string dbname, 2:string tbl_name, 3:list<string> part_vals,4:Subpartition sub_part)
   list<Subpartition> get_subpartitions(1:string dbname, 2:string tbl_name, 3:Partition part)
@@ -781,7 +781,13 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   map<i64, SFile> migrate_in(1:Table tbl, 2:list<Partition> parts, 3:string from_dc) throws (1:MetaException o1)
   
-  bool migrate_out(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc) throws (1:MetaException o2)
+  bool migrate2_in(1:Table tbl, 2:list<Partition> parts, 3:string from_dc, 4:string to_nas_devid, 5:map<i64, SFileLocation> fileMap) throws (1:MetaException o1)
+  
+  bool migrate_out(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc) throws (1:MetaException o1)
+  
+  list<SFileLocation> migrate2_stage1(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc) throws (1:MetaException o1)
+  
+  bool migrate2_stage2(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc, 5:string to_nas_devid) throws (1:MetaException o1)
   
   string getMP(1:string node_name, 2:string devid) throws (1:MetaException o1) 
 }

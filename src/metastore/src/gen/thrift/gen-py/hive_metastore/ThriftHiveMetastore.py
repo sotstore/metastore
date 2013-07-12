@@ -964,6 +964,17 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
+  def migrate2_in(self, tbl, parts, from_dc, to_nas_devid, fileMap):
+    """
+    Parameters:
+     - tbl
+     - parts
+     - from_dc
+     - to_nas_devid
+     - fileMap
+    """
+    pass
+
   def migrate_out(self, dbName, tableName, partNames, to_dc):
     """
     Parameters:
@@ -971,6 +982,27 @@ class Iface(fb303.FacebookService.Iface):
      - tableName
      - partNames
      - to_dc
+    """
+    pass
+
+  def migrate2_stage1(self, dbName, tableName, partNames, to_dc):
+    """
+    Parameters:
+     - dbName
+     - tableName
+     - partNames
+     - to_dc
+    """
+    pass
+
+  def migrate2_stage2(self, dbName, tableName, partNames, to_dc, to_nas_devid):
+    """
+    Parameters:
+     - dbName
+     - tableName
+     - partNames
+     - to_dc
+     - to_nas_devid
     """
     pass
 
@@ -1500,6 +1532,10 @@ class Client(fb303.FacebookService.Client, Iface):
     self._iprot.readMessageEnd()
     if result.success is not None:
       return result.success
+    if result.o1 is not None:
+      raise result.o1
+    if result.o2 is not None:
+      raise result.o2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "add_partition_index failed: unknown result");
 
   def drop_partition_index(self, index, part):
@@ -1532,6 +1568,10 @@ class Client(fb303.FacebookService.Client, Iface):
     self._iprot.readMessageEnd()
     if result.success is not None:
       return result.success
+    if result.o1 is not None:
+      raise result.o1
+    if result.o2 is not None:
+      raise result.o2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "drop_partition_index failed: unknown result");
 
   def add_subpartition_index(self, index, part):
@@ -1564,6 +1604,10 @@ class Client(fb303.FacebookService.Client, Iface):
     self._iprot.readMessageEnd()
     if result.success is not None:
       return result.success
+    if result.o1 is not None:
+      raise result.o1
+    if result.o2 is not None:
+      raise result.o2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "add_subpartition_index failed: unknown result");
 
   def drop_subpartition_index(self, index, part):
@@ -1596,6 +1640,10 @@ class Client(fb303.FacebookService.Client, Iface):
     self._iprot.readMessageEnd()
     if result.success is not None:
       return result.success
+    if result.o1 is not None:
+      raise result.o1
+    if result.o2 is not None:
+      raise result.o2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "drop_subpartition_index failed: unknown result");
 
   def add_subpartition(self, dbname, tbl_name, part_vals, sub_part):
@@ -5152,6 +5200,46 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "migrate_in failed: unknown result");
 
+  def migrate2_in(self, tbl, parts, from_dc, to_nas_devid, fileMap):
+    """
+    Parameters:
+     - tbl
+     - parts
+     - from_dc
+     - to_nas_devid
+     - fileMap
+    """
+    self.send_migrate2_in(tbl, parts, from_dc, to_nas_devid, fileMap)
+    return self.recv_migrate2_in()
+
+  def send_migrate2_in(self, tbl, parts, from_dc, to_nas_devid, fileMap):
+    self._oprot.writeMessageBegin('migrate2_in', TMessageType.CALL, self._seqid)
+    args = migrate2_in_args()
+    args.tbl = tbl
+    args.parts = parts
+    args.from_dc = from_dc
+    args.to_nas_devid = to_nas_devid
+    args.fileMap = fileMap
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_migrate2_in(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = migrate2_in_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "migrate2_in failed: unknown result");
+
   def migrate_out(self, dbName, tableName, partNames, to_dc):
     """
     Parameters:
@@ -5186,9 +5274,87 @@ class Client(fb303.FacebookService.Client, Iface):
     self._iprot.readMessageEnd()
     if result.success is not None:
       return result.success
-    if result.o2 is not None:
-      raise result.o2
+    if result.o1 is not None:
+      raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "migrate_out failed: unknown result");
+
+  def migrate2_stage1(self, dbName, tableName, partNames, to_dc):
+    """
+    Parameters:
+     - dbName
+     - tableName
+     - partNames
+     - to_dc
+    """
+    self.send_migrate2_stage1(dbName, tableName, partNames, to_dc)
+    return self.recv_migrate2_stage1()
+
+  def send_migrate2_stage1(self, dbName, tableName, partNames, to_dc):
+    self._oprot.writeMessageBegin('migrate2_stage1', TMessageType.CALL, self._seqid)
+    args = migrate2_stage1_args()
+    args.dbName = dbName
+    args.tableName = tableName
+    args.partNames = partNames
+    args.to_dc = to_dc
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_migrate2_stage1(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = migrate2_stage1_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "migrate2_stage1 failed: unknown result");
+
+  def migrate2_stage2(self, dbName, tableName, partNames, to_dc, to_nas_devid):
+    """
+    Parameters:
+     - dbName
+     - tableName
+     - partNames
+     - to_dc
+     - to_nas_devid
+    """
+    self.send_migrate2_stage2(dbName, tableName, partNames, to_dc, to_nas_devid)
+    return self.recv_migrate2_stage2()
+
+  def send_migrate2_stage2(self, dbName, tableName, partNames, to_dc, to_nas_devid):
+    self._oprot.writeMessageBegin('migrate2_stage2', TMessageType.CALL, self._seqid)
+    args = migrate2_stage2_args()
+    args.dbName = dbName
+    args.tableName = tableName
+    args.partNames = partNames
+    args.to_dc = to_dc
+    args.to_nas_devid = to_nas_devid
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_migrate2_stage2(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = migrate2_stage2_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "migrate2_stage2 failed: unknown result");
 
   def getMP(self, node_name, devid):
     """
@@ -5345,7 +5511,10 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["get_all_nodes"] = Processor.process_get_all_nodes
     self._processMap["getDMStatus"] = Processor.process_getDMStatus
     self._processMap["migrate_in"] = Processor.process_migrate_in
+    self._processMap["migrate2_in"] = Processor.process_migrate2_in
     self._processMap["migrate_out"] = Processor.process_migrate_out
+    self._processMap["migrate2_stage1"] = Processor.process_migrate2_stage1
+    self._processMap["migrate2_stage2"] = Processor.process_migrate2_stage2
     self._processMap["getMP"] = Processor.process_getMP
 
   def process(self, iprot, oprot):
@@ -5584,7 +5753,12 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     args.read(iprot)
     iprot.readMessageEnd()
     result = add_partition_index_result()
-    result.success = self._handler.add_partition_index(args.index, args.part)
+    try:
+      result.success = self._handler.add_partition_index(args.index, args.part)
+    except MetaException as o1:
+      result.o1 = o1
+    except AlreadyExistsException as o2:
+      result.o2 = o2
     oprot.writeMessageBegin("add_partition_index", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -5595,7 +5769,12 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     args.read(iprot)
     iprot.readMessageEnd()
     result = drop_partition_index_result()
-    result.success = self._handler.drop_partition_index(args.index, args.part)
+    try:
+      result.success = self._handler.drop_partition_index(args.index, args.part)
+    except MetaException as o1:
+      result.o1 = o1
+    except AlreadyExistsException as o2:
+      result.o2 = o2
     oprot.writeMessageBegin("drop_partition_index", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -5606,7 +5785,12 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     args.read(iprot)
     iprot.readMessageEnd()
     result = add_subpartition_index_result()
-    result.success = self._handler.add_subpartition_index(args.index, args.part)
+    try:
+      result.success = self._handler.add_subpartition_index(args.index, args.part)
+    except MetaException as o1:
+      result.o1 = o1
+    except AlreadyExistsException as o2:
+      result.o2 = o2
     oprot.writeMessageBegin("add_subpartition_index", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -5617,7 +5801,12 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     args.read(iprot)
     iprot.readMessageEnd()
     result = drop_subpartition_index_result()
-    result.success = self._handler.drop_subpartition_index(args.index, args.part)
+    try:
+      result.success = self._handler.drop_subpartition_index(args.index, args.part)
+    except MetaException as o1:
+      result.o1 = o1
+    except AlreadyExistsException as o2:
+      result.o2 = o2
     oprot.writeMessageBegin("drop_subpartition_index", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -7177,6 +7366,20 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
+  def process_migrate2_in(self, seqid, iprot, oprot):
+    args = migrate2_in_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = migrate2_in_result()
+    try:
+      result.success = self._handler.migrate2_in(args.tbl, args.parts, args.from_dc, args.to_nas_devid, args.fileMap)
+    except MetaException as o1:
+      result.o1 = o1
+    oprot.writeMessageBegin("migrate2_in", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
   def process_migrate_out(self, seqid, iprot, oprot):
     args = migrate_out_args()
     args.read(iprot)
@@ -7184,9 +7387,37 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     result = migrate_out_result()
     try:
       result.success = self._handler.migrate_out(args.dbName, args.tableName, args.partNames, args.to_dc)
-    except MetaException as o2:
-      result.o2 = o2
+    except MetaException as o1:
+      result.o1 = o1
     oprot.writeMessageBegin("migrate_out", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_migrate2_stage1(self, seqid, iprot, oprot):
+    args = migrate2_stage1_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = migrate2_stage1_result()
+    try:
+      result.success = self._handler.migrate2_stage1(args.dbName, args.tableName, args.partNames, args.to_dc)
+    except MetaException as o1:
+      result.o1 = o1
+    oprot.writeMessageBegin("migrate2_stage1", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_migrate2_stage2(self, seqid, iprot, oprot):
+    args = migrate2_stage2_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = migrate2_stage2_result()
+    try:
+      result.success = self._handler.migrate2_stage2(args.dbName, args.tableName, args.partNames, args.to_dc, args.to_nas_devid)
+    except MetaException as o1:
+      result.o1 = o1
+    oprot.writeMessageBegin("migrate2_stage2", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -9403,14 +9634,20 @@ class add_partition_index_result:
   """
   Attributes:
    - success
+   - o1
+   - o2
   """
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (AlreadyExistsException, AlreadyExistsException.thrift_spec), None, ), # 2
   )
 
-  def __init__(self, success=None,):
+  def __init__(self, success=None, o1=None, o2=None,):
     self.success = success
+    self.o1 = o1
+    self.o2 = o2
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -9426,6 +9663,18 @@ class add_partition_index_result:
           self.success = iprot.readBool();
         else:
           iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = AlreadyExistsException()
+          self.o2.read(iprot)
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -9439,6 +9688,14 @@ class add_partition_index_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.BOOL, 0)
       oprot.writeBool(self.success)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
+      self.o2.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -9536,14 +9793,20 @@ class drop_partition_index_result:
   """
   Attributes:
    - success
+   - o1
+   - o2
   """
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (AlreadyExistsException, AlreadyExistsException.thrift_spec), None, ), # 2
   )
 
-  def __init__(self, success=None,):
+  def __init__(self, success=None, o1=None, o2=None,):
     self.success = success
+    self.o1 = o1
+    self.o2 = o2
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -9559,6 +9822,18 @@ class drop_partition_index_result:
           self.success = iprot.readBool();
         else:
           iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = AlreadyExistsException()
+          self.o2.read(iprot)
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -9572,6 +9847,14 @@ class drop_partition_index_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.BOOL, 0)
       oprot.writeBool(self.success)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
+      self.o2.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -9669,14 +9952,20 @@ class add_subpartition_index_result:
   """
   Attributes:
    - success
+   - o1
+   - o2
   """
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (AlreadyExistsException, AlreadyExistsException.thrift_spec), None, ), # 2
   )
 
-  def __init__(self, success=None,):
+  def __init__(self, success=None, o1=None, o2=None,):
     self.success = success
+    self.o1 = o1
+    self.o2 = o2
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -9692,6 +9981,18 @@ class add_subpartition_index_result:
           self.success = iprot.readBool();
         else:
           iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = AlreadyExistsException()
+          self.o2.read(iprot)
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -9705,6 +10006,14 @@ class add_subpartition_index_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.BOOL, 0)
       oprot.writeBool(self.success)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
+      self.o2.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -9802,14 +10111,20 @@ class drop_subpartition_index_result:
   """
   Attributes:
    - success
+   - o1
+   - o2
   """
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (AlreadyExistsException, AlreadyExistsException.thrift_spec), None, ), # 2
   )
 
-  def __init__(self, success=None,):
+  def __init__(self, success=None, o1=None, o2=None,):
     self.success = success
+    self.o1 = o1
+    self.o2 = o2
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -9825,6 +10140,18 @@ class drop_subpartition_index_result:
           self.success = iprot.readBool();
         else:
           iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = AlreadyExistsException()
+          self.o2.read(iprot)
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -9838,6 +10165,14 @@ class drop_subpartition_index_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.BOOL, 0)
       oprot.writeBool(self.success)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
+      self.o2.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -26038,6 +26373,207 @@ class migrate_in_result:
   def __ne__(self, other):
     return not (self == other)
 
+class migrate2_in_args:
+  """
+  Attributes:
+   - tbl
+   - parts
+   - from_dc
+   - to_nas_devid
+   - fileMap
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRUCT, 'tbl', (Table, Table.thrift_spec), None, ), # 1
+    (2, TType.LIST, 'parts', (TType.STRUCT,(Partition, Partition.thrift_spec)), None, ), # 2
+    (3, TType.STRING, 'from_dc', None, None, ), # 3
+    (4, TType.STRING, 'to_nas_devid', None, None, ), # 4
+    (5, TType.MAP, 'fileMap', (TType.I64,None,TType.STRUCT,(SFileLocation, SFileLocation.thrift_spec)), None, ), # 5
+  )
+
+  def __init__(self, tbl=None, parts=None, from_dc=None, to_nas_devid=None, fileMap=None,):
+    self.tbl = tbl
+    self.parts = parts
+    self.from_dc = from_dc
+    self.to_nas_devid = to_nas_devid
+    self.fileMap = fileMap
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRUCT:
+          self.tbl = Table()
+          self.tbl.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.LIST:
+          self.parts = []
+          (_etype783, _size780) = iprot.readListBegin()
+          for _i784 in xrange(_size780):
+            _elem785 = Partition()
+            _elem785.read(iprot)
+            self.parts.append(_elem785)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRING:
+          self.from_dc = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRING:
+          self.to_nas_devid = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.MAP:
+          self.fileMap = {}
+          (_ktype787, _vtype788, _size786 ) = iprot.readMapBegin() 
+          for _i790 in xrange(_size786):
+            _key791 = iprot.readI64();
+            _val792 = SFileLocation()
+            _val792.read(iprot)
+            self.fileMap[_key791] = _val792
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('migrate2_in_args')
+    if self.tbl is not None:
+      oprot.writeFieldBegin('tbl', TType.STRUCT, 1)
+      self.tbl.write(oprot)
+      oprot.writeFieldEnd()
+    if self.parts is not None:
+      oprot.writeFieldBegin('parts', TType.LIST, 2)
+      oprot.writeListBegin(TType.STRUCT, len(self.parts))
+      for iter793 in self.parts:
+        iter793.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.from_dc is not None:
+      oprot.writeFieldBegin('from_dc', TType.STRING, 3)
+      oprot.writeString(self.from_dc)
+      oprot.writeFieldEnd()
+    if self.to_nas_devid is not None:
+      oprot.writeFieldBegin('to_nas_devid', TType.STRING, 4)
+      oprot.writeString(self.to_nas_devid)
+      oprot.writeFieldEnd()
+    if self.fileMap is not None:
+      oprot.writeFieldBegin('fileMap', TType.MAP, 5)
+      oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.fileMap))
+      for kiter794,viter795 in self.fileMap.items():
+        oprot.writeI64(kiter794)
+        viter795.write(oprot)
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class migrate2_in_result:
+  """
+  Attributes:
+   - success
+   - o1
+  """
+
+  thrift_spec = (
+    (0, TType.BOOL, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, o1=None,):
+    self.success = success
+    self.o1 = o1
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.BOOL:
+          self.success = iprot.readBool();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('migrate2_in_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.BOOL, 0)
+      oprot.writeBool(self.success)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class migrate_out_args:
   """
   Attributes:
@@ -26083,10 +26619,10 @@ class migrate_out_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.partNames = []
-          (_etype783, _size780) = iprot.readListBegin()
-          for _i784 in xrange(_size780):
-            _elem785 = iprot.readString();
-            self.partNames.append(_elem785)
+          (_etype799, _size796) = iprot.readListBegin()
+          for _i800 in xrange(_size796):
+            _elem801 = iprot.readString();
+            self.partNames.append(_elem801)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -26116,8 +26652,8 @@ class migrate_out_args:
     if self.partNames is not None:
       oprot.writeFieldBegin('partNames', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.partNames))
-      for iter786 in self.partNames:
-        oprot.writeString(iter786)
+      for iter802 in self.partNames:
+        oprot.writeString(iter802)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.to_dc is not None:
@@ -26146,17 +26682,17 @@ class migrate_out_result:
   """
   Attributes:
    - success
-   - o2
+   - o1
   """
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'o2', (MetaException, MetaException.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
   )
 
-  def __init__(self, success=None, o2=None,):
+  def __init__(self, success=None, o1=None,):
     self.success = success
-    self.o2 = o2
+    self.o1 = o1
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -26174,8 +26710,8 @@ class migrate_out_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.o2 = MetaException()
-          self.o2.read(iprot)
+          self.o1 = MetaException()
+          self.o1.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -26192,9 +26728,382 @@ class migrate_out_result:
       oprot.writeFieldBegin('success', TType.BOOL, 0)
       oprot.writeBool(self.success)
       oprot.writeFieldEnd()
-    if self.o2 is not None:
-      oprot.writeFieldBegin('o2', TType.STRUCT, 1)
-      self.o2.write(oprot)
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class migrate2_stage1_args:
+  """
+  Attributes:
+   - dbName
+   - tableName
+   - partNames
+   - to_dc
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'dbName', None, None, ), # 1
+    (2, TType.STRING, 'tableName', None, None, ), # 2
+    (3, TType.LIST, 'partNames', (TType.STRING,None), None, ), # 3
+    (4, TType.STRING, 'to_dc', None, None, ), # 4
+  )
+
+  def __init__(self, dbName=None, tableName=None, partNames=None, to_dc=None,):
+    self.dbName = dbName
+    self.tableName = tableName
+    self.partNames = partNames
+    self.to_dc = to_dc
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.dbName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.tableName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.LIST:
+          self.partNames = []
+          (_etype806, _size803) = iprot.readListBegin()
+          for _i807 in xrange(_size803):
+            _elem808 = iprot.readString();
+            self.partNames.append(_elem808)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRING:
+          self.to_dc = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('migrate2_stage1_args')
+    if self.dbName is not None:
+      oprot.writeFieldBegin('dbName', TType.STRING, 1)
+      oprot.writeString(self.dbName)
+      oprot.writeFieldEnd()
+    if self.tableName is not None:
+      oprot.writeFieldBegin('tableName', TType.STRING, 2)
+      oprot.writeString(self.tableName)
+      oprot.writeFieldEnd()
+    if self.partNames is not None:
+      oprot.writeFieldBegin('partNames', TType.LIST, 3)
+      oprot.writeListBegin(TType.STRING, len(self.partNames))
+      for iter809 in self.partNames:
+        oprot.writeString(iter809)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.to_dc is not None:
+      oprot.writeFieldBegin('to_dc', TType.STRING, 4)
+      oprot.writeString(self.to_dc)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class migrate2_stage1_result:
+  """
+  Attributes:
+   - success
+   - o1
+  """
+
+  thrift_spec = (
+    (0, TType.LIST, 'success', (TType.STRUCT,(SFileLocation, SFileLocation.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, o1=None,):
+    self.success = success
+    self.o1 = o1
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype813, _size810) = iprot.readListBegin()
+          for _i814 in xrange(_size810):
+            _elem815 = SFileLocation()
+            _elem815.read(iprot)
+            self.success.append(_elem815)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('migrate2_stage1_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
+      for iter816 in self.success:
+        iter816.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class migrate2_stage2_args:
+  """
+  Attributes:
+   - dbName
+   - tableName
+   - partNames
+   - to_dc
+   - to_nas_devid
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'dbName', None, None, ), # 1
+    (2, TType.STRING, 'tableName', None, None, ), # 2
+    (3, TType.LIST, 'partNames', (TType.STRING,None), None, ), # 3
+    (4, TType.STRING, 'to_dc', None, None, ), # 4
+    (5, TType.STRING, 'to_nas_devid', None, None, ), # 5
+  )
+
+  def __init__(self, dbName=None, tableName=None, partNames=None, to_dc=None, to_nas_devid=None,):
+    self.dbName = dbName
+    self.tableName = tableName
+    self.partNames = partNames
+    self.to_dc = to_dc
+    self.to_nas_devid = to_nas_devid
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.dbName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.tableName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.LIST:
+          self.partNames = []
+          (_etype820, _size817) = iprot.readListBegin()
+          for _i821 in xrange(_size817):
+            _elem822 = iprot.readString();
+            self.partNames.append(_elem822)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRING:
+          self.to_dc = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRING:
+          self.to_nas_devid = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('migrate2_stage2_args')
+    if self.dbName is not None:
+      oprot.writeFieldBegin('dbName', TType.STRING, 1)
+      oprot.writeString(self.dbName)
+      oprot.writeFieldEnd()
+    if self.tableName is not None:
+      oprot.writeFieldBegin('tableName', TType.STRING, 2)
+      oprot.writeString(self.tableName)
+      oprot.writeFieldEnd()
+    if self.partNames is not None:
+      oprot.writeFieldBegin('partNames', TType.LIST, 3)
+      oprot.writeListBegin(TType.STRING, len(self.partNames))
+      for iter823 in self.partNames:
+        oprot.writeString(iter823)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.to_dc is not None:
+      oprot.writeFieldBegin('to_dc', TType.STRING, 4)
+      oprot.writeString(self.to_dc)
+      oprot.writeFieldEnd()
+    if self.to_nas_devid is not None:
+      oprot.writeFieldBegin('to_nas_devid', TType.STRING, 5)
+      oprot.writeString(self.to_nas_devid)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class migrate2_stage2_result:
+  """
+  Attributes:
+   - success
+   - o1
+  """
+
+  thrift_spec = (
+    (0, TType.BOOL, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, o1=None,):
+    self.success = success
+    self.o1 = o1
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.BOOL:
+          self.success = iprot.readBool();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('migrate2_stage2_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.BOOL, 0)
+      oprot.writeBool(self.success)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

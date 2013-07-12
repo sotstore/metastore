@@ -140,7 +140,10 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '   get_all_nodes()'
   print '  string getDMStatus()'
   print '   migrate_in(Table tbl,  parts, string from_dc)'
+  print '  bool migrate2_in(Table tbl,  parts, string from_dc, string to_nas_devid,  fileMap)'
   print '  bool migrate_out(string dbName, string tableName,  partNames, string to_dc)'
+  print '   migrate2_stage1(string dbName, string tableName,  partNames, string to_dc)'
+  print '  bool migrate2_stage2(string dbName, string tableName,  partNames, string to_dc, string to_nas_devid)'
   print '  string getMP(string node_name, string devid)'
   print ''
   sys.exit(0)
@@ -895,11 +898,29 @@ elif cmd == 'migrate_in':
     sys.exit(1)
   pp.pprint(client.migrate_in(eval(args[0]),eval(args[1]),args[2],))
 
+elif cmd == 'migrate2_in':
+  if len(args) != 5:
+    print 'migrate2_in requires 5 args'
+    sys.exit(1)
+  pp.pprint(client.migrate2_in(eval(args[0]),eval(args[1]),args[2],args[3],eval(args[4]),))
+
 elif cmd == 'migrate_out':
   if len(args) != 4:
     print 'migrate_out requires 4 args'
     sys.exit(1)
   pp.pprint(client.migrate_out(args[0],args[1],eval(args[2]),args[3],))
+
+elif cmd == 'migrate2_stage1':
+  if len(args) != 4:
+    print 'migrate2_stage1 requires 4 args'
+    sys.exit(1)
+  pp.pprint(client.migrate2_stage1(args[0],args[1],eval(args[2]),args[3],))
+
+elif cmd == 'migrate2_stage2':
+  if len(args) != 5:
+    print 'migrate2_stage2 requires 5 args'
+    sys.exit(1)
+  pp.pprint(client.migrate2_stage2(args[0],args[1],eval(args[2]),args[3],args[4],))
 
 elif cmd == 'getMP':
   if len(args) != 2:

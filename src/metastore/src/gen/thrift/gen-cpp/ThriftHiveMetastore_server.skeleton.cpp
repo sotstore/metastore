@@ -607,9 +607,24 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("migrate_in\n");
   }
 
+  bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) {
+    // Your implementation goes here
+    printf("migrate2_in\n");
+  }
+
   bool migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) {
     // Your implementation goes here
     printf("migrate_out\n");
+  }
+
+  void migrate2_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) {
+    // Your implementation goes here
+    printf("migrate2_stage1\n");
+  }
+
+  bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_nas_devid) {
+    // Your implementation goes here
+    printf("migrate2_stage2\n");
   }
 
   void getMP(std::string& _return, const std::string& node_name, const std::string& devid) {
