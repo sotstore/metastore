@@ -154,12 +154,16 @@ public class DiskManager {
 
         switch (op) {
         case ADD_PART:
+          r = "ADD  PART: " + part.getPartitionName() + ",files:" + files.toString();
+          break;
         case DROP_PART:
-          r = "PART: " + part.getPartitionName() + ",files:" + files.toString();
+          r = "DROP PART: " + part.getPartitionName() + ",files:" + files.toString();
           break;
         case ADD_SUBPART:
+          r = "ADD  SUBPART: " + subpart.getPartitionName() + ",files:" + files.toString();
+          break;
         case DROP_SUBPART:
-          r = "SUBPART: " + subpart.getPartitionName() + ",files:" + files.toString();
+          r = "DROP SUBPART: " + subpart.getPartitionName() + ",files:" + files.toString();
           break;
         default:
           r = "BackupEntry: INVALID OP!";

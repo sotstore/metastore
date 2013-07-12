@@ -5309,7 +5309,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
                 }
               }
             }
+            LOG.debug("Begin drop subpartition files.");
             drop_subpartition_files(sp, files);
+            LOG.debug("Begin delete files.");
+            for (SFile f : files) {
+              rm_file_physical(f);
+            }
           }
         } else {
           List<SFile> files = new ArrayList<SFile>();
@@ -5322,9 +5327,16 @@ public class HiveMetaStore extends ThriftHiveMetastore {
               }
             }
           }
+          LOG.debug("Begin drop partition files.");
           drop_partition_files(p, files);
+          LOG.debug("Begin delete files.");
+          for (SFile f : files) {
+            rm_file_physical(f);
+          }
         }
       }
+
+      LOG.info("Finally, our migration succeed, files in this DC is deleted.");
 
       return true;
     }
