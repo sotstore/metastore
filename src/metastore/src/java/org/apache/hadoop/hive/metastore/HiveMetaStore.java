@@ -4573,7 +4573,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           connect_to_top_dc(hiveConf);
         }
         try {
-          return HMSHandler.topdcli.get_all_centers();
+          if (HMSHandler.topdcli != null) {
+            return HMSHandler.topdcli.get_all_centers();
+          } else {
+            throw new MetaException("Invalid top DC client handler.");
+          }
         } catch (TException e) {
           LOG.error(e, e);
           HMSHandler.topdcli = null;
@@ -5092,6 +5096,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           if (sp.getFilesSize() > 0) {
             for (long fid : sp.getFiles()) {
               SFile f = get_file_by_id(fid);
+              // check file status
+              if (f.getStore_status() == MetaStoreConst.MFileStoreStatus.INCREATE ||
+                  f.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED) {
+                LOG.warn("Invalid file (fid " + fid + ") status (INCREATE or CLOSED).");
+                return r;
+              }
               boolean added = false;
               if (f != null && f.getLocationsSize() > 0) {
                 for (SFileLocation sfl : f.getLocations()) {

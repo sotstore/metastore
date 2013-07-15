@@ -1024,6 +1024,19 @@ public class DiskManager {
       synchronized (rs) {
         r += "Total nodes " + rs.countNode() + ", active nodes " + ndmap.size() + "\n";
       }
+      r += "Active Node-Device map: {\n";
+      synchronized (ndmap) {
+        for (Map.Entry<String, NodeInfo> e : ndmap.entrySet()) {
+          r += " " + e.getKey() + " -> " + "[";
+          if (e.getValue().dis != null) {
+            for (DeviceInfo di : e.getValue().dis) {
+              r += di.dev + ",";
+            }
+          }
+          r += "]\n";
+        }
+      }
+      r += "}\n";
       r += "Inactive nodes list: {\n";
       synchronized (rs) {
         List<Node> lns = rs.getAllNodes();
