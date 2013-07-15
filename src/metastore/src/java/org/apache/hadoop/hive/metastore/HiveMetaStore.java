@@ -4573,7 +4573,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           connect_to_top_dc(hiveConf);
         }
         try {
-          return HMSHandler.topdcli.get_all_centers();
+          if (HMSHandler.topdcli != null) {
+            return HMSHandler.topdcli.get_all_centers();
+          } else {
+            throw new MetaException("Invalid top DC client handler.");
+          }
         } catch (TException e) {
           LOG.error(e, e);
           HMSHandler.topdcli = null;
@@ -5093,6 +5097,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           if (sp.getFilesSize() > 0) {
             for (long fid : sp.getFiles()) {
               SFile f = get_file_by_id(fid);
+              // check file status
+              if (f.getStore_status() == MetaStoreConst.MFileStoreStatus.INCREATE ||
+                  f.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED) {
+                LOG.warn("Invalid file (fid " + fid + ") status (INCREATE or CLOSED).");
+                return r;
+              }
               boolean added = false;
               if (f != null && f.getLocationsSize() > 0) {
                 for (SFileLocation sfl : f.getLocations()) {
@@ -5310,7 +5320,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
                 }
               }
             }
+            LOG.debug("Begin drop subpartition files.");
             drop_subpartition_files(sp, files);
+            LOG.debug("Begin delete files.");
+            for (SFile f : files) {
+              rm_file_physical(f);
+            }
           }
         } else {
           List<SFile> files = new ArrayList<SFile>();
@@ -5323,9 +5338,16 @@ public class HiveMetaStore extends ThriftHiveMetastore {
               }
             }
           }
+          LOG.debug("Begin drop partition files.");
           drop_partition_files(p, files);
+          LOG.debug("Begin delete files.");
+          for (SFile f : files) {
+            rm_file_physical(f);
+          }
         }
       }
+
+      LOG.info("Finally, our migration succeed, files in this DC is deleted.");
 
       return true;
     }

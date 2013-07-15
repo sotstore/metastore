@@ -157,6 +157,7 @@ import com.taobao.metamorphosis.exception.MetaClientException;
  */
 public class ObjectStore implements RawStore, Configurable {
   private static String g_thisDC = null;
+  private static final Long g_fid_syncer = new Long(0);
   private static long g_fid = 0;
   private static boolean g_fid_inited = false;
   private static Properties prop = null;
@@ -198,7 +199,9 @@ public class ObjectStore implements RawStore, Configurable {
   }
 
   public long getNextFID() {
-    return g_fid++;
+    synchronized (g_fid_syncer) {
+      return g_fid++;
+    }
   }
 
   private static final Map<String, Class> PINCLASSMAP;
