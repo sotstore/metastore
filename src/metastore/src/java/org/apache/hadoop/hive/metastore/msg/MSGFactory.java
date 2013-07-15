@@ -481,42 +481,92 @@ public class MSGFactory {
           break;
       case MSGType.MSG_ALT_PARTITION_FILE :
             //修改分区文件
-          MFile alt_file = (MFile)msg.getEventObject();
-          params.put("file_id",alt_file.getFid());
-          if(msg.getOld_object_params().containsKey("partition_name")){
-            params.put("partition_name",msg.getOld_object_params().get("partition_name"));
-          }
+        if(msg.getOld_object_params().containsKey("f_id")){
+          params.put("f_id",msg.getOld_object_params().get("f_id"));
+        }
+        if(msg.getOld_object_params().containsKey("partition_name")){
+          params.put("partition_name",msg.getOld_object_params().get("partition_name"));
+        }
+        if(msg.getOld_object_params().containsKey("partition_level")){
+          params.put("partition_level",msg.getOld_object_params().get("partition_level"));
+        }
+        if(msg.getOld_object_params().containsKey("db_name")){
+          params.put("db_name",msg.getOld_object_params().get("db_name"));
+        }
+        if(msg.getOld_object_params().containsKey("table_name")){
+          params.put("table_name",msg.getOld_object_params().get("table_name"));
+        }
           break;
       case MSGType.MSG_REP_PARTITION_FILE_CHAGE :
             //分区文件副本变化
-          MFile file_rep = (MFile)msg.getEventObject();
-          params.put("file_id",file_rep.getFid());
-          if(msg.getOld_object_params().containsKey("partition_name")){
-            params.put("partition_name",msg.getOld_object_params().get("partition_name"));
-          }
+        if(msg.getOld_object_params().containsKey("f_id")){
+          params.put("f_id",msg.getOld_object_params().get("f_id"));
+        }
+        if(msg.getOld_object_params().containsKey("partition_name")){
+          params.put("partition_name",msg.getOld_object_params().get("partition_name"));
+        }
+        if(msg.getOld_object_params().containsKey("partition_level")){
+          params.put("partition_level",msg.getOld_object_params().get("partition_level"));
+        }
+        if(msg.getOld_object_params().containsKey("db_name")){
+          params.put("db_name",msg.getOld_object_params().get("db_name"));
+        }
+        if(msg.getOld_object_params().containsKey("table_name")){
+          params.put("table_name",msg.getOld_object_params().get("table_name"));
+        }
           break;
       case MSGType.MSG_STA_PARTITION_FILE_CHAGE :
             //分区文件状态变化
-          MFile stat_file = (MFile)msg.getEventObject();
-          params.put("file_id",stat_file.getFid());
-          if(msg.getOld_object_params().containsKey("partition_name")){
-            params.put("partition_name",msg.getOld_object_params().get("partition_name"));
-          }
+        if(msg.getOld_object_params().containsKey("f_id")){
+          params.put("f_id",msg.getOld_object_params().get("f_id"));
+        }
+        if(msg.getOld_object_params().containsKey("partition_name")){
+          params.put("partition_name",msg.getOld_object_params().get("partition_name"));
+        }
+        if(msg.getOld_object_params().containsKey("partition_level")){
+          params.put("partition_level",msg.getOld_object_params().get("partition_level"));
+        }
+        if(msg.getOld_object_params().containsKey("db_name")){
+          params.put("db_name",msg.getOld_object_params().get("db_name"));
+        }
+        if(msg.getOld_object_params().containsKey("table_name")){
+          params.put("table_name",msg.getOld_object_params().get("table_name"));
+        }
           break;
       case MSGType.MSG_REP_PARTITION_FILE_ONOFF :
             //分区文件副本上下线变化
-          MFile onoff_file = (MFile)msg.getEventObject();
-          params.put("file_id",onoff_file.getFid());
+          if(msg.getOld_object_params().containsKey("f_id")){
+            params.put("f_id",msg.getOld_object_params().get("f_id"));
+          }
           if(msg.getOld_object_params().containsKey("partition_name")){
             params.put("partition_name",msg.getOld_object_params().get("partition_name"));
+          }
+          if(msg.getOld_object_params().containsKey("partition_level")){
+            params.put("partition_level",msg.getOld_object_params().get("partition_level"));
+          }
+          if(msg.getOld_object_params().containsKey("db_name")){
+            params.put("db_name",msg.getOld_object_params().get("db_name"));
+          }
+          if(msg.getOld_object_params().containsKey("table_name")){
+            params.put("table_name",msg.getOld_object_params().get("table_name"));
           }
           break;
       case MSGType.MSG_DEL_PARTITION_FILE :
             //删除分区文件
-          MFile del_file = (MFile)msg.getEventObject();
-          params.put("file_id",del_file.getFid());
+          if(msg.getOld_object_params().containsKey("f_id")){
+            params.put("f_id",msg.getOld_object_params().get("f_id"));
+          }
           if(msg.getOld_object_params().containsKey("partition_name")){
             params.put("partition_name",msg.getOld_object_params().get("partition_name"));
+          }
+          if(msg.getOld_object_params().containsKey("partition_level")){
+            params.put("partition_level",msg.getOld_object_params().get("partition_level"));
+          }
+          if(msg.getOld_object_params().containsKey("db_name")){
+            params.put("db_name",msg.getOld_object_params().get("db_name"));
+          }
+          if(msg.getOld_object_params().containsKey("table_name")){
+            params.put("table_name",msg.getOld_object_params().get("table_name"));
           }
           break;
       case MSGType.MSG_NEW_INDEX :

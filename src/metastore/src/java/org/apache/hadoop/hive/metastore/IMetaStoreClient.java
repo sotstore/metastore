@@ -1082,4 +1082,6 @@ public interface IMetaStoreClient {
       throws InvalidObjectException, MetaException, TException;
 
   List<BusiTypeDatacenter> get_all_busi_type_datacenters() throws MetaException, TException;
+
+  public IMetaStoreClient getRemoteDcMSC(String dc_name) throws MetaException, TException;
 }

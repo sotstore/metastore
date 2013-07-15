@@ -3786,16 +3786,24 @@ public class ObjectStore implements RawStore, Configurable {
       /**
        * 注意，如果分区文件数量没有变化，消息不会推送到后端
        */
+      HashMap<String,Object> old_params= new HashMap<String,Object>();
+
+
+      old_params.put("partition_name", newPart.getPartitionName());
+      old_params.put("partition_level", 2);
+      old_params.put("db_name", newPart.getDbName());
+      old_params.put("table_name", newPart.getTableName());
 
       if(new_set.size() > old_set.size()){
         new_set.removeAll(old_set);
-
+        old_params.put("f_id", new_set);
         MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_NEW_PARTITION_FILE,db_id,-1,
-            pm,new_set.toArray(new Long[0]),null));
+            pm,new_set.toArray(new Long[0]),old_params));
       }else if(new_set.size() < old_set.size()){
         old_set.removeAll(new_set);
+        old_params.put("f_id", old_set);
         MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_PARTITION_FILE,db_id,-1,
-            pm,old_set.toArray(new Long[0]),null));
+            pm,old_set.toArray(new Long[0]),old_params));
       }
 
 

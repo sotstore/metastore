@@ -2018,9 +2018,14 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       // DESCRIBE table
       // DESCRIBE table.column
       // DECRIBE table column
-      String tableName = qualifiedName.substring(0,
-        qualifiedName.indexOf('.') == -1 ?
-        qualifiedName.length() : qualifiedName.indexOf('.'));
+      String tableName = null;
+      if(qualifiedName.split("\\.").length <3){
+          tableName = qualifiedName.substring(0,
+          qualifiedName.indexOf('.') == -1 ?
+          qualifiedName.length() : qualifiedName.indexOf('.'));
+      }else{
+        tableName = qualifiedName;
+      }
       try {
         Table tab = db.getTable(tableName);
         if (tab != null) {
@@ -2093,7 +2098,13 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
         // if DESCRIBE database.table.column
         // invalid syntax exception
         if (ast.getChildCount() == 2) {
-          throw new SemanticException(ErrorMsg.INVALID_TABLE_OR_COLUMN.getMsg(fullyQualifiedName));
+
+          //added by zjw,replace by dc.db.table
+          /**************************************************************/
+          return tableName = fullyQualifiedName;
+
+          /**************************************************************/
+          //throw new SemanticException(ErrorMsg.INVALID_TABLE_OR_COLUMN.getMsg(fullyQualifiedName));
         } else {
           // if DESCRIBE database.table column
           // return database.table as tableName

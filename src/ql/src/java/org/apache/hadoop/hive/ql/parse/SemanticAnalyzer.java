@@ -2458,7 +2458,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       }
       //added by zjw
       if(inputRR.getOriginTabNameMap() != null && inputRR.getOriginTabNameMap().size() == 1){//若映射表列表为1，说明是原始表
-        out_rwsch.putOriginColName(tabAlias, colAlias, inputRR.getColumnInfos().get(pos).getInternalName());
+        out_rwsch.putOriginColName(tabAlias, colAlias, inputRR.getColumnInfos().get(pos-1).getInternalName());
         //FIX
         out_rwsch.putOriginTabName(tabAlias, inputRR.getTableNames().iterator().next());
       }else{
@@ -7501,24 +7501,27 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       }
       // Hack!! - refactor once the metadata APIs with types are ready
       // Finally add the partitioning columns
-      for (FieldSchema part_col : tab.getPartCols()) {
-        LOG.trace("Adding partition col: " + part_col);
-        // TODO: use the right type by calling part_col.getType() instead of
-        // String.class
-        rwsch.put(alias, part_col.getName(), new ColumnInfo(part_col.getName(),
-            TypeInfoFactory.stringTypeInfo, alias, true));
-      }
+//      for (FieldSchema part_col : tab.getPartCols()) {
+//        LOG.trace("Adding partition col: " + part_col);
+//        // TODO: use the right type by calling part_col.getType() instead of
+//        // String.class
+//        rwsch.put(alias, part_col.getName(), new ColumnInfo(part_col.getName(),
+//            TypeInfoFactory.stringTypeInfo, alias, true));
+//      }
 
       //put all virutal columns in RowResolver.
       Iterator<VirtualColumn> vcs = VirtualColumn.getRegistry(conf).iterator();
       //use a list for easy cumtomize
       List<VirtualColumn> vcList = new ArrayList<VirtualColumn>();
-      while (vcs.hasNext()) {
-        VirtualColumn vc = vcs.next();
-        rwsch.put(alias, vc.getName(), new ColumnInfo(vc.getName(),
-            vc.getTypeInfo(), alias, true, vc.getIsHidden()));
-        vcList.add(vc);
-      }
+
+      //removed by zjw for virtualColumn is not nessary any more
+
+//      while (vcs.hasNext()) {
+//        VirtualColumn vc = vcs.next();
+//        rwsch.put(alias, vc.getName(), new ColumnInfo(vc.getName(),
+//            vc.getTypeInfo(), alias, true, vc.getIsHidden()));
+//        vcList.add(vc);
+//      }
 
       // Create the root of the operator tree
       TableScanDesc tsDesc = new TableScanDesc(alias, vcList);
@@ -8546,14 +8549,17 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       su.setOriginNameMap(resRR.getOriginNameMap());
       for(FieldSchema col : resultSchema){
         LinkedHashMap<String,String> tab_cols = resRR.getOriginNameMap().get(col.getName());
-        String col_cmt = "";
+        StringBuilder col_cmt = new StringBuilder();
+        col_cmt.append("{");
         for(Entry<String,String> v : tab_cols.entrySet()){
-          col_cmt += "{"+v.getKey()+"."+v.getValue()+"}";
+          col_cmt.append(v.getKey()+"."+v.getValue()+",");
         }
+        col_cmt.deleteCharAt(col_cmt.length()-1);
+        col_cmt.append("}");
         if(col.getComment() != null){
-          col.setComment(col.getComment()+",COLUMN_MAP="+col_cmt);
+          col.setComment(col.getComment()+",COLUMN_MAP="+col_cmt.toString());
         }else{
-          col.setComment("COLUMN_MAP="+col_cmt);
+          col.setComment("COLUMN_MAP="+col_cmt.toString());
         }
       }
       if(createVwDesc.getTblProps() == null){
