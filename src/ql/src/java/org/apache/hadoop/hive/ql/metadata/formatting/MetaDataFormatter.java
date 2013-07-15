@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.metadata.Hive;
@@ -141,5 +142,7 @@ public interface MetaDataFormatter {
 
     public void showPartitionKeys(DataOutputStream outStream, List<PartitionInfo> partitionInfo)
         throws HiveException;
+
+    public void showDatacenters(DataOutputStream outStream, List<Datacenter> dcs)throws HiveException;
 }
 

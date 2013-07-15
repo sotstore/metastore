@@ -31,6 +31,7 @@ public class ShowDatabasesDesc extends DDLDesc implements Serializable {
   private static final long serialVersionUID = 1L;
   String pattern;
   String resFile;
+  String dc_name;
 
   /**
    * table name for the result of show databases.
@@ -70,6 +71,13 @@ public class ShowDatabasesDesc extends DDLDesc implements Serializable {
     this.pattern = pattern;
   }
 
+  public ShowDatabasesDesc(Path resFile,String dc_name, String pattern) {
+    this.resFile = resFile.toString();
+    this.dc_name = dc_name;
+    this.pattern = pattern;
+  }
+
+
   /**
    * @return the pattern
    */
@@ -101,4 +109,14 @@ public class ShowDatabasesDesc extends DDLDesc implements Serializable {
   public void setResFile(String resFile) {
     this.resFile = resFile;
   }
+
+  public String getDc_name() {
+    return dc_name;
+  }
+
+  public void setDc_name(String dc_name) {
+    this.dc_name = dc_name;
+  }
+
+
 }

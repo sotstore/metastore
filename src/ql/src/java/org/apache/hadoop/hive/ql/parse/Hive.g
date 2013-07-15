@@ -316,6 +316,7 @@ TOK_ALTERINDEX_MODIFY_SUBPARTINDEX_DROP_FILE;
 TOK_SHOWSUBPARTITIONS;
 TOK_HETER;
 TOK_SHOWPARTITIONKEYS;
+TOK_SHOWDATACENTERS;
 
 }
 
@@ -1182,8 +1183,9 @@ analyzeStatement
 showStatement
 @init { msgs.push("show statement"); }
 @after { msgs.pop(); }
-    : KW_SHOW (KW_DATABASES|KW_SCHEMAS) (KW_LIKE showStmtIdentifier)? -> ^(TOK_SHOWDATABASES showStmtIdentifier?)
-    | KW_SHOW KW_TABLES ((KW_FROM|KW_IN) db_name=Identifier)? (KW_LIKE showStmtIdentifier|showStmtIdentifier)?  -> ^(TOK_SHOWTABLES (TOK_FROM $db_name)? showStmtIdentifier?)
+    : KW_SHOW (KW_DATABASES|KW_SCHEMAS) (dc_name=Identifier )?  (KW_LIKE  showStmtIdentifier)? -> ^(TOK_SHOWDATABASES $dc_name? (KW_LIKE showStmtIdentifier)?)
+    | KW_SHOW KW_DATACENTERS showStmtIdentifier?  -> ^(TOK_SHOWDATACENTERS showStmtIdentifier?)
+    | KW_SHOW KW_TABLES ((KW_FROM|KW_IN) (dc_name=Identifier DOT)? db_name=Identifier)? (KW_LIKE showStmtIdentifier|showStmtIdentifier)?  -> ^(TOK_SHOWTABLES (TOK_FROM ($dc_name TOK_FROM)? $db_name)? showStmtIdentifier?)
     | KW_SHOW KW_COLUMNS (KW_FROM|KW_IN) tabname=tableName ((KW_FROM|KW_IN) db_name=Identifier)? 
     -> ^(TOK_SHOWCOLUMNS $db_name? $tabname)
     | KW_SHOW KW_FUNCTIONS showStmtIdentifier?  -> ^(TOK_SHOWFUNCTIONS showStmtIdentifier?)
@@ -2682,6 +2684,7 @@ sysFuncNames
     | KW_REGEXP
     | KW_IN
     | KW_BETWEEN
+
     ;
 
 descFuncNames
@@ -2942,6 +2945,7 @@ KW_FILE:'FILE';
 KW_SUBPARTITIONS:'SUBPARTITIONS';
 KW_HETER: 'HETER';
 KW_PARTITION_KEYS: 'PARTITION_KEYS';
+KW_DATACENTERS:'DATACENTERS';
 
 // Operators
 // NOTE: if you add a new function/operator, add it to sysFuncNames so that describe function _FUNC_ will work.

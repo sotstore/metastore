@@ -63,6 +63,7 @@ import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
@@ -160,6 +161,7 @@ import org.apache.hadoop.hive.ql.plan.RoleDDLDesc;
 import org.apache.hadoop.hive.ql.plan.ShowColumnsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowCreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.ShowDatabasesDesc;
+import org.apache.hadoop.hive.ql.plan.ShowDatacentersDesc;
 import org.apache.hadoop.hive.ql.plan.ShowFunctionsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
@@ -541,6 +543,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         return showPartitionKeys(db, showPartitionKeysDesc);
       }
 
+      ShowDatacentersDesc showDatacentersDesc = work.getShowDatacentersDesc();
+      if (showDatacentersDesc != null) {
+        return showDatacentersDesc(db, showDatacentersDesc);
+      }
+
 
       AlterTablePartMergeFilesDesc mergeFilesDesc = work.getMergeFilesDesc();
       if(mergeFilesDesc != null) {
@@ -574,6 +581,35 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       return (1);
     }
     assert false;
+    return 0;
+  }
+
+  private int showDatacentersDesc(Hive db, ShowDatacentersDesc showDatacentersDesc) throws HiveException {
+    List<Datacenter> dcs = db.getAllDatacenters();
+    LOG.debug("---zjw--dcs.size:"+dcs.size());
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showDatacentersDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      formatter.showDatacenters(outStream, dcs);
+
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show datacenters: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show datacenters: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
     return 0;
   }
 
@@ -2497,10 +2533,16 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   private int showDatabases(Hive db, ShowDatabasesDesc showDatabasesDesc) throws HiveException {
     // get the databases for the desired pattern - populate the output stream
     List<String> databases = null;
-    if (showDatabasesDesc.getPattern() != null) {
+    if(showDatabasesDesc.getDc_name() != null && !"".equals(showDatabasesDesc.getDc_name())){
+      if (showDatabasesDesc.getPattern() != null) {
+        databases = db.getDatabases(showDatabasesDesc.getDc_name(),showDatabasesDesc.getPattern());
+      }else{
+        databases = db.getAllDatabases(showDatabasesDesc.getDc_name());
+      }
+    } else if (showDatabasesDesc.getPattern() != null) {
       LOG.info("pattern: " + showDatabasesDesc.getPattern());
       databases = db.getDatabasesByPattern(showDatabasesDesc.getPattern());
-    } else {
+    } else{
       databases = db.getAllDatabases();
     }
     LOG.info("results : " + databases.size());

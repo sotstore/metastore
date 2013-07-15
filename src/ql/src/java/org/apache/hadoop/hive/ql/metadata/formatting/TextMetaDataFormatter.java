@@ -34,6 +34,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.exec.Utilities;
@@ -498,6 +499,20 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
       } catch (IOException e) {
           throw new HiveException(e);
       }
+    }
+
+    @Override
+    public void showDatacenters(DataOutputStream outStream, List<Datacenter> dcs)
+        throws HiveException {
+      try {
+        for (Datacenter dc : dcs) {
+          outStream.writeBytes(dc.getName());
+          outStream.write(terminator);
+        }
+      } catch (IOException e) {
+        throw new HiveException(e);
+    }
+
     }
 
 

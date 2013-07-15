@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 
 import javax.jdo.PersistenceManager;
 
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 
@@ -179,6 +180,7 @@ public class MSGFactory {
     return json.toString();
   }
 
+
   public static Map<String, Object> parserJsonToMap(String json) {
     Map<String, Object> map = new HashMap<String, Object>();
 //    Map<String, String> map = new HashMap<String, String>();
@@ -189,7 +191,9 @@ public class MSGFactory {
         String value = jsonObject.get(key).toString();
         if (value.startsWith("{") && value.endsWith("}")) {
             map.put(key, parserJsonToMap(value));
-        } else {
+        } else if (value.startsWith("[") && value.endsWith("]")) {
+          map.put(key, JSONArray.toList(JSONArray.fromObject(value)));
+        } else{
             map.put(key, value);
         }
     }
@@ -693,16 +697,27 @@ public class MSGFactory {
   }
 
   public static void main(String args[]){
-    Map<String,Object > map = new HashMap<String ,Object>();
-    map.put("a", 1);
-    map.put("b", "haah");
-    String s = MSGFactory.parserMapToJson(map);
-    System.out.println(s);
-    Map r = MSGFactory.parserJsonToMap(s);
-    System.out.println(s);
+//    Map<String,Object > map = new HashMap<String ,Object>();
+//    map.put("a", 1);
+//    map.put("b", "haah");
+//    String s = MSGFactory.parserMapToJson(map);
+//    System.out.println(s);
+//    Map r = MSGFactory.parserJsonToMap(s);
+//    System.out.println(s);
 
     DDLMsg msg = new DDLMsg();
     System.out.println(msg.toJson());
+
+    String js="{\"event_id\":1304,\"object_id\":3962," +
+    		"\"msg_data\":{\"partition_level\":2,\"f_id\":[3958,3962,3966,3973]," +
+    		"\"table_name\":\"bf_dxx\",\"db_name\":\"default\"," +
+    		"\"partition_name\":\"interval_2013-07-09_16:00:00_p0\"}," +
+    		"\"msg_id\":49,\"db_id\":-1,\"node_id\":-1,\"event_time\":1373887036," +
+    		"\"event_handler\":\"\"}";
+
+     System.out.println("==="+js);
+     msg = msg.fromJson(js);
+         System.out.println(msg.toJson());
   }
 
 }

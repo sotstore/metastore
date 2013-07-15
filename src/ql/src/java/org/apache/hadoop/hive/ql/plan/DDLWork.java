@@ -112,6 +112,7 @@ public class DDLWork implements Serializable {
 
   private ShowSubpartitionDesc showSubpartitionDesc;
   private ShowPartitionKeysDesc showPartitionKeysDesc;
+  private ShowDatacentersDesc showDatacentersDesc;
 
 
   public DDLWork() {
@@ -610,6 +611,12 @@ public class DDLWork implements Serializable {
       ShowPartitionKeysDesc showPartitionKeysDesc) {
     this(inputs, outputs);
     this.setShowPartitionKeysDesc(showPartitionKeysDesc);
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowDatacentersDesc showDatacentersDesc) {
+    this(inputs, outputs);
+    this.setShowDatacentersDesc(showDatacentersDesc);
   }
 
   /**
@@ -1361,8 +1368,13 @@ public class DDLWork implements Serializable {
     this.showPartitionKeysDesc = showPartitionKeysDesc;
   }
 
+  public ShowDatacentersDesc getShowDatacentersDesc() {
+    return showDatacentersDesc;
+  }
 
-
+  public void setShowDatacentersDesc(ShowDatacentersDesc showDatacentersDesc) {
+    this.showDatacentersDesc = showDatacentersDesc;
+  }
 
 
 }

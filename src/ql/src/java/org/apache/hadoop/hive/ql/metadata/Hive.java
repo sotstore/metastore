@@ -2403,5 +2403,29 @@ public class Hive {
     }
   }
 
+  public List<Datacenter> getAllDatacenters() throws HiveException {
+    try{
+//      Table t = this.getTable(db_name, tbl_name);
+      return getMSC().get_all_centers();
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public List<String> getAllDatabases(String dc_name)throws HiveException {
+    try{
+      return getRemoteDcMSC(dc_name).getAllDatabases();
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public List<String> getDatabases(String dc_name,String tablePattern) throws HiveException {
+    try{
+      return getRemoteDcMSC(dc_name).getDatabases(tablePattern);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
 
 };
