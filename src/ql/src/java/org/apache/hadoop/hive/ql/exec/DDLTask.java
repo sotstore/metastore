@@ -62,6 +62,7 @@ import org.apache.hadoop.hive.metastore.ProtectMode;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -119,6 +120,7 @@ import org.apache.hadoop.hive.ql.plan.AlterIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
+import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
@@ -158,6 +160,7 @@ import org.apache.hadoop.hive.ql.plan.PrivilegeObjectDesc;
 import org.apache.hadoop.hive.ql.plan.RenamePartitionDesc;
 import org.apache.hadoop.hive.ql.plan.RevokeDesc;
 import org.apache.hadoop.hive.ql.plan.RoleDDLDesc;
+import org.apache.hadoop.hive.ql.plan.ShowBusitypesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowColumnsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowCreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.ShowDatabasesDesc;
@@ -548,6 +551,16 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         return showDatacentersDesc(db, showDatacentersDesc);
       }
 
+      CreateBusitypeDesc createBusitypeDesc = work.getCreateBusitypeDesc();
+      if (createBusitypeDesc != null) {
+        return createBusitypeDesc(db, createBusitypeDesc);
+      }
+
+      ShowBusitypesDesc showBusitypesDesc = work.getShowBusitypesDesc();
+      if (showBusitypesDesc != null) {
+        return showBusitypes(db, showBusitypesDesc);
+      }
+
 
       AlterTablePartMergeFilesDesc mergeFilesDesc = work.getMergeFilesDesc();
       if(mergeFilesDesc != null) {
@@ -582,6 +595,40 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     }
     assert false;
     return 0;
+  }
+
+  private int showBusitypes(Hive db, ShowBusitypesDesc showBusitypesDesc) throws HiveException {
+    List<Busitype> bts = db.showBusitypes();
+    LOG.debug("---zjw--showBusitypes.size:"+bts.size());
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showBusitypesDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      formatter.showBusitypes(outStream, bts);
+
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show Busitype: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show Busitype: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+  private int createBusitypeDesc(Hive db, CreateBusitypeDesc createBusitypeDesc) throws HiveException {
+    Busitype bt = new Busitype(createBusitypeDesc.getName(),createBusitypeDesc.getComment());
+    return db.createBusitype(bt);
   }
 
   private int showDatacentersDesc(Hive db, ShowDatacentersDesc showDatacentersDesc) throws HiveException {

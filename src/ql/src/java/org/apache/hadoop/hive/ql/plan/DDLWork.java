@@ -113,6 +113,8 @@ public class DDLWork implements Serializable {
   private ShowSubpartitionDesc showSubpartitionDesc;
   private ShowPartitionKeysDesc showPartitionKeysDesc;
   private ShowDatacentersDesc showDatacentersDesc;
+  private CreateBusitypeDesc createBusitypeDesc;
+  private ShowBusitypesDesc showBusitypesDesc;
 
 
   public DDLWork() {
@@ -617,6 +619,18 @@ public class DDLWork implements Serializable {
       ShowDatacentersDesc showDatacentersDesc) {
     this(inputs, outputs);
     this.setShowDatacentersDesc(showDatacentersDesc);
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      CreateBusitypeDesc createBusitypeDesc) {
+    this(inputs, outputs);
+    this.setCreateBusitypeDesc(createBusitypeDesc);
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowBusitypesDesc showBusitypesDesc) {
+    this(inputs, outputs);
+    this.setShowBusitypesDesc(showBusitypesDesc);
   }
 
   /**
@@ -1375,6 +1389,23 @@ public class DDLWork implements Serializable {
   public void setShowDatacentersDesc(ShowDatacentersDesc showDatacentersDesc) {
     this.showDatacentersDesc = showDatacentersDesc;
   }
+
+  public CreateBusitypeDesc getCreateBusitypeDesc() {
+    return createBusitypeDesc;
+  }
+
+  public void setCreateBusitypeDesc(CreateBusitypeDesc createBusitypeDesc) {
+    this.createBusitypeDesc = createBusitypeDesc;
+  }
+
+  public ShowBusitypesDesc getShowBusitypesDesc() {
+    return showBusitypesDesc;
+  }
+
+  public void setShowBusitypesDesc(ShowBusitypesDesc showBusitypesDesc) {
+    this.showBusitypesDesc = showBusitypesDesc;
+  }
+
 
 
 }

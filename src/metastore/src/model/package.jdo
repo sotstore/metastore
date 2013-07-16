@@ -1118,5 +1118,22 @@
       </field>
     </class>
     
+    <class name="MBusitype" table="busi_types" detachable="true">
+      <index name="UniqueBusitype" unique="true">
+        <column name="name"/>
+      </index>
+      
+      <datastore-identity>
+        <column name="BUSI_TYPE_ID"/>
+      </datastore-identity>
+      
+      <field name="businame">
+        <column name="NAME" length="128" jdbc-type="VARCHAR"/>
+      </field>
+      <field name="comment" >
+        <column name="COMMENT" length="4000" jdbc-type="VARCHAR" allows-null="true"/>
+      </field>
+    </class>
+    
   </package>
 </jdo>

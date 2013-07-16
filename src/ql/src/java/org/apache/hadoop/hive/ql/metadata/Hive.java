@@ -56,6 +56,7 @@ import org.apache.hadoop.hive.metastore.RetryingMetaStoreClient;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -2423,6 +2424,22 @@ public class Hive {
   public List<String> getDatabases(String dc_name,String tablePattern) throws HiveException {
     try{
       return getRemoteDcMSC(dc_name).getDatabases(tablePattern);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public List<Busitype> showBusitypes() throws HiveException {
+    try{
+      return getMSC().showBusitypes();
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public int createBusitype(Busitype bt) throws HiveException {
+    try{
+      return getMSC().createBusitype( bt);
     } catch (Exception e) {
       throw new HiveException(e);
     }

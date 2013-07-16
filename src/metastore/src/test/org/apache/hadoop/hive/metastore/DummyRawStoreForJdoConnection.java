@@ -28,6 +28,7 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
+import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
@@ -898,6 +899,19 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   public boolean delSFileLocation(String devid, String location) throws MetaException {
     // TODO Auto-generated method stub
     return false;
+  }
+
+  @Override
+  public List<Busitype> showBusitypes() throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public int createBusitype(Busitype busitype) throws InvalidObjectException, MetaException,
+      TException {
+    // TODO Auto-generated method stub
+    return 0;
   }
 }
 

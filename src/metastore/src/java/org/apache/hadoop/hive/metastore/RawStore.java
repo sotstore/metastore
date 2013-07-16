@@ -26,6 +26,7 @@ import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
+import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
@@ -539,4 +540,8 @@ public interface RawStore extends Configurable {
   public abstract List<BusiTypeDatacenter> get_all_busi_type_datacenters()throws  MetaException, TException ;
 
   public abstract void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)throws InvalidObjectException, MetaException, TException;
+
+  public abstract List<Busitype> showBusitypes()throws  MetaException, TException;
+
+  public abstract int createBusitype(Busitype busitype)throws InvalidObjectException, MetaException, TException;
 }

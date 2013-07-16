@@ -193,6 +193,40 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'add_datawarehouse_sql failed: unknown result')
     end
 
+    def showBusitypes()
+      send_showBusitypes()
+      return recv_showBusitypes()
+    end
+
+    def send_showBusitypes()
+      send_message('showBusitypes', ShowBusitypes_args)
+    end
+
+    def recv_showBusitypes()
+      result = receive_message(ShowBusitypes_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'showBusitypes failed: unknown result')
+    end
+
+    def createBusitype(busitype)
+      send_createBusitype(busitype)
+      return recv_createBusitype()
+    end
+
+    def send_createBusitype(busitype)
+      send_message('createBusitype', CreateBusitype_args, :busitype => busitype)
+    end
+
+    def recv_createBusitype()
+      result = receive_message(CreateBusitype_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'createBusitype failed: unknown result')
+    end
+
     def add_partition_files(part, files)
       send_add_partition_files(part, files)
       return recv_add_partition_files()
@@ -2190,6 +2224,32 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'add_datawarehouse_sql', seqid)
     end
 
+    def process_showBusitypes(seqid, iprot, oprot)
+      args = read_args(iprot, ShowBusitypes_args)
+      result = ShowBusitypes_result.new()
+      begin
+        result.success = @handler.showBusitypes()
+      rescue ::InvalidObjectException => o1
+        result.o1 = o1
+      rescue ::MetaException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'showBusitypes', seqid)
+    end
+
+    def process_createBusitype(seqid, iprot, oprot)
+      args = read_args(iprot, CreateBusitype_args)
+      result = CreateBusitype_result.new()
+      begin
+        result.success = @handler.createBusitype(args.busitype)
+      rescue ::InvalidObjectException => o1
+        result.o1 = o1
+      rescue ::MetaException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'createBusitype', seqid)
+    end
+
     def process_add_partition_files(seqid, iprot, oprot)
       args = read_args(iprot, Add_partition_files_args)
       result = Add_partition_files_result.new()
@@ -3965,6 +4025,77 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::InvalidObjectException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ShowBusitypes_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ShowBusitypes_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Busitype}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::InvalidObjectException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class CreateBusitype_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    BUSITYPE = 1
+
+    FIELDS = {
+      BUSITYPE => {:type => ::Thrift::Types::STRUCT, :name => 'busitype', :class => ::Busitype}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class CreateBusitype_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::InvalidObjectException},
       O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
     }

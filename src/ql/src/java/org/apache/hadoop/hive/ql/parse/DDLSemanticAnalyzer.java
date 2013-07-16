@@ -86,6 +86,7 @@ import org.apache.hadoop.hive.ql.plan.AlterIndexDesc.AlterIndexTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
+import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
@@ -126,6 +127,7 @@ import org.apache.hadoop.hive.ql.plan.PrivilegeObjectDesc;
 import org.apache.hadoop.hive.ql.plan.RenamePartitionDesc;
 import org.apache.hadoop.hive.ql.plan.RevokeDesc;
 import org.apache.hadoop.hive.ql.plan.RoleDDLDesc;
+import org.apache.hadoop.hive.ql.plan.ShowBusitypesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowColumnsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowCreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.ShowDatabasesDesc;
@@ -499,11 +501,43 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
       analyzeShowDatacenters(ast);
       break;
+    case HiveParser.TOK_SHOWBUSITYPES:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowBusiTypes(ast);
+      break;
+    case HiveParser.TOK_CREATEBUSITYPE:
+      analyzeCreateBusiType(ast);
+      break;
     default:
       throw new SemanticException("Unsupported command.");
     }
   }
 
+
+  private void analyzeCreateBusiType(ASTNode ast) {
+    String tabName = null;
+    CreateBusitypeDesc createBusitypeDesc = null;
+    LOG.info("---zjw--ast:"+ast.toStringTree());
+    if(ast.getChildCount() ==2){
+      String busi_name = unescapeIdentifier(ast.getChild(0).getText());
+      String comment = unescapeIdentifier(ast.getChild(1).getChild(0).getText());
+      createBusitypeDesc = new CreateBusitypeDesc(busi_name,comment);
+
+    }else{
+      String busi_name = unescapeIdentifier(ast.getChild(0).getText());
+      createBusitypeDesc = new CreateBusitypeDesc(busi_name);
+    }
+
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        createBusitypeDesc), conf));
+  }
+
+  private void analyzeShowBusiTypes(ASTNode ast) {
+    ShowBusitypesDesc showBusitypesDesc = new ShowBusitypesDesc(ctx.getResFile().toString());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showBusitypesDesc), conf));
+    setFetchTask(createFetchTask(showBusitypesDesc.getSchema()));
+  }
 
   private void analyzeShowDatacenters(ASTNode ast) {
 

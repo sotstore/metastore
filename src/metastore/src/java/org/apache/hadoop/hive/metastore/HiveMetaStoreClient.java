@@ -46,6 +46,7 @@ import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
+import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -1860,5 +1861,15 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       rc = remore_dc_map.get(dc_name);
     }
     return rc;
+  }
+
+  @Override
+  public List<Busitype> showBusitypes() throws MetaException, TException {
+    return client.showBusitypes();
+  }
+
+  @Override
+  public int createBusitype(Busitype bt) throws MetaException, TException {
+    return client.createBusitype(bt);
   }
 }

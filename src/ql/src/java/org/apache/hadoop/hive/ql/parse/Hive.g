@@ -317,6 +317,9 @@ TOK_SHOWSUBPARTITIONS;
 TOK_HETER;
 TOK_SHOWPARTITIONKEYS;
 TOK_SHOWDATACENTERS;
+TOK_SHOWBUSITYPES;
+TOK_BUSITYPECOMMENT;
+TOK_CREATEBUSITYPE;
 
 }
 
@@ -419,6 +422,7 @@ ddlStatement
     | addNodeStatement
     | dropNodeStatement
     | alterNodeStatement
+    | createBusitypeStatement
     ;
 
 ifExists
@@ -516,6 +520,26 @@ datacenterComment
     ;
     
 //end of datacenter
+
+
+    
+createBusitypeStatement
+@init { msgs.push("create busiType statement"); }
+@after { msgs.pop(); }
+    : KW_CREATE KW_BUSITYPE
+        name=Identifier
+        busitypeComment?
+    -> ^(TOK_CREATEBUSITYPE $name busitypeComment?)
+    ;
+    
+busitypeComment
+@init { msgs.push("busitype's comment"); }
+@after { msgs.pop(); }
+    : KW_COMMENT comment=StringLiteral
+    -> ^(TOK_BUSITYPECOMMENT $comment)
+    ;
+
+
 
 //start of node
 
@@ -1185,6 +1209,7 @@ showStatement
 @after { msgs.pop(); }
     : KW_SHOW (KW_DATABASES|KW_SCHEMAS) (dc_name=Identifier )?  (KW_LIKE  showStmtIdentifier)? -> ^(TOK_SHOWDATABASES $dc_name? (KW_LIKE showStmtIdentifier)?)
     | KW_SHOW KW_DATACENTERS showStmtIdentifier?  -> ^(TOK_SHOWDATACENTERS showStmtIdentifier?)
+    | KW_SHOW KW_BUSITYPES  -> ^(TOK_SHOWBUSITYPES )
     | KW_SHOW KW_TABLES ((KW_FROM|KW_IN) (dc_name=Identifier DOT)? db_name=Identifier)? (KW_LIKE showStmtIdentifier|showStmtIdentifier)?  -> ^(TOK_SHOWTABLES (TOK_FROM ($dc_name TOK_FROM)? $db_name)? showStmtIdentifier?)
     | KW_SHOW KW_COLUMNS (KW_FROM|KW_IN) tabname=tableName ((KW_FROM|KW_IN) db_name=Identifier)? 
     -> ^(TOK_SHOWCOLUMNS $db_name? $tabname)
@@ -2946,6 +2971,8 @@ KW_SUBPARTITIONS:'SUBPARTITIONS';
 KW_HETER: 'HETER';
 KW_PARTITION_KEYS: 'PARTITION_KEYS';
 KW_DATACENTERS:'DATACENTERS';
+KW_BUSITYPES:'BUSITYPES';
+KW_BUSITYPE:'BUSITYPE';
 
 // Operators
 // NOTE: if you add a new function/operator, add it to sysFuncNames so that describe function _FUNC_ will work.

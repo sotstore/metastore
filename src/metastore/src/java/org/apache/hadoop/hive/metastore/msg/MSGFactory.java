@@ -473,6 +473,9 @@ public class MSGFactory {
           if(msg.getOld_object_params().containsKey("partition_name")){
             params.put("partition_name",msg.getOld_object_params().get("partition_name"));
           }
+          if(msg.getOld_object_params().containsKey("parent_partition_name")){
+            params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
+          }
           if(msg.getOld_object_params().containsKey("partition_level")){
             params.put("partition_level",msg.getOld_object_params().get("partition_level"));
           }
@@ -494,6 +497,9 @@ public class MSGFactory {
         if(msg.getOld_object_params().containsKey("partition_level")){
           params.put("partition_level",msg.getOld_object_params().get("partition_level"));
         }
+        if(msg.getOld_object_params().containsKey("parent_partition_name")){
+          params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
+        }
         if(msg.getOld_object_params().containsKey("db_name")){
           params.put("db_name",msg.getOld_object_params().get("db_name"));
         }
@@ -511,6 +517,12 @@ public class MSGFactory {
         }
         if(msg.getOld_object_params().containsKey("partition_level")){
           params.put("partition_level",msg.getOld_object_params().get("partition_level"));
+        }
+        if(msg.getOld_object_params().containsKey("parent_partition_name")){
+          params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
+        }
+        if(msg.getOld_object_params().containsKey("parent_partition_name")){
+          params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
         }
         if(msg.getOld_object_params().containsKey("db_name")){
           params.put("db_name",msg.getOld_object_params().get("db_name"));
@@ -530,6 +542,9 @@ public class MSGFactory {
         if(msg.getOld_object_params().containsKey("partition_level")){
           params.put("partition_level",msg.getOld_object_params().get("partition_level"));
         }
+        if(msg.getOld_object_params().containsKey("parent_partition_name")){
+          params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
+        }
         if(msg.getOld_object_params().containsKey("db_name")){
           params.put("db_name",msg.getOld_object_params().get("db_name"));
         }
@@ -548,6 +563,9 @@ public class MSGFactory {
           if(msg.getOld_object_params().containsKey("partition_level")){
             params.put("partition_level",msg.getOld_object_params().get("partition_level"));
           }
+          if(msg.getOld_object_params().containsKey("parent_partition_name")){
+            params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
+          }
           if(msg.getOld_object_params().containsKey("db_name")){
             params.put("db_name",msg.getOld_object_params().get("db_name"));
           }
@@ -565,6 +583,9 @@ public class MSGFactory {
           }
           if(msg.getOld_object_params().containsKey("partition_level")){
             params.put("partition_level",msg.getOld_object_params().get("partition_level"));
+          }
+          if(msg.getOld_object_params().containsKey("parent_partition_name")){
+            params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
           }
           if(msg.getOld_object_params().containsKey("db_name")){
             params.put("db_name",msg.getOld_object_params().get("db_name"));

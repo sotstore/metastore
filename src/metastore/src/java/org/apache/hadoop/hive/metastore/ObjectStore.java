@@ -63,6 +63,7 @@ import org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.BooleanColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
+import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsData;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
@@ -106,6 +107,7 @@ import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.model.MBusiTypeColumn;
 import org.apache.hadoop.hive.metastore.model.MBusiTypeDatacenter;
+import org.apache.hadoop.hive.metastore.model.MBusitype;
 import org.apache.hadoop.hive.metastore.model.MColumnDescriptor;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MDatabase;
@@ -7486,6 +7488,55 @@ public class ObjectStore implements RawStore, Configurable {
     }
     return ;
 
+  }
+
+  @Override
+  public List<Busitype> showBusitypes() throws MetaException, TException {
+
+    List<Busitype> bts = new ArrayList<Busitype>();
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MBusitype.class);
+      List<MBusitype> mbts = (List<MBusitype>) query.execute();
+      pm.retrieveAll(mbts);
+      for (Iterator i = mbts.iterator(); i.hasNext();) {
+        MBusitype mbt = (MBusitype)i.next();
+        Busitype bt = new Busitype(mbt.getBusiname(),mbt.getComment());
+        bts.add(bt);
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+
+    return bts;
+  }
+
+  @Override
+  public int createBusitype(Busitype busitype) throws InvalidObjectException, MetaException,
+      TException {
+    MBusitype mbt = new MBusitype();
+    mbt.setBusiname(busitype.getName());
+    mbt.setComment(busitype.getComment());
+    boolean success = false;
+    int now = (int)(System.currentTimeMillis()/1000);
+    try {
+      openTransaction();
+      pm.makePersistent(mbt);
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    if(success){
+      return 0 ;
+    }else{
+      return -1;
+    }
   }
 
 }

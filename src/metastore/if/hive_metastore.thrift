@@ -273,6 +273,11 @@ struct SFileRef {
   2: i64    origin_fid,
 }
 
+struct Busitype {
+  1: string name, // name of the field
+  2: string comment
+}
+
 struct Index {
   1: string       indexName, // unique with in the whole database namespace
   2: string       indexHandlerClass, // reserved
@@ -440,7 +445,9 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   bool add_datawarehouse_sql(1:i32 dwNum, 2:string sql) throws(1:InvalidObjectException o1, 2:MetaException o2)
   
-
+  list<Busitype> showBusitypes()  throws(1:InvalidObjectException o1, 2:MetaException o2)
+  
+  i32 createBusitype(1:Busitype busitype)  throws(1:InvalidObjectException o1, 2:MetaException o2)
   
   //start of partition file
   i32 add_partition_files(1:Partition part, 2:list<SFile> files)

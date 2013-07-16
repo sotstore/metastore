@@ -35,6 +35,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
@@ -497,6 +498,12 @@ public class JsonMetaDataFormatter implements MetaDataFormatter {
           MapBuilder.create()
           .put("dcs", dcs.toString())
           .build());
+
+    }
+
+    @Override
+    public void showBusitypes(DataOutputStream outStream, List<Busitype> bts) throws HiveException {
+      // TODO Auto-generated method stub
 
     }
 }

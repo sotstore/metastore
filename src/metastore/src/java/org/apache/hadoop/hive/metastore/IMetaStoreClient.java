@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
+import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -1084,4 +1085,8 @@ public interface IMetaStoreClient {
   List<BusiTypeDatacenter> get_all_busi_type_datacenters() throws MetaException, TException;
 
   public IMetaStoreClient getRemoteDcMSC(String dc_name) throws MetaException, TException;
+
+  public List<Busitype> showBusitypes()throws MetaException, TException;
+
+  public int createBusitype(Busitype bt)throws MetaException, TException;
 }

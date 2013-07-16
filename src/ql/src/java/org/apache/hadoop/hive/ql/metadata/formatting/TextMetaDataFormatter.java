@@ -34,6 +34,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
+import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
@@ -465,10 +466,8 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
     public void showSubpartitions(DataOutputStream outStream, List<String> subpartNames)
         throws HiveException {
       try {
-        LOG.debug("---zjw--subpartNames"+subpartNames.size());
         int i=0;
         for (String part : subpartNames) {
-            LOG.debug("---zjw--subpartNames "+i++);
             outStream.writeBytes(part);
             outStream.write(terminator);
         }
@@ -493,6 +492,8 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
 
             outStream.writeBytes(pi.getP_type().toString());
             outStream.write(separator);
+            outStream.writeBytes(pi.getArgs().toString());
+            outStream.write(separator);
             outStream.writeBytes(""+pi.getP_version());
             outStream.write(terminator);
           }
@@ -511,7 +512,22 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
         }
       } catch (IOException e) {
         throw new HiveException(e);
+      }
+
     }
+
+    @Override
+    public void showBusitypes(DataOutputStream outStream, List<Busitype> bts) throws HiveException {
+      try {
+        for (Busitype bt : bts) {
+          outStream.writeBytes(bt.getName());
+          outStream.write(separator);
+          outStream.writeBytes(bt.getComment());
+          outStream.write(terminator);
+        }
+      } catch (IOException e) {
+        throw new HiveException(e);
+      }
 
     }
 
