@@ -86,6 +86,7 @@ import org.apache.hadoop.hive.ql.plan.AlterIndexDesc.AlterIndexTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
+import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
@@ -126,9 +127,11 @@ import org.apache.hadoop.hive.ql.plan.PrivilegeObjectDesc;
 import org.apache.hadoop.hive.ql.plan.RenamePartitionDesc;
 import org.apache.hadoop.hive.ql.plan.RevokeDesc;
 import org.apache.hadoop.hive.ql.plan.RoleDDLDesc;
+import org.apache.hadoop.hive.ql.plan.ShowBusitypesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowColumnsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowCreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.ShowDatabasesDesc;
+import org.apache.hadoop.hive.ql.plan.ShowDatacentersDesc;
 import org.apache.hadoop.hive.ql.plan.ShowFunctionsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
@@ -494,11 +497,56 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
       analyzeShowPartitionKeys(ast);
       break;
+    case HiveParser.TOK_SHOWDATACENTERS:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowDatacenters(ast);
+      break;
+    case HiveParser.TOK_SHOWBUSITYPES:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowBusiTypes(ast);
+      break;
+    case HiveParser.TOK_CREATEBUSITYPE:
+      analyzeCreateBusiType(ast);
+      break;
     default:
       throw new SemanticException("Unsupported command.");
     }
   }
 
+
+  private void analyzeCreateBusiType(ASTNode ast) {
+    String tabName = null;
+    CreateBusitypeDesc createBusitypeDesc = null;
+    LOG.info("---zjw--ast:"+ast.toStringTree());
+    if(ast.getChildCount() ==2){
+      String busi_name = unescapeIdentifier(ast.getChild(0).getText());
+      String comment = unescapeIdentifier(ast.getChild(1).getChild(0).getText());
+      createBusitypeDesc = new CreateBusitypeDesc(busi_name,comment);
+
+    }else{
+      String busi_name = unescapeIdentifier(ast.getChild(0).getText());
+      createBusitypeDesc = new CreateBusitypeDesc(busi_name);
+    }
+
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        createBusitypeDesc), conf));
+  }
+
+  private void analyzeShowBusiTypes(ASTNode ast) {
+    ShowBusitypesDesc showBusitypesDesc = new ShowBusitypesDesc(ctx.getResFile().toString());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showBusitypesDesc), conf));
+    setFetchTask(createFetchTask(showBusitypesDesc.getSchema()));
+  }
+
+  private void analyzeShowDatacenters(ASTNode ast) {
+
+    ShowDatacentersDesc showPartitionKeysDesc = new ShowDatacentersDesc(ctx.getResFile().toString());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showPartitionKeysDesc), conf));
+    setFetchTask(createFetchTask(showPartitionKeysDesc.getSchema()));
+
+  }
 
   private void analyzeShowPartitionKeys(ASTNode ast) throws SemanticException {
     ASTNode tabTree = (ASTNode)ast.getChild(0);
@@ -2018,9 +2066,14 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       // DESCRIBE table
       // DESCRIBE table.column
       // DECRIBE table column
-      String tableName = qualifiedName.substring(0,
-        qualifiedName.indexOf('.') == -1 ?
-        qualifiedName.length() : qualifiedName.indexOf('.'));
+      String tableName = null;
+      if(qualifiedName.split("\\.").length <3){
+          tableName = qualifiedName.substring(0,
+          qualifiedName.indexOf('.') == -1 ?
+          qualifiedName.length() : qualifiedName.indexOf('.'));
+      }else{
+        tableName = qualifiedName;
+      }
       try {
         Table tab = db.getTable(tableName);
         if (tab != null) {
@@ -2093,7 +2146,13 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
         // if DESCRIBE database.table.column
         // invalid syntax exception
         if (ast.getChildCount() == 2) {
-          throw new SemanticException(ErrorMsg.INVALID_TABLE_OR_COLUMN.getMsg(fullyQualifiedName));
+
+          //added by zjw,replace by dc.db.table
+          /**************************************************************/
+          return tableName = fullyQualifiedName;
+
+          /**************************************************************/
+          //throw new SemanticException(ErrorMsg.INVALID_TABLE_OR_COLUMN.getMsg(fullyQualifiedName));
         } else {
           // if DESCRIBE database.table column
           // return database.table as tableName
@@ -2388,8 +2447,17 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
   private void analyzeShowDatabases(ASTNode ast) throws SemanticException {
     ShowDatabasesDesc showDatabasesDesc;
     if (ast.getChildCount() == 1) {
-      String databasePattern = unescapeSQLString(ast.getChild(0).getText());
+      String dc_name = unescapeIdentifier(ast.getChild(0).getText());
+      showDatabasesDesc = new ShowDatabasesDesc(ctx.getResFile());
+      showDatabasesDesc.setDc_name(dc_name);
+    } else if (ast.getChildCount() == 2) {
+      String databasePattern = unescapeSQLString(ast.getChild(1).getText());
       showDatabasesDesc = new ShowDatabasesDesc(ctx.getResFile(), databasePattern);
+    } else if (ast.getChildCount() == 3) {
+      String dc_name = unescapeIdentifier(ast.getChild(0).getText());
+      String databasePattern = unescapeSQLString(ast.getChild(2).getText());
+      showDatabasesDesc = new ShowDatabasesDesc(ctx.getResFile(), databasePattern);
+      showDatabasesDesc.setDc_name(dc_name);
     } else {
       showDatabasesDesc = new ShowDatabasesDesc(ctx.getResFile());
     }
@@ -2401,8 +2469,9 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     ShowTablesDesc showTblsDesc;
     String dbName = db.getCurrentDatabase();
     String tableNames = null;
+    String dcName = null;
 
-    if (ast.getChildCount() > 3) {
+    if (ast.getChildCount() > 5) {
       throw new SemanticException(ErrorMsg.GENERIC_ERROR.getMsg());
     }
 
@@ -2421,6 +2490,23 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       assert (ast.getChild(0).getType() == HiveParser.TOK_FROM);
       dbName = unescapeIdentifier(ast.getChild(1).getText());
       tableNames = unescapeSQLString(ast.getChild(2).getText());
+      validateDatabase(dbName);
+      showTblsDesc = new ShowTablesDesc(ctx.getResFile(), dbName, tableNames);
+      break;
+    case 4: // Uses a pattern and specifies a DB
+      assert (ast.getChild(0).getType() == HiveParser.TOK_FROM);
+      dcName = unescapeIdentifier(ast.getChild(1).getText());
+      dbName = unescapeIdentifier(ast.getChild(3).getText());
+      dbName = dcName + "." + dbName;
+      validateDatabase(dbName);
+      showTblsDesc = new ShowTablesDesc(ctx.getResFile(), dbName, tableNames);
+      break;
+    case 5: // Uses a pattern and specifies a DB
+      assert (ast.getChild(0).getType() == HiveParser.TOK_FROM);
+      dcName = unescapeIdentifier(ast.getChild(1).getText());
+      dbName = unescapeIdentifier(ast.getChild(3).getText());
+      tableNames = unescapeSQLString(ast.getChild(4).getText());
+      dbName = dcName + "." + dbName;
       validateDatabase(dbName);
       showTblsDesc = new ShowTablesDesc(ctx.getResFile(), dbName, tableNames);
       break;

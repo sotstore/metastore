@@ -30,6 +30,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,7 @@ import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
+import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -106,6 +108,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   private final HiveConf conf;
   private String tokenStrForm;
   private final boolean localMetaStore;
+  private final HashMap<String,HiveMetaStoreClient> remore_dc_map = new HashMap<String,HiveMetaStoreClient>();
 
   // for thrift connects
   private int retries = 5;
@@ -1841,5 +1844,32 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     assert to_nas_devid != null;
     assert fileMap != null;
     return client.migrate2_in(tbl, parts, from_dc, to_nas_devid, fileMap);
+  }
+
+  @Override
+  public IMetaStoreClient getRemoteDcMSC(String dc_name) throws MetaException, TException {
+    HiveMetaStoreClient rc = null;
+    Datacenter dc =  null;
+    if( !remore_dc_map.containsKey(dc_name.toLowerCase())){
+      dc = get_center(dc_name);
+      rc = new HiveMetaStoreClient(dc.getLocationUri(),
+          HiveConf.getIntVar(conf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
+          conf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
+          null);
+      remore_dc_map.put(dc.getName(), rc);
+    }else{
+      rc = remore_dc_map.get(dc_name);
+    }
+    return rc;
+  }
+
+  @Override
+  public List<Busitype> showBusitypes() throws MetaException, TException {
+    return client.showBusitypes();
+  }
+
+  @Override
+  public int createBusitype(Busitype bt) throws MetaException, TException {
+    return client.createBusitype(bt);
   }
 }

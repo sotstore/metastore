@@ -215,6 +215,9 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_ALTER_DW:
       case HiveParser.TOK_SHOWSUBPARTITIONS:
       case HiveParser.TOK_SHOWPARTITIONKEYS:
+      case HiveParser.TOK_SHOWDATACENTERS:
+      case HiveParser.TOK_SHOWBUSITYPES:
+      case HiveParser.TOK_CREATEBUSITYPE:
 
         return new DDLSemanticAnalyzer(conf);
       case HiveParser.TOK_ALTERTABLE_PARTITION:

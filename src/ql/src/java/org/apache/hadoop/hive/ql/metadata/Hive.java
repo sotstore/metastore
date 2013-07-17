@@ -56,9 +56,11 @@ import org.apache.hadoop.hive.metastore.RetryingMetaStoreClient;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
@@ -98,6 +100,7 @@ public class Hive {
 
   private HiveConf conf = null;
   private IMetaStoreClient metaStoreClient;
+
   private String currentDatabase;
 
   private static ThreadLocal<Hive> hiveDB = new ThreadLocal() {
@@ -886,6 +889,7 @@ public class Hive {
    */
   public Table getTable(final String tableName) throws HiveException {
     Table t = newTable(tableName);
+    LOG.info("---zjw--get table db:"+t.getDbName()+"--table:"+t.getTableName());
     return this.getTable(t.getDbName(), t.getTableName(), true);
   }
 
@@ -922,6 +926,16 @@ public class Hive {
     }
   }
 
+  public Table getTable(final String dcName,final String dbName, final String tableName) throws HiveException {
+    if (tableName.contains(".")) {
+      Table t = newTable(tableName);
+      return this.getTable(t.getDbName(), t.getTableName(), true);
+    } else {
+      return this.getTable(dbName, tableName, true);
+    }
+  }
+
+
   /**
    * Returns metadata of the table
    *
@@ -944,7 +958,13 @@ public class Hive {
     // Get the table from metastore
     org.apache.hadoop.hive.metastore.api.Table tTable = null;
     try {
-      tTable = getMSC().getTable(dbName, tableName);
+      String[] db_names = this.getQualifiedNames(dbName);
+      if(db_names.length >1){
+        tTable = getRemoteDcMSC(db_names[0]).getTable(db_names[1], tableName);
+      }
+      else{
+        tTable = getMSC().getTable(dbName, tableName);
+      }
     } catch (NoSuchObjectException e) {
       if (throwException) {
         LOG.error(StringUtils.stringifyException(e));
@@ -1031,7 +1051,13 @@ public class Hive {
    */
   public List<String> getTablesByPattern(String dbName, String tablePattern) throws HiveException {
     try {
-      return getMSC().getTables(dbName, tablePattern);
+    //added by zjw for dc.db
+      String[] db_names = this.getQualifiedNames(dbName);
+      if(db_names.length == 2){
+        return getRemoteDcMSC(db_names[0]).getTables((db_names[1]), tablePattern);
+      } else {
+        return getMSC().getTables(dbName, tablePattern);
+      }
     } catch (Exception e) {
       throw new HiveException(e);
     }
@@ -1082,7 +1108,13 @@ public class Hive {
    */
   public List<String> getDatabasesByPattern(String databasePattern) throws HiveException {
     try {
-      return getMSC().getDatabases(databasePattern);
+    //added by zjw for dc.db
+      String[] dc_names = this.getQualifiedNames(databasePattern);
+      if(dc_names.length == 2){
+        return getRemoteDcMSC(dc_names[0]).getDatabases(dc_names[1]) ;
+      } else {
+        return getMSC().getDatabases(databasePattern);
+      }
     } catch (Exception e) {
       throw new HiveException(e);
     }
@@ -1132,7 +1164,13 @@ public class Hive {
    */
   public Database getDatabase(String dbName) throws HiveException {
     try {
-      return getMSC().getDatabase(dbName);
+      //added by zjw for dc.db
+      String[] db_names = this.getQualifiedNames(dbName);
+      if(db_names.length >1){
+        return getRemoteDcMSC(db_names[0]).getDatabase(db_names[1]);
+      } else {
+        return getMSC().getDatabase(dbName);
+      }
     } catch (NoSuchObjectException e) {
       return null;
     } catch (Exception e) {
@@ -2201,6 +2239,18 @@ public class Hive {
     return metaStoreClient;
   }
 
+  private IMetaStoreClient getRemoteDcMSC(String dc_name) throws HiveException {
+    try{
+      Datacenter dc = getMSC().get_center(dc_name);
+      if(dc == null){
+        throw new MetaException("There is no datacenter named:"+dc_name+",or top datacenter is not reachable.");
+      }
+      return getMSC().getRemoteDcMSC(dc_name);
+    } catch (TException e) {
+      throw new HiveException("Unable to alter getRemoteDcMSC,metastore service unreachable.", e);
+    }
+  }
+
   private String getUserName() {
     SessionState ss = SessionState.get();
     if (ss != null && ss.getAuthenticator() != null) {
@@ -2303,6 +2353,9 @@ public class Hive {
   public Table newTable(String tableName) throws HiveException {
     String[] names = getQualifiedNames(tableName);
     switch (names.length) {
+    case 3:
+      Table t = new Table(names[0]+"."+names[1], names[2]);
+      return t;
     case 2:
       return new Table(names[0], names[1]);
     case 1:
@@ -2351,5 +2404,45 @@ public class Hive {
     }
   }
 
+  public List<Datacenter> getAllDatacenters() throws HiveException {
+    try{
+//      Table t = this.getTable(db_name, tbl_name);
+      return getMSC().get_all_centers();
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public List<String> getAllDatabases(String dc_name)throws HiveException {
+    try{
+      return getRemoteDcMSC(dc_name).getAllDatabases();
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public List<String> getDatabases(String dc_name,String tablePattern) throws HiveException {
+    try{
+      return getRemoteDcMSC(dc_name).getDatabases(tablePattern);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public List<Busitype> showBusitypes() throws HiveException {
+    try{
+      return getMSC().showBusitypes();
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public int createBusitype(Busitype bt) throws HiveException {
+    try{
+      return getMSC().createBusitype( bt);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
 
 };

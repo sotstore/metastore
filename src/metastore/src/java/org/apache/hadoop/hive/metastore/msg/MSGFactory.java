@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 
 import javax.jdo.PersistenceManager;
 
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 
@@ -179,6 +180,7 @@ public class MSGFactory {
     return json.toString();
   }
 
+
   public static Map<String, Object> parserJsonToMap(String json) {
     Map<String, Object> map = new HashMap<String, Object>();
 //    Map<String, String> map = new HashMap<String, String>();
@@ -189,7 +191,9 @@ public class MSGFactory {
         String value = jsonObject.get(key).toString();
         if (value.startsWith("{") && value.endsWith("}")) {
             map.put(key, parserJsonToMap(value));
-        } else {
+        } else if (value.startsWith("[") && value.endsWith("]")) {
+          map.put(key, JSONArray.toList(JSONArray.fromObject(value)));
+        } else{
             map.put(key, value);
         }
     }
@@ -469,6 +473,9 @@ public class MSGFactory {
           if(msg.getOld_object_params().containsKey("partition_name")){
             params.put("partition_name",msg.getOld_object_params().get("partition_name"));
           }
+          if(msg.getOld_object_params().containsKey("parent_partition_name")){
+            params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
+          }
           if(msg.getOld_object_params().containsKey("partition_level")){
             params.put("partition_level",msg.getOld_object_params().get("partition_level"));
           }
@@ -481,42 +488,110 @@ public class MSGFactory {
           break;
       case MSGType.MSG_ALT_PARTITION_FILE :
             //修改分区文件
-          MFile alt_file = (MFile)msg.getEventObject();
-          params.put("file_id",alt_file.getFid());
-          if(msg.getOld_object_params().containsKey("partition_name")){
-            params.put("partition_name",msg.getOld_object_params().get("partition_name"));
-          }
+        if(msg.getOld_object_params().containsKey("f_id")){
+          params.put("f_id",msg.getOld_object_params().get("f_id"));
+        }
+        if(msg.getOld_object_params().containsKey("partition_name")){
+          params.put("partition_name",msg.getOld_object_params().get("partition_name"));
+        }
+        if(msg.getOld_object_params().containsKey("partition_level")){
+          params.put("partition_level",msg.getOld_object_params().get("partition_level"));
+        }
+        if(msg.getOld_object_params().containsKey("parent_partition_name")){
+          params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
+        }
+        if(msg.getOld_object_params().containsKey("db_name")){
+          params.put("db_name",msg.getOld_object_params().get("db_name"));
+        }
+        if(msg.getOld_object_params().containsKey("table_name")){
+          params.put("table_name",msg.getOld_object_params().get("table_name"));
+        }
           break;
       case MSGType.MSG_REP_PARTITION_FILE_CHAGE :
             //分区文件副本变化
-          MFile file_rep = (MFile)msg.getEventObject();
-          params.put("file_id",file_rep.getFid());
-          if(msg.getOld_object_params().containsKey("partition_name")){
-            params.put("partition_name",msg.getOld_object_params().get("partition_name"));
-          }
+        if(msg.getOld_object_params().containsKey("f_id")){
+          params.put("f_id",msg.getOld_object_params().get("f_id"));
+        }
+        if(msg.getOld_object_params().containsKey("partition_name")){
+          params.put("partition_name",msg.getOld_object_params().get("partition_name"));
+        }
+        if(msg.getOld_object_params().containsKey("partition_level")){
+          params.put("partition_level",msg.getOld_object_params().get("partition_level"));
+        }
+        if(msg.getOld_object_params().containsKey("parent_partition_name")){
+          params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
+        }
+        if(msg.getOld_object_params().containsKey("parent_partition_name")){
+          params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
+        }
+        if(msg.getOld_object_params().containsKey("db_name")){
+          params.put("db_name",msg.getOld_object_params().get("db_name"));
+        }
+        if(msg.getOld_object_params().containsKey("table_name")){
+          params.put("table_name",msg.getOld_object_params().get("table_name"));
+        }
           break;
       case MSGType.MSG_STA_PARTITION_FILE_CHAGE :
             //分区文件状态变化
-          MFile stat_file = (MFile)msg.getEventObject();
-          params.put("file_id",stat_file.getFid());
-          if(msg.getOld_object_params().containsKey("partition_name")){
-            params.put("partition_name",msg.getOld_object_params().get("partition_name"));
-          }
+        if(msg.getOld_object_params().containsKey("f_id")){
+          params.put("f_id",msg.getOld_object_params().get("f_id"));
+        }
+        if(msg.getOld_object_params().containsKey("partition_name")){
+          params.put("partition_name",msg.getOld_object_params().get("partition_name"));
+        }
+        if(msg.getOld_object_params().containsKey("partition_level")){
+          params.put("partition_level",msg.getOld_object_params().get("partition_level"));
+        }
+        if(msg.getOld_object_params().containsKey("parent_partition_name")){
+          params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
+        }
+        if(msg.getOld_object_params().containsKey("db_name")){
+          params.put("db_name",msg.getOld_object_params().get("db_name"));
+        }
+        if(msg.getOld_object_params().containsKey("table_name")){
+          params.put("table_name",msg.getOld_object_params().get("table_name"));
+        }
           break;
       case MSGType.MSG_REP_PARTITION_FILE_ONOFF :
             //分区文件副本上下线变化
-          MFile onoff_file = (MFile)msg.getEventObject();
-          params.put("file_id",onoff_file.getFid());
+          if(msg.getOld_object_params().containsKey("f_id")){
+            params.put("f_id",msg.getOld_object_params().get("f_id"));
+          }
           if(msg.getOld_object_params().containsKey("partition_name")){
             params.put("partition_name",msg.getOld_object_params().get("partition_name"));
+          }
+          if(msg.getOld_object_params().containsKey("partition_level")){
+            params.put("partition_level",msg.getOld_object_params().get("partition_level"));
+          }
+          if(msg.getOld_object_params().containsKey("parent_partition_name")){
+            params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
+          }
+          if(msg.getOld_object_params().containsKey("db_name")){
+            params.put("db_name",msg.getOld_object_params().get("db_name"));
+          }
+          if(msg.getOld_object_params().containsKey("table_name")){
+            params.put("table_name",msg.getOld_object_params().get("table_name"));
           }
           break;
       case MSGType.MSG_DEL_PARTITION_FILE :
             //删除分区文件
-          MFile del_file = (MFile)msg.getEventObject();
-          params.put("file_id",del_file.getFid());
+          if(msg.getOld_object_params().containsKey("f_id")){
+            params.put("f_id",msg.getOld_object_params().get("f_id"));
+          }
           if(msg.getOld_object_params().containsKey("partition_name")){
             params.put("partition_name",msg.getOld_object_params().get("partition_name"));
+          }
+          if(msg.getOld_object_params().containsKey("partition_level")){
+            params.put("partition_level",msg.getOld_object_params().get("partition_level"));
+          }
+          if(msg.getOld_object_params().containsKey("parent_partition_name")){
+            params.put("parent_partition_name",msg.getOld_object_params().get("parent_partition_name"));
+          }
+          if(msg.getOld_object_params().containsKey("db_name")){
+            params.put("db_name",msg.getOld_object_params().get("db_name"));
+          }
+          if(msg.getOld_object_params().containsKey("table_name")){
+            params.put("table_name",msg.getOld_object_params().get("table_name"));
           }
           break;
       case MSGType.MSG_NEW_INDEX :
@@ -643,16 +718,27 @@ public class MSGFactory {
   }
 
   public static void main(String args[]){
-    Map<String,Object > map = new HashMap<String ,Object>();
-    map.put("a", 1);
-    map.put("b", "haah");
-    String s = MSGFactory.parserMapToJson(map);
-    System.out.println(s);
-    Map r = MSGFactory.parserJsonToMap(s);
-    System.out.println(s);
+//    Map<String,Object > map = new HashMap<String ,Object>();
+//    map.put("a", 1);
+//    map.put("b", "haah");
+//    String s = MSGFactory.parserMapToJson(map);
+//    System.out.println(s);
+//    Map r = MSGFactory.parserJsonToMap(s);
+//    System.out.println(s);
 
     DDLMsg msg = new DDLMsg();
     System.out.println(msg.toJson());
+
+    String js="{\"event_id\":1304,\"object_id\":3962," +
+    		"\"msg_data\":{\"partition_level\":2,\"f_id\":[3958,3962,3966,3973]," +
+    		"\"table_name\":\"bf_dxx\",\"db_name\":\"default\"," +
+    		"\"partition_name\":\"interval_2013-07-09_16:00:00_p0\"}," +
+    		"\"msg_id\":49,\"db_id\":-1,\"node_id\":-1,\"event_time\":1373887036," +
+    		"\"event_handler\":\"\"}";
+
+     System.out.println("==="+js);
+     msg = msg.fromJson(js);
+         System.out.println(msg.toJson());
   }
 
 }

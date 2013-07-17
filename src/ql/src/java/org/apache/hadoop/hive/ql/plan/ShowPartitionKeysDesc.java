@@ -15,7 +15,7 @@ public class ShowPartitionKeysDesc extends DDLDesc implements Serializable {
 
   String resFile;
 
-  private static final String schema = "partition level,partition_column,order,partition_type,version#string:string:string:string:string";
+  private static final String schema = "partition level,partition_column,order,partition_type,partition args,version#string:string:string:string:string:string";
 
 
 

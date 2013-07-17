@@ -27,6 +27,8 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void get_all_busi_type_datacenters(std::vector<BusiTypeDatacenter> & _return) = 0;
   virtual void append_busi_type_datacenter(const BusiTypeDatacenter& busiTypeDatacenter) = 0;
   virtual bool add_datawarehouse_sql(const int32_t dwNum, const std::string& sql) = 0;
+  virtual void showBusitypes(std::vector<Busitype> & _return) = 0;
+  virtual int32_t createBusitype(const Busitype& busitype) = 0;
   virtual int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files) = 0;
   virtual int32_t drop_partition_files(const Partition& part, const std::vector<SFile> & files) = 0;
   virtual int32_t add_subpartition_files(const Subpartition& subpart, const std::vector<SFile> & files) = 0;
@@ -199,6 +201,13 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   }
   bool add_datawarehouse_sql(const int32_t /* dwNum */, const std::string& /* sql */) {
     bool _return = false;
+    return _return;
+  }
+  void showBusitypes(std::vector<Busitype> & /* _return */) {
+    return;
+  }
+  int32_t createBusitype(const Busitype& /* busitype */) {
+    int32_t _return = 0;
     return _return;
   }
   int32_t add_partition_files(const Partition& /* part */, const std::vector<SFile> & /* files */) {
@@ -1907,6 +1916,248 @@ class ThriftHiveMetastore_add_datawarehouse_sql_presult {
   MetaException o2;
 
   _ThriftHiveMetastore_add_datawarehouse_sql_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class ThriftHiveMetastore_showBusitypes_args {
+ public:
+
+  ThriftHiveMetastore_showBusitypes_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_showBusitypes_args() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_showBusitypes_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_showBusitypes_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_showBusitypes_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_showBusitypes_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_showBusitypes_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_showBusitypes_result__isset {
+  _ThriftHiveMetastore_showBusitypes_result__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_showBusitypes_result__isset;
+
+class ThriftHiveMetastore_showBusitypes_result {
+ public:
+
+  ThriftHiveMetastore_showBusitypes_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_showBusitypes_result() throw() {}
+
+  std::vector<Busitype>  success;
+  InvalidObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_showBusitypes_result__isset __isset;
+
+  void __set_success(const std::vector<Busitype> & val) {
+    success = val;
+  }
+
+  void __set_o1(const InvalidObjectException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const MetaException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_showBusitypes_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_showBusitypes_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_showBusitypes_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_showBusitypes_presult__isset {
+  _ThriftHiveMetastore_showBusitypes_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_showBusitypes_presult__isset;
+
+class ThriftHiveMetastore_showBusitypes_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_showBusitypes_presult() throw() {}
+
+  std::vector<Busitype> * success;
+  InvalidObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_showBusitypes_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_createBusitype_args__isset {
+  _ThriftHiveMetastore_createBusitype_args__isset() : busitype(false) {}
+  bool busitype;
+} _ThriftHiveMetastore_createBusitype_args__isset;
+
+class ThriftHiveMetastore_createBusitype_args {
+ public:
+
+  ThriftHiveMetastore_createBusitype_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_createBusitype_args() throw() {}
+
+  Busitype busitype;
+
+  _ThriftHiveMetastore_createBusitype_args__isset __isset;
+
+  void __set_busitype(const Busitype& val) {
+    busitype = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_createBusitype_args & rhs) const
+  {
+    if (!(busitype == rhs.busitype))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_createBusitype_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_createBusitype_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_createBusitype_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_createBusitype_pargs() throw() {}
+
+  const Busitype* busitype;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_createBusitype_result__isset {
+  _ThriftHiveMetastore_createBusitype_result__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_createBusitype_result__isset;
+
+class ThriftHiveMetastore_createBusitype_result {
+ public:
+
+  ThriftHiveMetastore_createBusitype_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_createBusitype_result() throw() {}
+
+  int32_t success;
+  InvalidObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_createBusitype_result__isset __isset;
+
+  void __set_success(const int32_t val) {
+    success = val;
+  }
+
+  void __set_o1(const InvalidObjectException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const MetaException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_createBusitype_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_createBusitype_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_createBusitype_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_createBusitype_presult__isset {
+  _ThriftHiveMetastore_createBusitype_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_createBusitype_presult__isset;
+
+class ThriftHiveMetastore_createBusitype_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_createBusitype_presult() throw() {}
+
+  int32_t* success;
+  InvalidObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_createBusitype_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -17254,6 +17505,12 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   bool add_datawarehouse_sql(const int32_t dwNum, const std::string& sql);
   void send_add_datawarehouse_sql(const int32_t dwNum, const std::string& sql);
   bool recv_add_datawarehouse_sql();
+  void showBusitypes(std::vector<Busitype> & _return);
+  void send_showBusitypes();
+  void recv_showBusitypes(std::vector<Busitype> & _return);
+  int32_t createBusitype(const Busitype& busitype);
+  void send_createBusitype(const Busitype& busitype);
+  int32_t recv_createBusitype();
   int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files);
   void send_add_partition_files(const Partition& part, const std::vector<SFile> & files);
   int32_t recv_add_partition_files();
@@ -17608,6 +17865,8 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_get_all_busi_type_datacenters(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_append_busi_type_datacenter(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_add_datawarehouse_sql(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_showBusitypes(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_createBusitype(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_add_partition_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_drop_partition_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_add_subpartition_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -17734,6 +17993,8 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["get_all_busi_type_datacenters"] = &ThriftHiveMetastoreProcessor::process_get_all_busi_type_datacenters;
     processMap_["append_busi_type_datacenter"] = &ThriftHiveMetastoreProcessor::process_append_busi_type_datacenter;
     processMap_["add_datawarehouse_sql"] = &ThriftHiveMetastoreProcessor::process_add_datawarehouse_sql;
+    processMap_["showBusitypes"] = &ThriftHiveMetastoreProcessor::process_showBusitypes;
+    processMap_["createBusitype"] = &ThriftHiveMetastoreProcessor::process_createBusitype;
     processMap_["add_partition_files"] = &ThriftHiveMetastoreProcessor::process_add_partition_files;
     processMap_["drop_partition_files"] = &ThriftHiveMetastoreProcessor::process_drop_partition_files;
     processMap_["add_subpartition_files"] = &ThriftHiveMetastoreProcessor::process_add_subpartition_files;
@@ -17981,6 +18242,25 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->add_datawarehouse_sql(dwNum, sql);
     }
     return ifaces_[i]->add_datawarehouse_sql(dwNum, sql);
+  }
+
+  void showBusitypes(std::vector<Busitype> & _return) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->showBusitypes(_return);
+    }
+    ifaces_[i]->showBusitypes(_return);
+    return;
+  }
+
+  int32_t createBusitype(const Busitype& busitype) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->createBusitype(busitype);
+    }
+    return ifaces_[i]->createBusitype(busitype);
   }
 
   int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files) {

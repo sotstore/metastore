@@ -63,6 +63,7 @@ import org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.BooleanColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
+import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsData;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
@@ -106,6 +107,7 @@ import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.model.MBusiTypeColumn;
 import org.apache.hadoop.hive.metastore.model.MBusiTypeDatacenter;
+import org.apache.hadoop.hive.metastore.model.MBusitype;
 import org.apache.hadoop.hive.metastore.model.MColumnDescriptor;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MDatabase;
@@ -3789,16 +3791,24 @@ public class ObjectStore implements RawStore, Configurable {
       /**
        * 注意，如果分区文件数量没有变化，消息不会推送到后端
        */
+      HashMap<String,Object> old_params= new HashMap<String,Object>();
+
+
+      old_params.put("partition_name", newPart.getPartitionName());
+      old_params.put("partition_level", 2);
+      old_params.put("db_name", newPart.getDbName());
+      old_params.put("table_name", newPart.getTableName());
 
       if(new_set.size() > old_set.size()){
         new_set.removeAll(old_set);
-
+        old_params.put("f_id", new_set);
         MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_NEW_PARTITION_FILE,db_id,-1,
-            pm,new_set.toArray(new Long[0]),null));
+            pm,new_set.toArray(new Long[0]),old_params));
       }else if(new_set.size() < old_set.size()){
         old_set.removeAll(new_set);
+        old_params.put("f_id", old_set);
         MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_PARTITION_FILE,db_id,-1,
-            pm,old_set.toArray(new Long[0]),null));
+            pm,old_set.toArray(new Long[0]),old_params));
       }
 
 
@@ -7478,6 +7488,55 @@ public class ObjectStore implements RawStore, Configurable {
     }
     return ;
 
+  }
+
+  @Override
+  public List<Busitype> showBusitypes() throws MetaException, TException {
+
+    List<Busitype> bts = new ArrayList<Busitype>();
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MBusitype.class);
+      List<MBusitype> mbts = (List<MBusitype>) query.execute();
+      pm.retrieveAll(mbts);
+      for (Iterator i = mbts.iterator(); i.hasNext();) {
+        MBusitype mbt = (MBusitype)i.next();
+        Busitype bt = new Busitype(mbt.getBusiname(),mbt.getComment());
+        bts.add(bt);
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+
+    return bts;
+  }
+
+  @Override
+  public int createBusitype(Busitype busitype) throws InvalidObjectException, MetaException,
+      TException {
+    MBusitype mbt = new MBusitype();
+    mbt.setBusiname(busitype.getName());
+    mbt.setComment(busitype.getComment());
+    boolean success = false;
+    int now = (int)(System.currentTimeMillis()/1000);
+    try {
+      openTransaction();
+      pm.makePersistent(mbt);
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    if(success){
+      return 0 ;
+    }else{
+      return -1;
+    }
   }
 
 }

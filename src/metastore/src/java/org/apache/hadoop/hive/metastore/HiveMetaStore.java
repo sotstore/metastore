@@ -65,6 +65,7 @@ import org.apache.hadoop.hive.metastore.DiskManager.SFLTriple;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
+import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
@@ -4677,8 +4678,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
       HashMap<String,Object> old_params= new HashMap<String,Object>();
 
+      old_params.put("f_id", tmp);
       old_params.put("partition_name", subpart.getPartitionName());
-      old_params.put("partition_level", 1);
+      old_params.put("parent_partition_name", getMS().getParentPartition(
+          subpart.getDbName(), subpart.getTableName(),  subpart.getPartitionName()).getPartitionName());
+      old_params.put("partition_level", 2);
       old_params.put("db_name", subpart.getDbName());
       old_params.put("table_name", subpart.getTableName());
       MetaMsgServer.sendMsg(MSGFactory.generateDDLMsgs(MSGType.MSG_NEW_PARTITION_FILE,-1l,-1l, null,nl,old_params));
@@ -5517,6 +5521,17 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           " files to local DC.");
 
       return true;
+    }
+
+    @Override
+    public List<Busitype> showBusitypes() throws InvalidObjectException, MetaException, TException {
+      return getMS().showBusitypes();
+    }
+
+    @Override
+    public int createBusitype(Busitype busitype) throws InvalidObjectException, MetaException,
+        TException {
+      return getMS().createBusitype(busitype);
     }
 
   }

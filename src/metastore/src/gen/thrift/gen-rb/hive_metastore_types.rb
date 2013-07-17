@@ -641,6 +641,24 @@ class SFileRef
   ::Thrift::Struct.generate_accessors self
 end
 
+class Busitype
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  NAME = 1
+  COMMENT = 2
+
+  FIELDS = {
+    NAME => {:type => ::Thrift::Types::STRING, :name => 'name'},
+    COMMENT => {:type => ::Thrift::Types::STRING, :name => 'comment'}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
 class Index
   include ::Thrift::Struct, ::Thrift::Struct_Union
   INDEXNAME = 1

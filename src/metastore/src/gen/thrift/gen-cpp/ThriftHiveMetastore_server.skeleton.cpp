@@ -77,6 +77,16 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("add_datawarehouse_sql\n");
   }
 
+  void showBusitypes(std::vector<Busitype> & _return) {
+    // Your implementation goes here
+    printf("showBusitypes\n");
+  }
+
+  int32_t createBusitype(const Busitype& busitype) {
+    // Your implementation goes here
+    printf("createBusitype\n");
+  }
+
   int32_t add_partition_files(const Partition& part, const std::vector<SFile> & files) {
     // Your implementation goes here
     printf("add_partition_files\n");

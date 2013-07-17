@@ -3607,6 +3607,81 @@ void swap(SFileRef &a, SFileRef &b) {
   swap(a.__isset, b.__isset);
 }
 
+const char* Busitype::ascii_fingerprint = "07A9615F837F7D0A952B595DD3020972";
+const uint8_t Busitype::binary_fingerprint[16] = {0x07,0xA9,0x61,0x5F,0x83,0x7F,0x7D,0x0A,0x95,0x2B,0x59,0x5D,0xD3,0x02,0x09,0x72};
+
+uint32_t Busitype::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->name);
+          this->__isset.name = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->comment);
+          this->__isset.comment = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t Busitype::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("Busitype");
+
+  xfer += oprot->writeFieldBegin("name", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString(this->name);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("comment", ::apache::thrift::protocol::T_STRING, 2);
+  xfer += oprot->writeString(this->comment);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+void swap(Busitype &a, Busitype &b) {
+  using ::std::swap;
+  swap(a.name, b.name);
+  swap(a.comment, b.comment);
+  swap(a.__isset, b.__isset);
+}
+
 const char* Index::ascii_fingerprint = "09EEF655216AC81802850988D6C470A6";
 const uint8_t Index::binary_fingerprint[16] = {0x09,0xEE,0xF6,0x55,0x21,0x6A,0xC8,0x18,0x02,0x85,0x09,0x88,0xD6,0xC4,0x70,0xA6};
 
