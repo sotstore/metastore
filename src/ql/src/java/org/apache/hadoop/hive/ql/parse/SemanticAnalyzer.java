@@ -2458,7 +2458,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       }
       //added by zjw
       if(inputRR.getOriginTabNameMap() != null && inputRR.getOriginTabNameMap().size() == 1){//若映射表列表为1，说明是原始表
-        out_rwsch.putOriginColName(tabAlias, colAlias, inputRR.getColumnInfos().get(pos-1).getInternalName());
+        out_rwsch.putOriginColName(tabAlias, colAlias, expr.getChild(0).getText());
         //FIX
         out_rwsch.putOriginTabName(tabAlias, inputRR.getTableNames().iterator().next());
       }else{
@@ -7011,19 +7011,28 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 
     QBExpr root_subq = qb.getAliasToSubq().get(qb.getAliases().get(0));
     RowResolver unionoutRR = new RowResolver();
+    int pos=0 ;
     for (Map.Entry<String, ColumnInfo> lEntry : leftmap.entrySet()) {
       String field = lEntry.getKey();
       ColumnInfo lInfo = lEntry.getValue();
       ColumnInfo rInfo = rightmap.get(field);
       LOG.info("---zjw--"+field+"--"+leftRR.getOriginNameMap().get(field)+"--"+rightRR.getOriginNameMap().get(field));
       if (lInfo == null) {
-        unionoutRR.put(unionalias, field, rInfo);
+        LOG.info("---zjw--add 1"+field+"--"+rInfo.getAlias()+"--"+rInfo.getInternalName());
+        ColumnInfo unionColInfo = new ColumnInfo(rInfo);
+        unionColInfo.setAlias(field);
+        unionColInfo.setInternalName(HiveConf.getColumnInternalName(pos++));
+        unionoutRR.put(unionalias, field, unionColInfo);
 //        addToViewColsMap(field, getInternalName(rightRR, field, left_tb_name));
         continue;
       }
 
       if (rInfo == null) {
-        unionoutRR.put(unionalias, field, lInfo);
+        LOG.info("---zjw--add 2"+field+"--"+lInfo.getAlias()+"--"+lInfo.getInternalName());
+        ColumnInfo unionColInfo = new ColumnInfo(lInfo);
+        unionColInfo.setAlias(field);
+        unionColInfo.setInternalName(HiveConf.getColumnInternalName(pos++));
+        unionoutRR.put(unionalias, field, unionColInfo);
 //        if(first_union_tab){
 //          addToViewColsMap(field,getInternalName(leftRR, field, left_tb_name));
 //        }
@@ -7036,8 +7045,11 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 //      addToViewColsMap(field, getInternalName(rightRR, field, rtght_tb_name));
 
       ColumnInfo unionColInfo = new ColumnInfo(lInfo);
+      unionColInfo.setAlias(field);
+      unionColInfo.setInternalName(HiveConf.getColumnInternalName(pos++));
       unionColInfo.setType(FunctionRegistry.getCommonClassForUnionAll(lInfo.getType(),
             rInfo.getType()));
+      LOG.info("---zjw--add 2.5"+field+"--"+unionColInfo.getAlias()+"--"+unionColInfo.getInternalName());
       unionoutRR.put(unionalias, field, unionColInfo);
     }
 
@@ -7046,18 +7058,30 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       ColumnInfo rInfo = rEntry.getValue();
       ColumnInfo lInfo = leftmap.get(field);
       if (lInfo == null) {
-        unionoutRR.put(unionalias, field, rInfo);
+        LOG.info("---zjw--add 3"+field+"--"+rInfo.getAlias()+"--"+rInfo.getInternalName());
+        ColumnInfo unionColInfo = new ColumnInfo(rInfo);
+        unionColInfo.setAlias(field);
+        unionColInfo.setInternalName(HiveConf.getColumnInternalName(pos++));
+        unionoutRR.put(unionalias, field, unionColInfo);
 //        addToViewColsMap(field, getInternalName(rightRR, field, rtght_tb_name));
         continue;
       }
 
       if (rInfo == null) {
-        unionoutRR.put(unionalias, field, lInfo);
+        LOG.info("---zjw--add 4"+field+"--"+lInfo.getAlias()+"--"+lInfo.getInternalName());
+        ColumnInfo unionColInfo = new ColumnInfo(lInfo);
+        unionColInfo.setAlias(field);
+        unionColInfo.setInternalName(HiveConf.getColumnInternalName(pos++));
+        unionoutRR.put(unionalias, field, unionColInfo);
 //        if(first_union_tab){
 //          addToViewColsMap(field, getInternalName(leftRR, field, left_tb_name));
 //        }
         continue;
       }
+    }
+
+    for(ColumnInfo info : unionoutRR.getColumnInfos()){
+      LOG.info("---zjw--info--"+info.getAlias()+"--"+info.getInternalName());
     }
     if(first_union_tab){
       first_union_tab = false;
@@ -8621,6 +8645,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     }else{
       derivedSchema.addAll(this.resultSchema);
       LOG.info("---zjw -- in saveViewDefinition,result is null,heter is "+this.createVwDesc.isHeter());
+      LOG.info("---zjw -- in saveViewDefinition,derivedSchema size is "+derivedSchema.size());
     }
 
     ParseUtils.validateColumnNameUniqueness(derivedSchema);
@@ -8731,14 +8756,18 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     List<FieldSchema> fieldSchemas = new ArrayList<FieldSchema>();
 
     //added by zjw for heter-view
-    if(rr.getColumnInfos() == null){
-      return null;
-    }
+//    if(rr.getColumnInfos() == null){
+//      return null;
+//    }
+
+    LOG.info("--zjw--getColumnInfos.size:"+rr.getColumnInfos().size());
     for (ColumnInfo colInfo : rr.getColumnInfos()) {
       if (colInfo.isHiddenVirtualCol()) {
         continue;
       }
-      String colName = rr.reverseLookup(colInfo.getInternalName())[1];
+      LOG.info("--zjw--colInfo:"+colInfo.getInternalName()+"--alias:"+colInfo.getAlias());
+      //String colName = rr.reverseLookup(colInfo.getInternalName())[1];
+      String colName = colInfo.getAlias();
       fieldSchemas.add(new FieldSchema(colName,
           colInfo.getType().getTypeName(), null));
     }
