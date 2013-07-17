@@ -5100,6 +5100,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
               if (f.getStore_status() == MetaStoreConst.MFileStoreStatus.INCREATE ||
                   f.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED) {
                 LOG.warn("Invalid file (fid " + fid + ") status (INCREATE or CLOSED).");
+                r.clear();
                 return r;
               }
               boolean added = false;
@@ -5217,25 +5218,28 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
       // prepare tbl, parts
       Table tbl = get_table(dbName, tableName);
+      // use current DC name as the remote db name?
+      String rdb = "rdb_" + hiveConf.getVar(ConfVars.LOCAL_DATACENTER);
       Map<String, String> kvs = new HashMap<String, String>();
       if (tbl.getParametersSize() > 0) {
         LOG.info(tbl.getParameters().toString());
         kvs.putAll(tbl.getParameters());
         kvs.put("store.remote", "both");
         if (kvs.get("store.remote.dcs") == null) {
-          kvs.put("store.remote.dcs", to_dc + "," + hiveConf.getVar(ConfVars.LOCAL_DATACENTER));
+          kvs.put("store.remote.dcs", to_dc + "." + rdb +
+              "," + hiveConf.getVar(ConfVars.LOCAL_DATACENTER) + "." + dbName);
         } else {
           String olddcs = kvs.get("store.remote.dcs");
           String[] dcsarray = olddcs.split(",");
           boolean ign = false;
           for (int i = 0; i < dcsarray.length; i++) {
-            if (dcsarray[i].equals(to_dc)) {
+            if (dcsarray[i].equals(to_dc + "." + rdb)) {
               ign = true;
               break;
             }
           }
           if (!ign) {
-            olddcs += "," + to_dc;
+            olddcs += "," + to_dc + "." + rdb;
           }
           kvs.put("store.remote.dcs", olddcs);
         }
@@ -5243,6 +5247,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       } else {
         tbl.setParameters(kvs);
       }
+      // change tbl's dbname to rdb
+      tbl.setDbName(rdb);
+
       LOG.info("parts: " + partNames.toString());
       List<Partition> parts = get_partitions_by_names(dbName, tableName, partNames);
       if (parts.size() == 0) {
@@ -5296,7 +5303,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
       // call remote metastore's migrate2_in to construct metadata
       if (rcli.migrate2_in(tbl, parts, ldc.getName(), to_nas_devid, targetFileMap)) {
-        // wow, it is success
+        // wow, it is success, change tbl's dbname to dbName
+        tbl.setDbName(dbName);
         alter_table(dbName, tableName, tbl);
         LOG.info("Update table properties to reflect the migration.");
       } else {
