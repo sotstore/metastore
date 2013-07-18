@@ -572,7 +572,8 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
   }
 
   private void analyzeShowSubpartitions(ASTNode ast) throws SemanticException {
-    String partName = unescapeIdentifier(ast.getChild(0).getText());
+//    String partName = unescapeIdentifier(ast.getChild(0).getText());
+    String partName = unescapeSQLString(ast.getChild(0).getText());
     ASTNode tabTree = (ASTNode)ast.getChild(1);
     String tabName = null;
     Table tab = null;
