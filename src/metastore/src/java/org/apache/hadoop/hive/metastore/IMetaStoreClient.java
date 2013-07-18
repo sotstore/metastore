@@ -982,6 +982,8 @@ public interface IMetaStoreClient {
 
   public int close_file(SFile file) throws FileOperationException, TException;
 
+  public boolean online_filelocation(SFile file) throws MetaException, TException;
+
   public SFile get_file_by_id(long fid) throws FileOperationException, MetaException, TException;
 
   public SFile get_file_by_name(String node, String devid, String location)

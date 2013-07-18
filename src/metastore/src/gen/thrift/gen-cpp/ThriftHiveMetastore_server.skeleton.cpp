@@ -552,6 +552,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("close_file\n");
   }
 
+  bool online_filelocation(const SFile& file) {
+    // Your implementation goes here
+    printf("online_filelocation\n");
+  }
+
   void get_file_by_id(SFile& _return, const int64_t fid) {
     // Your implementation goes here
     printf("get_file_by_id\n");

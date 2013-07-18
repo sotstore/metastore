@@ -4708,6 +4708,21 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         BackupEntry be = new BackupEntry(subpart, files, BackupEntry.FOP.DROP_SUBPART);
         dm.backupQ.add(be);
       }
+
+      HashMap<String,Object> old_params= new HashMap<String,Object>();
+
+      List<Long> tmp = new ArrayList<Long>();
+      for (SFile f : files) {
+        tmp.add(f.getFid());
+      }
+      old_params.put("f_id", tmp);
+      old_params.put("partition_name", subpart.getPartitionName());
+      old_params.put("parent_partition_name", getMS().getParentPartition(
+          subpart.getDbName(), subpart.getTableName(),  subpart.getPartitionName()).getPartitionName());
+      old_params.put("partition_level", 2);
+      old_params.put("db_name", subpart.getDbName());
+      old_params.put("table_name", subpart.getTableName());
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsgs(MSGType.MSG_DEL_PARTITION_FILE,-1l,-1l, null,tmp,old_params));
       return 0;
     }
 
@@ -5388,6 +5403,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
                 wh.getDefaultDatabasePath(tbl.getDbName()).toString(), null);
         db.setDatacenter(ldc);
         getMS().createDatabase(db);
+        LOG.info("Create database " + tbl.getDbName() + " done.");
       }
       // try to create the table, if it doesn't exist
       try {
@@ -5402,6 +5418,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       List<Partition> toUpdate = new ArrayList<Partition>();
       List<Partition> copy_parts = deepCopyPartitions(parts);
       for (Partition part : copy_parts) {
+        // reset dbName for partition
+        part.setDbName(tbl.getDbName());
+
         LOG.info("Handle partition1 " + part.getPartitionName() + ", subparts NR " + part.getSubpartitionsSize());
         try {
           getMS().getPartition(part.getDbName(), part
@@ -5414,7 +5433,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         toUpdate.add(part);
       }
       add_partitions(toAdd);
-      LOG.info("Add partitions done.");
+      LOG.info("Add partitions done. toUpdate size is " + toUpdate.size());
 
       // try to create the file without any active locations.
       Set<SFile> fileToDel = new TreeSet<SFile>();
@@ -5466,9 +5485,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       // finally, add SFile to part or subpart
       for (Partition part : parts) {
         LOG.info("Handle partition2 " + part.getPartitionName() + ", subparts NR " + part.getSubpartitionsSize());
+        part.setDbName(tbl.getDbName());
+
         if (part.getSubpartitionsSize() > 0) {
           // call add subpartition_files()
           for (Subpartition subpart : part.getSubpartitions()) {
+            subpart.setDbName(tbl.getDbName());
             LOG.info("subparts " + subpart.getPartitionName() + ", " + subpart.getFiles());
             List<SFile> files = new ArrayList<SFile>();
             for (Long fid : subpart.getFiles()) {
@@ -5532,6 +5554,25 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public int createBusitype(Busitype busitype) throws InvalidObjectException, MetaException,
         TException {
       return getMS().createBusitype(busitype);
+    }
+
+    @Override
+    public boolean online_filelocation(SFile file) throws MetaException, TException {
+      // reget the file now
+      SFile stored_file = get_file_by_id(file.getFid());
+
+      if (stored_file.getStore_status() != MetaStoreConst.MFileStoreStatus.INCREATE) {
+        throw new MetaException("online filelocation can only do on INCREATE file.");
+      }
+      if (stored_file.getLocationsSize() != 1) {
+        throw new MetaException("Invalid file location in SFile fid: " + stored_file.getFid());
+      }
+      SFileLocation sfl = stored_file.getLocations().get(0);
+      assert sfl != null;
+      sfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
+      getMS().updateSFileLocation(sfl);
+
+      return true;
     }
 
   }

@@ -1081,6 +1081,7 @@ public class ObjectStore implements RawStore, Configurable {
     SFileLocation old = getSFileLocation(location.getDevid(), location.getLocation());
     if (old != null) {
       r = false;
+      return r;
     }
     try {
       openTransaction();
@@ -1465,6 +1466,9 @@ public class ObjectStore implements RawStore, Configurable {
   public Node getNode(String node_name) throws MetaException {
     boolean commited = false;
     Node n = null;
+    if (node_name == null) {
+      throw new MetaException("Null node name provided!");
+    }
     try {
       openTransaction();
       // if node_name contains("."), then it is a remote node, caller should getNode from other DC

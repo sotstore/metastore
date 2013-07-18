@@ -129,6 +129,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  void cancel_delegation_token(string token_str_form)'
   print '  SFile create_file(string node_name, i32 repnr, string db_name, string table_name)'
   print '  i32 close_file(SFile file)'
+  print '  bool online_filelocation(SFile file)'
   print '  SFile get_file_by_id(i64 fid)'
   print '  SFile get_file_by_name(string node, string devid, string location)'
   print '  i32 rm_file_logical(SFile file)'
@@ -833,6 +834,12 @@ elif cmd == 'close_file':
     print 'close_file requires 1 args'
     sys.exit(1)
   pp.pprint(client.close_file(eval(args[0]),))
+
+elif cmd == 'online_filelocation':
+  if len(args) != 1:
+    print 'online_filelocation requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.online_filelocation(eval(args[0]),))
 
 elif cmd == 'get_file_by_id':
   if len(args) != 1:

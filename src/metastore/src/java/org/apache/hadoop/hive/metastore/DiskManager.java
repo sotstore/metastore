@@ -655,24 +655,30 @@ public class DiskManager {
               break;
             }
             excl_dev.add(devid);
-            String location = "/data/";
+            String location;
             Random rand = new Random();
+            SFileLocation nloc;
 
-            if (f.getPlacement() > 0) {
-              synchronized (rs) {
-                Table t = rs.getTableByID(f.getPlacement());
-                location += t.getDbName() + "/" + t.getTableName() + "/"
-                    + rand.nextInt(Integer.MAX_VALUE);
+            do {
+              location = "/data/";
+              if (f.getPlacement() > 0) {
+                synchronized (rs) {
+                  Table t = rs.getTableByID(f.getPlacement());
+                  location += t.getDbName() + "/" + t.getTableName() + "/"
+                      + rand.nextInt(Integer.MAX_VALUE);
+                }
+              } else {
+                location += "UNNAMED-DB/UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
               }
-            } else {
-              location += "UNNAMED-DB/UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
-            }
-            SFileLocation nloc = new SFileLocation(node_name, f.getFid(), devid, location,
-                i, System.currentTimeMillis(),
-                MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_REP_DEFAULT");
-            synchronized (rs) {
-              rs.createFileLocation(nloc);
-            }
+              nloc = new SFileLocation(node_name, f.getFid(), devid, location,
+                  i, System.currentTimeMillis(),
+                  MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_REP_DEFAULT");
+              synchronized (rs) {
+                if (rs.createFileLocation(nloc)) {
+                  break;
+                }
+              }
+            } while (true);
             f.addToLocations(nloc);
 
             // indicate file transfer
@@ -1668,24 +1674,30 @@ public class DiskManager {
                 }
                 excl_dev.add(devid);
 
-                String location = "/data/";
+                String location;
                 Random rand = new Random();
+                SFileLocation nloc;
 
-                if (r.file.getPlacement() > 0) {
-                  synchronized (rs) {
-                    Table t = rs.getTableByID(r.file.getPlacement());
-                    location += t.getDbName() + "/" + t.getTableName() + "/"
-                        + rand.nextInt(Integer.MAX_VALUE);
+                do {
+                  location = "/data/";
+                  if (r.file.getPlacement() > 0) {
+                    synchronized (rs) {
+                      Table t = rs.getTableByID(r.file.getPlacement());
+                      location += t.getDbName() + "/" + t.getTableName() + "/"
+                          + rand.nextInt(Integer.MAX_VALUE);
+                    }
+                  } else {
+                    location += "UNNAMED-DB/UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
                   }
-                } else {
-                  location += "UNNAMED-DB/UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
-                }
-                SFileLocation nloc = new SFileLocation(node_name, r.file.getFid(), devid, location,
-                    i, System.currentTimeMillis(),
-                    MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_REP_DEFAULT");
-                synchronized (rs) {
-                  rs.createFileLocation(nloc);
-                }
+                  nloc = new SFileLocation(node_name, r.file.getFid(), devid, location,
+                      i, System.currentTimeMillis(),
+                      MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_REP_DEFAULT");
+                  synchronized (rs) {
+                    if (rs.createFileLocation(nloc)) {
+                      break;
+                    }
+                  }
+                } while (true);
                 r.file.addToLocations(nloc);
 
                 // indicate file transfer

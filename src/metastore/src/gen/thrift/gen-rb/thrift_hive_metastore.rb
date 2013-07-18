@@ -1787,6 +1787,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'close_file failed: unknown result')
     end
 
+    def online_filelocation(file)
+      send_online_filelocation(file)
+      return recv_online_filelocation()
+    end
+
+    def send_online_filelocation(file)
+      send_message('online_filelocation', Online_filelocation_args, :file => file)
+    end
+
+    def recv_online_filelocation()
+      result = receive_message(Online_filelocation_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'online_filelocation failed: unknown result')
+    end
+
     def get_file_by_id(fid)
       send_get_file_by_id(fid)
       return recv_get_file_by_id()
@@ -3433,6 +3449,17 @@ module ThriftHiveMetastore
         result.o2 = o2
       end
       write_result(result, oprot, 'close_file', seqid)
+    end
+
+    def process_online_filelocation(seqid, iprot, oprot)
+      args = read_args(iprot, Online_filelocation_args)
+      result = Online_filelocation_result.new()
+      begin
+        result.success = @handler.online_filelocation(args.file)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'online_filelocation', seqid)
     end
 
     def process_get_file_by_id(seqid, iprot, oprot)
@@ -7709,6 +7736,40 @@ module ThriftHiveMetastore
       SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::FileOperationException},
       O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Online_filelocation_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    FILE = 1
+
+    FIELDS = {
+      FILE => {:type => ::Thrift::Types::STRUCT, :name => 'file', :class => ::SFile}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Online_filelocation_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end

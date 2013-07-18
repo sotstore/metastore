@@ -1872,4 +1872,10 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public int createBusitype(Busitype bt) throws MetaException, TException {
     return client.createBusitype(bt);
   }
+
+  @Override
+  public boolean online_filelocation(SFile file) throws MetaException, TException {
+    assert file != null;
+    return client.online_filelocation(file);
+  }
 }
