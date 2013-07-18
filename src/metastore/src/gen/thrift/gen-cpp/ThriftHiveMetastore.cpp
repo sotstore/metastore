@@ -25217,6 +25217,167 @@ uint32_t ThriftHiveMetastore_online_filelocation_presult::read(::apache::thrift:
   return xfer;
 }
 
+uint32_t ThriftHiveMetastore_toggle_safemode_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    xfer += iprot->skip(ftype);
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t ThriftHiveMetastore_toggle_safemode_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("ThriftHiveMetastore_toggle_safemode_args");
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t ThriftHiveMetastore_toggle_safemode_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("ThriftHiveMetastore_toggle_safemode_pargs");
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t ThriftHiveMetastore_toggle_safemode_result::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 0:
+        if (ftype == ::apache::thrift::protocol::T_BOOL) {
+          xfer += iprot->readBool(this->success);
+          this->__isset.success = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->o1.read(iprot);
+          this->__isset.o1 = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t ThriftHiveMetastore_toggle_safemode_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
+
+  uint32_t xfer = 0;
+
+  xfer += oprot->writeStructBegin("ThriftHiveMetastore_toggle_safemode_result");
+
+  if (this->__isset.success) {
+    xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_BOOL, 0);
+    xfer += oprot->writeBool(this->success);
+    xfer += oprot->writeFieldEnd();
+  } else if (this->__isset.o1) {
+    xfer += oprot->writeFieldBegin("o1", ::apache::thrift::protocol::T_STRUCT, 1);
+    xfer += this->o1.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  }
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t ThriftHiveMetastore_toggle_safemode_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 0:
+        if (ftype == ::apache::thrift::protocol::T_BOOL) {
+          xfer += iprot->readBool((*(this->success)));
+          this->__isset.success = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->o1.read(iprot);
+          this->__isset.o1 = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
 uint32_t ThriftHiveMetastore_get_file_by_id_args::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
@@ -28861,6 +29022,14 @@ uint32_t ThriftHiveMetastore_migrate2_stage2_args::read(::apache::thrift::protoc
         break;
       case 5:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->to_db);
+          this->__isset.to_db = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 6:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->to_nas_devid);
           this->__isset.to_nas_devid = true;
         } else {
@@ -28907,7 +29076,11 @@ uint32_t ThriftHiveMetastore_migrate2_stage2_args::write(::apache::thrift::proto
   xfer += oprot->writeString(this->to_dc);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("to_nas_devid", ::apache::thrift::protocol::T_STRING, 5);
+  xfer += oprot->writeFieldBegin("to_db", ::apache::thrift::protocol::T_STRING, 5);
+  xfer += oprot->writeString(this->to_db);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("to_nas_devid", ::apache::thrift::protocol::T_STRING, 6);
   xfer += oprot->writeString(this->to_nas_devid);
   xfer += oprot->writeFieldEnd();
 
@@ -28944,7 +29117,11 @@ uint32_t ThriftHiveMetastore_migrate2_stage2_pargs::write(::apache::thrift::prot
   xfer += oprot->writeString((*(this->to_dc)));
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("to_nas_devid", ::apache::thrift::protocol::T_STRING, 5);
+  xfer += oprot->writeFieldBegin("to_db", ::apache::thrift::protocol::T_STRING, 5);
+  xfer += oprot->writeString((*(this->to_db)));
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("to_nas_devid", ::apache::thrift::protocol::T_STRING, 6);
   xfer += oprot->writeString((*(this->to_nas_devid)));
   xfer += oprot->writeFieldEnd();
 
@@ -36134,6 +36311,66 @@ bool ThriftHiveMetastoreClient::recv_online_filelocation()
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "online_filelocation failed: unknown result");
 }
 
+bool ThriftHiveMetastoreClient::toggle_safemode()
+{
+  send_toggle_safemode();
+  return recv_toggle_safemode();
+}
+
+void ThriftHiveMetastoreClient::send_toggle_safemode()
+{
+  int32_t cseqid = 0;
+  oprot_->writeMessageBegin("toggle_safemode", ::apache::thrift::protocol::T_CALL, cseqid);
+
+  ThriftHiveMetastore_toggle_safemode_pargs args;
+  args.write(oprot_);
+
+  oprot_->writeMessageEnd();
+  oprot_->getTransport()->writeEnd();
+  oprot_->getTransport()->flush();
+}
+
+bool ThriftHiveMetastoreClient::recv_toggle_safemode()
+{
+
+  int32_t rseqid = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TMessageType mtype;
+
+  iprot_->readMessageBegin(fname, mtype, rseqid);
+  if (mtype == ::apache::thrift::protocol::T_EXCEPTION) {
+    ::apache::thrift::TApplicationException x;
+    x.read(iprot_);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+    throw x;
+  }
+  if (mtype != ::apache::thrift::protocol::T_REPLY) {
+    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+  }
+  if (fname.compare("toggle_safemode") != 0) {
+    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+  }
+  bool _return;
+  ThriftHiveMetastore_toggle_safemode_presult result;
+  result.success = &_return;
+  result.read(iprot_);
+  iprot_->readMessageEnd();
+  iprot_->getTransport()->readEnd();
+
+  if (result.__isset.success) {
+    return _return;
+  }
+  if (result.__isset.o1) {
+    throw result.o1;
+  }
+  throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "toggle_safemode failed: unknown result");
+}
+
 void ThriftHiveMetastoreClient::get_file_by_id(SFile& _return, const int64_t fid)
 {
   send_get_file_by_id(fid);
@@ -37140,13 +37377,13 @@ void ThriftHiveMetastoreClient::recv_migrate2_stage1(std::vector<SFileLocation> 
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "migrate2_stage1 failed: unknown result");
 }
 
-bool ThriftHiveMetastoreClient::migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_nas_devid)
+bool ThriftHiveMetastoreClient::migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_db, const std::string& to_nas_devid)
 {
-  send_migrate2_stage2(dbName, tableName, partNames, to_dc, to_nas_devid);
+  send_migrate2_stage2(dbName, tableName, partNames, to_dc, to_db, to_nas_devid);
   return recv_migrate2_stage2();
 }
 
-void ThriftHiveMetastoreClient::send_migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_nas_devid)
+void ThriftHiveMetastoreClient::send_migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_db, const std::string& to_nas_devid)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("migrate2_stage2", ::apache::thrift::protocol::T_CALL, cseqid);
@@ -37156,6 +37393,7 @@ void ThriftHiveMetastoreClient::send_migrate2_stage2(const std::string& dbName, 
   args.tableName = &tableName;
   args.partNames = &partNames;
   args.to_dc = &to_dc;
+  args.to_db = &to_db;
   args.to_nas_devid = &to_nas_devid;
   args.write(oprot_);
 
@@ -43651,6 +43889,63 @@ void ThriftHiveMetastoreProcessor::process_online_filelocation(int32_t seqid, ::
   }
 }
 
+void ThriftHiveMetastoreProcessor::process_toggle_safemode(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
+{
+  void* ctx = NULL;
+  if (this->eventHandler_.get() != NULL) {
+    ctx = this->eventHandler_->getContext("ThriftHiveMetastore.toggle_safemode", callContext);
+  }
+  ::apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "ThriftHiveMetastore.toggle_safemode");
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->preRead(ctx, "ThriftHiveMetastore.toggle_safemode");
+  }
+
+  ThriftHiveMetastore_toggle_safemode_args args;
+  args.read(iprot);
+  iprot->readMessageEnd();
+  uint32_t bytes = iprot->getTransport()->readEnd();
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->postRead(ctx, "ThriftHiveMetastore.toggle_safemode", bytes);
+  }
+
+  ThriftHiveMetastore_toggle_safemode_result result;
+  try {
+    result.success = iface_->toggle_safemode();
+    result.__isset.success = true;
+  } catch (MetaException &o1) {
+    result.o1 = o1;
+    result.__isset.o1 = true;
+  } catch (const std::exception& e) {
+    if (this->eventHandler_.get() != NULL) {
+      this->eventHandler_->handlerError(ctx, "ThriftHiveMetastore.toggle_safemode");
+    }
+
+    ::apache::thrift::TApplicationException x(e.what());
+    oprot->writeMessageBegin("toggle_safemode", ::apache::thrift::protocol::T_EXCEPTION, seqid);
+    x.write(oprot);
+    oprot->writeMessageEnd();
+    oprot->getTransport()->writeEnd();
+    oprot->getTransport()->flush();
+    return;
+  }
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->preWrite(ctx, "ThriftHiveMetastore.toggle_safemode");
+  }
+
+  oprot->writeMessageBegin("toggle_safemode", ::apache::thrift::protocol::T_REPLY, seqid);
+  result.write(oprot);
+  oprot->writeMessageEnd();
+  bytes = oprot->getTransport()->writeEnd();
+  oprot->getTransport()->flush();
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->postWrite(ctx, "ThriftHiveMetastore.toggle_safemode", bytes);
+  }
+}
+
 void ThriftHiveMetastoreProcessor::process_get_file_by_id(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
 {
   void* ctx = NULL;
@@ -44601,7 +44896,7 @@ void ThriftHiveMetastoreProcessor::process_migrate2_stage2(int32_t seqid, ::apac
 
   ThriftHiveMetastore_migrate2_stage2_result result;
   try {
-    result.success = iface_->migrate2_stage2(args.dbName, args.tableName, args.partNames, args.to_dc, args.to_nas_devid);
+    result.success = iface_->migrate2_stage2(args.dbName, args.tableName, args.partNames, args.to_dc, args.to_db, args.to_nas_devid);
     result.__isset.success = true;
   } catch (MetaException &o1) {
     result.o1 = o1;

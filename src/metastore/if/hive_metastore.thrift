@@ -763,6 +763,8 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   bool online_filelocation(1:SFile file) throws (1:MetaException o1)
   
+  bool toggle_safemode() throws (1:MetaException o1)
+  
   SFile get_file_by_id(1:i64 fid) throws (1:FileOperationException o1, 2:MetaException o2)
   
   SFile get_file_by_name(1:string node, 2:string devid, 3:string location) throws (1:FileOperationException o1, 2:MetaException o2)
@@ -796,7 +798,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   list<SFileLocation> migrate2_stage1(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc) throws (1:MetaException o1)
   
-  bool migrate2_stage2(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc, 5:string to_nas_devid) throws (1:MetaException o1)
+  bool migrate2_stage2(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc, 5:string to_db, 6:string to_nas_devid) throws (1:MetaException o1)
   
   string getMP(1:string node_name, 2:string devid) throws (1:MetaException o1) 
 }

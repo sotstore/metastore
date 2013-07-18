@@ -557,6 +557,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("online_filelocation\n");
   }
 
+  bool toggle_safemode() {
+    // Your implementation goes here
+    printf("toggle_safemode\n");
+  }
+
   void get_file_by_id(SFile& _return, const int64_t fid) {
     // Your implementation goes here
     printf("get_file_by_id\n");
@@ -637,7 +642,7 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("migrate2_stage1\n");
   }
 
-  bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_nas_devid) {
+  bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_db, const std::string& to_nas_devid) {
     // Your implementation goes here
     printf("migrate2_stage2\n");
   }

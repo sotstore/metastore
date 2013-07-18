@@ -81,6 +81,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -1825,13 +1826,13 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
 
   @Override
   public boolean migrate2_stage2(String dbName, String tableName, List<String> partNames,
-      String to_dc, String to_nas_devid) throws MetaException, TException {
+      String to_dc, String to_db, String to_nas_devid) throws MetaException, TException {
     assert dbName != null;
     assert tableName != null;
     assert partNames != null;
     assert to_dc != null;
     assert to_nas_devid != null;
-    return client.migrate2_stage2(dbName, tableName, partNames, to_dc, to_nas_devid);
+    return client.migrate2_stage2(dbName, tableName, partNames, to_dc, to_db, to_nas_devid);
   }
 
   @Override
@@ -1876,5 +1877,10 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   public boolean online_filelocation(SFile file) throws MetaException, TException {
     assert file != null;
     return client.online_filelocation(file);
+  }
+
+  @Override
+  public boolean toggle_safemode() throws MetaException, TException {
+    return client.toggle_safemode();
   }
 }

@@ -5216,7 +5216,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     // Migrate2 use NAS-WAN-NAS fashion migration
     // In stage2, we create the metadata structures in remote dc, and update remote/local file relations
     public boolean migrate2_stage2(String dbName, String tableName, List<String> partNames,
-        String to_dc, String to_nas_devid) throws MetaException, TException {
+        String to_dc, String to_db, String to_nas_devid) throws MetaException, TException {
       // prepare datacenter connection
       if (HMSHandler.topdcli == null) {
         connect_to_top_dc(hiveConf);
@@ -5238,7 +5238,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       // prepare tbl, parts
       Table tbl = get_table(dbName, tableName);
       // use current DC name as the remote db name?
-      String rdb = "rdb_" + hiveConf.getVar(ConfVars.LOCAL_DATACENTER);
+      String rdb;
+      if (to_db == null || to_db.equals("")) {
+        rdb = "rdb_" + hiveConf.getVar(ConfVars.LOCAL_DATACENTER);
+      } else {
+        rdb = to_db;
+      }
       Map<String, String> kvs = new HashMap<String, String>();
       if (tbl.getParametersSize() > 0) {
         LOG.info(tbl.getParameters().toString());
@@ -5326,6 +5331,16 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         tbl.setDbName(dbName);
         alter_table(dbName, tableName, tbl);
         LOG.info("Update table properties to reflect the migration.");
+
+        HashMap<String,Object> old_params= new HashMap<String,Object>();
+        List<String> tmp = new ArrayList<String>();
+        tmp.add("store.remote");
+        tmp.add("store.remote.dcs");
+
+        old_params.put("tbl_param_keys", tmp);
+        old_params.put("db_name", tbl.getDbName());
+        old_params.put("table_name", tbl.getTableName());
+        MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_TABLE_PARAM,-1l,-1l, null,-1l,old_params));
       } else {
         LOG.info("Migrate2 through NAS-WAN-NAS failed at remote Datacenter " + to_dc);
         return false;
@@ -5572,6 +5587,16 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       sfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
       getMS().updateSFileLocation(sfl);
 
+      return true;
+    }
+
+    @Override
+    public boolean toggle_safemode() throws MetaException, TException {
+      if (dm != null) {
+        synchronized (dm) {
+          dm.safeMode = !dm.safeMode;
+        }
+      }
       return true;
     }
 

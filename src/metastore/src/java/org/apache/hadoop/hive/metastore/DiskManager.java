@@ -1237,7 +1237,7 @@ public class DiskManager {
           }
         }
       } catch (MetaException e) {
-        e.printStackTrace();
+        LOG.error(e,e);
       }
     }
 

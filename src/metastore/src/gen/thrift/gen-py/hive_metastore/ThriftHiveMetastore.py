@@ -891,6 +891,9 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
+  def toggle_safemode(self, ):
+    pass
+
   def get_file_by_id(self, fid):
     """
     Parameters:
@@ -1012,13 +1015,14 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
-  def migrate2_stage2(self, dbName, tableName, partNames, to_dc, to_nas_devid):
+  def migrate2_stage2(self, dbName, tableName, partNames, to_dc, to_db, to_nas_devid):
     """
     Parameters:
      - dbName
      - tableName
      - partNames
      - to_dc
+     - to_db
      - to_nas_devid
     """
     pass
@@ -4882,6 +4886,33 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "online_filelocation failed: unknown result");
 
+  def toggle_safemode(self, ):
+    self.send_toggle_safemode()
+    return self.recv_toggle_safemode()
+
+  def send_toggle_safemode(self, ):
+    self._oprot.writeMessageBegin('toggle_safemode', TMessageType.CALL, self._seqid)
+    args = toggle_safemode_args()
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_toggle_safemode(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = toggle_safemode_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "toggle_safemode failed: unknown result");
+
   def get_file_by_id(self, fid):
     """
     Parameters:
@@ -5428,25 +5459,27 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "migrate2_stage1 failed: unknown result");
 
-  def migrate2_stage2(self, dbName, tableName, partNames, to_dc, to_nas_devid):
+  def migrate2_stage2(self, dbName, tableName, partNames, to_dc, to_db, to_nas_devid):
     """
     Parameters:
      - dbName
      - tableName
      - partNames
      - to_dc
+     - to_db
      - to_nas_devid
     """
-    self.send_migrate2_stage2(dbName, tableName, partNames, to_dc, to_nas_devid)
+    self.send_migrate2_stage2(dbName, tableName, partNames, to_dc, to_db, to_nas_devid)
     return self.recv_migrate2_stage2()
 
-  def send_migrate2_stage2(self, dbName, tableName, partNames, to_dc, to_nas_devid):
+  def send_migrate2_stage2(self, dbName, tableName, partNames, to_dc, to_db, to_nas_devid):
     self._oprot.writeMessageBegin('migrate2_stage2', TMessageType.CALL, self._seqid)
     args = migrate2_stage2_args()
     args.dbName = dbName
     args.tableName = tableName
     args.partNames = partNames
     args.to_dc = to_dc
+    args.to_db = to_db
     args.to_nas_devid = to_nas_devid
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
@@ -5613,6 +5646,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["create_file"] = Processor.process_create_file
     self._processMap["close_file"] = Processor.process_close_file
     self._processMap["online_filelocation"] = Processor.process_online_filelocation
+    self._processMap["toggle_safemode"] = Processor.process_toggle_safemode
     self._processMap["get_file_by_id"] = Processor.process_get_file_by_id
     self._processMap["get_file_by_name"] = Processor.process_get_file_by_name
     self._processMap["rm_file_logical"] = Processor.process_rm_file_logical
@@ -7335,6 +7369,20 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
+  def process_toggle_safemode(self, seqid, iprot, oprot):
+    args = toggle_safemode_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = toggle_safemode_result()
+    try:
+      result.success = self._handler.toggle_safemode()
+    except MetaException as o1:
+      result.o1 = o1
+    oprot.writeMessageBegin("toggle_safemode", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
   def process_get_file_by_id(self, seqid, iprot, oprot):
     args = get_file_by_id_args()
     args.read(iprot)
@@ -7575,7 +7623,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     iprot.readMessageEnd()
     result = migrate2_stage2_result()
     try:
-      result.success = self._handler.migrate2_stage2(args.dbName, args.tableName, args.partNames, args.to_dc, args.to_nas_devid)
+      result.success = self._handler.migrate2_stage2(args.dbName, args.tableName, args.partNames, args.to_dc, args.to_db, args.to_nas_devid)
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("migrate2_stage2", TMessageType.REPLY, seqid)
@@ -25057,6 +25105,120 @@ class online_filelocation_result:
   def __ne__(self, other):
     return not (self == other)
 
+class toggle_safemode_args:
+
+  thrift_spec = (
+  )
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('toggle_safemode_args')
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class toggle_safemode_result:
+  """
+  Attributes:
+   - success
+   - o1
+  """
+
+  thrift_spec = (
+    (0, TType.BOOL, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, o1=None,):
+    self.success = success
+    self.o1 = o1
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.BOOL:
+          self.success = iprot.readBool();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('toggle_safemode_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.BOOL, 0)
+      oprot.writeBool(self.success)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class get_file_by_id_args:
   """
   Attributes:
@@ -27518,6 +27680,7 @@ class migrate2_stage2_args:
    - tableName
    - partNames
    - to_dc
+   - to_db
    - to_nas_devid
   """
 
@@ -27527,14 +27690,16 @@ class migrate2_stage2_args:
     (2, TType.STRING, 'tableName', None, None, ), # 2
     (3, TType.LIST, 'partNames', (TType.STRING,None), None, ), # 3
     (4, TType.STRING, 'to_dc', None, None, ), # 4
-    (5, TType.STRING, 'to_nas_devid', None, None, ), # 5
+    (5, TType.STRING, 'to_db', None, None, ), # 5
+    (6, TType.STRING, 'to_nas_devid', None, None, ), # 6
   )
 
-  def __init__(self, dbName=None, tableName=None, partNames=None, to_dc=None, to_nas_devid=None,):
+  def __init__(self, dbName=None, tableName=None, partNames=None, to_dc=None, to_db=None, to_nas_devid=None,):
     self.dbName = dbName
     self.tableName = tableName
     self.partNames = partNames
     self.to_dc = to_dc
+    self.to_db = to_db
     self.to_nas_devid = to_nas_devid
 
   def read(self, iprot):
@@ -27573,6 +27738,11 @@ class migrate2_stage2_args:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.STRING:
+          self.to_db = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.STRING:
           self.to_nas_devid = iprot.readString();
         else:
           iprot.skip(ftype)
@@ -27605,8 +27775,12 @@ class migrate2_stage2_args:
       oprot.writeFieldBegin('to_dc', TType.STRING, 4)
       oprot.writeString(self.to_dc)
       oprot.writeFieldEnd()
+    if self.to_db is not None:
+      oprot.writeFieldBegin('to_db', TType.STRING, 5)
+      oprot.writeString(self.to_db)
+      oprot.writeFieldEnd()
     if self.to_nas_devid is not None:
-      oprot.writeFieldBegin('to_nas_devid', TType.STRING, 5)
+      oprot.writeFieldBegin('to_nas_devid', TType.STRING, 6)
       oprot.writeString(self.to_nas_devid)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()

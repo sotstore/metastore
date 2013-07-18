@@ -32,6 +32,8 @@ public class MSGType {
   public static final int MSG_ALT_TALBE_ALT_COL_TYPE = 1204;
       //修改表修改列类型
   public static final int MSG_ALT_TALBE_ALT_COL_LENGTH = 1205;
+      //表参数变化
+  public static final int MSG_ALT_TABLE_PARAM = 1206;
       //修改表修改列类型长度
   public static final int MSG_NEW_PARTITION =  1301;
       // 新建分区

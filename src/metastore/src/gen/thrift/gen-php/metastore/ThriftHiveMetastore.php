@@ -123,6 +123,7 @@ interface ThriftHiveMetastoreIf extends \FacebookServiceIf {
   public function create_file($node_name, $repnr, $db_name, $table_name);
   public function close_file(\metastore\SFile $file);
   public function online_filelocation(\metastore\SFile $file);
+  public function toggle_safemode();
   public function get_file_by_id($fid);
   public function get_file_by_name($node, $devid, $location);
   public function rm_file_logical(\metastore\SFile $file);
@@ -139,7 +140,7 @@ interface ThriftHiveMetastoreIf extends \FacebookServiceIf {
   public function migrate2_in(\metastore\Table $tbl, $parts, $from_dc, $to_nas_devid, $fileMap);
   public function migrate_out($dbName, $tableName, $partNames, $to_dc);
   public function migrate2_stage1($dbName, $tableName, $partNames, $to_dc);
-  public function migrate2_stage2($dbName, $tableName, $partNames, $to_dc, $to_nas_devid);
+  public function migrate2_stage2($dbName, $tableName, $partNames, $to_dc, $to_db, $to_nas_devid);
   public function getMP($node_name, $devid);
 }
 
@@ -6304,6 +6305,59 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
     throw new \Exception("online_filelocation failed: unknown result");
   }
 
+  public function toggle_safemode()
+  {
+    $this->send_toggle_safemode();
+    return $this->recv_toggle_safemode();
+  }
+
+  public function send_toggle_safemode()
+  {
+    $args = new \metastore\ThriftHiveMetastore_toggle_safemode_args();
+    $bin_accel = ($this->output_ instanceof TProtocol::$TBINARYPROTOCOLACCELERATED) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'toggle_safemode', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('toggle_safemode', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_toggle_safemode()
+  {
+    $bin_accel = ($this->input_ instanceof TProtocol::$TBINARYPROTOCOLACCELERATED) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\metastore\ThriftHiveMetastore_toggle_safemode_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \metastore\ThriftHiveMetastore_toggle_safemode_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->o1 !== null) {
+      throw $result->o1;
+    }
+    throw new \Exception("toggle_safemode failed: unknown result");
+  }
+
   public function get_file_by_id($fid)
   {
     $this->send_get_file_by_id($fid);
@@ -7198,19 +7252,20 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
     throw new \Exception("migrate2_stage1 failed: unknown result");
   }
 
-  public function migrate2_stage2($dbName, $tableName, $partNames, $to_dc, $to_nas_devid)
+  public function migrate2_stage2($dbName, $tableName, $partNames, $to_dc, $to_db, $to_nas_devid)
   {
-    $this->send_migrate2_stage2($dbName, $tableName, $partNames, $to_dc, $to_nas_devid);
+    $this->send_migrate2_stage2($dbName, $tableName, $partNames, $to_dc, $to_db, $to_nas_devid);
     return $this->recv_migrate2_stage2();
   }
 
-  public function send_migrate2_stage2($dbName, $tableName, $partNames, $to_dc, $to_nas_devid)
+  public function send_migrate2_stage2($dbName, $tableName, $partNames, $to_dc, $to_db, $to_nas_devid)
   {
     $args = new \metastore\ThriftHiveMetastore_migrate2_stage2_args();
     $args->dbName = $dbName;
     $args->tableName = $tableName;
     $args->partNames = $partNames;
     $args->to_dc = $to_dc;
+    $args->to_db = $to_db;
     $args->to_nas_devid = $to_nas_devid;
     $bin_accel = ($this->output_ instanceof TProtocol::$TBINARYPROTOCOLACCELERATED) && function_exists('thrift_protocol_write_binary');
     if ($bin_accel)
@@ -31769,6 +31824,150 @@ class ThriftHiveMetastore_online_filelocation_result {
 
 }
 
+class ThriftHiveMetastore_toggle_safemode_args {
+  static $_TSPEC;
+
+
+  public function __construct() {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        );
+    }
+  }
+
+  public function getName() {
+    return 'ThriftHiveMetastore_toggle_safemode_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ThriftHiveMetastore_toggle_safemode_args');
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ThriftHiveMetastore_toggle_safemode_result {
+  static $_TSPEC;
+
+  public $success = null;
+  public $o1 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::BOOL,
+          ),
+        1 => array(
+          'var' => 'o1',
+          'type' => TType::STRUCT,
+          'class' => '\metastore\MetaException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['o1'])) {
+        $this->o1 = $vals['o1'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ThriftHiveMetastore_toggle_safemode_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::BOOL) {
+            $xfer += $input->readBool($this->success);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->o1 = new \metastore\MetaException();
+            $xfer += $this->o1->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ThriftHiveMetastore_toggle_safemode_result');
+    if ($this->success !== null) {
+      $xfer += $output->writeFieldBegin('success', TType::BOOL, 0);
+      $xfer += $output->writeBool($this->success);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->o1 !== null) {
+      $xfer += $output->writeFieldBegin('o1', TType::STRUCT, 1);
+      $xfer += $this->o1->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
 class ThriftHiveMetastore_get_file_by_id_args {
   static $_TSPEC;
 
@@ -35204,6 +35403,7 @@ class ThriftHiveMetastore_migrate2_stage2_args {
   public $tableName = null;
   public $partNames = null;
   public $to_dc = null;
+  public $to_db = null;
   public $to_nas_devid = null;
 
   public function __construct($vals=null) {
@@ -35230,6 +35430,10 @@ class ThriftHiveMetastore_migrate2_stage2_args {
           'type' => TType::STRING,
           ),
         5 => array(
+          'var' => 'to_db',
+          'type' => TType::STRING,
+          ),
+        6 => array(
           'var' => 'to_nas_devid',
           'type' => TType::STRING,
           ),
@@ -35247,6 +35451,9 @@ class ThriftHiveMetastore_migrate2_stage2_args {
       }
       if (isset($vals['to_dc'])) {
         $this->to_dc = $vals['to_dc'];
+      }
+      if (isset($vals['to_db'])) {
+        $this->to_db = $vals['to_db'];
       }
       if (isset($vals['to_nas_devid'])) {
         $this->to_nas_devid = $vals['to_nas_devid'];
@@ -35313,6 +35520,13 @@ class ThriftHiveMetastore_migrate2_stage2_args {
           break;
         case 5:
           if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->to_db);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 6:
+          if ($ftype == TType::STRING) {
             $xfer += $input->readString($this->to_nas_devid);
           } else {
             $xfer += $input->skip($ftype);
@@ -35363,8 +35577,13 @@ class ThriftHiveMetastore_migrate2_stage2_args {
       $xfer += $output->writeString($this->to_dc);
       $xfer += $output->writeFieldEnd();
     }
+    if ($this->to_db !== null) {
+      $xfer += $output->writeFieldBegin('to_db', TType::STRING, 5);
+      $xfer += $output->writeString($this->to_db);
+      $xfer += $output->writeFieldEnd();
+    }
     if ($this->to_nas_devid !== null) {
-      $xfer += $output->writeFieldBegin('to_nas_devid', TType::STRING, 5);
+      $xfer += $output->writeFieldBegin('to_nas_devid', TType::STRING, 6);
       $xfer += $output->writeString($this->to_nas_devid);
       $xfer += $output->writeFieldEnd();
     }

@@ -1803,6 +1803,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'online_filelocation failed: unknown result')
     end
 
+    def toggle_safemode()
+      send_toggle_safemode()
+      return recv_toggle_safemode()
+    end
+
+    def send_toggle_safemode()
+      send_message('toggle_safemode', Toggle_safemode_args)
+    end
+
+    def recv_toggle_safemode()
+      result = receive_message(Toggle_safemode_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'toggle_safemode failed: unknown result')
+    end
+
     def get_file_by_id(fid)
       send_get_file_by_id(fid)
       return recv_get_file_by_id()
@@ -2064,13 +2080,13 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate2_stage1 failed: unknown result')
     end
 
-    def migrate2_stage2(dbName, tableName, partNames, to_dc, to_nas_devid)
-      send_migrate2_stage2(dbName, tableName, partNames, to_dc, to_nas_devid)
+    def migrate2_stage2(dbName, tableName, partNames, to_dc, to_db, to_nas_devid)
+      send_migrate2_stage2(dbName, tableName, partNames, to_dc, to_db, to_nas_devid)
       return recv_migrate2_stage2()
     end
 
-    def send_migrate2_stage2(dbName, tableName, partNames, to_dc, to_nas_devid)
-      send_message('migrate2_stage2', Migrate2_stage2_args, :dbName => dbName, :tableName => tableName, :partNames => partNames, :to_dc => to_dc, :to_nas_devid => to_nas_devid)
+    def send_migrate2_stage2(dbName, tableName, partNames, to_dc, to_db, to_nas_devid)
+      send_message('migrate2_stage2', Migrate2_stage2_args, :dbName => dbName, :tableName => tableName, :partNames => partNames, :to_dc => to_dc, :to_db => to_db, :to_nas_devid => to_nas_devid)
     end
 
     def recv_migrate2_stage2()
@@ -3462,6 +3478,17 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'online_filelocation', seqid)
     end
 
+    def process_toggle_safemode(seqid, iprot, oprot)
+      args = read_args(iprot, Toggle_safemode_args)
+      result = Toggle_safemode_result.new()
+      begin
+        result.success = @handler.toggle_safemode()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'toggle_safemode', seqid)
+    end
+
     def process_get_file_by_id(seqid, iprot, oprot)
       args = read_args(iprot, Get_file_by_id_args)
       result = Get_file_by_id_result.new()
@@ -3652,7 +3679,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, Migrate2_stage2_args)
       result = Migrate2_stage2_result.new()
       begin
-        result.success = @handler.migrate2_stage2(args.dbName, args.tableName, args.partNames, args.to_dc, args.to_nas_devid)
+        result.success = @handler.migrate2_stage2(args.dbName, args.tableName, args.partNames, args.to_dc, args.to_db, args.to_nas_devid)
       rescue ::MetaException => o1
         result.o1 = o1
       end
@@ -7780,6 +7807,39 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
+  class Toggle_safemode_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Toggle_safemode_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class Get_file_by_id_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     FID = 1
@@ -8372,13 +8432,15 @@ module ThriftHiveMetastore
     TABLENAME = 2
     PARTNAMES = 3
     TO_DC = 4
-    TO_NAS_DEVID = 5
+    TO_DB = 5
+    TO_NAS_DEVID = 6
 
     FIELDS = {
       DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
       TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
       PARTNAMES => {:type => ::Thrift::Types::LIST, :name => 'partNames', :element => {:type => ::Thrift::Types::STRING}},
       TO_DC => {:type => ::Thrift::Types::STRING, :name => 'to_dc'},
+      TO_DB => {:type => ::Thrift::Types::STRING, :name => 'to_db'},
       TO_NAS_DEVID => {:type => ::Thrift::Types::STRING, :name => 'to_nas_devid'}
     }
 

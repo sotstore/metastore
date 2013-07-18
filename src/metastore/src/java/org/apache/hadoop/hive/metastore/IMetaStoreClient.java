@@ -1073,7 +1073,7 @@ public interface IMetaStoreClient {
         String to_nas_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException;
 
   public boolean migrate2_stage2(String dbName, String tableName, List<String> partNames,
-      String to_dc, String to_nas_devid) throws MetaException, TException;
+      String to_dc, String to_db, String to_nas_devid) throws MetaException, TException;
 
   public String getMP(String node_name, String devid) throws MetaException, TException;
 
@@ -1091,4 +1091,7 @@ public interface IMetaStoreClient {
   public List<Busitype> showBusitypes()throws MetaException, TException;
 
   public int createBusitype(Busitype bt)throws MetaException, TException;
+
+  public boolean toggle_safemode() throws MetaException, TException;
+
 }

@@ -424,6 +424,19 @@ public class MSGFactory {
       case MSGType.MSG_ALT_TALBE_ALT_COL_LENGTH : break;
             //修改表修改列类型长度,
             //注意：本事件不会触发！！！
+
+      case MSGType.MSG_ALT_TABLE_PARAM:
+            // 修改表参数
+        if (msg.getOld_object_params().containsKey("db_name")) {
+          params.put("db_name", msg.getOld_object_params().get("db_name"));
+        }
+        if (msg.getOld_object_params().containsKey("table_name")) {
+          params.put("table_name", msg.getOld_object_params().get("table_name"));
+        }
+        if (msg.getOld_object_params().containsKey("tbl_param_keys")) {
+          params.put("tbl_param_keys", msg.getOld_object_params().get("tbl_param_keys"));
+        }
+      break;
       case MSGType.MSG_NEW_PARTITION :
             // 新建分区
           MPartition p = (MPartition)msg.getEventObject();
