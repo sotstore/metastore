@@ -116,6 +116,10 @@ public class DDLWork implements Serializable {
   private CreateBusitypeDesc createBusitypeDesc;
   private ShowBusitypesDesc showBusitypesDesc;
 
+  private ShowFilesDesc showFilesDesc;
+  private ShowNodesDesc showNodesDesc;
+  private ShowFileLocationsDesc showFileLocationsDesc;
+
 
   public DDLWork() {
   }
@@ -631,6 +635,24 @@ public class DDLWork implements Serializable {
       ShowBusitypesDesc showBusitypesDesc) {
     this(inputs, outputs);
     this.setShowBusitypesDesc(showBusitypesDesc);
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowNodesDesc showNodesDesc) {
+    this(inputs, outputs);
+    this.setShowNodesDesc(showNodesDesc);
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowFilesDesc showFilesDesc) {
+    this(inputs, outputs);
+    this.setShowFilesDesc(showFilesDesc);
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowFileLocationsDesc showFileLocationsDesc) {
+    this(inputs, outputs);
+    this.setShowFileLocationsDesc(showFileLocationsDesc);
   }
 
   /**
@@ -1404,6 +1426,30 @@ public class DDLWork implements Serializable {
 
   public void setShowBusitypesDesc(ShowBusitypesDesc showBusitypesDesc) {
     this.showBusitypesDesc = showBusitypesDesc;
+  }
+
+  public ShowFilesDesc getShowFilesDesc() {
+    return showFilesDesc;
+  }
+
+  public void setShowFilesDesc(ShowFilesDesc showFilesDesc) {
+    this.showFilesDesc = showFilesDesc;
+  }
+
+  public ShowNodesDesc getShowNodesDesc() {
+    return showNodesDesc;
+  }
+
+  public void setShowNodesDesc(ShowNodesDesc showNodesDesc) {
+    this.showNodesDesc = showNodesDesc;
+  }
+
+  public ShowFileLocationsDesc getShowFileLocationsDesc() {
+    return showFileLocationsDesc;
+  }
+
+  public void setShowFileLocationsDesc(ShowFileLocationsDesc showFileLocationsDesc) {
+    this.showFileLocationsDesc = showFileLocationsDesc;
   }
 
 

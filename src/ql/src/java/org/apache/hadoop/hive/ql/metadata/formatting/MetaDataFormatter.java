@@ -28,6 +28,9 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
@@ -147,5 +150,11 @@ public interface MetaDataFormatter {
     public void showDatacenters(DataOutputStream outStream, List<Datacenter> dcs)throws HiveException;
 
     public void showBusitypes(DataOutputStream outStream, List<Busitype> bts)throws HiveException;
+
+    public void showFiles(DataOutputStream outStream, List<SFile> files)throws HiveException;
+
+    public void showNodes(DataOutputStream outStream, List<Node> nodes)throws HiveException;
+
+    public void showFileLocations(DataOutputStream outStream, List<SFileLocation> fls)throws HiveException;
 }
 

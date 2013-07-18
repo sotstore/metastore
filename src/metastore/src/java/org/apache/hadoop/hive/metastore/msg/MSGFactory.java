@@ -192,7 +192,7 @@ public class MSGFactory {
         if (value.startsWith("{") && value.endsWith("}")) {
             map.put(key, parserJsonToMap(value));
         } else if (value.startsWith("[") && value.endsWith("]")) {
-          map.put(key, JSONArray.toList(JSONArray.fromObject(value)));
+          map.put(key, JSONArray.toList(JSONArray.fromObject(value),Long.class));
         } else{
             map.put(key, value);
         }
@@ -738,7 +738,10 @@ public class MSGFactory {
 
      System.out.println("==="+js);
      msg = msg.fromJson(js);
+     List<Long> ob = (List<Long>)msg.msg_data.get("f_id");
          System.out.println(msg.toJson());
+         Long l = ob.get(0);
+         System.out.println(ob.get(0).toString());
   }
 
 }

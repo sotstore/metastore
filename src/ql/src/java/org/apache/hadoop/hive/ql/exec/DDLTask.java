@@ -73,11 +73,14 @@ import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Role;
+import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
@@ -165,10 +168,13 @@ import org.apache.hadoop.hive.ql.plan.ShowColumnsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowCreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.ShowDatabasesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowDatacentersDesc;
+import org.apache.hadoop.hive.ql.plan.ShowFileLocationsDesc;
+import org.apache.hadoop.hive.ql.plan.ShowFilesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowFunctionsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
+import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowSubpartitionDesc;
@@ -561,6 +567,22 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         return showBusitypes(db, showBusitypesDesc);
       }
 
+      ShowFilesDesc showFilesDesc = work.getShowFilesDesc();
+      if (showFilesDesc != null) {
+        return showFilesDesc(db, showFilesDesc);
+      }
+
+      ShowNodesDesc showNodesDesc = work.getShowNodesDesc();
+      if (showNodesDesc != null) {
+        return showNodes(db, showNodesDesc);
+      }
+
+      ShowFileLocationsDesc showFileLocationsDesc = work.getShowFileLocationsDesc();
+      if (showFileLocationsDesc != null) {
+        return showFileLocations(db, showFileLocationsDesc);
+      }
+
+
 
       AlterTablePartMergeFilesDesc mergeFilesDesc = work.getMergeFilesDesc();
       if(mergeFilesDesc != null) {
@@ -594,6 +616,93 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       return (1);
     }
     assert false;
+    return 0;
+  }
+
+  private int showFileLocations(Hive db, ShowFileLocationsDesc showFileLocationsDesc)  throws HiveException {
+    List<SFileLocation> fls = db.getFileLocations(showFileLocationsDesc.getTable(),showFileLocationsDesc.getPartName());
+    LOG.debug("---zjw--showFileLocationsDesc.size:"+fls.size());
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showFileLocationsDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      formatter.showFileLocations(outStream, fls);
+
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+  private int showNodes(Hive db, ShowNodesDesc showNodesDesc)  throws HiveException {
+    List<Node> nodes = db.getNodes();
+    LOG.debug("---zjw--showNodesDesc.size:"+nodes.size());
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showNodesDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      formatter.showNodes(outStream, nodes);
+
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show nodes: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show nodes: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+  private int showFilesDesc(Hive db, ShowFilesDesc showFilesDesc)  throws HiveException {
+    List<SFile> files = db.getFiles(showFilesDesc.getTable(),showFilesDesc.getPartName());
+    LOG.debug("---zjw--showFilesDesc.size:"+files.size());
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showFilesDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      formatter.showFiles(outStream, files);
+
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show files: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show files: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
     return 0;
   }
 
