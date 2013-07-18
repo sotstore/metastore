@@ -22,13 +22,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.ql.ErrorMsg;
-
-import java.util.Iterator;
-import java.util.Map;
-
-import org.apache.hadoop.hive.ql.metadata.Table;
 
 
 /**
@@ -36,6 +33,7 @@ import org.apache.hadoop.hive.ql.metadata.Table;
  *
  */
 public final class ParseUtils {
+  static final private Log LOG = LogFactory.getLog("hive.ParseUtils");
 
   /**
    * Tests whether the parse tree node is a join token.
@@ -88,6 +86,7 @@ public final class ParseUtils {
     List<String> colNames = new ArrayList<String>();
     while (iterCols.hasNext()) {
       String colName = iterCols.next().getName();
+      LOG.info("---zjw--colname:"+colName);
       Iterator<String> iter = colNames.iterator();
       while (iter.hasNext()) {
         String oldColName = iter.next();
