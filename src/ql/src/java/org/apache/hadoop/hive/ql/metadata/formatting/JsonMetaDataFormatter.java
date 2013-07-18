@@ -38,6 +38,9 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
@@ -503,6 +506,25 @@ public class JsonMetaDataFormatter implements MetaDataFormatter {
 
     @Override
     public void showBusitypes(DataOutputStream outStream, List<Busitype> bts) throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void showFiles(DataOutputStream outStream, List<SFile> files) throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void showNodes(DataOutputStream outStream, List<Node> nodes) throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void showFileLocations(DataOutputStream outStream, List<SFileLocation> fls)
+        throws HiveException {
       // TODO Auto-generated method stub
 
     }

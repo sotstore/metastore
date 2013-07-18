@@ -69,12 +69,16 @@ import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
+import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
+import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.index.HiveIndex.IndexType;
@@ -2444,5 +2448,48 @@ public class Hive {
       throw new HiveException(e);
     }
   }
+
+  public List<Node> getNodes() throws HiveException {
+    try{
+      return getMSC().get_all_nodes();
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public List<SFile> getFiles(Table tbl,String part_name) throws HiveException {
+    try{
+      List<String> part_names = new ArrayList<String>();
+      List<Long> fids = new ArrayList<Long>();
+      part_names.add(part_name);
+      org.apache.hadoop.hive.metastore.api.Partition part = getMSC().getPartitionsByNames(tbl.getDbName(), tbl.getTableName(), part_names).get(0);
+      if(tbl.getPartitionKeys().size() == 1){
+
+        fids.addAll(part.getFiles());
+      }else if (tbl.getPartitionKeys().size() == 2){
+        for(Subpartition sp : part.getSubpartitions()){
+          fids.addAll(sp.getFiles());
+        }
+      }
+      List<SFile>files = getMSC().get_files_by_ids(fids);
+      return files;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+  public List<SFileLocation> getFileLocations(Table tbl,String part_name) throws HiveException {
+    List<SFileLocation> fls = new ArrayList<SFileLocation>();
+    try{
+
+      List<SFile> files =  getFiles(tbl,part_name);
+      for(SFile file : files){
+        fls.addAll(file.getLocations());
+      }
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+    return fls;
+  }
+
 
 };

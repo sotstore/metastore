@@ -320,6 +320,9 @@ TOK_SHOWDATACENTERS;
 TOK_SHOWBUSITYPES;
 TOK_BUSITYPECOMMENT;
 TOK_CREATEBUSITYPE;
+TOK_SHOWNODES;
+TOK_SHOWFILES;
+TOK_SHOWFILELOCATIONS;
 
 }
 
@@ -1210,6 +1213,9 @@ showStatement
     : KW_SHOW (KW_DATABASES|KW_SCHEMAS) (dc_name=Identifier )?  (KW_LIKE  showStmtIdentifier)? -> ^(TOK_SHOWDATABASES $dc_name? (KW_LIKE showStmtIdentifier)?)
     | KW_SHOW KW_DATACENTERS showStmtIdentifier?  -> ^(TOK_SHOWDATACENTERS showStmtIdentifier?)
     | KW_SHOW KW_BUSITYPES  -> ^(TOK_SHOWBUSITYPES )
+    | KW_SHOW KW_NODES (dc_name=Identifier )? -> ^(TOK_SHOWNODES $dc_name?)
+    | KW_SHOW KW_FILES (part_name=StringLiteral (KW_FROM|KW_IN) tabname=tableName)? -> ^(TOK_SHOWFILES ($part_name $tabname)?)
+    | KW_SHOW KW_FILELOCATIONS (part_name=StringLiteral (KW_FROM|KW_IN) tabname=tableName)? -> ^(TOK_SHOWFILELOCATIONS ($part_name $tabname)?)
     | KW_SHOW KW_TABLES ((KW_FROM|KW_IN) (dc_name=Identifier DOT)? db_name=Identifier)? (KW_LIKE showStmtIdentifier|showStmtIdentifier)?  -> ^(TOK_SHOWTABLES (TOK_FROM ($dc_name TOK_FROM)? $db_name)? showStmtIdentifier?)
     | KW_SHOW KW_COLUMNS (KW_FROM|KW_IN) tabname=tableName ((KW_FROM|KW_IN) db_name=Identifier)? 
     -> ^(TOK_SHOWCOLUMNS $db_name? $tabname)
@@ -2973,6 +2979,9 @@ KW_PARTITION_KEYS: 'PARTITION_KEYS';
 KW_DATACENTERS:'DATACENTERS';
 KW_BUSITYPES:'BUSITYPES';
 KW_BUSITYPE:'BUSITYPE';
+KW_NODES:'NODES';
+KW_FILES:'FILES';
+KW_FILELOCATIONS:'FILELOCATIONS';
 
 // Operators
 // NOTE: if you add a new function/operator, add it to sysFuncNames so that describe function _FUNC_ will work.

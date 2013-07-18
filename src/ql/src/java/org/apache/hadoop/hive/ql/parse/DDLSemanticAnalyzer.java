@@ -132,10 +132,13 @@ import org.apache.hadoop.hive.ql.plan.ShowColumnsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowCreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.ShowDatabasesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowDatacentersDesc;
+import org.apache.hadoop.hive.ql.plan.ShowFileLocationsDesc;
+import org.apache.hadoop.hive.ql.plan.ShowFilesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowFunctionsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
+import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowSubpartitionDesc;
@@ -508,13 +511,73 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     case HiveParser.TOK_CREATEBUSITYPE:
       analyzeCreateBusiType(ast);
       break;
+    case HiveParser.TOK_SHOWNODES:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowNodes(ast);
+      break;
+    case HiveParser.TOK_SHOWFILES:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowFiles(ast);
+      break;
+    case HiveParser.TOK_SHOWFILELOCATIONS:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowFileLocations(ast);
+      break;
     default:
       throw new SemanticException("Unsupported command.");
     }
   }
 
 
-  private void analyzeCreateBusiType(ASTNode ast) {
+  private void analyzeShowFileLocations(ASTNode ast) throws SemanticException {
+    ASTNode tabTree = (ASTNode)ast.getChild(0);
+    String tabName = null;
+    String part_name = null;
+    Table tab = null;
+    if(tabTree.getChildCount() ==2){
+      part_name = unescapeSQLString(tabTree.getChild(0).getText());
+      tabName = unescapeIdentifier(tabTree.getChild(1).getText());
+      tab = validateAndGetTable(tabName);
+      if(tab == null){
+        throw new SemanticException("table:"+tabName+" is not exist!");
+      }
+    }
+
+    ShowFileLocationsDesc showFileLocationsDesc = new ShowFileLocationsDesc(ctx.getResFile().toString(),tab,part_name);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showFileLocationsDesc), conf));
+    setFetchTask(createFetchTask(showFileLocationsDesc.getSchema()));
+
+  }
+
+  private void analyzeShowFiles(ASTNode ast) throws SemanticException {
+    ASTNode tabTree = (ASTNode)ast.getChild(0);
+    String tabName = null;
+    String part_name = null;
+    Table tab = null;
+    if(tabTree.getChildCount() ==2){
+      part_name = unescapeSQLString(tabTree.getChild(0).getText());
+      tabName = unescapeIdentifier(tabTree.getChild(1).getText());
+      tab = validateAndGetTable(tabName);
+      if(tab == null){
+        throw new SemanticException("table:"+tabName+" is not exist!");
+      }
+    }
+    ShowFilesDesc showFilesDesc = new ShowFilesDesc(ctx.getResFile().toString(),tab,part_name);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showFilesDesc), conf));
+    setFetchTask(createFetchTask(showFilesDesc.getSchema()));
+  }
+
+  private void analyzeShowNodes(ASTNode ast) throws SemanticException {
+    ShowNodesDesc showNodesDesc = new ShowNodesDesc(ctx.getResFile().toString());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showNodesDesc), conf));
+    setFetchTask(createFetchTask(showNodesDesc.getSchema()));
+
+  }
+
+  private void analyzeCreateBusiType(ASTNode ast) throws SemanticException {
     String tabName = null;
     CreateBusitypeDesc createBusitypeDesc = null;
     LOG.info("---zjw--ast:"+ast.toStringTree());
@@ -532,7 +595,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
         createBusitypeDesc), conf));
   }
 
-  private void analyzeShowBusiTypes(ASTNode ast) {
+  private void analyzeShowBusiTypes(ASTNode ast) throws SemanticException {
     ShowBusitypesDesc showBusitypesDesc = new ShowBusitypesDesc(ctx.getResFile().toString());
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         showBusitypesDesc), conf));
@@ -541,10 +604,10 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
 
   private void analyzeShowDatacenters(ASTNode ast) {
 
-    ShowDatacentersDesc showPartitionKeysDesc = new ShowDatacentersDesc(ctx.getResFile().toString());
+    ShowDatacentersDesc showDatacentersDesc = new ShowDatacentersDesc(ctx.getResFile().toString());
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
-        showPartitionKeysDesc), conf));
-    setFetchTask(createFetchTask(showPartitionKeysDesc.getSchema()));
+        showDatacentersDesc), conf));
+    setFetchTask(createFetchTask(showDatacentersDesc.getSchema()));
 
   }
 

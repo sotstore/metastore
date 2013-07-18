@@ -37,6 +37,9 @@ import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.SFile;
+import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.metadata.Hive;
@@ -528,6 +531,72 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
       } catch (IOException e) {
         throw new HiveException(e);
       }
+
+    }
+
+    @Override
+    public void showFiles(DataOutputStream outStream, List<SFile> files) throws HiveException {
+      try {
+        for (SFile file : files) {
+          outStream.writeBytes(""+file.getFid());
+          outStream.write(separator);
+          outStream.writeBytes(""+file.getRecord_nr());
+          outStream.write(separator);
+          outStream.writeBytes(""+file.getAll_record_nr());
+          outStream.write(separator);
+          outStream.writeBytes(""+file.getLength());
+          outStream.write(separator);
+          outStream.writeBytes(""+file.getRep_nr());
+          outStream.write(separator);
+          outStream.writeBytes(""+file.getStore_status());
+          outStream.write(terminator);
+        }
+      } catch (IOException e) {
+        throw new HiveException(e);
+      }
+
+
+    }
+
+    @Override
+    public void showNodes(DataOutputStream outStream, List<Node> nodes) throws HiveException {
+      try {
+        for (Node node : nodes) {
+          outStream.writeBytes(node.getNode_name());
+          outStream.write(separator);
+          outStream.writeBytes(node.getIps().toString());
+          outStream.write(separator);
+          outStream.writeBytes(""+node.getStatus());
+          outStream.write(terminator);
+        }
+      } catch (IOException e) {
+        throw new HiveException(e);
+      }
+
+    }
+
+    @Override
+    public void showFileLocations(DataOutputStream outStream, List<SFileLocation> fls)
+        throws HiveException {
+      try {
+        for (SFileLocation fileLoc : fls) {
+          outStream.writeBytes(""+fileLoc.getFid());
+          outStream.write(separator);
+          outStream.writeBytes(fileLoc.getLocation());
+          outStream.write(separator);
+          outStream.writeBytes(fileLoc.getNode_name());
+          outStream.write(separator);
+          outStream.writeBytes(fileLoc.getDevid());
+          outStream.write(separator);
+          outStream.writeBytes(fileLoc.getDigest());
+          outStream.write(separator);
+          outStream.writeBytes(""+fileLoc.getVisit_status());
+          outStream.write(terminator);
+        }
+      } catch (IOException e) {
+        throw new HiveException(e);
+      }
+
 
     }
 
