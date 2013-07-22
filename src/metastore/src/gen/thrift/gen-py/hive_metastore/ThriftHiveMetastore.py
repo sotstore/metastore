@@ -984,11 +984,12 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
-  def migrate2_in(self, tbl, parts, from_dc, to_nas_devid, fileMap):
+  def migrate2_in(self, tbl, parts, idxs, from_dc, to_nas_devid, fileMap):
     """
     Parameters:
      - tbl
      - parts
+     - idxs
      - from_dc
      - to_nas_devid
      - fileMap
@@ -5343,23 +5344,25 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "migrate_in failed: unknown result");
 
-  def migrate2_in(self, tbl, parts, from_dc, to_nas_devid, fileMap):
+  def migrate2_in(self, tbl, parts, idxs, from_dc, to_nas_devid, fileMap):
     """
     Parameters:
      - tbl
      - parts
+     - idxs
      - from_dc
      - to_nas_devid
      - fileMap
     """
-    self.send_migrate2_in(tbl, parts, from_dc, to_nas_devid, fileMap)
+    self.send_migrate2_in(tbl, parts, idxs, from_dc, to_nas_devid, fileMap)
     return self.recv_migrate2_in()
 
-  def send_migrate2_in(self, tbl, parts, from_dc, to_nas_devid, fileMap):
+  def send_migrate2_in(self, tbl, parts, idxs, from_dc, to_nas_devid, fileMap):
     self._oprot.writeMessageBegin('migrate2_in', TMessageType.CALL, self._seqid)
     args = migrate2_in_args()
     args.tbl = tbl
     args.parts = parts
+    args.idxs = idxs
     args.from_dc = from_dc
     args.to_nas_devid = to_nas_devid
     args.fileMap = fileMap
@@ -7581,7 +7584,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     iprot.readMessageEnd()
     result = migrate2_in_result()
     try:
-      result.success = self._handler.migrate2_in(args.tbl, args.parts, args.from_dc, args.to_nas_devid, args.fileMap)
+      result.success = self._handler.migrate2_in(args.tbl, args.parts, args.idxs, args.from_dc, args.to_nas_devid, args.fileMap)
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("migrate2_in", TMessageType.REPLY, seqid)
@@ -27116,6 +27119,7 @@ class migrate2_in_args:
   Attributes:
    - tbl
    - parts
+   - idxs
    - from_dc
    - to_nas_devid
    - fileMap
@@ -27125,14 +27129,16 @@ class migrate2_in_args:
     None, # 0
     (1, TType.STRUCT, 'tbl', (Table, Table.thrift_spec), None, ), # 1
     (2, TType.LIST, 'parts', (TType.STRUCT,(Partition, Partition.thrift_spec)), None, ), # 2
-    (3, TType.STRING, 'from_dc', None, None, ), # 3
-    (4, TType.STRING, 'to_nas_devid', None, None, ), # 4
-    (5, TType.MAP, 'fileMap', (TType.I64,None,TType.STRUCT,(SFileLocation, SFileLocation.thrift_spec)), None, ), # 5
+    (3, TType.LIST, 'idxs', (TType.STRUCT,(Index, Index.thrift_spec)), None, ), # 3
+    (4, TType.STRING, 'from_dc', None, None, ), # 4
+    (5, TType.STRING, 'to_nas_devid', None, None, ), # 5
+    (6, TType.MAP, 'fileMap', (TType.I64,None,TType.STRUCT,(SFileLocation, SFileLocation.thrift_spec)), None, ), # 6
   )
 
-  def __init__(self, tbl=None, parts=None, from_dc=None, to_nas_devid=None, fileMap=None,):
+  def __init__(self, tbl=None, parts=None, idxs=None, from_dc=None, to_nas_devid=None, fileMap=None,):
     self.tbl = tbl
     self.parts = parts
+    self.idxs = idxs
     self.from_dc = from_dc
     self.to_nas_devid = to_nas_devid
     self.fileMap = fileMap
@@ -27164,24 +27170,35 @@ class migrate2_in_args:
         else:
           iprot.skip(ftype)
       elif fid == 3:
-        if ftype == TType.STRING:
-          self.from_dc = iprot.readString();
+        if ftype == TType.LIST:
+          self.idxs = []
+          (_etype796, _size793) = iprot.readListBegin()
+          for _i797 in xrange(_size793):
+            _elem798 = Index()
+            _elem798.read(iprot)
+            self.idxs.append(_elem798)
+          iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRING:
-          self.to_nas_devid = iprot.readString();
+          self.from_dc = iprot.readString();
         else:
           iprot.skip(ftype)
       elif fid == 5:
+        if ftype == TType.STRING:
+          self.to_nas_devid = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
         if ftype == TType.MAP:
           self.fileMap = {}
-          (_ktype794, _vtype795, _size793 ) = iprot.readMapBegin() 
-          for _i797 in xrange(_size793):
-            _key798 = iprot.readI64();
-            _val799 = SFileLocation()
-            _val799.read(iprot)
-            self.fileMap[_key798] = _val799
+          (_ktype800, _vtype801, _size799 ) = iprot.readMapBegin() 
+          for _i803 in xrange(_size799):
+            _key804 = iprot.readI64();
+            _val805 = SFileLocation()
+            _val805.read(iprot)
+            self.fileMap[_key804] = _val805
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -27202,24 +27219,31 @@ class migrate2_in_args:
     if self.parts is not None:
       oprot.writeFieldBegin('parts', TType.LIST, 2)
       oprot.writeListBegin(TType.STRUCT, len(self.parts))
-      for iter800 in self.parts:
-        iter800.write(oprot)
+      for iter806 in self.parts:
+        iter806.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.idxs is not None:
+      oprot.writeFieldBegin('idxs', TType.LIST, 3)
+      oprot.writeListBegin(TType.STRUCT, len(self.idxs))
+      for iter807 in self.idxs:
+        iter807.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.from_dc is not None:
-      oprot.writeFieldBegin('from_dc', TType.STRING, 3)
+      oprot.writeFieldBegin('from_dc', TType.STRING, 4)
       oprot.writeString(self.from_dc)
       oprot.writeFieldEnd()
     if self.to_nas_devid is not None:
-      oprot.writeFieldBegin('to_nas_devid', TType.STRING, 4)
+      oprot.writeFieldBegin('to_nas_devid', TType.STRING, 5)
       oprot.writeString(self.to_nas_devid)
       oprot.writeFieldEnd()
     if self.fileMap is not None:
-      oprot.writeFieldBegin('fileMap', TType.MAP, 5)
+      oprot.writeFieldBegin('fileMap', TType.MAP, 6)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.fileMap))
-      for kiter801,viter802 in self.fileMap.items():
-        oprot.writeI64(kiter801)
-        viter802.write(oprot)
+      for kiter808,viter809 in self.fileMap.items():
+        oprot.writeI64(kiter808)
+        viter809.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -27357,10 +27381,10 @@ class migrate_out_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.partNames = []
-          (_etype806, _size803) = iprot.readListBegin()
-          for _i807 in xrange(_size803):
-            _elem808 = iprot.readString();
-            self.partNames.append(_elem808)
+          (_etype813, _size810) = iprot.readListBegin()
+          for _i814 in xrange(_size810):
+            _elem815 = iprot.readString();
+            self.partNames.append(_elem815)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -27390,8 +27414,8 @@ class migrate_out_args:
     if self.partNames is not None:
       oprot.writeFieldBegin('partNames', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.partNames))
-      for iter809 in self.partNames:
-        oprot.writeString(iter809)
+      for iter816 in self.partNames:
+        oprot.writeString(iter816)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.to_dc is not None:
@@ -27533,10 +27557,10 @@ class migrate2_stage1_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.partNames = []
-          (_etype813, _size810) = iprot.readListBegin()
-          for _i814 in xrange(_size810):
-            _elem815 = iprot.readString();
-            self.partNames.append(_elem815)
+          (_etype820, _size817) = iprot.readListBegin()
+          for _i821 in xrange(_size817):
+            _elem822 = iprot.readString();
+            self.partNames.append(_elem822)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -27566,8 +27590,8 @@ class migrate2_stage1_args:
     if self.partNames is not None:
       oprot.writeFieldBegin('partNames', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.partNames))
-      for iter816 in self.partNames:
-        oprot.writeString(iter816)
+      for iter823 in self.partNames:
+        oprot.writeString(iter823)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.to_dc is not None:
@@ -27620,11 +27644,11 @@ class migrate2_stage1_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype820, _size817) = iprot.readListBegin()
-          for _i821 in xrange(_size817):
-            _elem822 = SFileLocation()
-            _elem822.read(iprot)
-            self.success.append(_elem822)
+          (_etype827, _size824) = iprot.readListBegin()
+          for _i828 in xrange(_size824):
+            _elem829 = SFileLocation()
+            _elem829.read(iprot)
+            self.success.append(_elem829)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -27647,8 +27671,8 @@ class migrate2_stage1_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter823 in self.success:
-        iter823.write(oprot)
+      for iter830 in self.success:
+        iter830.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.o1 is not None:
@@ -27724,10 +27748,10 @@ class migrate2_stage2_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.partNames = []
-          (_etype827, _size824) = iprot.readListBegin()
-          for _i828 in xrange(_size824):
-            _elem829 = iprot.readString();
-            self.partNames.append(_elem829)
+          (_etype834, _size831) = iprot.readListBegin()
+          for _i835 in xrange(_size831):
+            _elem836 = iprot.readString();
+            self.partNames.append(_elem836)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -27767,8 +27791,8 @@ class migrate2_stage2_args:
     if self.partNames is not None:
       oprot.writeFieldBegin('partNames', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.partNames))
-      for iter830 in self.partNames:
-        oprot.writeString(iter830)
+      for iter837 in self.partNames:
+        oprot.writeString(iter837)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.to_dc is not None:

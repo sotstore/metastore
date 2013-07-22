@@ -2032,13 +2032,13 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate_in failed: unknown result')
     end
 
-    def migrate2_in(tbl, parts, from_dc, to_nas_devid, fileMap)
-      send_migrate2_in(tbl, parts, from_dc, to_nas_devid, fileMap)
+    def migrate2_in(tbl, parts, idxs, from_dc, to_nas_devid, fileMap)
+      send_migrate2_in(tbl, parts, idxs, from_dc, to_nas_devid, fileMap)
       return recv_migrate2_in()
     end
 
-    def send_migrate2_in(tbl, parts, from_dc, to_nas_devid, fileMap)
-      send_message('migrate2_in', Migrate2_in_args, :tbl => tbl, :parts => parts, :from_dc => from_dc, :to_nas_devid => to_nas_devid, :fileMap => fileMap)
+    def send_migrate2_in(tbl, parts, idxs, from_dc, to_nas_devid, fileMap)
+      send_message('migrate2_in', Migrate2_in_args, :tbl => tbl, :parts => parts, :idxs => idxs, :from_dc => from_dc, :to_nas_devid => to_nas_devid, :fileMap => fileMap)
     end
 
     def recv_migrate2_in()
@@ -3646,7 +3646,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, Migrate2_in_args)
       result = Migrate2_in_result.new()
       begin
-        result.success = @handler.migrate2_in(args.tbl, args.parts, args.from_dc, args.to_nas_devid, args.fileMap)
+        result.success = @handler.migrate2_in(args.tbl, args.parts, args.idxs, args.from_dc, args.to_nas_devid, args.fileMap)
       rescue ::MetaException => o1
         result.o1 = o1
       end
@@ -8308,13 +8308,15 @@ module ThriftHiveMetastore
     include ::Thrift::Struct, ::Thrift::Struct_Union
     TBL = 1
     PARTS = 2
-    FROM_DC = 3
-    TO_NAS_DEVID = 4
-    FILEMAP = 5
+    IDXS = 3
+    FROM_DC = 4
+    TO_NAS_DEVID = 5
+    FILEMAP = 6
 
     FIELDS = {
       TBL => {:type => ::Thrift::Types::STRUCT, :name => 'tbl', :class => ::Table},
       PARTS => {:type => ::Thrift::Types::LIST, :name => 'parts', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Partition}},
+      IDXS => {:type => ::Thrift::Types::LIST, :name => 'idxs', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Index}},
       FROM_DC => {:type => ::Thrift::Types::STRING, :name => 'from_dc'},
       TO_NAS_DEVID => {:type => ::Thrift::Types::STRING, :name => 'to_nas_devid'},
       FILEMAP => {:type => ::Thrift::Types::MAP, :name => 'fileMap', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::SFileLocation}}

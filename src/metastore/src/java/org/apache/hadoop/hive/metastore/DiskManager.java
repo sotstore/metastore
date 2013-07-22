@@ -1103,6 +1103,31 @@ public class DiskManager {
       return r;
     }
 
+    public Set<DeviceInfo> maskActiveDevice(Set<DeviceInfo> toMask) {
+      Set<DeviceInfo> masked = new TreeSet<DeviceInfo>();
+
+      for (DeviceInfo odi : toMask) {
+        boolean found = false;
+
+        for (Map.Entry<String, NodeInfo> e : ndmap.entrySet()) {
+          NodeInfo ni = e.getValue();
+          if (ni.dis != null && ni.dis.size() > 0) {
+            for (DeviceInfo di : ni.dis) {
+              if (odi.dev.equalsIgnoreCase(di.dev)) {
+                // this means the device is active!
+                found = true;
+                break;
+              }
+            }
+          }
+        }
+        if (!found) {
+          masked.add(odi);
+        }
+      }
+      return masked;
+    }
+
     // Return old devs
     public NodeInfo addToNDMap(Node node, List<DeviceInfo> ndi) {
       // flush to database
@@ -1159,6 +1184,9 @@ public class DiskManager {
           old.removeAll(cur);
           cur.removeAll(inter);
         }
+        // fitler active device on other node, for example, the nas device.
+        old = maskActiveDevice(old);
+
         for (DeviceInfo di : old) {
           LOG.debug("Queue Device " + di.dev + " on toReRep set.");
           synchronized (toReRep) {

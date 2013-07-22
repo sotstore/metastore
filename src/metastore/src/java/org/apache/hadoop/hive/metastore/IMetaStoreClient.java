@@ -1069,7 +1069,7 @@ public interface IMetaStoreClient {
   public List<SFileLocation> migrate2_stage1(String dbName, String tableName, List<String> partNames, String to_dc)
       throws MetaException, TException;
 
-  public boolean migrate2_in(Table tbl, List<Partition> parts, String from_dc,
+  public boolean migrate2_in(Table tbl, List<Partition> parts, List<Index> idxs, String from_dc,
         String to_nas_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException;
 
   public boolean migrate2_stage2(String dbName, String tableName, List<String> partNames,

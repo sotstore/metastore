@@ -5235,7 +5235,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             hiveConf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
             null);
 
-      // prepare tbl, parts
+      // prepare tbl
       Table tbl = get_table(dbName, tableName);
       // use current DC name as the remote db name?
       String rdb;
@@ -5244,11 +5244,31 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       } else {
         rdb = to_db;
       }
+      // change tbl's dbname to rdb
+      tbl.setDbName(rdb);
+
+      // set tbl properties
       Map<String, String> kvs = new HashMap<String, String>();
+      boolean isMaster = false;
       if (tbl.getParametersSize() > 0) {
         LOG.info(tbl.getParameters().toString());
         kvs.putAll(tbl.getParameters());
         kvs.put("store.remote", "both");
+        if (kvs.get("store.identify") == null) {
+          kvs.put("store.identify", "slave");
+          isMaster = true;
+        } else {
+          if (kvs.get("store.identify").equalsIgnoreCase("slave")) {
+            // this means migrate from slave table back to master table
+            LOG.info("Migrate from slave table to other table (slave?).");
+            isMaster = false;
+          } else {
+            LOG.info("Migrate from master table again.");
+            kvs.put("store.identify", "slave");
+            isMaster = true;
+          }
+        }
+
         if (kvs.get("store.remote.dcs") == null) {
           kvs.put("store.remote.dcs", to_dc + "." + rdb +
               "," + hiveConf.getVar(ConfVars.LOCAL_DATACENTER) + "." + dbName);
@@ -5271,9 +5291,17 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       } else {
         tbl.setParameters(kvs);
       }
-      // change tbl's dbname to rdb
-      tbl.setDbName(rdb);
 
+      // prepare index
+      short maxIndexNum = 1000;
+      List<Index> idxs = get_indexes(dbName, tableName, maxIndexNum);
+      if (idxs != null && idxs.size() > 0) {
+        for (Index i : idxs) {
+          LOG.info("IDX -> " + i.getIndexName() + ", " + i.getParameters().toString());
+        }
+      }
+
+      // prepare parts
       LOG.info("parts: " + partNames.toString());
       List<Partition> parts = get_partitions_by_names(dbName, tableName, partNames);
       if (parts.size() == 0) {
@@ -5326,9 +5354,42 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       }
 
       // call remote metastore's migrate2_in to construct metadata
-      if (rcli.migrate2_in(tbl, parts, ldc.getName(), to_nas_devid, targetFileMap)) {
+      if (rcli.migrate2_in(tbl, parts, idxs, ldc.getName(), to_nas_devid, targetFileMap)) {
         // wow, it is success, change tbl's dbname to dbName
         tbl.setDbName(dbName);
+        // set tbl properties
+        kvs = new HashMap<String, String>();
+        if (tbl.getParametersSize() > 0) {
+          LOG.info(tbl.getParameters().toString());
+          kvs.putAll(tbl.getParameters());
+          kvs.put("store.remote", "both");
+          if (isMaster) {
+            kvs.put("store.identify", "master");
+          } else {
+            kvs.put("store.identify", "slave");
+          }
+          if (kvs.get("store.remote.dcs") == null) {
+            kvs.put("store.remote.dcs", to_dc + "." + rdb +
+                "," + hiveConf.getVar(ConfVars.LOCAL_DATACENTER) + "." + dbName);
+          } else {
+            String olddcs = kvs.get("store.remote.dcs");
+            String[] dcsarray = olddcs.split(",");
+            boolean ign = false;
+            for (int i = 0; i < dcsarray.length; i++) {
+              if (dcsarray[i].equals(to_dc + "." + rdb)) {
+                ign = true;
+                break;
+              }
+            }
+            if (!ign) {
+              olddcs += "," + to_dc + "." + rdb;
+            }
+            kvs.put("store.remote.dcs", olddcs);
+          }
+          tbl.setParameters(kvs);
+        } else {
+          tbl.setParameters(kvs);
+        }
         alter_table(dbName, tableName, tbl);
         LOG.info("Update table properties to reflect the migration.");
 
@@ -5394,7 +5455,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public boolean migrate2_in(Table tbl, List<Partition> parts, String from_dc,
+    public boolean migrate2_in(Table tbl, List<Partition> parts, List<Index> idxs, String from_dc,
         String to_nas_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException {
       LOG.info("server parts2 " + parts.get(0).getSubpartitions().get(0).getPartitionName() + ", " + parts.get(0).getSubpartitions().get(0).getFiles());
 
@@ -5424,9 +5485,22 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         create_table(tbl);
       } catch (AlreadyExistsException e) {
-        // it is ok, ignore it.
+        // it is ok, ignore it? alter_table?
+        alter_table(tbl.getDbName(), tbl.getTableName(), tbl);
       }
       LOG.info("Create table " + tbl.getTableName() + " done.");
+
+      // try to create the idxs, if they don't exist
+      if (idxs != null) {
+        for (Index i : idxs) {
+          try {
+            add_index(i, null);
+          } catch (AlreadyExistsException e) {
+            // it is ok, ignore it
+          }
+        }
+      }
+      LOG.info("Create indexs: " + idxs.size() + " done.");
 
       // try to create the partition, if it doesn't exist
       List<Partition> toAdd = new ArrayList<Partition>();

@@ -1400,6 +1400,25 @@ public class ObjectStore implements RawStore, Configurable {
     return r;
   }
 
+  public long countDevice() throws MetaException {
+    boolean commited = false;
+    long r = 0;
+
+    try {
+      openTransaction();
+      Query query = pm.newQuery("javax.jdo.query.SQL", "SELECT count(*) FROM DEVICES");
+      List results = (List) query.execute();
+      BigDecimal tableSize = (BigDecimal) results.iterator().next();
+      r = tableSize.longValue();
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return r;
+  }
+
   public List<Node> getAllNodes() throws MetaException {
     List<Node> ln = new ArrayList<Node>();
     boolean commited = false;

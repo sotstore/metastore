@@ -137,7 +137,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void get_all_nodes(std::vector<Node> & _return) = 0;
   virtual void getDMStatus(std::string& _return) = 0;
   virtual void migrate_in(std::map<int64_t, SFile> & _return, const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc) = 0;
-  virtual bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) = 0;
+  virtual bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) = 0;
   virtual bool migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) = 0;
   virtual void migrate2_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) = 0;
   virtual bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_db, const std::string& to_nas_devid) = 0;
@@ -574,7 +574,7 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void migrate_in(std::map<int64_t, SFile> & /* _return */, const Table& /* tbl */, const std::vector<Partition> & /* parts */, const std::string& /* from_dc */) {
     return;
   }
-  bool migrate2_in(const Table& /* tbl */, const std::vector<Partition> & /* parts */, const std::string& /* from_dc */, const std::string& /* to_nas_devid */, const std::map<int64_t, SFileLocation> & /* fileMap */) {
+  bool migrate2_in(const Table& /* tbl */, const std::vector<Partition> & /* parts */, const std::vector<Index> & /* idxs */, const std::string& /* from_dc */, const std::string& /* to_nas_devid */, const std::map<int64_t, SFileLocation> & /* fileMap */) {
     bool _return = false;
     return _return;
   }
@@ -16968,9 +16968,10 @@ class ThriftHiveMetastore_migrate_in_presult {
 };
 
 typedef struct _ThriftHiveMetastore_migrate2_in_args__isset {
-  _ThriftHiveMetastore_migrate2_in_args__isset() : tbl(false), parts(false), from_dc(false), to_nas_devid(false), fileMap(false) {}
+  _ThriftHiveMetastore_migrate2_in_args__isset() : tbl(false), parts(false), idxs(false), from_dc(false), to_nas_devid(false), fileMap(false) {}
   bool tbl;
   bool parts;
+  bool idxs;
   bool from_dc;
   bool to_nas_devid;
   bool fileMap;
@@ -16986,6 +16987,7 @@ class ThriftHiveMetastore_migrate2_in_args {
 
   Table tbl;
   std::vector<Partition>  parts;
+  std::vector<Index>  idxs;
   std::string from_dc;
   std::string to_nas_devid;
   std::map<int64_t, SFileLocation>  fileMap;
@@ -16998,6 +17000,10 @@ class ThriftHiveMetastore_migrate2_in_args {
 
   void __set_parts(const std::vector<Partition> & val) {
     parts = val;
+  }
+
+  void __set_idxs(const std::vector<Index> & val) {
+    idxs = val;
   }
 
   void __set_from_dc(const std::string& val) {
@@ -17017,6 +17023,8 @@ class ThriftHiveMetastore_migrate2_in_args {
     if (!(tbl == rhs.tbl))
       return false;
     if (!(parts == rhs.parts))
+      return false;
+    if (!(idxs == rhs.idxs))
       return false;
     if (!(from_dc == rhs.from_dc))
       return false;
@@ -17046,6 +17054,7 @@ class ThriftHiveMetastore_migrate2_in_pargs {
 
   const Table* tbl;
   const std::vector<Partition> * parts;
+  const std::vector<Index> * idxs;
   const std::string* from_dc;
   const std::string* to_nas_devid;
   const std::map<int64_t, SFileLocation> * fileMap;
@@ -18076,8 +18085,8 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void migrate_in(std::map<int64_t, SFile> & _return, const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc);
   void send_migrate_in(const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc);
   void recv_migrate_in(std::map<int64_t, SFile> & _return);
-  bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap);
-  void send_migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap);
+  bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap);
+  void send_migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap);
   bool recv_migrate2_in();
   bool migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc);
   void send_migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc);
@@ -19541,13 +19550,13 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return;
   }
 
-  bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) {
+  bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->migrate2_in(tbl, parts, from_dc, to_nas_devid, fileMap);
+      ifaces_[i]->migrate2_in(tbl, parts, idxs, from_dc, to_nas_devid, fileMap);
     }
-    return ifaces_[i]->migrate2_in(tbl, parts, from_dc, to_nas_devid, fileMap);
+    return ifaces_[i]->migrate2_in(tbl, parts, idxs, from_dc, to_nas_devid, fileMap);
   }
 
   bool migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) {

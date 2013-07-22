@@ -436,7 +436,7 @@ public class MSGFactory {
         if (msg.getOld_object_params().containsKey("tbl_param_keys")) {
           params.put("tbl_param_keys", msg.getOld_object_params().get("tbl_param_keys"));
         }
-      break;
+        break;
       case MSGType.MSG_NEW_PARTITION :
             // 新建分区
           MPartition p = (MPartition)msg.getEventObject();

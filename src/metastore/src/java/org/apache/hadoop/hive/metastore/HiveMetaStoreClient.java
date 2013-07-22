@@ -1836,14 +1836,14 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   }
 
   @Override
-  public boolean migrate2_in(Table tbl, List<Partition> parts, String from_dc, String to_nas_devid,
+  public boolean migrate2_in(Table tbl, List<Partition> parts, List<Index> idxs, String from_dc, String to_nas_devid,
       Map<Long, SFileLocation> fileMap) throws MetaException, TException {
     assert tbl != null;
     assert parts != null;
     assert from_dc != null;
     assert to_nas_devid != null;
     assert fileMap != null;
-    return client.migrate2_in(tbl, parts, from_dc, to_nas_devid, fileMap);
+    return client.migrate2_in(tbl, parts, idxs, from_dc, to_nas_devid, fileMap);
   }
 
   @Override
