@@ -1667,6 +1667,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         pos = Integer.valueOf(pos.intValue() + 1);
         matched++;
 
+        LOG.info("---zjw--"+getColumnInternalName(pos)+"--"+ colInfo.getType()+"--"+colInfo.getTabAlias()+"--tmp:"+ tmp);
+
         if (unparseTranslator.isEnabled()) {
           if (replacementText.length() > 0) {
             replacementText.append(", ");

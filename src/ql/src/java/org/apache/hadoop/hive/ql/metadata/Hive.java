@@ -2462,6 +2462,7 @@ public class Hive {
       List<String> part_names = new ArrayList<String>();
       List<Long> fids = new ArrayList<Long>();
       part_names.add(part_name);
+      LOG.info("--zjw--getfile:"+tbl.getTableName()+"--part:"+part_name);
       List<org.apache.hadoop.hive.metastore.api.Partition> parts =getMSC().getPartitionsByNames(tbl.getDbName(), tbl.getTableName(), part_names);
       if(parts == null || parts.isEmpty()){
         throw new HiveException("NO partition for:"+part_name);
