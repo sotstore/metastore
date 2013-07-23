@@ -1660,14 +1660,22 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         ExprNodeColumnDesc expr = new ExprNodeColumnDesc(colInfo.getType(),
             name, colInfo.getTabAlias(), colInfo.getIsVirtualCol(), colInfo.isSkewedCol());
         col_list.add(expr);
+//        output.put(tmp[0], tmp[1],
+//            new ColumnInfo(getColumnInternalName(pos), colInfo.getType(),
+//            colInfo.getTabAlias(), colInfo.getIsVirtualCol(),
+//            colInfo.isHiddenVirtualCol()));
+        //modified by zjw
         output.put(tmp[0], tmp[1],
             new ColumnInfo(getColumnInternalName(pos), colInfo.getType(),
-            colInfo.getTabAlias(), colInfo.getIsVirtualCol(),
+                tmp[1], colInfo.getIsVirtualCol(),
             colInfo.isHiddenVirtualCol()));
+        output.putOriginColName(tmp[0], tmp[1], tmp[1]);
+
+
         pos = Integer.valueOf(pos.intValue() + 1);
         matched++;
 
-        LOG.info("---zjw--"+getColumnInternalName(pos)+"--"+ colInfo.getType()+"--"+colInfo.getTabAlias()+"--tmp:"+ tmp);
+        LOG.info("---zjw--"+getColumnInternalName(pos)+"--"+ colInfo.getType()+"--"+colInfo.getTabAlias()+"--tmp:"+ tmp[0]+"="+tmp[1]);
 
         if (unparseTranslator.isEnabled()) {
           if (replacementText.length() > 0) {
@@ -2460,7 +2468,9 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       }
       //added by zjw
       if(inputRR.getOriginTabNameMap() != null && inputRR.getOriginTabNameMap().size() == 1){//若映射表列表为1，说明是原始表
-        out_rwsch.putOriginColName(tabAlias, colAlias, expr.getChild(0).getText());
+        if(expr.getType() != HiveParser.TOK_ALLCOLREF) {
+          out_rwsch.putOriginColName(tabAlias, colAlias, expr.getChild(0).getText());
+        }
         //FIX
         out_rwsch.putOriginTabName(tabAlias, inputRR.getTableNames().iterator().next());
       }else{

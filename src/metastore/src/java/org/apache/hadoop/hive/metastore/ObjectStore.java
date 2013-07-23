@@ -2563,6 +2563,7 @@ public class ObjectStore implements RawStore, Configurable {
         }
       }
 
+      pm.retrieve(mpart.getTable());
       commited = commitTransaction();
       long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(table.getDatabase()).toString()));
       MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_NEW_PARTITION,db_id,-1,
