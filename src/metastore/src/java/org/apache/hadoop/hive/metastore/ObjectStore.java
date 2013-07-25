@@ -754,21 +754,30 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
-  public List<SFile> findUnderReplicatedFiles() throws MetaException {
-    List<SFile> r = new ArrayList<SFile>();
+  public void findFiles(List<SFile> underReplicated, List<SFile> overReplicated, List<SFile> lingering) throws MetaException {
+    long node_nr = countNode();
     boolean commited = false;
+
+    if (underReplicated == null || overReplicated == null || lingering == null) {
+      throw new MetaException("Invalid input List<SFile> collection. IS NULL");
+    }
 
     try {
       openTransaction();
-      Query q = pm.newQuery(MFile.class);
-      Collection allFiles = (Collection)q.execute();
+      Query q = pm.newQuery(MFile.class, "this.store_status != increate");
+      q.declareParameters("int increate");
+      Collection allFiles = (Collection)q.execute(MetaStoreConst.MFileStoreStatus.INCREATE);
       Iterator iter = allFiles.iterator();
       while (iter.hasNext()) {
-        SFile s = convertToSFile((MFile)iter.next());
-        if (s != null &&
-            (s.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED ||
-             s.getStore_status() == MetaStoreConst.MFileStoreStatus.REPLICATED)) {
-          List<SFileLocation> l = getSFileLocations(s.getFid());
+        MFile m = (MFile)iter.next();
+        if (m == null) {
+          continue;
+        }
+        List<SFileLocation> l = getSFileLocations(m.getFid());
+
+        // find under replicated files
+        if (m.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED ||
+            m.getStore_status() == MetaStoreConst.MFileStoreStatus.REPLICATED) {
           int nr = 0;
 
           for (SFileLocation fl : l) {
@@ -776,7 +785,84 @@ public class ObjectStore implements RawStore, Configurable {
               nr++;
             }
           }
-          if (s.getRep_nr() > nr) {
+          if (m.getRep_nr() > nr) {
+            SFile s = convertToSFile(m);
+            s.setLocations(l);
+            underReplicated.add(s);
+          }
+        }
+        // find over  replicated files
+        if (m.getStore_status() != MetaStoreConst.MFileStoreStatus.INCREATE) {
+          int nr = 0;
+
+          for (SFileLocation fl : l) {
+            if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
+              nr++;
+            }
+          }
+          if (m.getRep_nr() < nr) {
+            SFile s = convertToSFile(m);
+            s.setLocations(l);
+            overReplicated.add(s);
+          }
+        }
+        // find lingering files
+        if (m.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_PHYSICAL) {
+          SFile s = convertToSFile(m);
+          s.setLocations(l);
+          lingering.add(s);
+        }
+        if (m.getStore_status() != MetaStoreConst.MFileStoreStatus.INCREATE) {
+          int offnr = 0, onnr = 0;
+
+          for (SFileLocation fl : l) {
+            if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
+              onnr++;
+            } else if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.OFFLINE) {
+              offnr++;
+            }
+          }
+          if ((m.getRep_nr() <= onnr && offnr > 0) ||
+              (onnr + offnr >= node_nr && offnr > 0)) {
+            SFile s = convertToSFile(m);
+            s.setLocations(l);
+            lingering.add(s);
+          }
+        }
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+  }
+
+  public List<SFile> findUnderReplicatedFiles() throws MetaException {
+    List<SFile> r = new ArrayList<SFile>();
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      Query q = pm.newQuery(MFile.class, "this.store_status == closed || this.store_status == replicated");
+      q.declareParameters("int closed, int replicated");
+      Collection allFiles = (Collection)q.execute(MetaStoreConst.MFileStoreStatus.CLOSED, MetaStoreConst.MFileStoreStatus.REPLICATED);
+      Iterator iter = allFiles.iterator();
+      while (iter.hasNext()) {
+        MFile m = (MFile)iter.next();
+        if (m != null &&
+            (m.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED ||
+             m.getStore_status() == MetaStoreConst.MFileStoreStatus.REPLICATED)) {
+          List<SFileLocation> l = getSFileLocations(m.getFid());
+          int nr = 0;
+
+          for (SFileLocation fl : l) {
+            if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
+              nr++;
+            }
+          }
+          if (m.getRep_nr() > nr) {
+            SFile s = convertToSFile(m);
             s.setLocations(l);
             r.add(s);
           }
@@ -798,14 +884,15 @@ public class ObjectStore implements RawStore, Configurable {
 
     try {
       openTransaction();
-      Query q = pm.newQuery(MFile.class);
-      Collection allFiles = (Collection)q.execute();
+      Query q = pm.newQuery(MFile.class, "this.store_status != increate");
+      q.declareParameters("int increate");
+      Collection allFiles = (Collection)q.execute(MetaStoreConst.MFileStoreStatus.INCREATE);
       Iterator iter = allFiles.iterator();
       while (iter.hasNext()) {
-        SFile s = convertToSFile((MFile)iter.next());
-        if (s != null &&
-            (s.getStore_status() != MetaStoreConst.MFileStoreStatus.INCREATE)) {
-          List<SFileLocation> l = getSFileLocations(s.getFid());
+        MFile m = (MFile)iter.next();
+        if (m != null &&
+            (m.getStore_status() != MetaStoreConst.MFileStoreStatus.INCREATE)) {
+          List<SFileLocation> l = getSFileLocations(m.getFid());
           int nr = 0;
 
           for (SFileLocation fl : l) {
@@ -813,7 +900,8 @@ public class ObjectStore implements RawStore, Configurable {
               nr++;
             }
           }
-          if (s.getRep_nr() < nr) {
+          if (m.getRep_nr() < nr) {
+            SFile s = convertToSFile(m);
             s.setLocations(l);
             r.add(s);
           }
@@ -835,17 +923,19 @@ public class ObjectStore implements RawStore, Configurable {
 
     try {
       openTransaction();
-      Query q = pm.newQuery(MFile.class);
-      Collection allFiles = (Collection)q.execute();
+      Query q = pm.newQuery(MFile.class, "this.store_status != increate");
+      q.declareParameters("int increate");
+      Collection allFiles = (Collection)q.execute(MetaStoreConst.MFileStoreStatus.INCREATE);
       Iterator iter = allFiles.iterator();
       while (iter.hasNext()) {
-        SFile s = convertToSFile((MFile)iter.next());
-        if (s != null && s.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_PHYSICAL) {
-          List<SFileLocation> l = getSFileLocations(s.getFid());
+        MFile m = (MFile)iter.next();
+        if (m != null && m.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_PHYSICAL) {
+          List<SFileLocation> l = getSFileLocations(m.getFid());
+          SFile s = convertToSFile(m);
           s.setLocations(l);
           r.add(s);
-        } else if (s != null && (s.getStore_status() != MetaStoreConst.MFileStoreStatus.INCREATE)) {
-          List<SFileLocation> l = getSFileLocations(s.getFid());
+        } else if (m != null && (m.getStore_status() != MetaStoreConst.MFileStoreStatus.INCREATE)) {
+          List<SFileLocation> l = getSFileLocations(m.getFid());
           int offnr = 0, onnr = 0;
 
           for (SFileLocation fl : l) {
@@ -855,8 +945,9 @@ public class ObjectStore implements RawStore, Configurable {
               offnr++;
             }
           }
-          if ((s.getRep_nr() <= onnr && offnr > 0) ||
+          if ((m.getRep_nr() <= onnr && offnr > 0) ||
               (onnr + offnr >= node_nr && offnr > 0)) {
+            SFile s = convertToSFile(m);
             s.setLocations(l);
             r.add(s);
           }
@@ -2566,8 +2657,12 @@ public class ObjectStore implements RawStore, Configurable {
       pm.retrieve(mpart.getTable());
       commited = commitTransaction();
       long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(table.getDatabase()).toString()));
+      HashMap<String, Object> params = new HashMap<String, Object>();
+      params.put("db_name", mpart.getTable().getDatabase().getName());
+      params.put("table_name", mpart.getTable().getTableName());
+      params.put("partition_name", mpart.getPartitionName());
       MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_NEW_PARTITION,db_id,-1,
-          pm,mpart,null));
+          pm,mpart,params));
 
       /*****************NOTE oracle does not commit here.*****************/
 //      pm.flush();//

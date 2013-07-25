@@ -297,6 +297,7 @@ public class MetaMsgServer {
       catch(MetaClientException e){
         LOG.error(e.getMessage());
       }
+      LOG.info("Topic '" + topic + "' has been published.");
     }
 
     public static Producer getInstance() throws MetaClientException {

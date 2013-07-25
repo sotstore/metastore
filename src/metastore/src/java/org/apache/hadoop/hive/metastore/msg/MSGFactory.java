@@ -440,9 +440,9 @@ public class MSGFactory {
       case MSGType.MSG_NEW_PARTITION :
             // 新建分区
           MPartition p = (MPartition)msg.getEventObject();
-          params.put("db_name",p.getTable().getDatabase().getName());
-          params.put("table_name",p.getTable().getTableName());
-          params.put("partition_name", p.getPartitionName());
+          params.put("db_name", msg.getOld_object_params().get("db_name"));
+          params.put("table_name", msg.getOld_object_params().get("table_name"));
+          params.put("partition_name", msg.getOld_object_params().get("partition_name"));
           if(p.getPartition_level() ==2){
             Long.parseLong(getIDFromJdoObjectId(p.getParent().toString()));
             params.put("parent_partition_name", p.getPartitionName());

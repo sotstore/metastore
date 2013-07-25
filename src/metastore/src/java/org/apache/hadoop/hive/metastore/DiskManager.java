@@ -574,7 +574,10 @@ public class DiskManager {
     }
 
     public class DMTimerTask extends TimerTask {
+      private RawStore trs;
       private int times = 0;
+      private boolean isRunning = false;
+      private final Long syncIsRunning = new Long(0);
       public static final long timeout = 60 * 1000; //in millisecond
       public static final long repDelCheck = 60 * 1000;
       public static final long repTimeout = 15 * 60 * 1000;
@@ -582,10 +585,15 @@ public class DiskManager {
       public static final long rerepTimeout = 30 * 1000;
 
       private long last_repTs = System.currentTimeMillis();
-      private long last_delTs = System.currentTimeMillis();
-      private long last_scbTs = System.currentTimeMillis();
       private long last_rerepTs = System.currentTimeMillis();
       private long last_unspcTs = System.currentTimeMillis();
+
+      public void init(HiveConf conf) throws MetaException {
+        String rawStoreClassName = hiveConf.getVar(HiveConf.ConfVars.METASTORE_RAW_STORE_IMPL);
+        Class<? extends RawStore> rawStoreClass = (Class<? extends RawStore>) MetaStoreUtils.getClass(
+            rawStoreClassName);
+        this.trs = (RawStore) ReflectionUtils.newInstance(rawStoreClass, conf);
+      }
 
       public void do_delete(SFile f, int nr) {
         int i = 0;
@@ -662,8 +670,8 @@ public class DiskManager {
             do {
               location = "/data/";
               if (f.getPlacement() > 0) {
-                synchronized (rs) {
-                  Table t = rs.getTableByID(f.getPlacement());
+                synchronized (trs) {
+                  Table t = trs.getTableByID(f.getPlacement());
                   location += t.getDbName() + "/" + t.getTableName() + "/"
                       + rand.nextInt(Integer.MAX_VALUE);
                 }
@@ -673,8 +681,8 @@ public class DiskManager {
               nloc = new SFileLocation(node_name, f.getFid(), devid, location,
                   i, System.currentTimeMillis(),
                   MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_REP_DEFAULT");
-              synchronized (rs) {
-                if (rs.createFileLocation(nloc)) {
+              synchronized (trs) {
+                if (trs.createFileLocation(nloc)) {
                   break;
                 }
               }
@@ -752,112 +760,105 @@ public class DiskManager {
           }
         }
 
-        // check any under/over replicated file
+        synchronized (syncIsRunning) {
+          if (isRunning) {
+            return;
+          } else {
+            isRunning = true;
+          }
+        }
+
+        // check any under/over/linger files
         if (last_repTs + repDelCheck < System.currentTimeMillis()) {
-          List<SFile> files;
-          Map<SFile, Integer> m = new TreeMap<SFile, Integer>();
+          // get the file list
+          List<SFile> under = new ArrayList<SFile>();
+          List<SFile> over = new ArrayList<SFile>();
+          List<SFile> linger = new ArrayList<SFile>();
+          Map<SFile, Integer> munder = new TreeMap<SFile, Integer>();
+          Map<SFile, Integer> mover = new TreeMap<SFile, Integer>();
 
-          synchronized (rs) {
+          LOG.info("Check Under/Over Replicated or Lingering Files [" + times + "]");
+          synchronized (trs) {
             try {
-              files = rs.findUnderReplicatedFiles();
-              for (SFile f : files) {
-                // check whether we should issue a re-replicate command
-                int nr = 0;
-
-                LOG.info("check under replicated files for fid " + f.getFid());
-                for (SFileLocation fl : f.getLocations()) {
-                  if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE ||
-                      (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.OFFLINE &&
-                       fl.getUpdate_time() + repTimeout > System.currentTimeMillis())) {
-                    nr++;
-                  }
-                }
-                if (nr < f.getRep_nr()) {
-                  m.put(f, f.getRep_nr() - nr);
-                }
-              }
+              trs.findFiles(under, over, linger);
             } catch (MetaException e) {
-              e.printStackTrace();
+              LOG.error(e, e);
+              return;
             }
           }
-          for (Map.Entry<SFile, Integer> entry : m.entrySet()) {
+          LOG.info("OK, get under " + under.size() + ", over " + over.size() + ", linger " + linger.size());
+          // handle under replicated files
+          for (SFile f : under) {
+            // check whether we should issue a re-replicate command
+            int nr = 0;
+
+            LOG.info("check under replicated files for fid " + f.getFid());
+            for (SFileLocation fl : f.getLocations()) {
+              if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE ||
+                  (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.OFFLINE &&
+                  fl.getUpdate_time() + repTimeout > System.currentTimeMillis())) {
+                nr++;
+              }
+            }
+            if (nr < f.getRep_nr()) {
+              munder.put(f, f.getRep_nr() - nr);
+            }
+          }
+
+          for (Map.Entry<SFile, Integer> entry : munder.entrySet()) {
             do_replicate(entry.getKey(), entry.getValue().intValue());
           }
-          last_repTs = System.currentTimeMillis();
-        }
 
-        if (last_delTs + repDelCheck < System.currentTimeMillis()) {
-          List<SFile> files;
-          Map<SFile, Integer> m = new TreeMap<SFile, Integer>();
+          // handle over replicated files
+          for (SFile f : over) {
+            // check whether we should issue a del command
+            int nr = 0;
 
-          synchronized (rs) {
-            try {
-              files = rs.findOverReplicatedFiles();
-              for (SFile f : files) {
-                // check whether we should issue a del command
-                int nr = 0;
-
-                LOG.info("check over replicated files for fid " + f.getFid());
-                for (SFileLocation fl : f.getLocations()) {
-                  if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
-                    nr++;
-                  }
-                }
-                if (nr > f.getRep_nr()) {
-                  m.put(f, nr - f.getRep_nr());
-                }
+            LOG.info("check over replicated files for fid " + f.getFid());
+            for (SFileLocation fl : f.getLocations()) {
+              if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
+                nr++;
               }
-            } catch (Exception e) {
-              e.printStackTrace();
+            }
+            if (nr > f.getRep_nr()) {
+              mover.put(f, nr - f.getRep_nr());
             }
           }
-          for (Map.Entry<SFile, Integer> entry : m.entrySet()) {
+          for (Map.Entry<SFile, Integer> entry : mover.entrySet()) {
             do_delete(entry.getKey(), entry.getValue().intValue());
           }
-          last_delTs = System.currentTimeMillis();
-        }
 
-        // check any unneeded OFFLINE file
-        if (last_scbTs + repDelCheck < System.currentTimeMillis()) {
-          List<SFile> files;
+          // handle lingering files
           Set<SFileLocation> s = new TreeSet<SFileLocation>();
           Set<SFile> sd = new TreeSet<SFile>();
-
-          synchronized (rs) {
-            try {
-              long node_nr = rs.countNode();
-              files = rs.findLingeringFiles(node_nr);
-              for (SFile f : files) {
-                LOG.info("check lingering files for fid " + f.getFid());
-                if (f.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_PHYSICAL) {
-                  sd.add(f);
-                  continue;
-                }
-                for (SFileLocation fl : f.getLocations()) {
-                  if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.OFFLINE) {
-                    s.add(fl);
-                  }
-                }
+          for (SFile f : linger) {
+            LOG.info("check lingering files for fid " + f.getFid());
+            if (f.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_PHYSICAL) {
+              sd.add(f);
+              continue;
+            }
+            for (SFileLocation fl : f.getLocations()) {
+              if (fl.getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.OFFLINE) {
+                s.add(fl);
               }
-            } catch (MetaException e) {
-              e.printStackTrace();
             }
           }
           for (SFileLocation fl : s) {
-            synchronized (rs) {
+            synchronized (trs) {
               try {
-                rs.delSFileLocation(fl.getDevid(), fl.getLocation());
+                trs.delSFileLocation(fl.getDevid(), fl.getLocation());
               } catch (MetaException e) {
                 LOG.error(e, e);
               }
             }
           }
           for (SFile f : sd) {
-            synchronized (rs) {
-              do_delete(f, f.getLocationsSize());
-            }
+            do_delete(f, f.getLocationsSize());
           }
-          last_scbTs = System.currentTimeMillis();
+          last_repTs = System.currentTimeMillis();
+          under.clear();
+          over.clear();
+          linger.clear();
         }
 
         // check invalid file locations on invalid devices
@@ -878,9 +879,9 @@ public class DiskManager {
               if (!ignore) {
                 List<SFileLocation> sfl;
 
-                synchronized (rs) {
+                synchronized (trs) {
                   try {
-                    sfl = rs.getSFileLocations(entry.getKey(), System.currentTimeMillis(), 0);
+                    sfl = trs.getSFileLocations(entry.getKey(), System.currentTimeMillis(), 0);
                   } catch (MetaException e) {
                     LOG.error(e, e);
                     continue;
@@ -888,10 +889,10 @@ public class DiskManager {
                 }
                 for (SFileLocation fl : sfl) {
                   LOG.info("Change FileLocation " + fl.getDevid() + ":" + fl.getLocation() + " to SUSPECT state!");
-                  synchronized (rs) {
+                  synchronized (trs) {
                     fl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.SUSPECT);
                     try {
-                      rs.updateSFileLocation(fl);
+                      trs.updateSFileLocation(fl);
                     } catch (MetaException e) {
                       LOG.error(e, e);
                       delete = false;
@@ -913,16 +914,17 @@ public class DiskManager {
           // Step 1: generate the SUSPECT file list
           List<SFileLocation> sfl;
 
-          synchronized (rs) {
+          LOG.info("Check SUSPECT SFileLocations [" + times + "]");
+          synchronized (trs) {
             try {
-              sfl = rs.getSFileLocations(MetaStoreConst.MFileLocationVisitStatus.SUSPECT);
+              sfl = trs.getSFileLocations(MetaStoreConst.MFileLocationVisitStatus.SUSPECT);
               // Step 2: TODO: try to probe the target file
               for (SFileLocation fl : sfl) {
                 // check if this device is back
                 if (toUnspc.containsKey(fl.getDevid())) {
                   fl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
                   try {
-                    rs.updateSFileLocation(fl);
+                    trs.updateSFileLocation(fl);
                   } catch (MetaException e) {
                     LOG.error(e, e);
                     continue;
@@ -935,6 +937,11 @@ public class DiskManager {
           }
 
           last_unspcTs = System.currentTimeMillis();
+        }
+
+        synchronized (syncIsRunning) {
+          isRunning = false;
+          LOG.debug("Timer task [" + times + "] done.");
         }
       }
     }
@@ -950,13 +957,14 @@ public class DiskManager {
       init();
     }
 
-    public void init() throws IOException {
+    public void init() throws IOException, MetaException {
       int listenPort = hiveConf.getIntVar(HiveConf.ConfVars.DISKMANAGERLISTENPORT);
       LOG.info("Starting DiskManager on port " + listenPort);
       server = new DatagramSocket(listenPort);
       dmt = new DMThread("DiskManagerThread");
       dmct = new DMCleanThread("DiskManagerCleanThread");
       dmrt = new DMRepThread("DiskManagerRepThread");
+      dmtt.init(hiveConf);
       timer.schedule(dmtt, 0, 5000);
       bktimer.schedule(bktt, 0, 5000);
     }
@@ -1214,15 +1222,16 @@ public class DiskManager {
 
       // check if we can leave safe mode
       try {
+        long cn;
         synchronized (rs) {
-          if (safeMode && ((double) ndmap.size() / (double) rs.countNode() > 0.99)) {
-            double cn = (double) rs.countNode();
+          cn = rs.countNode();
+        }
+        if (safeMode && ((double) ndmap.size() / (double) cn > 0.99)) {
 
-            LOG.info("Nodemap size: " + ndmap.size() + ", saved size: " + rs.countNode() + ", reach "
-                +
-                (double) ndmap.size() / (double) cn * 100 + "%, leave SafeMode.");
-            safeMode = false;
-          }
+          LOG.info("Nodemap size: " + ndmap.size() + ", saved size: " + cn + ", reach "
+              +
+              (double) ndmap.size() / (double) cn * 100 + "%, leave SafeMode.");
+          safeMode = false;
         }
       } catch (MetaException e) {
         LOG.error(e, e);

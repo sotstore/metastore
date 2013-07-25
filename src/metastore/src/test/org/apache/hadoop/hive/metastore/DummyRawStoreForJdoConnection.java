@@ -913,6 +913,13 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
     return 0;
   }
+
+  @Override
+  public void findFiles(List<SFile> underReplicated, List<SFile> overReplicated,
+      List<SFile> lingering) throws MetaException {
+    // TODO Auto-generated method stub
+
+  }
 }
 
 
