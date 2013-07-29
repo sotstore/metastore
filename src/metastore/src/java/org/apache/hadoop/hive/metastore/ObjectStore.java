@@ -1746,9 +1746,17 @@ public class ObjectStore implements RawStore, Configurable {
 
   public SFile updateSFile(SFile newfile) throws MetaException {
     boolean commited = false;
+    boolean repnr_changed = false;
+    boolean stat_changed = false;
     SFile f = null;
     try {
       MFile mf = getMFile(newfile.getFid());
+      if (mf.getRep_nr() != newfile.getRep_nr()) {
+        repnr_changed = true;
+      }
+      if (mf.getStore_status() != newfile.getStore_status()) {
+        stat_changed = true;
+      }
       mf.setRep_nr(newfile.getRep_nr());
       mf.setDigest(newfile.getDigest());
       mf.setRecord_nr(newfile.getRecord_nr());
@@ -1768,16 +1776,35 @@ public class ObjectStore implements RawStore, Configurable {
     if (f == null) {
       throw new MetaException("Invalid SFile object provided!");
     }
+
+    if (stat_changed) {
+      // send the SFile state change message
+      HashMap<String, Object> old_params = new HashMap<String, Object>();
+      old_params.put("fid", newfile.getFid());
+      old_params.put("new_status", newfile.getStore_status());
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_STA_PARTITION_FILE_CHAGE, -1l, -1l, pm, f, old_params));
+    }
+    if (repnr_changed) {
+      // send the SFile state change message
+      HashMap<String, Object> old_params = new HashMap<String, Object>();
+      old_params.put("fid", newfile.getFid());
+      old_params.put("new_repnr", newfile.getRep_nr());
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_REP_PARTITION_FILE_CHAGE, -1l, -1l, pm, f, old_params));
+    }
     return f;
   }
 
   public SFileLocation updateSFileLocation(SFileLocation newsfl) throws MetaException {
     boolean commited = false;
+    boolean changed = false;
     SFileLocation sfl = null;
     try {
       MFileLocation mfl = getMFileLocation(newsfl.getDevid(), newsfl.getLocation());
       mfl.setUpdate_time(System.currentTimeMillis());
-      mfl.setVisit_status(newsfl.getVisit_status());
+      if (mfl.getVisit_status() != newsfl.getVisit_status()) {
+        changed = true;
+        mfl.setVisit_status(newsfl.getVisit_status());
+      }
       mfl.setDigest(newsfl.getDigest());
 
       openTransaction();
@@ -1792,6 +1819,15 @@ public class ObjectStore implements RawStore, Configurable {
     if (sfl == null) {
       throw new MetaException("Invalid SFileLocation provided!");
     }
+
+    if (changed) {
+      // send the SFL state change message
+      HashMap<String, Object> old_params = new HashMap<String, Object>();
+      old_params.put("fid", newsfl.getFid());
+      old_params.put("new_status", newsfl.getVisit_status());
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_REP_PARTITION_FILE_ONOFF, -1l, -1l, pm, sfl, old_params));
+    }
+
     return sfl;
   }
 
