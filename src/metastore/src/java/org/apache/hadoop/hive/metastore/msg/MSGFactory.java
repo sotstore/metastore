@@ -543,6 +543,12 @@ public class MSGFactory {
         if(msg.getOld_object_params().containsKey("table_name")){
           params.put("table_name",msg.getOld_object_params().get("table_name"));
         }
+        if (msg.getOld_object_params().containsKey("fid")) {
+          params.put("fid", msg.getOld_object_params().get("fid"));
+        }
+        if (msg.getOld_object_params().containsKey("new_repnr")) {
+          params.put("new_repnr", msg.getOld_object_params().get("new_repnr"));
+        }
           break;
       case MSGType.MSG_STA_PARTITION_FILE_CHAGE :
             //分区文件状态变化
@@ -564,6 +570,12 @@ public class MSGFactory {
         if(msg.getOld_object_params().containsKey("table_name")){
           params.put("table_name",msg.getOld_object_params().get("table_name"));
         }
+        if (msg.getOld_object_params().containsKey("fid")) {
+          params.put("fid", msg.getOld_object_params().get("fid"));
+        }
+        if (msg.getOld_object_params().containsKey("new_status")) {
+          params.put("new_status", msg.getOld_object_params().get("new_status"));
+        }
           break;
       case MSGType.MSG_REP_PARTITION_FILE_ONOFF :
             //分区文件副本上下线变化
@@ -584,6 +596,12 @@ public class MSGFactory {
           }
           if(msg.getOld_object_params().containsKey("table_name")){
             params.put("table_name",msg.getOld_object_params().get("table_name"));
+          }
+          if (msg.getOld_object_params().containsKey("fid")) {
+            params.put("fid", msg.getOld_object_params().get("fid"));
+          }
+          if (msg.getOld_object_params().containsKey("new_status")) {
+            params.put("new_status", msg.getOld_object_params().get("new_status"));
           }
           break;
       case MSGType.MSG_DEL_PARTITION_FILE :
