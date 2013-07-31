@@ -527,7 +527,12 @@ public class DiskManager {
                 synchronized (rs) {
                   try {
                     nf = rs.getSFile(f.getFid());
-                    nf.setLocations(rs.getSFileLocations(f.getFid()));
+                    if (nf != null) {
+                      nf.setLocations(rs.getSFileLocations(f.getFid()));
+                    } else {
+                      LOG.error("Invalid SFile fid " + f.getFid() + ", not found.");
+                      continue;
+                    }
                   } catch (MetaException e) {
                     LOG.error(e, e);
                     // lately reinsert back to the queue

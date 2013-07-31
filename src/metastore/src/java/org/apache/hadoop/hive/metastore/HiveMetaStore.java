@@ -5297,6 +5297,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       List<Index> idxs = get_indexes(dbName, tableName, maxIndexNum);
       if (idxs != null && idxs.size() > 0) {
         for (Index i : idxs) {
+          i.setDbName(rdb);
           LOG.info("IDX -> " + i.getIndexName() + ", " + i.getParameters().toString());
         }
       }

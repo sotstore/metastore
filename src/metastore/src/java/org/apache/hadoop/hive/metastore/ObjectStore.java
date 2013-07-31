@@ -1748,9 +1748,10 @@ public class ObjectStore implements RawStore, Configurable {
     boolean commited = false;
     boolean repnr_changed = false;
     boolean stat_changed = false;
+    MFile mf = null;
     SFile f = null;
     try {
-      MFile mf = getMFile(newfile.getFid());
+      mf = getMFile(newfile.getFid());
       if (mf.getRep_nr() != newfile.getRep_nr()) {
         repnr_changed = true;
       }
@@ -1773,7 +1774,7 @@ public class ObjectStore implements RawStore, Configurable {
         rollbackTransaction();
       }
     }
-    if (f == null) {
+    if (f == null || mf == null) {
       throw new MetaException("Invalid SFile object provided!");
     }
 
@@ -1782,14 +1783,14 @@ public class ObjectStore implements RawStore, Configurable {
       HashMap<String, Object> old_params = new HashMap<String, Object>();
       old_params.put("fid", newfile.getFid());
       old_params.put("new_status", newfile.getStore_status());
-      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_STA_PARTITION_FILE_CHAGE, -1l, -1l, pm, f, old_params));
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_STA_PARTITION_FILE_CHAGE, -1l, -1l, pm, mf, old_params));
     }
     if (repnr_changed) {
       // send the SFile state change message
       HashMap<String, Object> old_params = new HashMap<String, Object>();
       old_params.put("fid", newfile.getFid());
       old_params.put("new_repnr", newfile.getRep_nr());
-      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_REP_PARTITION_FILE_CHAGE, -1l, -1l, pm, f, old_params));
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_REP_PARTITION_FILE_CHAGE, -1l, -1l, pm, mf, old_params));
     }
     return f;
   }
@@ -1798,8 +1799,9 @@ public class ObjectStore implements RawStore, Configurable {
     boolean commited = false;
     boolean changed = false;
     SFileLocation sfl = null;
+    MFileLocation mfl = null;
     try {
-      MFileLocation mfl = getMFileLocation(newsfl.getDevid(), newsfl.getLocation());
+      mfl = getMFileLocation(newsfl.getDevid(), newsfl.getLocation());
       mfl.setUpdate_time(System.currentTimeMillis());
       if (mfl.getVisit_status() != newsfl.getVisit_status()) {
         changed = true;
@@ -1816,7 +1818,7 @@ public class ObjectStore implements RawStore, Configurable {
         rollbackTransaction();
       }
     }
-    if (sfl == null) {
+    if (sfl == null || mfl == null) {
       throw new MetaException("Invalid SFileLocation provided!");
     }
 
@@ -1825,7 +1827,7 @@ public class ObjectStore implements RawStore, Configurable {
       HashMap<String, Object> old_params = new HashMap<String, Object>();
       old_params.put("fid", newsfl.getFid());
       old_params.put("new_status", newsfl.getVisit_status());
-      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_REP_PARTITION_FILE_ONOFF, -1l, -1l, pm, sfl, old_params));
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_REP_PARTITION_FILE_ONOFF, -1l, -1l, pm, mfl, old_params));
     }
 
     return sfl;
