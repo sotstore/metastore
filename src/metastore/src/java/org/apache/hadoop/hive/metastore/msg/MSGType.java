@@ -53,6 +53,8 @@ public class MSGType {
       //分区文件副本上下线变化
   public static final int MSG_DEL_PARTITION_FILE =  1309;
       //删除分区文件
+  public static final int MSG_FILE_USER_SET_REP_CHANGE = 1310;
+      //用户设置的目标副本数目变化
   public static final int MSG_NEW_INDEX =  1401;
       //新建列索引
   public static final int MSG_ALT_INDEX =  1402;
@@ -85,6 +87,8 @@ public class MSGType {
       //删除节点
   public static final int MSG_FAIL_NODE = 1503;
       //节点故障
+  public static final int MSG_BACK_NODE = 1504;
+      //节点恢复
 
   public static final int MSG_DDL_DIRECT_DW1 = 2001;
   //dw1 专用DDL语句

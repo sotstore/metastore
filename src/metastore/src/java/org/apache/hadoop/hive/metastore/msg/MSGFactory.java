@@ -19,6 +19,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.metastore.model.MDatabase;
 import org.apache.hadoop.hive.metastore.model.MDirectDDL;
 import org.apache.hadoop.hive.metastore.model.MFile;
+import org.apache.hadoop.hive.metastore.model.MFileLocation;
 import org.apache.hadoop.hive.metastore.model.MIndex;
 import org.apache.hadoop.hive.metastore.model.MNode;
 import org.apache.hadoop.hive.metastore.model.MPartition;
@@ -625,6 +626,24 @@ public class MSGFactory {
             params.put("table_name",msg.getOld_object_params().get("table_name"));
           }
           break;
+      case MSGType.MSG_FILE_USER_SET_REP_CHANGE:
+        MFileLocation mfl = (MFileLocation)msg.getEventObject();
+        if (msg.getOld_object_params().containsKey("fid")) {
+          params.put("fid", msg.getOld_object_params().get("fid"));
+        } else {
+          params.put("fid", mfl.getFile().getFid());
+        }
+        if (msg.getOld_object_params().containsKey("devid")) {
+          params.put("devid", msg.getOld_object_params().get("devid"));
+        } else {
+          params.put("devid", mfl.getDev().getDev_name());
+        }
+        if (msg.getOld_object_params().containsKey("location")) {
+          params.put("location", msg.getOld_object_params().get("location"));
+        } else {
+          params.put("location", mfl.getLocation());
+        }
+        break;
       case MSGType.MSG_NEW_INDEX :
             //新建列索引
           MIndex index = (MIndex)msg.getEventObject();
@@ -729,7 +748,26 @@ public class MSGFactory {
       case MSGType.MSG_FAIL_NODE :
             //节点故障
           MNode fail_node = (MNode)msg.getEventObject();
-          params.put("node_name",fail_node.getNode_name());
+          if (msg.getOld_object_params().containsKey("node_name")) {
+            params.put("node_name", msg.getOld_object_params().get("node_name"));
+          } else {
+            params.put("node_name",fail_node.getNode_name());
+          }
+          if (msg.getOld_object_params().containsKey("status")) {
+            params.put("status", msg.getOld_object_params().get("status"));
+          }
+          break;
+      case MSGType.MSG_BACK_NODE :
+            //节点恢复
+          MNode back_node = (MNode)msg.getEventObject();
+          if (msg.getOld_object_params().containsKey("node_name")) {
+            params.put("node_name", msg.getOld_object_params().get("node_name"));
+          } else {
+            params.put("node_name", back_node.getNode_name());
+          }
+          if (msg.getOld_object_params().containsKey("status")) {
+            params.put("status", msg.getOld_object_params().get("status"));
+          }
           break;
       case MSGType.MSG_DDL_DIRECT_DW1 :
         //dw1 专用DDL语句

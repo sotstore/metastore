@@ -690,6 +690,7 @@ public class HiveConf extends Configuration {
     DISKMANAGERLISTENPORT("hive.diskmanager.listen.port", 20202),
     // change it to 30 min
     DM_BACKUP_TIMEOUT("hive.diskmanager.backup.timeout", 1 * 60 * 1000),
+    DM_BACKUPQ_TIMEOUT("hive.diskmanager.backupq.timeout", 5 * 3600 * 1000),
     DM_BACKUP_FILESIZE_THRESHOLD("hive.diskmanager.backup.filesizethreshold", 64 * 1024 * 1024),
     DM_BACKUP_BACKUPNODENAME("hive.diskmanager.backup.backupnodename", "BACKUP-STORE"),
     DM_CHECK_INVALIDATE_TIMEOUT("hive.diskmanager.check.invalidate.timeout", 60 * 1000),
@@ -699,7 +700,8 @@ public class HiveConf extends Configuration {
     DM_CHECK_REREP_TIMEOUT("hive.diskmanager.check.rerep.timeout", 30 * 1000),
     DM_SAFEMODE_ENTER("hive.diskmanager.safemode.enter", (float)0.5),
     DM_SAFEMODE_LEAVE("hive.diskmanager.safemode.leave", (float)0.99),
-    DM_APPEND_CMD_MAX("hive.diskmanager.nr.max", 4);
+    DM_APPEND_CMD_MAX("hive.diskmanager.nr.max", 4),
+    DM_USE_VOID_CHECK("hive.diskmanager.use.voidcheck", false)
     ;
 
     public final String varname;

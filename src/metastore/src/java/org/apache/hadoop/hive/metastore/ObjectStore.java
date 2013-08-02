@@ -754,6 +754,70 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
+  public void findVoidFiles(List<SFile> voidFiles) throws MetaException {
+    boolean commited = false;
+    long beginTs = System.currentTimeMillis();
+
+    try {
+      openTransaction();
+      SFileLocation fl;
+
+      // iterate all partitions to find valid files.
+      Query q = pm.newQuery(MPartition.class);
+      Collection allParts = (Collection)q.execute();
+      Set<Long> allValidFids = new HashSet<Long>();
+      Iterator iter = allParts.iterator();
+      while (iter.hasNext()) {
+        MPartition mp = (MPartition)iter.next();
+        if (mp == null) {
+          continue;
+        }
+        if (mp.getFiles() != null && mp.getFiles().size() > 0) {
+          for (Long id : mp.getFiles()) {
+            allValidFids.add(id);
+          }
+        }
+      }
+      // iterate all files to find void files
+      q = pm.newQuery(MFile.class);
+      Collection allFiles = (Collection)q.execute();
+      iter = allFiles.iterator();
+      while (iter.hasNext()) {
+        MFile mf = (MFile)iter.next();
+        if (mf == null) {
+          continue;
+        }
+        if (allValidFids.contains(mf.getFid())) {
+          // double check the update timestamp
+          List<MFileLocation> lmf = getMFileLocations(mf.getFid());
+
+          if (lmf != null && lmf.size() > 0) {
+            boolean beforeBeginTs = true;
+            for (MFileLocation m : lmf) {
+              if (m.getUpdate_time() >= beginTs) {
+                // this is new file
+                beforeBeginTs = false;
+                break;
+              }
+            }
+            if (beforeBeginTs) {
+              // ok, add this file to result list
+              List<SFileLocation> l = convertToSFileLocation(lmf);
+              SFile f = convertToSFile(mf);
+              f.setLocations(l);
+              voidFiles.add(f);
+            }
+          }
+        }
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+  }
+
   public void findFiles(List<SFile> underReplicated, List<SFile> overReplicated, List<SFile> lingering) throws MetaException {
     long node_nr = countNode();
     boolean commited = false;
@@ -1153,7 +1217,16 @@ public class ObjectStore implements RawStore, Configurable {
 
   public void createFile(SFile file) throws InvalidObjectException, MetaException {
     boolean commited = false;
-    file.setFid(getNextFID());
+    do {
+      file.setFid(getNextFID());
+      // query on this fid to check if it is a valid fid
+      MFile oldf = getMFile(file.getFid());
+      if (oldf != null) {
+        continue;
+      }
+      break;
+    } while (true);
+
     try {
       openTransaction();
       MFile mfile = convertToMFile(file);
@@ -1174,15 +1247,27 @@ public class ObjectStore implements RawStore, Configurable {
       r = false;
       return r;
     }
+    MFileLocation mfloc;
+
     try {
       openTransaction();
-      MFileLocation mfloc = convertToMFileLocation(location);
-      pm.makePersistent(mfloc);
+      mfloc = convertToMFileLocation(location);
+      if (mfloc != null) {
+        pm.makePersistent(mfloc);
+      }
       commited = commitTransaction();
     } finally {
       if (!commited) {
         rollbackTransaction();
       }
+    }
+    if (r && mfloc != null) {
+      // send the sfile rep change message
+      HashMap<String, Object> old_params = new HashMap<String, Object>();
+      old_params.put("fid", location.getFid());
+      old_params.put("devid", location.getDevid());
+      old_params.put("location", location.getLocation());
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_REP_PARTITION_FILE_CHAGE, -1l, -1l, pm, mfloc, old_params));
     }
     return r;
   }
@@ -1417,16 +1502,19 @@ public class ObjectStore implements RawStore, Configurable {
 
   public boolean updateNode(Node node) throws MetaException {
     boolean success = false;
+    boolean commited = false;
+    boolean changed = false;
 
     MNode mn = getMNode(node.getNode_name());
     if (mn != null) {
+      if (mn.getStatus() != node.getStatus()) {
+        changed = true;
+      }
       mn.setStatus(node.getStatus());
       mn.setIpList(node.getIps());
     } else {
       return success;
     }
-
-    boolean commited = false;
 
     try {
       openTransaction();
@@ -1437,6 +1525,22 @@ public class ObjectStore implements RawStore, Configurable {
         rollbackTransaction();
       } else {
         success = true;
+      }
+    }
+    if (success && changed) {
+      HashMap<String, Object> old_params = new HashMap<String, Object>();
+      long event = 0;
+
+      old_params.put("node_name", node.getNode_name());
+      old_params.put("status", node.getStatus());
+      if (node.getStatus() == MetaStoreConst.MNodeStatus.SUSPECT ||
+          node.getStatus() == MetaStoreConst.MNodeStatus.OFFLINE) {
+        event = MSGType.MSG_FAIL_NODE;
+      } else if (node.getStatus() == MetaStoreConst.MNodeStatus.ONLINE) {
+        event = MSGType.MSG_BACK_NODE;
+      }
+      if (event != 0) {
+        MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(event, -1l, -1l, pm, mn, old_params));
       }
     }
 
@@ -1790,7 +1894,7 @@ public class ObjectStore implements RawStore, Configurable {
       HashMap<String, Object> old_params = new HashMap<String, Object>();
       old_params.put("fid", newfile.getFid());
       old_params.put("new_repnr", newfile.getRep_nr());
-      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_REP_PARTITION_FILE_CHAGE, -1l, -1l, pm, mf, old_params));
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_FILE_USER_SET_REP_CHANGE, -1l, -1l, pm, mf, old_params));
     }
     return f;
   }
@@ -2382,7 +2486,7 @@ public class ObjectStore implements RawStore, Configurable {
     }
 
     return new MFileLocation(mn, mf, md, location.getLocation(),
-        location.getRep_id(), location.getUpdate_time(), location.getVisit_status(), location.getDigest());
+        location.getRep_id(), System.currentTimeMillis(), location.getVisit_status(), location.getDigest());
   }
 
   private MTable convertToMTable(Table tbl) throws InvalidObjectException,

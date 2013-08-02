@@ -69,6 +69,7 @@ public class DiskManager {
 
     // TODO: fix me: change it to 30 min
     public long backupTimeout = 1 * 60 * 1000;
+    public long backupQTimeout = 5 * 3600 * 1000; // 5 hour
     public long fileSizeThreshold = 64 * 1024 * 1024;
     public String backupNodeName = "BACKUP-STORE";
 
@@ -137,16 +138,19 @@ public class DiskManager {
       public Subpartition subpart;
       public List<SFile> files;
       public FOP op;
+      public long ttl;
 
       public BackupEntry(Partition part, List<SFile> files, FOP op) {
         this.part = part;
         this.files = files;
         this.op = op;
+        this.ttl = System.currentTimeMillis();
       }
       public BackupEntry(Subpartition subpart, List<SFile> files, FOP op) {
         this.subpart = subpart;
         this.files = files;
         this.op = op;
+        this.ttl = System.currentTimeMillis();
       }
       @Override
       public String toString() {
@@ -462,6 +466,7 @@ public class DiskManager {
       public void run() {
 
         backupTimeout = hiveConf.getLongVar(HiveConf.ConfVars.DM_BACKUP_TIMEOUT);
+        backupQTimeout = hiveConf.getLongVar(HiveConf.ConfVars.DM_BACKUPQ_TIMEOUT);
         fileSizeThreshold = hiveConf.getLongVar(HiveConf.ConfVars.DM_BACKUP_FILESIZE_THRESHOLD);
         backupNodeName = hiveConf.getVar(HiveConf.ConfVars.DM_BACKUP_BACKUPNODENAME);
 
@@ -490,7 +495,12 @@ public class DiskManager {
                 synchronized (rs) {
                   try {
                     nf = rs.getSFile(f.getFid());
-                    nf.setLocations(rs.getSFileLocations(f.getFid()));
+                    if (nf != null) {
+                      nf.setLocations(rs.getSFileLocations(f.getFid()));
+                    } else {
+                      LOG.error("Invalid SFile fid " + f.getFid() + ", not found.");
+                      continue;
+                    }
                   } catch (MetaException e) {
                     LOG.error(e, e);
                     // lately reinsert back to the queue
@@ -500,7 +510,11 @@ public class DiskManager {
                 }
                 if (nf != null && nf.getStore_status() == MetaStoreConst.MFileStoreStatus.INCREATE) {
                   // this means we should wait a moment for the sfile
-                  localQ.add(be);
+                  if (be.ttl + backupQTimeout >= System.currentTimeMillis()) {
+                    localQ.add(be);
+                  } else {
+                    LOG.warn("This is a long opening file (fid " + nf.getFid() + "), might be void files.");
+                  }
                   break;
                 }
                 if (nf != null && ((nf.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED ||
@@ -511,6 +525,8 @@ public class DiskManager {
                   FileToPart ftp = new FileToPart(nf, be.part);
                   toAdd.add(ftp);
                   parts.add(be.part);
+                } else {
+                  LOG.warn("This file (fid " + nf.getFid() + " is ignored. (status " + nf.getStore_status() + ").");
                 }
               }
             } else if (be.op == BackupEntry.FOP.DROP_PART) {
@@ -542,7 +558,11 @@ public class DiskManager {
                 }
                 if (nf != null && nf.getStore_status() == MetaStoreConst.MFileStoreStatus.INCREATE) {
                   // this means we should wait a moment for the sfile
-                  localQ.add(be);
+                  if (be.ttl + backupQTimeout >= System.currentTimeMillis()) {
+                    localQ.add(be);
+                  } else {
+                    LOG.warn("This is a long opening file (fid " + nf.getFid() + "), might be void files.");
+                  }
                   break;
                 }
                 if (nf != null && ((nf.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED ||
@@ -553,6 +573,8 @@ public class DiskManager {
                   FileToPart ftp = new FileToPart(nf, be.subpart);
                   toAdd.add(ftp);
                   subparts.add(be.subpart);
+                } else {
+                  LOG.warn("This file (fid " + nf.getFid() + " is ignored. (status " + nf.getStore_status() + ").");
                 }
               }
             } else if (be.op == BackupEntry.FOP.DROP_SUBPART) {
@@ -585,6 +607,8 @@ public class DiskManager {
       private final Long syncIsRunning = new Long(0);
       public static final long timeout = 60 * 1000; //in millisecond
       public static final long repDelCheck = 60 * 1000;
+      public static final long voidFileCheck = 30 * 60 * 1000;
+      public static final long voidFileTimeout = 12 * 3600 * 1000; // 12 hours
       public static final long repTimeout = 15 * 60 * 1000;
       public static final long delTimeout = 5 * 60 * 1000;
       public static final long rerepTimeout = 30 * 1000;
@@ -592,6 +616,9 @@ public class DiskManager {
       private long last_repTs = System.currentTimeMillis();
       private long last_rerepTs = System.currentTimeMillis();
       private long last_unspcTs = System.currentTimeMillis();
+      private long last_voidTs = System.currentTimeMillis();
+
+      private boolean useVoidCheck = false;
 
       public void init(HiveConf conf) throws MetaException {
         String rawStoreClassName = hiveConf.getVar(HiveConf.ConfVars.METASTORE_RAW_STORE_IMPL);
@@ -745,9 +772,18 @@ public class DiskManager {
         }
       }
 
+      public void updateRunningState() {
+        synchronized (syncIsRunning) {
+          isRunning = false;
+          LOG.debug("Timer task [" + times + "] done.");
+        }
+      }
+
       @Override
       public void run() {
         times++;
+        useVoidCheck = hiveConf.getBoolVar(HiveConf.ConfVars.DM_USE_VOID_CHECK);
+
         // iterate the map, and invalidate the Node entry
         List<String> toInvalidate = new ArrayList<String>();
 
@@ -788,6 +824,7 @@ public class DiskManager {
               trs.findFiles(under, over, linger);
             } catch (MetaException e) {
               LOG.error(e, e);
+              updateRunningState();
               return;
             }
           }
@@ -944,10 +981,52 @@ public class DiskManager {
           last_unspcTs = System.currentTimeMillis();
         }
 
-        synchronized (syncIsRunning) {
-          isRunning = false;
-          LOG.debug("Timer task [" + times + "] done.");
+        // check void files
+        if (useVoidCheck && last_voidTs + voidFileCheck < System.currentTimeMillis()) {
+          List<SFile> voidFiles = new ArrayList<SFile>();
+
+          synchronized (trs) {
+            try {
+              trs.findVoidFiles(voidFiles);
+            } catch (MetaException e) {
+              LOG.error(e, e);
+              updateRunningState();
+              return;
+            }
+          }
+          for (SFile f : voidFiles) {
+            boolean isVoid = true;
+
+            if (f.getLocationsSize() > 0) {
+              // check file location's update time, if it has not update in last 12 hours, then it is void!
+              for (SFileLocation fl : f.getLocations()) {
+                if (fl.getUpdate_time() + voidFileTimeout > System.currentTimeMillis()) {
+                  isVoid = false;
+                  break;
+                }
+              }
+            } else {
+              // check file create time? there is no creation_time in sfile, thus do not mark it as void
+              isVoid = false;
+            }
+
+            if (isVoid) {
+              // ok, mark the file as deleted
+              synchronized (trs) {
+                LOG.info("Mark file (fid " + f.getFid() + ") as void file to physically delete.");
+                f.setStore_status(MetaStoreConst.MFileStoreStatus.RM_PHYSICAL);
+                try {
+                  trs.updateSFile(f);
+                } catch (MetaException e) {
+                  LOG.error(e, e);
+                }
+              }
+            }
+          }
+          last_voidTs = System.currentTimeMillis();
         }
+
+        updateRunningState();
       }
     }
 
@@ -1252,6 +1331,16 @@ public class DiskManager {
           ni = ndmap.remove(node);
           if (ni.toDelete.size() > 0 || ni.toRep.size() > 0) {
             LOG.error("Might miss entries here ... toDelete {" + ni.toDelete.toString() + "}, toRep {" + ni.toRep.toString() + "}");
+          }
+          // update Node status here
+          try {
+            synchronized (rs) {
+              Node saved = rs.getNode(node);
+              saved.setStatus(MetaStoreConst.MNodeStatus.SUSPECT);
+              rs.updateNode(saved);
+            }
+          } catch (MetaException e) {
+            LOG.error(e, e);
           }
         } else {
           LOG.warn("Inactive node " + node + " with pending operations: toDelete " + ni.toDelete.size() + ", toRep " + ni.toRep.size());
@@ -2048,7 +2137,7 @@ public class DiskManager {
               }
               break;
             case MetaStoreConst.MNodeStatus.OFFLINE:
-              LOG.warn("OFFLINE node '" + reportNode.getNode_name() + "' do report!");
+              LOG.warn("OFFLINE node '" + reportNode.getNode_name() + "' do report?!");
               break;
             }
 

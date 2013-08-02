@@ -498,6 +498,8 @@ public interface RawStore extends Configurable {
 
   public void findFiles(List<SFile> underReplicated, List<SFile> overReplicated, List<SFile> lingering) throws MetaException;
 
+  public void findVoidFiles(List<SFile> voidFiles) throws MetaException;
+
   public void createPartitionIndex(Index index, Partition part) throws InvalidObjectException, MetaException, AlreadyExistsException;
 
   public void createPartitionIndex(Index index, Subpartition part) throws InvalidObjectException, MetaException, AlreadyExistsException;

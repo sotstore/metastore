@@ -2055,6 +2055,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
               }
               // ok even if the data is not deleted
             }
+            // FIXME: delete SFiles
           }
           for (MetaStoreEventListener listener : listeners) {
             listener.onDropPartition(new DropPartitionEvent(tbl, part, success, this));
