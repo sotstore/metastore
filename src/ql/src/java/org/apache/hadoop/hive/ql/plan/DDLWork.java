@@ -23,6 +23,7 @@ import java.util.HashSet;
 import org.apache.hadoop.hive.ql.hooks.ReadEntity;
 import org.apache.hadoop.hive.ql.hooks.WriteEntity;
 import org.apache.hadoop.hive.ql.parse.AlterTablePartMergeFilesDesc;
+import org.mortbay.log.Log;
 
 /**
  * DDLWork.
@@ -646,6 +647,7 @@ public class DDLWork implements Serializable {
   public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
       ShowFilesDesc showFilesDesc) {
     this(inputs, outputs);
+    Log.info("---zjw--show"+showFilesDesc.getPartName()+"--tab"+showFilesDesc.getTable().getTableName());
     this.setShowFilesDesc(showFilesDesc);
   }
 
