@@ -18,18 +18,6 @@
 
 package org.apache.hadoop.hive.jdbc;
 
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.api.MetaException;
-import org.apache.hadoop.hive.service.HiveClient;
-import org.apache.hadoop.hive.service.HiveInterface;
-import org.apache.hadoop.hive.service.HiveServer;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportException;
-
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
@@ -48,6 +36,19 @@ import java.sql.Struct;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.service.HiveClient;
+import org.apache.hadoop.hive.service.HiveInterface;
+import org.apache.hadoop.hive.service.HiveServer;
+import org.apache.hadoop.hive.service.HiveServerException;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportException;
+
 /**
  * HiveConnection.
  *
@@ -57,6 +58,7 @@ public class HiveConnection implements java.sql.Connection {
   private HiveInterface client;
   private boolean isClosed = true;
   private SQLWarning warningChain = null;
+  private String defaultDb = "default";
 
   private static final String URI_PREFIX = "jdbc:hive://";
 
@@ -103,6 +105,7 @@ public class HiveConnection implements java.sql.Connection {
       String[] hostport = parts[0].split(":");
       int port = 10000;
       String host = hostport[0];
+      defaultDb = parts[1];
       try {
         port = Integer.parseInt(hostport[1]);
       } catch (Exception e) {
@@ -115,6 +118,13 @@ public class HiveConnection implements java.sql.Connection {
       } catch (TTransportException e) {
         throw new SQLException("Could not establish connection to "
             + uri + ": " + e.getMessage(), "08S01");
+      }
+      try {
+        client.execute("use " + defaultDb);
+      } catch (HiveServerException e) {
+        throw new SQLException("Can not execute query: " + e.getMessage());
+      } catch (TException e) {
+        throw new SQLException("Can not execute query: " + e.getMessage());
       }
     }
     isClosed = false;
@@ -130,7 +140,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#clearWarnings()
    */
 
@@ -140,7 +150,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#close()
    */
 
@@ -161,7 +171,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#commit()
    */
 
@@ -172,7 +182,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#createArrayOf(java.lang.String,
    * java.lang.Object[])
    */
@@ -184,7 +194,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#createBlob()
    */
 
@@ -195,7 +205,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#createClob()
    */
 
@@ -206,7 +216,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#createNClob()
    */
 
@@ -217,7 +227,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#createSQLXML()
    */
 
@@ -228,7 +238,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /**
    * Creates a Statement object for sending SQL statements to the database.
-   * 
+   *
    * @throws SQLException
    *           if a database access error occurs.
    * @see java.sql.Connection#createStatement()
@@ -243,7 +253,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#createStatement(int, int)
    */
 
@@ -255,7 +265,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#createStatement(int, int, int)
    */
 
@@ -267,7 +277,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#createStruct(java.lang.String, java.lang.Object[])
    */
 
@@ -279,7 +289,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#getAutoCommit()
    */
 
@@ -289,7 +299,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#getCatalog()
    */
 
@@ -299,7 +309,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#getClientInfo()
    */
 
@@ -310,7 +320,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#getClientInfo(java.lang.String)
    */
 
@@ -321,7 +331,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#getHoldability()
    */
 
@@ -332,7 +342,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#getMetaData()
    */
 
@@ -342,7 +352,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#getTransactionIsolation()
    */
 
@@ -352,7 +362,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#getTypeMap()
    */
 
@@ -363,7 +373,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#getWarnings()
    */
 
@@ -373,7 +383,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#isClosed()
    */
 
@@ -383,7 +393,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#isReadOnly()
    */
 
@@ -393,7 +403,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#isValid(int)
    */
 
@@ -404,7 +414,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#nativeSQL(java.lang.String)
    */
 
@@ -415,7 +425,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#prepareCall(java.lang.String)
    */
 
@@ -426,7 +436,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#prepareCall(java.lang.String, int, int)
    */
 
@@ -438,7 +448,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#prepareCall(java.lang.String, int, int, int)
    */
 
@@ -450,7 +460,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#prepareStatement(java.lang.String)
    */
 
@@ -460,7 +470,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#prepareStatement(java.lang.String, int)
    */
 
@@ -471,7 +481,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#prepareStatement(java.lang.String, int[])
    */
 
@@ -483,7 +493,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#prepareStatement(java.lang.String,
    * java.lang.String[])
    */
@@ -496,7 +506,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#prepareStatement(java.lang.String, int, int)
    */
 
@@ -507,7 +517,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#prepareStatement(java.lang.String, int, int, int)
    */
 
@@ -519,7 +529,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#releaseSavepoint(java.sql.Savepoint)
    */
 
@@ -530,7 +540,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#rollback()
    */
 
@@ -541,7 +551,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#rollback(java.sql.Savepoint)
    */
 
@@ -552,7 +562,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#setAutoCommit(boolean)
    */
 
@@ -563,7 +573,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#setCatalog(java.lang.String)
    */
 
@@ -574,7 +584,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#setClientInfo(java.util.Properties)
    */
 
@@ -586,7 +596,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#setClientInfo(java.lang.String, java.lang.String)
    */
 
@@ -598,7 +608,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#setHoldability(int)
    */
 
@@ -609,7 +619,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#setReadOnly(boolean)
    */
 
@@ -620,7 +630,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#setSavepoint()
    */
 
@@ -631,7 +641,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#setSavepoint(java.lang.String)
    */
 
@@ -642,7 +652,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#setTransactionIsolation(int)
    */
 
@@ -653,7 +663,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Connection#setTypeMap(java.util.Map)
    */
 
@@ -664,7 +674,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Wrapper#isWrapperFor(java.lang.Class)
    */
 
@@ -675,7 +685,7 @@ public class HiveConnection implements java.sql.Connection {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.sql.Wrapper#unwrap(java.lang.Class)
    */
 
