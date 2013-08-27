@@ -51,6 +51,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -81,6 +82,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -1881,5 +1883,19 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   @Override
   public boolean toggle_safemode() throws MetaException, TException {
     return client.toggle_safemode();
+  }
+
+  @Override
+  public Device createDevice(String devid, int prop, String node_name) throws MetaException,
+      TException {
+    assert devid != null;
+    assert node_name != null;
+    return client.create_device(devid, prop, node_name);
+  }
+
+  @Override
+  public boolean delDevice(String devid) throws MetaException, TException {
+    assert devid != null;
+    return client.del_device(devid);
   }
 }

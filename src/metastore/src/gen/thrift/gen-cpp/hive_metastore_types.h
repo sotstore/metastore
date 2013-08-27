@@ -1703,6 +1703,65 @@ class Node {
 
 void swap(Node &a, Node &b);
 
+typedef struct _Device__isset {
+  _Device__isset() : devid(false), prop(false), node_name(false) {}
+  bool devid;
+  bool prop;
+  bool node_name;
+} _Device__isset;
+
+class Device {
+ public:
+
+  static const char* ascii_fingerprint; // = "70563A0628F75DF9555F4D24690B1E26";
+  static const uint8_t binary_fingerprint[16]; // = {0x70,0x56,0x3A,0x06,0x28,0xF7,0x5D,0xF9,0x55,0x5F,0x4D,0x24,0x69,0x0B,0x1E,0x26};
+
+  Device() : devid(), prop(0), node_name() {
+  }
+
+  virtual ~Device() throw() {}
+
+  std::string devid;
+  int32_t prop;
+  std::string node_name;
+
+  _Device__isset __isset;
+
+  void __set_devid(const std::string& val) {
+    devid = val;
+  }
+
+  void __set_prop(const int32_t val) {
+    prop = val;
+  }
+
+  void __set_node_name(const std::string& val) {
+    node_name = val;
+  }
+
+  bool operator == (const Device & rhs) const
+  {
+    if (!(devid == rhs.devid))
+      return false;
+    if (!(prop == rhs.prop))
+      return false;
+    if (!(node_name == rhs.node_name))
+      return false;
+    return true;
+  }
+  bool operator != (const Device &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Device & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(Device &a, Device &b);
+
 typedef struct _SFileLocation__isset {
   _SFileLocation__isset() : node_name(false), fid(false), devid(false), location(false), rep_id(false), update_time(false), visit_status(false), digest(false) {}
   bool node_name;

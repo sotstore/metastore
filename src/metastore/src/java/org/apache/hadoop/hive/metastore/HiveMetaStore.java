@@ -59,6 +59,7 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.DiskManager.BackupEntry;
 import org.apache.hadoop.hive.metastore.DiskManager.DMRequest;
+import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.DiskManager.FileLocatingPolicy;
 import org.apache.hadoop.hive.metastore.DiskManager.MigrateEntry;
 import org.apache.hadoop.hive.metastore.DiskManager.SFLTriple;
@@ -72,6 +73,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
 import org.apache.hadoop.hive.metastore.api.FOFailReason;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -4250,6 +4252,23 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return groupNames;
     }
 
+    public Device create_device(String devid, int prop, String node_name) throws MetaException, TException {
+      DeviceInfo di = new DeviceInfo();
+      Node node = null;
+
+      di.dev = devid;
+      di.prop = prop;
+      node = getMS().getNode(node_name);
+      getMS().createOrUpdateDevice(di, node);
+
+      Device d = getMS().getDevice(devid);
+      return d;
+    }
+
+    public boolean del_device(String devid) throws MetaException, TException {
+      return getMS().delDevice(devid);
+    }
+
     @Override
     public SFile create_file(String node_name, int repnr, String db_name, String table_name)
         throws FileOperationException, TException {
@@ -4257,11 +4276,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       if (repnr <= 1) {
         repnr++;
       }
-      // do not select the backup node
-      Set<String> nonbackup = new TreeSet<String>();
-      nonbackup.add(dm.backupNodeName);
-
-      FileLocatingPolicy flp = new FileLocatingPolicy(nonbackup, null, FileLocatingPolicy.EXCLUDE_NODES_DEVS, false);
+      // do not select the backup/shared device for the first entry
+      FileLocatingPolicy flp = new FileLocatingPolicy(null, dm.backupDevs, FileLocatingPolicy.EXCLUDE_NODES_DEVS_SHARED, false);
       return create_file(flp, node_name, repnr, db_name, table_name);
     }
 
@@ -4315,7 +4331,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       }
       try {
         if (flp == null) {
-          flp = new FileLocatingPolicy(null, null, FileLocatingPolicy.EXCLUDE_NODES_DEVS, true);
+          flp = new FileLocatingPolicy(null, null, FileLocatingPolicy.EXCLUDE_NODES_DEVS_SHARED, true);
         }
         String devid = dm.findBestDevice(node_name, flp);
         long table_id = -1;
@@ -4399,6 +4415,19 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return 0;
     }
 
+    public void identifySharedDevice(List<SFileLocation> lsfl) throws MetaException, NoSuchObjectException {
+      if (lsfl == null) {
+        return;
+      }
+      for (SFileLocation sfl : lsfl) {
+        Device d = getMS().getDevice(sfl.getDevid());
+        if (d.getProp() == MetaStoreConst.MDeviceProp.SHARED ||
+            d.getProp() == MetaStoreConst.MDeviceProp.BACKUP) {
+          sfl.setNode_name("");
+        }
+      }
+    }
+
     @Override
     public SFile get_file_by_id(long fid) throws FileOperationException, MetaException, TException {
       SFile r = getMS().getSFile(fid);
@@ -4413,7 +4442,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       default:
         r.setLocations(getMS().getSFileLocations(fid));
       }
-      dm.identifyNASDevice(r.getLocations());
+      identifySharedDevice(r.getLocations());
 
       return r;
     }
@@ -5207,7 +5236,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       default:
         r.setLocations(getMS().getSFileLocations(r.getFid()));
       }
-      dm.identifyNASDevice(r.getLocations());
+      identifySharedDevice(r.getLocations());
 
       return r;
 

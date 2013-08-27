@@ -222,6 +222,10 @@ public class MetaMsgServer {
   }
 
   private static boolean retrySendMsg(String jsonMsg,int times){
+    // FIXME: if server not initialized, just return true;
+    if (!initalized) {
+      return true;
+    }
     if(times <= 0){
       return false;
     }

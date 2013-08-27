@@ -29,6 +29,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -1093,5 +1094,9 @@ public interface IMetaStoreClient {
   public int createBusitype(Busitype bt)throws MetaException, TException;
 
   public boolean toggle_safemode() throws MetaException, TException;
+
+  public Device createDevice(String devid, int prop, String node_name) throws MetaException, TException;
+
+  public boolean delDevice(String devid) throws MetaException, TException;
 
 }

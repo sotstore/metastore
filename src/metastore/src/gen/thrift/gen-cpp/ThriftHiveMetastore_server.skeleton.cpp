@@ -602,6 +602,16 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("del_node\n");
   }
 
+  void create_device(Device& _return, const std::string& devid, const int32_t prop, const std::string& node_name) {
+    // Your implementation goes here
+    printf("create_device\n");
+  }
+
+  bool del_device(const std::string& devid) {
+    // Your implementation goes here
+    printf("del_device\n");
+  }
+
   void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status) {
     // Your implementation goes here
     printf("alter_node\n");

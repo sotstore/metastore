@@ -245,6 +245,12 @@ struct Node {
   3: i32    status,
 }
 
+struct Device {
+  1: string devid,
+  2: i32    prop,
+  3: string node_name,
+}
+
 struct SFileLocation {
   1: string node_name,
   2: i64    fid,
@@ -781,6 +787,10 @@ service ThriftHiveMetastore extends fb303.FacebookService
   Node add_node(1:string node_name, 2:list<string> ipl) throws (1:MetaException o1)
   
   i32 del_node(1:string node_name) throws (1:MetaException o1)
+  
+  Device create_device(1:string devid, 2:i32 prop, 3:string node_name) throws (1:MetaException o1)
+  
+  bool del_device(1:string devid) throws (1:MetaException o1)
   
   Node alter_node(1:string node_name, 2:list<string> ipl, 3:i32 status) throws (1:MetaException o1)
   

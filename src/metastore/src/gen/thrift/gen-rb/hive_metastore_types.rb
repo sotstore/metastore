@@ -561,6 +561,26 @@ class Node
   ::Thrift::Struct.generate_accessors self
 end
 
+class Device
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  DEVID = 1
+  PROP = 2
+  NODE_NAME = 3
+
+  FIELDS = {
+    DEVID => {:type => ::Thrift::Types::STRING, :name => 'devid'},
+    PROP => {:type => ::Thrift::Types::I32, :name => 'prop'},
+    NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
 class SFileLocation
   include ::Thrift::Struct, ::Thrift::Struct_Union
   NODE_NAME = 1
