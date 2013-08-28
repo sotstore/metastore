@@ -1905,6 +1905,7 @@ public class ObjectStore implements RawStore, Configurable {
     SFileLocation sfl = null;
     MFileLocation mfl = null;
     try {
+      openTransaction();
       mfl = getMFileLocation(newsfl.getDevid(), newsfl.getLocation());
       mfl.setUpdate_time(System.currentTimeMillis());
       if (mfl.getVisit_status() != newsfl.getVisit_status()) {
@@ -1913,7 +1914,6 @@ public class ObjectStore implements RawStore, Configurable {
       }
       mfl.setDigest(newsfl.getDigest());
 
-      openTransaction();
       pm.makePersistent(mfl);
       sfl = convertToSFileLocation(mfl);
       commited = commitTransaction();
@@ -2412,6 +2412,7 @@ public class ObjectStore implements RawStore, Configurable {
     if (mfl == null) {
       return null;
     }
+    pm.retrieve(mfl);
     return new SFileLocation(mfl.getNode().getNode_name(), mfl.getFile().getFid(), mfl.getDev().getDev_name(),
         mfl.getLocation(), mfl.getRep_id(), mfl.getUpdate_time(), mfl.getVisit_status(), mfl.getDigest());
   }
