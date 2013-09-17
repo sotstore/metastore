@@ -609,6 +609,54 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listGeoLocation failed: unknown result')
     end
 
+    def addNodeAssignment(node, database)
+      send_addNodeAssignment(node, database)
+      return recv_addNodeAssignment()
+    end
+
+    def send_addNodeAssignment(node, database)
+      send_message('addNodeAssignment', AddNodeAssignment_args, :node => node, :database => database)
+    end
+
+    def recv_addNodeAssignment()
+      result = receive_message(AddNodeAssignment_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addNodeAssignment failed: unknown result')
+    end
+
+    def modifyNodeAssignment(node, database)
+      send_modifyNodeAssignment(node, database)
+      return recv_modifyNodeAssignment()
+    end
+
+    def send_modifyNodeAssignment(node, database)
+      send_message('modifyNodeAssignment', ModifyNodeAssignment_args, :node => node, :database => database)
+    end
+
+    def recv_modifyNodeAssignment()
+      result = receive_message(ModifyNodeAssignment_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'modifyNodeAssignment failed: unknown result')
+    end
+
+    def deleteNodeAssignment(node, database)
+      send_deleteNodeAssignment(node, database)
+      return recv_deleteNodeAssignment()
+    end
+
+    def send_deleteNodeAssignment(node, database)
+      send_message('deleteNodeAssignment', DeleteNodeAssignment_args, :node => node, :database => database)
+    end
+
+    def recv_deleteNodeAssignment()
+      result = receive_message(DeleteNodeAssignment_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteNodeAssignment failed: unknown result')
+    end
+
     def create_database(database)
       send_create_database(database)
       recv_create_database()
@@ -2656,6 +2704,39 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'listGeoLocation', seqid)
+    end
+
+    def process_addNodeAssignment(seqid, iprot, oprot)
+      args = read_args(iprot, AddNodeAssignment_args)
+      result = AddNodeAssignment_result.new()
+      begin
+        result.success = @handler.addNodeAssignment(args.node, args.database)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'addNodeAssignment', seqid)
+    end
+
+    def process_modifyNodeAssignment(seqid, iprot, oprot)
+      args = read_args(iprot, ModifyNodeAssignment_args)
+      result = ModifyNodeAssignment_result.new()
+      begin
+        result.success = @handler.modifyNodeAssignment(args.node, args.database)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'modifyNodeAssignment', seqid)
+    end
+
+    def process_deleteNodeAssignment(seqid, iprot, oprot)
+      args = read_args(iprot, DeleteNodeAssignment_args)
+      result = DeleteNodeAssignment_result.new()
+      begin
+        result.success = @handler.deleteNodeAssignment(args.node, args.database)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'deleteNodeAssignment', seqid)
     end
 
     def process_create_database(seqid, iprot, oprot)
@@ -5227,6 +5308,114 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::GeoLocation}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddNodeAssignment_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NODE = 1
+    DATABASE = 2
+
+    FIELDS = {
+      NODE => {:type => ::Thrift::Types::STRUCT, :name => 'node', :class => ::Node},
+      DATABASE => {:type => ::Thrift::Types::STRUCT, :name => 'database', :class => ::Database}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddNodeAssignment_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ModifyNodeAssignment_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NODE = 1
+    DATABASE = 2
+
+    FIELDS = {
+      NODE => {:type => ::Thrift::Types::STRUCT, :name => 'node', :class => ::Node},
+      DATABASE => {:type => ::Thrift::Types::STRUCT, :name => 'database', :class => ::Database}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ModifyNodeAssignment_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteNodeAssignment_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NODE = 1
+    DATABASE = 2
+
+    FIELDS = {
+      NODE => {:type => ::Thrift::Types::STRUCT, :name => 'node', :class => ::Node},
+      DATABASE => {:type => ::Thrift::Types::STRUCT, :name => 'database', :class => ::Database}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteNodeAssignment_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
