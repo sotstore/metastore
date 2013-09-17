@@ -18,6 +18,8 @@
 
 package org.apache.hadoop.hive.metastore.model;
 
+import java.util.Set;
+
 public class MRole {
 
   private String roleName;
@@ -25,6 +27,8 @@ public class MRole {
   private int createTime;
 
   private String ownerName;
+
+  private Set<MDatabase> dbs;
 
   public MRole() {
   }
@@ -34,6 +38,11 @@ public class MRole {
     this.roleName = roleName;
     this.createTime = createTime;
     this.ownerName = ownerName;
+  }
+
+  public MRole(String roleName, int createTime, String ownerName ,Set<MDatabase> dbs) {
+    this(roleName, createTime, ownerName);
+    this.dbs = dbs;
   }
 
   /**
@@ -75,6 +84,16 @@ public class MRole {
   public void setOwnerName(String ownerName) {
     this.ownerName = ownerName;
   }
+
+  public Set<MDatabase> getDbs() {
+    return dbs;
+  }
+
+  public void setDbs(Set<MDatabase> dbs) {
+    this.dbs = dbs;
+  }
+
+
 
 }
 

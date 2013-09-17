@@ -22,6 +22,7 @@
 package org.apache.hadoop.hive.metastore.model;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Storage Class representing the Hive MDatabase in a rdbms
@@ -33,6 +34,11 @@ public class MDatabase {
   private String description;
   private MDatacenter datacenter;
   private Map<String, String> parameters;
+  private Set<MNode> nodes;
+  private Set<MNodeGroup> nodeGroups;
+  private Set<MUser> users;
+  private Set<MRole> roles;
+
 
   /**
    * Default construction to keep jpox/jdo happy
@@ -52,6 +58,23 @@ public class MDatabase {
     this.description = description;
     this.datacenter = datacenter;
     this.parameters = parameters;
+  }
+
+
+
+  public MDatabase(String name, String locationUri, String description, MDatacenter datacenter,
+      Map<String, String> parameters, Set<MNode> nodes, Set<MNodeGroup> nodeGroups,
+      Set<MUser> users, Set<MRole> roles) {
+    super();
+    this.name = name;
+    this.locationUri = locationUri;
+    this.description = description;
+    this.datacenter = datacenter;
+    this.parameters = parameters;
+    this.nodes = nodes;
+    this.nodeGroups = nodeGroups;
+    this.users = users;
+    this.roles = roles;
   }
 
   /**
@@ -117,6 +140,39 @@ public class MDatabase {
   public void setDatacenter(MDatacenter datacenter) {
     this.datacenter = datacenter;
   }
+
+  public Set<MNodeGroup> getNodeGroups() {
+    return nodeGroups;
+  }
+
+  public void setNodeGroups(Set<MNodeGroup> nodeGroups) {
+    this.nodeGroups = nodeGroups;
+  }
+
+  public Set<MNode> getNodes() {
+    return nodes;
+  }
+
+  public void setNodes(Set<MNode> nodes) {
+    this.nodes = nodes;
+  }
+
+  public Set<MUser> getUsers() {
+    return users;
+  }
+
+  public void setUsers(Set<MUser> users) {
+    this.users = users;
+  }
+
+  public Set<MRole> getRoles() {
+    return roles;
+  }
+
+  public void setRoles(Set<MRole> roles) {
+    this.roles = roles;
+  }
+
 
 
 }

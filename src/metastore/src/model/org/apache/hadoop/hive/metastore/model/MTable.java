@@ -20,9 +20,10 @@ package org.apache.hadoop.hive.metastore.model;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MTable {
-  
+
   private String tableName;
   private MDatabase database;
   private MStorageDescriptor sd;
@@ -35,6 +36,9 @@ public class MTable {
   private String viewOriginalText;
   private String viewExpandedText;
   private String tableType;
+
+  private List<MFieldSchema> fileSplitKeys;
+  private Set<MNodeGroup> groupDistribute;
 
   public MTable() {}
 
@@ -68,6 +72,34 @@ public class MTable {
     this.viewOriginalText = viewOriginalText;
     this.viewExpandedText = viewExpandedText;
     this.tableType = tableType;
+  }
+
+  public MTable(String tableName, MDatabase database, MStorageDescriptor sd, String owner,
+      int createTime, int lastAccessTime, int retention, List<MFieldSchema> fileSplitKeys,
+      List<MFieldSchema> partitionKeys, Map<String, String> parameters,
+      String viewOriginalText, String viewExpandedText, String tableType) {
+    this.tableName = tableName;
+    this.database = database;
+    this.sd = sd;
+    this.owner = owner;
+    this.createTime = createTime;
+    this.setLastAccessTime(lastAccessTime);
+    this.retention = retention;
+    this.fileSplitKeys = fileSplitKeys;
+    this.partitionKeys = partitionKeys;
+    this.parameters = parameters;
+    this.viewOriginalText = viewOriginalText;
+    this.viewExpandedText = viewExpandedText;
+    this.tableType = tableType;
+  }
+
+  public MTable(String tableName, MDatabase database, MStorageDescriptor sd, String owner,
+      int createTime, int lastAccessTime, int retention, List<MFieldSchema> fileSplitKeys,
+      List<MFieldSchema> partitionKeys,Map<String, String> parameters,
+      String viewOriginalText, String viewExpandedText, String tableType,Set<MNodeGroup> groupDistribute) {
+    this(tableName, database, sd, owner, createTime, lastAccessTime, retention,fileSplitKeys,
+        partitionKeys, parameters, viewOriginalText, viewExpandedText, tableType);
+    this.groupDistribute = groupDistribute;
   }
 
   /**
@@ -237,4 +269,14 @@ public class MTable {
   public String getTableType() {
     return tableType;
   }
+
+  public Set<MNodeGroup> getGroupDistribute() {
+    return groupDistribute;
+  }
+
+  public void setGroupDistribute(Set<MNodeGroup> groupDistribute) {
+    this.groupDistribute = groupDistribute;
+  }
+
+
 }

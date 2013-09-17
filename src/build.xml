@@ -303,7 +303,7 @@
   </target>
 
   <target name="gen-test" depends="jar" description="Generate tests">
-    <iterate-test target="gen-test"/>
+    <!--iterate-test target="gen-test"/-->
   </target>
   
   <target name="jar-test" depends="gen-test"
