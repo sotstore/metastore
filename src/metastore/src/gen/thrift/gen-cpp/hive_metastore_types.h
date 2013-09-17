@@ -2744,6 +2744,131 @@ class EnvironmentContext {
 
 void swap(EnvironmentContext &a, EnvironmentContext &b);
 
+
+class GeoLocation {
+ public:
+
+  static const char* ascii_fingerprint; // = "C93D890311F28844166CF6E571EB3AC2";
+  static const uint8_t binary_fingerprint[16]; // = {0xC9,0x3D,0x89,0x03,0x11,0xF2,0x88,0x44,0x16,0x6C,0xF6,0xE5,0x71,0xEB,0x3A,0xC2};
+
+  GeoLocation() : nation(), province(), city(), dist() {
+  }
+
+  virtual ~GeoLocation() throw() {}
+
+  std::string nation;
+  std::string province;
+  std::string city;
+  std::string dist;
+
+  void __set_nation(const std::string& val) {
+    nation = val;
+  }
+
+  void __set_province(const std::string& val) {
+    province = val;
+  }
+
+  void __set_city(const std::string& val) {
+    city = val;
+  }
+
+  void __set_dist(const std::string& val) {
+    dist = val;
+  }
+
+  bool operator == (const GeoLocation & rhs) const
+  {
+    if (!(nation == rhs.nation))
+      return false;
+    if (!(province == rhs.province))
+      return false;
+    if (!(city == rhs.city))
+      return false;
+    if (!(dist == rhs.dist))
+      return false;
+    return true;
+  }
+  bool operator != (const GeoLocation &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const GeoLocation & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(GeoLocation &a, GeoLocation &b);
+
+typedef struct _EquipRoom__isset {
+  _EquipRoom__isset() : geolocation(false) {}
+  bool geolocation;
+} _EquipRoom__isset;
+
+class EquipRoom {
+ public:
+
+  static const char* ascii_fingerprint; // = "9F3F812E35FF7B7A1BE08C78703AEC42";
+  static const uint8_t binary_fingerprint[16]; // = {0x9F,0x3F,0x81,0x2E,0x35,0xFF,0x7B,0x7A,0x1B,0xE0,0x8C,0x78,0x70,0x3A,0xEC,0x42};
+
+  EquipRoom() : eqRoomName(), status(0), comment() {
+  }
+
+  virtual ~EquipRoom() throw() {}
+
+  std::string eqRoomName;
+  int32_t status;
+  std::string comment;
+  GeoLocation geolocation;
+
+  _EquipRoom__isset __isset;
+
+  void __set_eqRoomName(const std::string& val) {
+    eqRoomName = val;
+  }
+
+  void __set_status(const int32_t val) {
+    status = val;
+  }
+
+  void __set_comment(const std::string& val) {
+    comment = val;
+  }
+
+  void __set_geolocation(const GeoLocation& val) {
+    geolocation = val;
+    __isset.geolocation = true;
+  }
+
+  bool operator == (const EquipRoom & rhs) const
+  {
+    if (!(eqRoomName == rhs.eqRoomName))
+      return false;
+    if (!(status == rhs.status))
+      return false;
+    if (!(comment == rhs.comment))
+      return false;
+    if (__isset.geolocation != rhs.__isset.geolocation)
+      return false;
+    else if (__isset.geolocation && !(geolocation == rhs.geolocation))
+      return false;
+    return true;
+  }
+  bool operator != (const EquipRoom &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const EquipRoom & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(EquipRoom &a, EquipRoom &b);
+
 typedef struct _MetaException__isset {
   _MetaException__isset() : message(false) {}
   bool message;

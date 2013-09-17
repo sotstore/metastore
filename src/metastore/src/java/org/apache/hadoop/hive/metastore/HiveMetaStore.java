@@ -73,9 +73,11 @@ import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
+import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.FOFailReason;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
+import org.apache.hadoop.hive.metastore.api.GeoLocation;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
@@ -5674,6 +5676,93 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
       }
       return true;
+    }
+/**
+ * @author cry
+ *
+ */
+    @Override
+    public boolean addEquipRoom(EquipRoom er) throws MetaException, TException {
+      LOG.info(er);
+      getMS().addEquipRoom(er);
+      return false;
+    }
+
+    @Override
+    public boolean modifyEquipRoom(EquipRoom er) throws MetaException, TException {
+      boolean success = false;
+      Exception ex = null;
+      try {
+        getMS().modifyEquipRoom(er);
+        success = true;
+      } catch (Exception e) {
+        ex = e;
+        if (e instanceof MetaException) {
+          throw (MetaException) e;
+        } else if (e instanceof InvalidOperationException) {
+          throw (InvalidOperationException) e;
+        } else {
+          MetaException me = new MetaException(e.toString());
+          me.initCause(e);
+          throw me;
+        }
+      } finally {
+        endFunction("modifyEquipRoom", success, ex);
+      }
+      return success;
+    }
+
+    @Override
+    public boolean deleteEquipRoom(EquipRoom er) throws MetaException, TException {
+      getMS().deleteEquipRoom(er);
+      return true;
+    }
+
+    @Override
+    public List<EquipRoom> listEquipRoom() throws MetaException, TException {
+      return getMS().listEquipRoom();
+    }
+
+    @Override
+    public boolean addGeoLocation(GeoLocation gl) throws MetaException, TException {
+      LOG.info(gl);
+      getMS().addGeoLocation(gl);
+      return true;
+    }
+
+    @Override
+    public boolean modifyGeoLocation(GeoLocation gl) throws MetaException, TException {
+      boolean success = false;
+      Exception ex = null;
+      try {
+        getMS().modifyGeoLocation(gl);
+        success = true;
+      } catch (Exception e) {
+        ex = e;
+        if (e instanceof MetaException) {
+          throw (MetaException) e;
+        } else if (e instanceof InvalidOperationException) {
+          throw (InvalidOperationException) e;
+        } else {
+          MetaException me = new MetaException(e.toString());
+          me.initCause(e);
+          throw me;
+        }
+      } finally {
+        endFunction("modifyGeoLocation", success, ex);
+      }
+      return success;
+    }
+
+    @Override
+    public boolean deleteGeoLocation(GeoLocation gl) throws MetaException, TException {
+      getMS().deleteGeoLocation(gl);
+      return true;
+    }
+
+    @Override
+    public List<GeoLocation> listGeoLocation() throws MetaException, TException {
+      return getMS().listGeoLocation();
     }
 
   }

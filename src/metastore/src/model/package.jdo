@@ -1134,6 +1134,60 @@
         <column name="COMMENT" length="4000" jdbc-type="VARCHAR" allows-null="true"/>
       </field>
     </class>
+        
+    <class name="MGeoLocation" table="geo_loc" detachable="true">
+      <index name="UniqueMGeoLocation" unique="true">
+        <column name="NATION"/>
+      </index>
+      
+      <datastore-identity>
+        <column name="GEO_LOC_ID"/>
+      </datastore-identity>
+      
+      <field name="nation">
+        <column name="NATION" length="128" jdbc-type="VARCHAR"/>
+      </field>
+      
+      <field name="province">
+        <column name="PROVINCE" length="128" jdbc-type="VARCHAR"/>
+      </field>
+      
+      <field name="city">
+        <column name="CITY" length="128" jdbc-type="VARCHAR"/>
+      </field>
+            
+      <field name="dist">
+        <column name="DIST" length="128" jdbc-type="VARCHAR"/>
+      </field>
+          
+    </class>
+    
+    <class name="MEquipRoom" table="eq_room" detachable="true">
+      <index name="UniqueMEquipRoom" unique="true">
+        <column name="EQ_ROOM_NAME"/>
+      </index>
+      
+      <datastore-identity>
+        <column name="EQ_ROOM_ID"/>
+      </datastore-identity>
+      
+      <field name="eqRoomName">
+        <column name="EQ_ROOM_NAME" length="128" jdbc-type="VARCHAR"/>
+      </field>
+      
+      <field name="status">
+        <column name="STATUS"/>
+      </field>
+      
+      <field name="comment">
+        <column name="COMMENT" length="4000" jdbc-type="VARCHAR"/>
+      </field>
+            
+      <field name="geolocation">
+        <column name="GEO_LOC_ID" length="128" jdbc-type="VARCHAR"/>
+      </field>
+          
+    </class>
     
   </package>
 </jdo>
