@@ -50,11 +50,11 @@ public class MSchema {
    * @param viewExpandedText
    * @param tableType
    */
-  public MSchema(String tableName, MDatabase database, MStorageDescriptor sd,
+  public MSchema(String schemaName, MStorageDescriptor sd,
       int createTime, int lastAccessTime, int retention, //List<MFieldSchema> partitionKeys,
       Map<String, String> parameters,
       String viewOriginalText, String viewExpandedText, String tableType) {
-    this.schemaName = tableName;
+    this.schemaName = schemaName;
     this.sd = sd;
     this.createTime = createTime;
     this.setLastAccessTime(lastAccessTime);
@@ -67,17 +67,17 @@ public class MSchema {
   }
 
   /**
-   * @return the tableName
+   * @return the SchemaName
    */
-  public String getTableName() {
+  public String getSchemaName() {
     return schemaName;
   }
 
   /**
-   * @param tableName the tableName to set
+   * @param SchemaName the SchemaName to set
    */
-  public void setTableName(String tableName) {
-    this.schemaName = tableName;
+  public void setSchemaName(String schemaName) {
+    this.schemaName = schemaName;
   }
 
   /**

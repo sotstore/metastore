@@ -92,6 +92,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.NodeGroup;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
@@ -102,6 +103,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.Schema;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
@@ -5865,6 +5867,115 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public Device modify_device(Device dev, Node node) throws MetaException, TException {
       return getMS().modifyDevice(dev, node);
+    }
+
+    @Override
+    public boolean createSchema(Schema schema) throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public boolean modifySchema(Schema schema) throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public boolean deleteSchema(String schemaName) throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public List<Schema> listSchemas() throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public Schema getSchemaByName(String schemaName) throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public List<NodeGroup> getTableNodeGroups(String dbName, String tabName) throws MetaException,
+        TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public List<SFile> getTableNodeFiles(String dbName, String tabName, String nodeName)
+        throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public List<SFile> listTableFiles(String dbName, String tabName, short max_num)
+        throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public List<SFile> filterTableFiles(String dbName, String tabName, String exp)
+        throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public boolean addNodeGroup(NodeGroup ng) throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public boolean modifyNodeGroup(NodeGroup ng) throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public boolean deleteNodeGroup(NodeGroup ng) throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public List<NodeGroup> listNodeGroups() throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public List<NodeGroup> listDBNodeGroups(String dbName) throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public boolean addTableNodeDist(String db, String tab, List<String> ng) throws MetaException,
+        TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public boolean deleteTableNodeDist(String db, String tab, List<String> ng)
+        throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public List<NodeGroup> listTableNodeDists(String dbName, String tabName) throws MetaException,
+        TException {
+      // TODO Auto-generated method stub
+      return null;
     }
 
 /*    @Override

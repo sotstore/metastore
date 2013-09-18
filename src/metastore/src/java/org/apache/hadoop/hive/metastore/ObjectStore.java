@@ -136,6 +136,7 @@ import org.apache.hadoop.hive.metastore.model.MPartitionIndexStore;
 import org.apache.hadoop.hive.metastore.model.MPartitionPrivilege;
 import org.apache.hadoop.hive.metastore.model.MRole;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
+import org.apache.hadoop.hive.metastore.model.MSchema;
 import org.apache.hadoop.hive.metastore.model.MSerDeInfo;
 import org.apache.hadoop.hive.metastore.model.MStorageDescriptor;
 import org.apache.hadoop.hive.metastore.model.MStringList;
@@ -534,6 +535,29 @@ public class ObjectStore implements RawStore, Configurable {
       throw new NoSuchObjectException("There is no database named " + name);
     }
     return mdb;
+  }
+  @SuppressWarnings("nls")
+  private MSchema getMSchema(String schema_name) throws NoSuchObjectException {
+    MSchema mSchema = null;
+    boolean commited = false;
+    try {
+      openTransaction();
+      schema_name = schema_name.toLowerCase().trim();
+      Query query = pm.newQuery(MSchema.class, "name == schema_name");
+      query.declareParameters("java.lang.String schema_name");
+      query.setUnique(true);
+      mSchema = (MSchema) query.execute(schema_name);
+      pm.retrieve(mSchema);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    if (mSchema == null) {
+      throw new NoSuchObjectException("There is no schema named " + schema_name);
+    }
+    return mSchema;
   }
 
   public Database getDatabase(String name) throws NoSuchObjectException {
@@ -2512,7 +2536,7 @@ public class ObjectStore implements RawStore, Configurable {
         tableType = TableType.MANAGED_TABLE.toString();
       }
     }
-    return new Table(mtbl.getTableName(), mtbl.getDatabase().getName(), mtbl
+    return new Table(mtbl.getTableName(), mtbl.getDatabase().getName(), mtbl.getSchema().getSchemaName(),mtbl
         .getOwner(), mtbl.getCreateTime(), mtbl.getLastAccessTime(), mtbl
         .getRetention(), convertToStorageDescriptor(mtbl.getSd()),
         convertToFieldSchemas(mtbl.getPartitionKeys()), mtbl.getParameters(),
@@ -2590,8 +2614,10 @@ public class ObjectStore implements RawStore, Configurable {
       return null;
     }
     MDatabase mdb = null;
+    MSchema mSchema = null;
     try {
       mdb = getMDatabase(tbl.getDbName());
+      mSchema = getMSchema(tbl.getSchemaName());
     } catch (NoSuchObjectException e) {
       LOG.error(StringUtils.stringifyException(e));
       throw new InvalidObjectException("Database " + tbl.getDbName()
@@ -2614,7 +2640,7 @@ public class ObjectStore implements RawStore, Configurable {
     }
 
     // A new table is always created with a new column descriptor
-    return new MTable(tbl.getTableName().toLowerCase(), mdb,
+    return new MTable(tbl.getTableName().toLowerCase(), mdb,mSchema,
         convertToMStorageDescriptor(tbl.getSd()), tbl.getOwner(), tbl
             .getCreateTime(), tbl.getLastAccessTime(), tbl.getRetention(),
         convertToMFieldSchemas(tbl.getPartitionKeys()), tbl.getParameters(),
