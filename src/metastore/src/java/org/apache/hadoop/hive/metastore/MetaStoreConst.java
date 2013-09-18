@@ -21,4 +21,11 @@ public class MetaStoreConst {
     public static final int SUSPECT = 2;
     public static final int __MAX__ = 3;
   }
+
+  public class MDeviceProp {
+    public static final int ALONE = 0;  // exist only in one node
+    public static final int SHARED = 1; // might attached to many nodes
+    public static final int BACKUP = 2; // this means it's special SHARED device for backup use
+    public static final int BACKUP_ALONE = 3; // special ALONE device for backup use
+  }
 }

@@ -2694,6 +2694,90 @@ class Node:
   def __ne__(self, other):
     return not (self == other)
 
+class Device:
+  """
+  Attributes:
+   - devid
+   - prop
+   - node_name
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'devid', None, None, ), # 1
+    (2, TType.I32, 'prop', None, None, ), # 2
+    (3, TType.STRING, 'node_name', None, None, ), # 3
+  )
+
+  def __init__(self, devid=None, prop=None, node_name=None,):
+    self.devid = devid
+    self.prop = prop
+    self.node_name = node_name
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.devid = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.I32:
+          self.prop = iprot.readI32();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRING:
+          self.node_name = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('Device')
+    if self.devid is not None:
+      oprot.writeFieldBegin('devid', TType.STRING, 1)
+      oprot.writeString(self.devid)
+      oprot.writeFieldEnd()
+    if self.prop is not None:
+      oprot.writeFieldBegin('prop', TType.I32, 2)
+      oprot.writeI32(self.prop)
+      oprot.writeFieldEnd()
+    if self.node_name is not None:
+      oprot.writeFieldBegin('node_name', TType.STRING, 3)
+      oprot.writeString(self.node_name)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class SFileLocation:
   """
   Attributes:

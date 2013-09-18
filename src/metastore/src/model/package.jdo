@@ -1053,9 +1053,6 @@
         <column name="LOCATION_ID"/>
       </datastore-identity>
       
-      <field name="node">
-        <column name="NODE_ID"/>
-      </field>
       <field name="file">
         <column name="FILE_ID"/>
       </field>

@@ -71,6 +71,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.DoubleColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -315,6 +316,8 @@ public class ObjectStore implements RawStore, Configurable {
       MetaMsgServer.start();
     } catch (MetaClientException e) {
       LOG.error(e+"---start-metaQ--error",e);
+    } catch (Exception e) {
+      LOG.error(e, e);
     }
 
     return;
@@ -1282,11 +1285,12 @@ public class ObjectStore implements RawStore, Configurable {
       if (mn == null) {
         throw new InvalidObjectException("Invalid Node name '" + node.getNode_name() + "'!");
       }
-      md = new MDevice(mn, di.dev.trim());
+      md = new MDevice(mn, di.dev.trim(), di.prop);
       doCreate = true;
     } else {
-      // update it now
-      if (!md.getNode().getNode_name().equals(node.getNode_name())) {
+      // update it now?
+      if (!md.getNode().getNode_name().equals(node.getNode_name()) &&
+          md.getProp() == MetaStoreConst.MDeviceProp.ALONE) {
         LOG.info("Saved " + md.getNode().getNode_name() + ", this " + node.getNode_name());
         // should update it.
         MNode mn = getMNode(node.getNode_name());
@@ -1310,8 +1314,8 @@ public class ObjectStore implements RawStore, Configurable {
     Node n = new Node("macan", ips, MetaStoreConst.MNodeStatus.SUSPECT);
     SFile sf = new SFile(0, 10, 5, 6, "xyzadfads", 1, 2, null, 100);
     createNode(n);
-    MDevice md1 = new MDevice(getMNode("macan"), "dev-hello");
-    MDevice md2 = new MDevice(getMNode("macan"), "xyz1");
+    MDevice md1 = new MDevice(getMNode("macan"), "dev-hello", 0);
+    MDevice md2 = new MDevice(getMNode("macan"), "xyz1", 0);
     createDevice(md1);
     createDevice(md2);
 
@@ -1675,6 +1679,25 @@ public class ObjectStore implements RawStore, Configurable {
       throw new NoSuchObjectException("Can not find Datacenter " + name + ", please check it!");
     }
     return dc;
+  }
+
+  public Device getDevice(String devid) throws MetaException, NoSuchObjectException {
+    boolean commited = false;
+    Device d = null;
+
+    try {
+      openTransaction();
+      d = convertToDevice(getMDevice(devid));
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    if (d == null) {
+      throw new NoSuchObjectException("Can not find Device " + devid + ", please check it!");
+    }
+    return d;
   }
 
   public Node getNode(String node_name) throws MetaException {
@@ -2381,6 +2404,13 @@ public class ObjectStore implements RawStore, Configurable {
     return new Node(mn.getNode_name(), mn.getIPList(), mn.getStatus());
   }
 
+  private Device convertToDevice(MDevice md) throws MetaException {
+    if (md == null) {
+      return null;
+    }
+    return new Device(md.getDev_name(), md.getProp(), md.getNode() != null ? md.getNode().getNode_name() : null);
+  }
+
   private Datacenter convertToDatacenter(MDatacenter mdc) throws MetaException {
     if (mdc == null) {
       return null;
@@ -2402,7 +2432,7 @@ public class ObjectStore implements RawStore, Configurable {
     }
     List<SFileLocation> r = new ArrayList<SFileLocation>();
     for (MFileLocation mf : mfl) {
-      r.add(new SFileLocation(mf.getNode().getNode_name(), mf.getFile().getFid(), mf.getDev().getDev_name(),
+      r.add(new SFileLocation(mf.getDev().getNode().getNode_name(), mf.getFile().getFid(), mf.getDev().getDev_name(),
           mf.getLocation(), mf.getRep_id(), mf.getUpdate_time(), mf.getVisit_status(), mf.getDigest()));
     }
     return r;
@@ -2413,7 +2443,7 @@ public class ObjectStore implements RawStore, Configurable {
       return null;
     }
     pm.retrieve(mfl);
-    return new SFileLocation(mfl.getNode().getNode_name(), mfl.getFile().getFid(), mfl.getDev().getDev_name(),
+    return new SFileLocation(mfl.getDev().getNode().getNode_name(), mfl.getFile().getFid(), mfl.getDev().getDev_name(),
         mfl.getLocation(), mfl.getRep_id(), mfl.getUpdate_time(), mfl.getVisit_status(), mfl.getDigest());
   }
 
@@ -2446,6 +2476,15 @@ public class ObjectStore implements RawStore, Configurable {
     }
 
     return new MNode(node.getNode_name().trim(), node.getIps(), node.getStatus());
+  }
+
+  private MDevice convertToMDevice(Device device) {
+    if (device == null) {
+      return null;
+    }
+    MNode mn = this.getMNode(device.getNode_name());
+
+    return new MDevice(mn, device.getDevid(), device.getProp());
   }
 
   private MDatacenter convertToMDatacenter(Datacenter dc) {
@@ -2486,7 +2525,7 @@ public class ObjectStore implements RawStore, Configurable {
       return null;
     }
 
-    return new MFileLocation(mn, mf, md, location.getLocation(),
+    return new MFileLocation(mf, md, location.getLocation(),
         location.getRep_id(), System.currentTimeMillis(), location.getVisit_status(), location.getDigest());
   }
 
@@ -7346,6 +7385,23 @@ public class ObjectStore implements RawStore, Configurable {
       MFile mf = getMFile(fid);
       if (mf != null) {
         pm.deletePersistent(mf);
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  public boolean delDevice(String devid) throws MetaException {
+    boolean success = false;
+    try {
+      openTransaction();
+      MDevice md = getMDevice(devid);
+      if (md != null) {
+        pm.deletePersistent(md);
       }
       success = commitTransaction();
     } finally {

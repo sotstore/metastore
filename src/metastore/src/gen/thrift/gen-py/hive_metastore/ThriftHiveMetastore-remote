@@ -139,6 +139,8 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  Node get_node(string node_name)'
   print '  Node add_node(string node_name,  ipl)'
   print '  i32 del_node(string node_name)'
+  print '  Device create_device(string devid, i32 prop, string node_name)'
+  print '  bool del_device(string devid)'
   print '  Node alter_node(string node_name,  ipl, i32 status)'
   print '   find_best_nodes(i32 nr)'
   print '   get_all_nodes()'
@@ -895,6 +897,18 @@ elif cmd == 'del_node':
     print 'del_node requires 1 args'
     sys.exit(1)
   pp.pprint(client.del_node(args[0],))
+
+elif cmd == 'create_device':
+  if len(args) != 3:
+    print 'create_device requires 3 args'
+    sys.exit(1)
+  pp.pprint(client.create_device(args[0],eval(args[1]),args[2],))
+
+elif cmd == 'del_device':
+  if len(args) != 1:
+    print 'del_device requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.del_device(args[0],))
 
 elif cmd == 'alter_node':
   if len(args) != 3:

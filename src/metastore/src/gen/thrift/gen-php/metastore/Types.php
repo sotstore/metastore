@@ -4300,6 +4300,118 @@ class Node {
 
 }
 
+class Device {
+  static $_TSPEC;
+
+  public $devid = null;
+  public $prop = null;
+  public $node_name = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'devid',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'prop',
+          'type' => TType::I32,
+          ),
+        3 => array(
+          'var' => 'node_name',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['devid'])) {
+        $this->devid = $vals['devid'];
+      }
+      if (isset($vals['prop'])) {
+        $this->prop = $vals['prop'];
+      }
+      if (isset($vals['node_name'])) {
+        $this->node_name = $vals['node_name'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'Device';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->devid);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->prop);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->node_name);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('Device');
+    if ($this->devid !== null) {
+      $xfer += $output->writeFieldBegin('devid', TType::STRING, 1);
+      $xfer += $output->writeString($this->devid);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->prop !== null) {
+      $xfer += $output->writeFieldBegin('prop', TType::I32, 2);
+      $xfer += $output->writeI32($this->prop);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->node_name !== null) {
+      $xfer += $output->writeFieldBegin('node_name', TType::STRING, 3);
+      $xfer += $output->writeString($this->node_name);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
 class SFileLocation {
   static $_TSPEC;
 

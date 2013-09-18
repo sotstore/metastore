@@ -30,6 +30,7 @@ import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -548,4 +549,8 @@ public interface RawStore extends Configurable {
   public abstract List<Busitype> showBusitypes()throws  MetaException, TException;
 
   public abstract int createBusitype(Busitype busitype)throws InvalidObjectException, MetaException, TException;
+
+  public Device getDevice(String devid) throws MetaException, NoSuchObjectException;
+
+  public boolean delDevice(String devid) throws MetaException;
 }

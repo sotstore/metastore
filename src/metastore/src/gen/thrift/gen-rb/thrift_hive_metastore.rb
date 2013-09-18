@@ -1952,6 +1952,38 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'del_node failed: unknown result')
     end
 
+    def create_device(devid, prop, node_name)
+      send_create_device(devid, prop, node_name)
+      return recv_create_device()
+    end
+
+    def send_create_device(devid, prop, node_name)
+      send_message('create_device', Create_device_args, :devid => devid, :prop => prop, :node_name => node_name)
+    end
+
+    def recv_create_device()
+      result = receive_message(Create_device_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'create_device failed: unknown result')
+    end
+
+    def del_device(devid)
+      send_del_device(devid)
+      return recv_del_device()
+    end
+
+    def send_del_device(devid)
+      send_message('del_device', Del_device_args, :devid => devid)
+    end
+
+    def recv_del_device()
+      result = receive_message(Del_device_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'del_device failed: unknown result')
+    end
+
     def alter_node(node_name, ipl, status)
       send_alter_node(node_name, ipl, status)
       return recv_alter_node()
@@ -3585,6 +3617,28 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'del_node', seqid)
+    end
+
+    def process_create_device(seqid, iprot, oprot)
+      args = read_args(iprot, Create_device_args)
+      result = Create_device_result.new()
+      begin
+        result.success = @handler.create_device(args.devid, args.prop, args.node_name)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'create_device', seqid)
+    end
+
+    def process_del_device(seqid, iprot, oprot)
+      args = read_args(iprot, Del_device_args)
+      result = Del_device_result.new()
+      begin
+        result.success = @handler.del_device(args.devid)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'del_device', seqid)
     end
 
     def process_alter_node(seqid, iprot, oprot)
@@ -8117,6 +8171,78 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Create_device_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DEVID = 1
+    PROP = 2
+    NODE_NAME = 3
+
+    FIELDS = {
+      DEVID => {:type => ::Thrift::Types::STRING, :name => 'devid'},
+      PROP => {:type => ::Thrift::Types::I32, :name => 'prop'},
+      NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Create_device_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Device},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Del_device_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DEVID = 1
+
+    FIELDS = {
+      DEVID => {:type => ::Thrift::Types::STRING, :name => 'devid'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Del_device_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
