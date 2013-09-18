@@ -1,8 +1,10 @@
 package org.apache.hadoop.hive.metastore.model;
 
+import java.util.List;
+
 public class MFile {
   private long fid;
-  private long placement;
+  private MTable table;
   private int store_status;
   private int rep_nr;
   private String digest;
@@ -10,11 +12,12 @@ public class MFile {
   private long all_record_nr;
   //private List<MFileLocation> locations;
   private long length;
+  private List<String> values;
 
-  public MFile(long fid, long placement, int store_status, int rep_nr, String digest,
-      long record_nr, long all_record_nr, long length) {
+  public MFile(long fid, MTable table, int store_status, int rep_nr, String digest,
+      long record_nr, long all_record_nr, long length, List<String> values) {
     this.setFid(fid);
-    this.placement = placement;
+    this.setTable(table);
     this.store_status = store_status;
     this.rep_nr = rep_nr;
     this.digest = digest;
@@ -28,12 +31,6 @@ public class MFile {
   }
   public void setStore_status(int store_status) {
     this.store_status = store_status;
-  }
-  public long getPlacement() {
-    return placement;
-  }
-  public void setPlacement(long placement) {
-    this.placement = placement;
   }
   public int getRep_nr() {
     return rep_nr;
@@ -73,5 +70,21 @@ public class MFile {
 
   public void setLength(long length) {
     this.length = length;
+  }
+
+  public List<String> getValues() {
+    return values;
+  }
+
+  public void setValues(List<String> values) {
+    this.values = values;
+  }
+
+  public MTable getTable() {
+    return table;
+  }
+
+  public void setTable(MTable table) {
+    this.table = table;
   }
 }

@@ -118,6 +118,10 @@ public interface RawStore extends Configurable {
   public abstract void createOrUpdateDevice(DeviceInfo di, Node node) throws
       InvalidObjectException, MetaException;
 
+  public Device modifyDevice(Device dev, Node node) throws MetaException, NoSuchObjectException, InvalidObjectException;
+
+  public abstract void offlineDevice(String devid) throws InvalidObjectException, MetaException;
+
   public abstract void createNode(Node node) throws InvalidObjectException, MetaException;
 
   public boolean updateNode(Node node) throws MetaException;

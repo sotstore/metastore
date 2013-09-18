@@ -1966,13 +1966,13 @@ module ThriftHiveMetastore
       return
     end
 
-    def create_file(node_name, repnr, db_name, table_name)
-      send_create_file(node_name, repnr, db_name, table_name)
+    def create_file(node_name, repnr, db_name, table_name, values)
+      send_create_file(node_name, repnr, db_name, table_name, values)
       return recv_create_file()
     end
 
-    def send_create_file(node_name, repnr, db_name, table_name)
-      send_message('create_file', Create_file_args, :node_name => node_name, :repnr => repnr, :db_name => db_name, :table_name => table_name)
+    def send_create_file(node_name, repnr, db_name, table_name, values)
+      send_message('create_file', Create_file_args, :node_name => node_name, :repnr => repnr, :db_name => db_name, :table_name => table_name, :values => values)
     end
 
     def recv_create_file()
@@ -2180,6 +2180,23 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'create_device failed: unknown result')
     end
 
+    def get_device(devid)
+      send_get_device(devid)
+      return recv_get_device()
+    end
+
+    def send_get_device(devid)
+      send_message('get_device', Get_device_args, :devid => devid)
+    end
+
+    def recv_get_device()
+      result = receive_message(Get_device_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_device failed: unknown result')
+    end
+
     def del_device(devid)
       send_del_device(devid)
       return recv_del_device()
@@ -2194,6 +2211,22 @@ module ThriftHiveMetastore
       return result.success unless result.success.nil?
       raise result.o1 unless result.o1.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'del_device failed: unknown result')
+    end
+
+    def modify_device(dev, node)
+      send_modify_device(dev, node)
+      return recv_modify_device()
+    end
+
+    def send_modify_device(dev, node)
+      send_message('modify_device', Modify_device_args, :dev => dev, :node => node)
+    end
+
+    def recv_modify_device()
+      result = receive_message(Modify_device_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'modify_device failed: unknown result')
     end
 
     def alter_node(node_name, ipl, status)
@@ -3842,7 +3875,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, Create_file_args)
       result = Create_file_result.new()
       begin
-        result.success = @handler.create_file(args.node_name, args.repnr, args.db_name, args.table_name)
+        result.success = @handler.create_file(args.node_name, args.repnr, args.db_name, args.table_name, args.values)
       rescue ::FileOperationException => o1
         result.o1 = o1
       end
@@ -3993,6 +4026,19 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'create_device', seqid)
     end
 
+    def process_get_device(seqid, iprot, oprot)
+      args = read_args(iprot, Get_device_args)
+      result = Get_device_result.new()
+      begin
+        result.success = @handler.get_device(args.devid)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      rescue ::NoSuchObjectException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'get_device', seqid)
+    end
+
     def process_del_device(seqid, iprot, oprot)
       args = read_args(iprot, Del_device_args)
       result = Del_device_result.new()
@@ -4002,6 +4048,17 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'del_device', seqid)
+    end
+
+    def process_modify_device(seqid, iprot, oprot)
+      args = read_args(iprot, Modify_device_args)
+      result = Modify_device_result.new()
+      begin
+        result.success = @handler.modify_device(args.dev, args.node)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'modify_device', seqid)
     end
 
     def process_alter_node(seqid, iprot, oprot)
@@ -8569,12 +8626,14 @@ module ThriftHiveMetastore
     REPNR = 2
     DB_NAME = 3
     TABLE_NAME = 4
+    VALUES = 5
 
     FIELDS = {
       NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'},
       REPNR => {:type => ::Thrift::Types::I32, :name => 'repnr'},
       DB_NAME => {:type => ::Thrift::Types::STRING, :name => 'db_name'},
-      TABLE_NAME => {:type => ::Thrift::Types::STRING, :name => 'table_name'}
+      TABLE_NAME => {:type => ::Thrift::Types::STRING, :name => 'table_name'},
+      VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRING}}
     }
 
     def struct_fields; FIELDS; end
@@ -9032,6 +9091,42 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
+  class Get_device_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DEVID = 1
+
+    FIELDS = {
+      DEVID => {:type => ::Thrift::Types::STRING, :name => 'devid'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Get_device_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Device},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::NoSuchObjectException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class Del_device_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     DEVID = 1
@@ -9055,6 +9150,42 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Modify_device_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DEV = 1
+    NODE = 2
+
+    FIELDS = {
+      DEV => {:type => ::Thrift::Types::STRUCT, :name => 'dev', :class => ::Device},
+      NODE => {:type => ::Thrift::Types::STRUCT, :name => 'node', :class => ::Node}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Modify_device_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Device},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 

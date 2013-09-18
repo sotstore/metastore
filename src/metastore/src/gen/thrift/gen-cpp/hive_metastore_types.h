@@ -1937,9 +1937,10 @@ class SFileLocation {
 void swap(SFileLocation &a, SFileLocation &b);
 
 typedef struct _SFile__isset {
-  _SFile__isset() : fid(false), placement(false), store_status(false), rep_nr(false), digest(false), record_nr(false), all_record_nr(false), locations(false), length(false) {}
+  _SFile__isset() : fid(false), dbName(false), tableName(false), store_status(false), rep_nr(false), digest(false), record_nr(false), all_record_nr(false), locations(false), length(false), values(false) {}
   bool fid;
-  bool placement;
+  bool dbName;
+  bool tableName;
   bool store_status;
   bool rep_nr;
   bool digest;
@@ -1947,21 +1948,23 @@ typedef struct _SFile__isset {
   bool all_record_nr;
   bool locations;
   bool length;
+  bool values;
 } _SFile__isset;
 
 class SFile {
  public:
 
-  static const char* ascii_fingerprint; // = "A35168FCF9B6081CDC8FE76BE711767A";
-  static const uint8_t binary_fingerprint[16]; // = {0xA3,0x51,0x68,0xFC,0xF9,0xB6,0x08,0x1C,0xDC,0x8F,0xE7,0x6B,0xE7,0x11,0x76,0x7A};
+  static const char* ascii_fingerprint; // = "69291681D9E8A39CBA63E2B3E0433D05";
+  static const uint8_t binary_fingerprint[16]; // = {0x69,0x29,0x16,0x81,0xD9,0xE8,0xA3,0x9C,0xBA,0x63,0xE2,0xB3,0xE0,0x43,0x3D,0x05};
 
-  SFile() : fid(0), placement(0), store_status(0), rep_nr(0), digest(), record_nr(0), all_record_nr(0), length(0) {
+  SFile() : fid(0), dbName(), tableName(), store_status(0), rep_nr(0), digest(), record_nr(0), all_record_nr(0), length(0) {
   }
 
   virtual ~SFile() throw() {}
 
   int64_t fid;
-  int64_t placement;
+  std::string dbName;
+  std::string tableName;
   int32_t store_status;
   int32_t rep_nr;
   std::string digest;
@@ -1969,6 +1972,7 @@ class SFile {
   int64_t all_record_nr;
   std::vector<SFileLocation>  locations;
   int64_t length;
+  std::vector<std::string>  values;
 
   _SFile__isset __isset;
 
@@ -1976,8 +1980,12 @@ class SFile {
     fid = val;
   }
 
-  void __set_placement(const int64_t val) {
-    placement = val;
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_tableName(const std::string& val) {
+    tableName = val;
   }
 
   void __set_store_status(const int32_t val) {
@@ -2008,11 +2016,17 @@ class SFile {
     length = val;
   }
 
+  void __set_values(const std::vector<std::string> & val) {
+    values = val;
+  }
+
   bool operator == (const SFile & rhs) const
   {
     if (!(fid == rhs.fid))
       return false;
-    if (!(placement == rhs.placement))
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(tableName == rhs.tableName))
       return false;
     if (!(store_status == rhs.store_status))
       return false;
@@ -2027,6 +2041,8 @@ class SFile {
     if (!(locations == rhs.locations))
       return false;
     if (!(length == rhs.length))
+      return false;
+    if (!(values == rhs.values))
       return false;
     return true;
   }
@@ -2052,8 +2068,8 @@ typedef struct _SFileRef__isset {
 class SFileRef {
  public:
 
-  static const char* ascii_fingerprint; // = "8CB1CFF74F7571F121B4D5D494ED385F";
-  static const uint8_t binary_fingerprint[16]; // = {0x8C,0xB1,0xCF,0xF7,0x4F,0x75,0x71,0xF1,0x21,0xB4,0xD5,0xD4,0x94,0xED,0x38,0x5F};
+  static const char* ascii_fingerprint; // = "06B03ED0CDD9D9AD685E5CAD063E5DBA";
+  static const uint8_t binary_fingerprint[16]; // = {0x06,0xB0,0x3E,0xD0,0xCD,0xD9,0xD9,0xAD,0x68,0x5E,0x5C,0xAD,0x06,0x3E,0x5D,0xBA};
 
   SFileRef() : origin_fid(0) {
   }

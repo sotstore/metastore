@@ -1281,6 +1281,27 @@ public class ObjectStore implements RawStore, Configurable {
     return r;
   }
 
+  public Device modifyDevice(Device dev, Node node) throws MetaException, NoSuchObjectException, InvalidObjectException {
+    MDevice md = getMDevice(dev.getDevid());
+    MNode mn;
+
+    if (md == null) {
+      throw new NoSuchObjectException("Invalid device '" + dev.getDevid() + "'!");
+    }
+    if (node != null && !node.getNode_name().equals(md.getNode().getNode_name())) {
+      mn = getMNode(node.getNode_name());
+      if (mn == null) {
+        throw new NoSuchObjectException("Invalid node '" + node.getNode_name() + "'!");
+      }
+      md.setNode(mn);
+    }
+    md.setProp(dev.getProp());
+    md.setStatus(dev.getStatus());
+
+    createDevice(md);
+    return convertToDevice(md);
+  }
+
   public void createOrUpdateDevice(DeviceInfo di, Node node) throws MetaException, InvalidObjectException {
     MDevice md = getMDevice(di.dev.trim());
     boolean doCreate = false;
@@ -1291,7 +1312,7 @@ public class ObjectStore implements RawStore, Configurable {
       if (mn == null) {
         throw new InvalidObjectException("Invalid Node name '" + node.getNode_name() + "'!");
       }
-      md = new MDevice(mn, di.dev.trim(), di.prop, MetaStoreConst.MDeviceStatus.ONLINE);
+      md = new MDevice(mn, di.dev.trim(), di.prop);
       doCreate = true;
     } else {
       // update it now?
@@ -1312,13 +1333,35 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
+  public void onlineDevice(String devid) throws MetaException, InvalidObjectException {
+    MDevice md = getMDevice(devid);
+
+    if (md == null) {
+      throw new InvalidObjectException("Invalid devid: " + devid);
+    }
+    md.setStatus(MetaStoreConst.MDeviceStatus.ONLINE);
+
+    createDevice(md);
+  }
+
+  public void offlineDevice(String devid) throws MetaException, InvalidObjectException {
+    MDevice md = getMDevice(devid);
+
+    if (md == null) {
+      throw new InvalidObjectException("Invalid devid: " + devid);
+    }
+    md.setStatus(MetaStoreConst.MDeviceStatus.OFFLINE);
+
+    createDevice(md);
+  }
+
   private void testHook() throws InvalidObjectException, MetaException {
     List<String> ips = Arrays.asList("192.168.11.7", "127.0.0.1");
     //createNode(new Node("test_node", ips, 100));
     //createFile(new SFile(10, 10, 3, 4, "abc", 1, 2, null));
     //createFile(new SFile(20, 10, 5, 6, "xyz", 1, 2, null));
     Node n = new Node("macan", ips, MetaStoreConst.MNodeStatus.SUSPECT);
-    SFile sf = new SFile(0, 10, 5, 6, "xyzadfads", 1, 2, null, 100);
+    SFile sf = new SFile(0, "db", "table", 5, 6, "xyzadfads", 1, 2, null, 100, null);
     createNode(n);
     MDevice md1 = new MDevice(getMNode("macan"), "dev-hello", 0, 0);
     MDevice md2 = new MDevice(getMNode("macan"), "xyz1", 0, 0);
@@ -1884,6 +1927,7 @@ public class ObjectStore implements RawStore, Configurable {
     MFile mf = null;
     SFile f = null;
     try {
+      openTransaction();
       mf = getMFile(newfile.getFid());
       if (mf.getRep_nr() != newfile.getRep_nr()) {
         repnr_changed = true;
@@ -1898,7 +1942,6 @@ public class ObjectStore implements RawStore, Configurable {
       mf.setStore_status(newfile.getStore_status());
       mf.setLength(newfile.getLength());
 
-      openTransaction();
       pm.makePersistent(mf);
       f = convertToSFile(mf);
       commited = commitTransaction();
@@ -2429,8 +2472,8 @@ public class ObjectStore implements RawStore, Configurable {
     if (mf == null) {
       return null;
     }
-    return new SFile(mf.getFid(), mf.getPlacement(), mf.getStore_status(), mf.getRep_nr(),
-        mf.getDigest(), mf.getRecord_nr(), mf.getAll_record_nr(), null, mf.getLength());
+    return new SFile(mf.getFid(), mf.getTable().getDatabase().getName(), mf.getTable().getTableName(), mf.getStore_status(), mf.getRep_nr(),
+        mf.getDigest(), mf.getRecord_nr(), mf.getAll_record_nr(), null, mf.getLength(), mf.getValues());
   }
 
   private List<SFileLocation> convertToSFileLocation(List<MFileLocation> mfl) throws MetaException {
@@ -2503,12 +2546,17 @@ public class ObjectStore implements RawStore, Configurable {
   }
 
   private MFile convertToMFile(SFile file) {
+    MTable mt = null;
+
     if (file == null) {
       return null;
     }
+    if (file.getDbName() != null && file.getTableName() != null) {
+      mt = getMTable(file.getDbName(), file.getTableName());
+    }
 
-    return new MFile(file.getFid(), file.getPlacement(), file.getStore_status(), file.getRep_nr(),
-        file.getDigest(), file.getRecord_nr(), file.getAll_record_nr(), file.getLength());
+    return new MFile(file.getFid(), mt, file.getStore_status(), file.getRep_nr(),
+        file.getDigest(), file.getRecord_nr(), file.getAll_record_nr(), file.getLength(), file.getValues());
   }
 
   private MFileLocation convertToMFileLocation(SFileLocation location) {

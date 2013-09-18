@@ -607,7 +607,7 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("cancel_delegation_token\n");
   }
 
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name) {
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<std::string> & values) {
     // Your implementation goes here
     printf("create_file\n");
   }
@@ -672,9 +672,19 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("create_device\n");
   }
 
+  void get_device(Device& _return, const std::string& devid) {
+    // Your implementation goes here
+    printf("get_device\n");
+  }
+
   bool del_device(const std::string& devid) {
     // Your implementation goes here
     printf("del_device\n");
+  }
+
+  void modify_device(Device& _return, const Device& dev, const Node& node) {
+    // Your implementation goes here
+    printf("modify_device\n");
   }
 
   void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status) {

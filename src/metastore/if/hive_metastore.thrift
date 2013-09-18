@@ -273,14 +273,16 @@ struct SFileLocation {
 
 struct SFile {
   1: i64	fid,
-  2: i64	placement,
-  3: i32	store_status,
-  4: i32	rep_nr,
-  5: string digest,
-  6: i64	record_nr,
-  7: i64	all_record_nr,
-  8: list<SFileLocation> locations,
-  9: i64    length,
+  2: string dbName,
+  3: string tableName,
+  4: i32	store_status,
+  5: i32	rep_nr,
+  6: string digest,
+  7: i64	record_nr,
+  8: i64	all_record_nr,
+  9: list<SFileLocation> locations,
+  10: i64    length,
+  11: list<string> values,
 }
 
 struct SFileRef {
@@ -813,7 +815,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   void cancel_delegation_token(1:string token_str_form) throws (1:MetaException o1)
   
   // method for file operations
-  SFile create_file(1:string node_name, 2:i32 repnr, 3:string db_name, 4:string table_name) throws (1:FileOperationException o1)
+  SFile create_file(1:string node_name, 2:i32 repnr, 3:string db_name, 4:string table_name, 5:list<string> values) throws (1:FileOperationException o1)
   
   i32 close_file(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
   
@@ -840,7 +842,11 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   Device create_device(1:string devid, 2:i32 prop, 3:string node_name) throws (1:MetaException o1)
   
+  Device get_device(1:string devid) throws (1:MetaException o1, 2:NoSuchObjectException o2)
+  
   bool del_device(1:string devid) throws (1:MetaException o1)
+  
+  Device modify_device(1:Device dev, 2:Node node) throws (1:MetaException o1)
   
   Node alter_node(1:string node_name, 2:list<string> ipl, 3:i32 status) throws (1:MetaException o1)
   

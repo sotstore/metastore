@@ -1238,8 +1238,8 @@
       <field name="store_status">
         <column name="STORE_STATUS"/>
       </field>
-      <field name="placement">
-        <column name="PLACEMENT"/>
+      <field name="table">
+        <column name="TBL_ID"/>
       </field>
       <field name="rep_nr">
         <column name="REP_NR"/>
@@ -1255,6 +1255,14 @@
       </field>
       <field name="length">
         <column name="length"/>
+      </field>
+      
+      <field name="values" table="FILE_KEY_VALS">
+        <collection element-type="java.lang.String"/>
+        <join>
+          <column name="FILE_ID"/>
+        </join>
+        <element column="FILE_KEY_VAL"/>
       </field>
     </class>
     
