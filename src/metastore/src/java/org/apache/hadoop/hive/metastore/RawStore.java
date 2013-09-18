@@ -507,7 +507,7 @@ public interface RawStore extends Configurable {
 
   public abstract boolean removeUser(String userName) throws MetaException, NoSuchObjectException;
 
-  public List<String> listUsersNames();
+  public List<String> listUsersNames() throws MetaException;
 
   public abstract boolean authentication(String userName, String passwd) throws MetaException, NoSuchObjectException;
   //authentication and authorization with user by liulichao, end
@@ -595,8 +595,14 @@ public interface RawStore extends Configurable {
 
   public abstract List<GeoLocation> listGeoLocation() throws MetaException;
 
+  public List<String> listUsersNames(String dbName) throws MetaException;
+
   public abstract Schema getSchema(String schema_name)throws MetaException;
 
   public abstract void createSchema(GlobalSchema schema)throws InvalidObjectException, MetaException;
+
+  public boolean addNodeAssignment(String nodename, String dbname) throws MetaException, NoSuchObjectException;
+
+  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException;
 
 }

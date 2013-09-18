@@ -148,6 +148,7 @@ import org.apache.hadoop.hive.metastore.model.MTableColumnStatistics;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
 import org.apache.hadoop.hive.metastore.model.MType;
 import org.apache.hadoop.hive.metastore.model.MUser;
+import org.apache.hadoop.hive.metastore.model.MetaStoreConst;
 import org.apache.hadoop.hive.metastore.msg.MSGFactory;
 import org.apache.hadoop.hive.metastore.msg.MSGFactory.DDLMsg;
 import org.apache.hadoop.hive.metastore.msg.MSGType;
@@ -2543,7 +2544,7 @@ public class ObjectStore implements RawStore, Configurable {
         .getRetention(), convertToStorageDescriptor(mtbl.getSd()),
         convertToFieldSchemas(mtbl.getPartitionKeys()), mtbl.getParameters(),
         mtbl.getViewOriginalText(), mtbl.getViewExpandedText(),
-        tableType);
+        tableType, convertToFieldSchemas(mtbl.getFileSplitKeys()));
   }
 
   private MNode convertToMNode(Node node) {
@@ -2645,6 +2646,7 @@ public class ObjectStore implements RawStore, Configurable {
     return new MTable(tbl.getTableName().toLowerCase(), mdb,mSchema,
         convertToMStorageDescriptor(tbl.getSd()), tbl.getOwner(), tbl
             .getCreateTime(), tbl.getLastAccessTime(), tbl.getRetention(),
+        convertToMFieldSchemas(tbl.getFileSplitKeys()),
         convertToMFieldSchemas(tbl.getPartitionKeys()), tbl.getParameters(),
         tbl.getViewOriginalText(), tbl.getViewExpandedText(),
         tableType);
@@ -4767,7 +4769,36 @@ public boolean modifyUser(User user) throws MetaException,
 }
 
 @Override
-public List<String> listUsersNames() {
+public List<String> listUsersNames(String dbName) throws MetaException {
+   List<String> userNames  = new ArrayList<String>();
+   boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MUser.class);
+      Collection names = (Collection) query.execute();
+      Iterator iter = names.iterator();
+      while (iter.hasNext()) {
+        MUser mu = (MUser)iter.next();
+        if (mu.getDbs() != null) {
+          for (MDatabase md : mu.getDbs()) {
+            if (md.getName().equals(dbName)) {
+              userNames.add(mu.getUserName());
+              break;
+            }
+          }
+        }
+      }
+      success = commitTransaction();
+      return userNames;
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+}
+
+@Override
+public List<String> listUsersNames() throws MetaException {
     boolean success = false;
     try {
       openTransaction();
@@ -8414,49 +8445,61 @@ public MUser getMUser(String userName) {
 
   }
 
-/*  @Override
-  public boolean addNodeAssignment(Node node, Database database) throws MetaException {
-    MNodeAssignment mna = new MNodeAssignment();
+/*
+ * draft
+ */
+  @Override
+  public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException {
     boolean success = false;
-    int now = (int)(System.currentTimeMillis()/1000);
+    boolean commited = false;
     try {
       openTransaction();
-      pm.makePersistent(mna);
-      success = commitTransaction();
-    } finally {
-      if (!success) {
-        rollbackTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MNode mnd = this.getMNode(nodeName);
+      if (mdb.getNodes() == null) {
+        Set<MNode> nodes = new HashSet<MNode>();
+        nodes.add(mnd);
+      } else {
+        System.out.println("nodeName " + nodeName + " already exists.");
       }
-    }
-    if(success){
-      return true ;
-    }else{
-      return false;
-    }
-  }
+      int now = (int)(System.currentTimeMillis()/1000);
 
-  @Override
-  public boolean modifyNodeAssignment(Node node, Database database) throws MetaException {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  @Override
-  public boolean deleteNodeAssignment(Node node, Database database) throws MetaException {
-    boolean success = false;
-    try {
-      openTransaction();
-      MNodeAssignment mna = new MNodeAssignment();
-      if (mna != null) {
-        pm.deletePersistent(mna);
-      }
-      success = commitTransaction();
+      pm.makePersistent(mnd);
+      commited = commitTransaction();
+      success = true;
     } finally {
-      if (!success) {
+      if (!commited) {
         rollbackTransaction();
       }
     }
     return success;
   }
-*/
+
+  @Override
+  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MNode mnd = this.getMNode(nodeName);
+      if (mdb.getNodes() == null) {
+        Set<MNode> nodes = new HashSet<MNode>();
+        nodes.add(mnd);
+      } else {
+        System.out.println("nodeName " + nodeName + " already exists.");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+
+      pm.deletePersistent(mnd);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
 }

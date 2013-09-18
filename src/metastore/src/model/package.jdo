@@ -265,7 +265,7 @@
       <field name="fileSplitKeys" table="FILE_SPLIT_KEYS" >
         <collection element-type="MFieldSchema"/>
         <join>
-          <primary-key name="PARTITION_KEY_PK">
+          <primary-key name="FILE_KEY_PK">
             <column name="TBL_ID"/>
             <column name="PKEY_NAME"/>
           </primary-key>	
@@ -711,7 +711,7 @@
     
     <class name="MUser" table="USER" identity-type="datastore" detachable="true">
 
-      <index name="RoleEntityINDEX" unique="true">
+      <index name="USERINDEX" unique="true">
         <column name="USER_NAME"/>
       </index>
 

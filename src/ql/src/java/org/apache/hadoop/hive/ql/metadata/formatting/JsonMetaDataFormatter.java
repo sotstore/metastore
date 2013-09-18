@@ -539,10 +539,16 @@ public class JsonMetaDataFormatter implements MetaDataFormatter {
 
     }
     public void showHelp(DataOutputStream outStream, String result) throws HiveException{
-	
+
 	}
 
     public void showGeoLoc(DataOutputStream outStream, String result) throws HiveException{}
 
     public void showEqRoom(DataOutputStream outStream, String result) throws HiveException{}
+
+    @Override
+    public void showNodeAssignment(DataOutputStream outStream, String result) throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
 }

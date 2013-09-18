@@ -2,7 +2,7 @@ package org.apache.hadoop.hive.ql.plan;
 
 import java.io.Serializable;
 
-public class ShowGeoLocDesc implements Serializable {
+public class ShowGeoLocDesc extends DDLDesc implements Serializable {
 
   private static final long serialVersionUID = 1L;
 

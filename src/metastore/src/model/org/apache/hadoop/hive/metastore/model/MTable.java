@@ -88,7 +88,7 @@ public class MTable {
     this.createTime = createTime;
     this.setLastAccessTime(lastAccessTime);
     this.retention = retention;
-    this.fileSplitKeys = fileSplitKeys;
+    this.setFileSplitKeys(fileSplitKeys);
     this.partitionKeys = partitionKeys;
     this.parameters = parameters;
     this.viewOriginalText = viewOriginalText;
@@ -296,8 +296,5 @@ public class MTable {
   public void setFileSplitKeys(List<MFieldSchema> fileSplitKeys) {
     this.fileSplitKeys = fileSplitKeys;
   }
-
-
-
 
 }

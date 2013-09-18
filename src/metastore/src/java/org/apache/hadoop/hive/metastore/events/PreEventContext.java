@@ -36,7 +36,8 @@ public abstract class PreEventContext {
     ALTER_PARTITION,
     CREATE_DATABASE,
     DROP_DATABASE,
-    LOAD_PARTITION_DONE
+    LOAD_PARTITION_DONE,
+    USER_AUTHORITY_CHECK,
   }
 
   private final PreEventType eventType;

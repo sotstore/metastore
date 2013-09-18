@@ -1049,6 +1049,9 @@ public interface IMetaStoreClient {
   public boolean authentication(String user_name, String passwd) throws NoSuchObjectException, MetaException, TException;
 
   public List<String> list_users_names() throws MetaException, TException;
+
+  public List<String> list_users(Database db) throws MetaException, TException;
+
   //authentication and authorization with user by liulichao, end
 
   public Boolean del_node(String node_name) throws MetaException, TException;

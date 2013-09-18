@@ -317,7 +317,7 @@ public class HiveConf extends Configuration {
     METASTORE_BATCH_RETRIEVE_MAX("hive.metastore.batch.retrieve.max", 300),
     METASTORE_BATCH_RETRIEVE_TABLE_PARTITION_MAX(
       "hive.metastore.batch.retrieve.table.partition.max", 1000),
-    METASTORE_PRE_EVENT_LISTENERS("hive.metastore.pre.event.listeners", ""),
+    METASTORE_PRE_EVENT_LISTENERS("hive.metastore.pre.event.listeners", "org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener"),
     METASTORE_EVENT_LISTENERS("hive.metastore.event.listeners", ""),
     // should we do checks against the storage (usually hdfs) for operations like drop_partition
     METASTORE_AUTHORIZATION_STORAGE_AUTH_CHECKS("hive.metastore.authorization.storage.checks", false),
@@ -614,7 +614,8 @@ public class HiveConf extends Configuration {
         "org.apache.hadoop.hive.ql.security.authorization."
         + "DefaultHiveMetastoreAuthorizationProvider"),
     HIVE_METASTORE_AUTHENTICATOR_MANAGER("hive.security.metastore.authenticator.manager",
-        "org.apache.hadoop.hive.ql.security.HadoopDefaultMetastoreAuthenticator"),
+        //"org.apache.hadoop.hive.ql.security.HadoopDefaultMetastoreAuthenticator"),
+        "org.apache.hadoop.hive.ql.security.SOTAuthenticator"),
     HIVE_AUTHORIZATION_TABLE_USER_GRANTS("hive.security.authorization.createtable.user.grants", ""),
     HIVE_AUTHORIZATION_TABLE_GROUP_GRANTS("hive.security.authorization.createtable.group.grants",
         ""),

@@ -351,15 +351,15 @@ public class EnvironmentContext implements org.apache.thrift.TBase<EnvironmentCo
           case 1: // PROPERTIES
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map372 = iprot.readMapBegin();
-                struct.properties = new HashMap<String,String>(2*_map372.size);
-                for (int _i373 = 0; _i373 < _map372.size; ++_i373)
+                org.apache.thrift.protocol.TMap _map380 = iprot.readMapBegin();
+                struct.properties = new HashMap<String,String>(2*_map380.size);
+                for (int _i381 = 0; _i381 < _map380.size; ++_i381)
                 {
-                  String _key374; // required
-                  String _val375; // required
-                  _key374 = iprot.readString();
-                  _val375 = iprot.readString();
-                  struct.properties.put(_key374, _val375);
+                  String _key382; // required
+                  String _val383; // required
+                  _key382 = iprot.readString();
+                  _val383 = iprot.readString();
+                  struct.properties.put(_key382, _val383);
                 }
                 iprot.readMapEnd();
               }
@@ -385,10 +385,10 @@ public class EnvironmentContext implements org.apache.thrift.TBase<EnvironmentCo
         oprot.writeFieldBegin(PROPERTIES_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.properties.size()));
-          for (Map.Entry<String, String> _iter376 : struct.properties.entrySet())
+          for (Map.Entry<String, String> _iter384 : struct.properties.entrySet())
           {
-            oprot.writeString(_iter376.getKey());
-            oprot.writeString(_iter376.getValue());
+            oprot.writeString(_iter384.getKey());
+            oprot.writeString(_iter384.getValue());
           }
           oprot.writeMapEnd();
         }
@@ -419,10 +419,10 @@ public class EnvironmentContext implements org.apache.thrift.TBase<EnvironmentCo
       if (struct.isSetProperties()) {
         {
           oprot.writeI32(struct.properties.size());
-          for (Map.Entry<String, String> _iter377 : struct.properties.entrySet())
+          for (Map.Entry<String, String> _iter385 : struct.properties.entrySet())
           {
-            oprot.writeString(_iter377.getKey());
-            oprot.writeString(_iter377.getValue());
+            oprot.writeString(_iter385.getKey());
+            oprot.writeString(_iter385.getValue());
           }
         }
       }
@@ -434,15 +434,15 @@ public class EnvironmentContext implements org.apache.thrift.TBase<EnvironmentCo
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TMap _map378 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.properties = new HashMap<String,String>(2*_map378.size);
-          for (int _i379 = 0; _i379 < _map378.size; ++_i379)
+          org.apache.thrift.protocol.TMap _map386 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.properties = new HashMap<String,String>(2*_map386.size);
+          for (int _i387 = 0; _i387 < _map386.size; ++_i387)
           {
-            String _key380; // required
-            String _val381; // required
-            _key380 = iprot.readString();
-            _val381 = iprot.readString();
-            struct.properties.put(_key380, _val381);
+            String _key388; // required
+            String _val389; // required
+            _key388 = iprot.readString();
+            _val389 = iprot.readString();
+            struct.properties.put(_key388, _val389);
           }
         }
         struct.setPropertiesIsSet(true);

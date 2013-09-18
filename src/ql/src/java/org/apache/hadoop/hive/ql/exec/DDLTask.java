@@ -106,6 +106,7 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveMetaStoreChecker;
 import org.apache.hadoop.hive.ql.metadata.HiveStorageHandler;
 import org.apache.hadoop.hive.ql.metadata.InvalidTableException;
+import org.apache.hadoop.hive.ql.metadata.NodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.metadata.formatting.JsonMetaDataFormatter;
@@ -116,6 +117,7 @@ import org.apache.hadoop.hive.ql.parse.AlterTablePartMergeFilesDesc;
 import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
 import org.apache.hadoop.hive.ql.plan.AddEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.AddGeoLocDesc;
+import org.apache.hadoop.hive.ql.plan.AddNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.AddNodeDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
@@ -143,6 +145,7 @@ import org.apache.hadoop.hive.ql.plan.DropDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.DropEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.DropGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
+import org.apache.hadoop.hive.ql.plan.DropNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
@@ -154,6 +157,7 @@ import org.apache.hadoop.hive.ql.plan.GrantRevokeRoleDDL;
 import org.apache.hadoop.hive.ql.plan.LockTableDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyGeoLocDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyNodeDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartIndexAddFileDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartIndexDropFileDesc;
@@ -185,6 +189,7 @@ import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowHelpDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
+import org.apache.hadoop.hive.ql.plan.ShowNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
@@ -601,23 +606,75 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         return showFileLocations(db, showFileLocationsDesc);
       }
 
+      AlterTablePartMergeFilesDesc mergeFilesDesc = work.getMergeFilesDesc();
+      if(mergeFilesDesc != null) {
+        return mergeFiles(db, mergeFilesDesc);
+      }
+
 //      ShowHelpDesc showHelpDesc = work.getShowHelpDesc();
 //      if (showHelpDesc != null) {
 //        return showHelp(db, showHelpDesc);
 //      }
+      AddGeoLocDesc addGeoLocDesc = work.getAddGeoLocDesc();
+      if (addGeoLocDesc != null) {
+        return addGeoLoc(db, addGeoLocDesc);
+      }
+
+      DropGeoLocDesc dropGeoLocDesc = work.getDropGeoLocDesc();
+      if (dropGeoLocDesc != null) {
+        return dropGeoLoc(db, dropGeoLocDesc);
+      }
+
+      ModifyGeoLocDesc modifyGeoLocDesc = work.getModifyGeoLocDesc();
+      if (modifyGeoLocDesc != null) {
+        return modifyGeoLoc(db, modifyGeoLocDesc);
+      }
+
       ShowGeoLocDesc showGeoLocDesc = work.getShowGeoLocDesc();
       if (showGeoLocDesc != null) {
         return showGeoLoc(db, showGeoLocDesc);
       }
+
+      AddEqRoomDesc addEqRoomDesc = work.getAddEqRoomDesc();
+      if (addEqRoomDesc != null) {
+        return addEqRoom(db, addEqRoomDesc);
+      }
+
+      DropEqRoomDesc dropEqRoomDesc = work.getDropEqRoomDesc();
+      if (dropEqRoomDesc != null) {
+        return dropEqRoom(db, dropEqRoomDesc);
+      }
+
+      ModifyEqRoomDesc modifyEqRoomDesc = work.getModifyEqRoomDesc();
+      if (modifyEqRoomDesc != null) {
+        return modifyEqRoom(db, modifyEqRoomDesc);
+      }
+
       ShowEqRoomDesc showEqRoomDesc = work.getShowEqRoomDesc();
       if (showEqRoomDesc != null) {
         return showEqRoom(db, showEqRoomDesc);
       }
 
-      AlterTablePartMergeFilesDesc mergeFilesDesc = work.getMergeFilesDesc();
-      if(mergeFilesDesc != null) {
-        return mergeFiles(db, mergeFilesDesc);
+      AddNodeAssignmentDesc addNodeAssignmentDesc = work.getAddNode_AssignmentDesc();
+      if (addNodeAssignmentDesc != null) {
+        return addNodeAssignment(db, addNodeAssignmentDesc);
       }
+
+      DropNodeAssignmentDesc dropNodeAssignmentDesc = work.getDropNodeAssignmentDesc();
+      if (dropNodeAssignmentDesc != null) {
+        return dropNodeAssignment(db, dropNodeAssignmentDesc);
+      }
+
+      ModifyNodeAssignmentDesc modifyNodeAssignmentDesc = work.getModifyNodeAssignmentDesc();
+      if (modifyNodeAssignmentDesc != null) {
+        return modifyNodeAssignment(db, modifyNodeAssignmentDesc);
+      }
+
+      ShowNodeAssignmentDesc showNodeAssignmentDesc = work.getShowNodeAssignmentDesc();
+      if (showNodeAssignmentDesc != null) {
+        return showNodeAssignment(db, showNodeAssignmentDesc);
+      }
+
 
     } catch (InvalidTableException e) {
       formatter.consoleError(console, "Table " + e.getTableName() + " does not exist",
@@ -4640,7 +4697,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   private int addGeoLoc(Hive db, AddGeoLocDesc addGeoLocDesc) throws HiveException {
 
     GeoLocDesc gd = new GeoLocDesc(addGeoLocDesc.getGeoLocName(),addGeoLocDesc.getNation(),addGeoLocDesc.getProvince(),addGeoLocDesc.getCity(),addGeoLocDesc.getDist());
-   // this.db.addGeoLoc(gd);
+    this.db.addGeoLoc(gd);
     return 0;
 
   }
@@ -4648,16 +4705,18 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   private int dropGeoLoc(Hive db, DropGeoLocDesc dropGeoLocDesc) throws HiveException {
 
     GeoLocDesc gd = new GeoLocDesc(dropGeoLocDesc.getGeoLocName());
-    // this.db.dropGeoLoc(gd);
+    this.db.dropGeoLoc(gd);
     return 0;
 
   }
+
   private int modifyGeoLoc(Hive db, ModifyGeoLocDesc modifyGeoLocDesc) throws HiveException {
     GeoLocDesc gd = new GeoLocDesc(modifyGeoLocDesc.getGeoLocName(),modifyGeoLocDesc.getNation(),modifyGeoLocDesc.getProvince(),modifyGeoLocDesc.getCity(),modifyGeoLocDesc.getDist());
-    // this.db.modifyGeoLoc(gd);
+    this.db.modifyGeoLoc(gd);
     return 0;
 
   }
+
   private int showGeoLoc(Hive db, ShowGeoLocDesc showGeoLocDesc) throws HiveException {
     String result = db.showGeoLoc();
     DataOutputStream outStream = null;
@@ -4689,23 +4748,26 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   private int addEqRoom(Hive db, AddEqRoomDesc addEqRoomDesc) throws HiveException {
 
     EqRoomDesc gd = new EqRoomDesc(addEqRoomDesc.getEqRoomName(),addEqRoomDesc.getStatus(),addEqRoomDesc.getGeoLocName(),addEqRoomDesc.getComment());
-   // this.db.addEqRoom(gd);
+    this.db.addEqRoom(gd);
     return 0;
 
   }
+
   private int dropEqRoom(Hive db, DropEqRoomDesc dropEqRoomDesc) throws HiveException {
 
     EqRoomDesc gd = new EqRoomDesc(dropEqRoomDesc.getEqRoomName());
-    // this.db.dropEqRoom(gd);
+    this.db.dropEqRoom(gd);
     return 0;
 
   }
+
   private int modifyEqRoom(Hive db, ModifyEqRoomDesc modifyEqRoomcDesc) throws HiveException {
     EqRoomDesc gd = new EqRoomDesc(modifyEqRoomcDesc.getEqRoomName(),modifyEqRoomcDesc.getStatus(),modifyEqRoomcDesc.getGeoLocName(),modifyEqRoomcDesc.getComment());
-    //this.db.modifyEqRoom(gd);
+    this.db.modifyEqRoom(gd);
     return 0;
 
   }
+
   private int showEqRoom(Hive db, ShowEqRoomDesc showEqRoomDesc) throws HiveException {
     String result = db.showEqRoom();
     DataOutputStream outStream = null;
@@ -4734,4 +4796,55 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     return 0;
   }
 
+  private int addNodeAssignment(Hive db, AddNodeAssignmentDesc addNodeAssignmentDesc) throws HiveException {
+
+    NodeAssignmentDesc gd = new NodeAssignmentDesc(addNodeAssignmentDesc.getNodeName(),addNodeAssignmentDesc.getDbName());
+    this.db.addNodeAssignment(gd);
+    return 0;
+
+  }
+
+  private int dropNodeAssignment(Hive db, DropNodeAssignmentDesc dropNodeAssignmentDesc) throws HiveException {
+
+    NodeAssignmentDesc gd = new NodeAssignmentDesc(dropNodeAssignmentDesc.getNodeName(),dropNodeAssignmentDesc.getDbName());
+    this.db.dropNodeAssignment(gd);
+    return 0;
+
+  }
+
+  private int modifyNodeAssignment(Hive db, ModifyNodeAssignmentDesc modifyNodeAssignmentDesc) throws HiveException {
+
+    NodeAssignmentDesc gd = new NodeAssignmentDesc(modifyNodeAssignmentDesc.getNodeName(),modifyNodeAssignmentDesc.getDbName());
+    this.db.modifyNodeAssignment(gd);
+    return 0;
+
+  }
+
+  private int showNodeAssignment(Hive db, ShowNodeAssignmentDesc showNodeAssignmentDesc) throws HiveException {
+    String result = db.showNodeAssignment();
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showNodeAssignmentDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      formatter.showNodeAssignment(outStream, result);
+
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
 }

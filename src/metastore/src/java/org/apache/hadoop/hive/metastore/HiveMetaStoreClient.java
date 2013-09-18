@@ -83,7 +83,7 @@ import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.api.User;
-import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.metastore.model.MetaStoreConst;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -1573,18 +1573,21 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
 @Override
 public boolean create_user(User user) throws InvalidObjectException,
     MetaException, TException {
+   assert user != null;
    return client.create_user(user);
 }
 
 @Override
 public boolean drop_user(String user_name) throws NoSuchObjectException,
     MetaException, TException {
+  assert user_name != null;
   return client.drop_user(user_name);
 }
 
 @Override
 public boolean modify_user(User user)
     throws NoSuchObjectException, MetaException, TException {
+  assert user != null;
   return client.modify_user(user);
 
 }
@@ -1592,6 +1595,12 @@ public boolean modify_user(User user)
 @Override
 public List<String> list_users_names() throws MetaException, TException {
   return client.list_users_names();
+}
+
+@Override
+public List<String> list_users(Database db) throws MetaException, TException {
+  assert db != null;
+  return client.list_users(db);
 }
 
 @Override

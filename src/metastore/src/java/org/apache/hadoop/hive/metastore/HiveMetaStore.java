@@ -90,6 +90,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
+import org.apache.hadoop.hive.metastore.api.MSOperation;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
@@ -133,6 +134,7 @@ import org.apache.hadoop.hive.metastore.events.PreDropPartitionEvent;
 import org.apache.hadoop.hive.metastore.events.PreDropTableEvent;
 import org.apache.hadoop.hive.metastore.events.PreEventContext;
 import org.apache.hadoop.hive.metastore.events.PreLoadPartitionDoneEvent;
+import org.apache.hadoop.hive.metastore.events.PreUserAuthorityCheckEvent;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnPrivilege;
@@ -141,6 +143,7 @@ import org.apache.hadoop.hive.metastore.model.MRole;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
 import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
+import org.apache.hadoop.hive.metastore.model.MetaStoreConst;
 import org.apache.hadoop.hive.metastore.msg.MSGFactory;
 import org.apache.hadoop.hive.metastore.msg.MSGType;
 import org.apache.hadoop.hive.metastore.msg.MetaMsgServer;
@@ -218,6 +221,33 @@ public class HiveMetaStore extends ThriftHiveMetastore {
                                      // right now they come from jpox.properties
 
     private Warehouse wh; // hdfs warehouse
+
+    public static class MSSessionState {
+      private static final ThreadLocal<String> threadLocalUserName =
+          new ThreadLocal<String>() {
+            @Override
+            protected synchronized String initialValue() {
+              return null;
+            }
+          };
+
+          public String getUserName() {
+            String userName = threadLocalUserName.get();
+            if (userName == null) {
+              userName = "invalid_user";
+              threadLocalUserName.set(userName);
+              userName = threadLocalUserName.get();
+            }
+            return userName;
+          }
+
+          public void setUserName(String userName) {
+            threadLocalUserName.set(userName);
+          }
+    };
+
+    private final MSSessionState msss = new MSSessionState();
+
     private final ThreadLocal<RawStore> threadLocalMS =
         new ThreadLocal<RawStore>() {
           @Override
@@ -5259,17 +5289,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
   }
 
   @Override
-  public List<String> list_users_names() {
+  public List<String> list_users_names() throws MetaException, TException {
       incrementCounter("list_users_names");
-
-    List<String> ret = null;
-      try {
-      ret = getMS().listUsersNames();
-    } catch (MetaException e) {
-      e.printStackTrace();
-    }
-
-      return ret;
+      return getMS().listUsersNames();
   }
 
   @Override
@@ -5876,6 +5898,24 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
+    public List<String> list_users(Database db) throws MetaException, TException {
+      return getMS().listUsersNames(db.getName());
+    }
+
+    @Override
+    public boolean user_authority_check(User user, Table tbl, List<MSOperation> ops) throws MetaException, TException {
+      // FIXME: for this moment, if ZERO ops provided, we grant all access. (for test use only)
+      if (ops.size() == 0) {
+        return true;
+      }
+      // prepare the user/group names
+      msss.setUserName(user.getUserName());
+      for (MSOperation mso : ops) {
+          firePreEvent(new PreUserAuthorityCheckEvent(tbl, mso, this));
+      }
+      return true;
+    }
+
     public boolean createSchema(GlobalSchema schema) throws AlreadyExistsException,
         InvalidObjectException, MetaException, TException {
 
@@ -6330,6 +6370,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       HMSHandler.LOG.info("Options.maxWorkerThreads = "
           + maxWorkerThreads);
       HMSHandler.LOG.info("TCP keepalive = " + tcpKeepAlive);
+
       tServer.serve();
     } catch (Throwable x) {
       x.printStackTrace();
@@ -6337,4 +6378,5 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       throw x;
     }
   }
+
 }

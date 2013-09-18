@@ -1,6 +1,5 @@
 package org.apache.hadoop.hive.metastore.model;
 
-import org.apache.hadoop.hive.metastore.MetaStoreConst;
 
 public class MDevice {
   private MNode node;
