@@ -2389,6 +2389,278 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getMP failed: unknown result')
     end
 
+    def createSchema(schema)
+      send_createSchema(schema)
+      return recv_createSchema()
+    end
+
+    def send_createSchema(schema)
+      send_message('createSchema', CreateSchema_args, :schema => schema)
+    end
+
+    def recv_createSchema()
+      result = receive_message(CreateSchema_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'createSchema failed: unknown result')
+    end
+
+    def modifySchema(schema)
+      send_modifySchema(schema)
+      return recv_modifySchema()
+    end
+
+    def send_modifySchema(schema)
+      send_message('modifySchema', ModifySchema_args, :schema => schema)
+    end
+
+    def recv_modifySchema()
+      result = receive_message(ModifySchema_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'modifySchema failed: unknown result')
+    end
+
+    def deleteSchema(schemaName)
+      send_deleteSchema(schemaName)
+      return recv_deleteSchema()
+    end
+
+    def send_deleteSchema(schemaName)
+      send_message('deleteSchema', DeleteSchema_args, :schemaName => schemaName)
+    end
+
+    def recv_deleteSchema()
+      result = receive_message(DeleteSchema_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteSchema failed: unknown result')
+    end
+
+    def listSchemas()
+      send_listSchemas()
+      return recv_listSchemas()
+    end
+
+    def send_listSchemas()
+      send_message('listSchemas', ListSchemas_args)
+    end
+
+    def recv_listSchemas()
+      result = receive_message(ListSchemas_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listSchemas failed: unknown result')
+    end
+
+    def getSchemaByName(schemaName)
+      send_getSchemaByName(schemaName)
+      return recv_getSchemaByName()
+    end
+
+    def send_getSchemaByName(schemaName)
+      send_message('getSchemaByName', GetSchemaByName_args, :schemaName => schemaName)
+    end
+
+    def recv_getSchemaByName()
+      result = receive_message(GetSchemaByName_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getSchemaByName failed: unknown result')
+    end
+
+    def getTableNodeGroups(dbName, tabName)
+      send_getTableNodeGroups(dbName, tabName)
+      return recv_getTableNodeGroups()
+    end
+
+    def send_getTableNodeGroups(dbName, tabName)
+      send_message('getTableNodeGroups', GetTableNodeGroups_args, :dbName => dbName, :tabName => tabName)
+    end
+
+    def recv_getTableNodeGroups()
+      result = receive_message(GetTableNodeGroups_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getTableNodeGroups failed: unknown result')
+    end
+
+    def getTableNodeFiles(dbName, tabName, nodeName)
+      send_getTableNodeFiles(dbName, tabName, nodeName)
+      return recv_getTableNodeFiles()
+    end
+
+    def send_getTableNodeFiles(dbName, tabName, nodeName)
+      send_message('getTableNodeFiles', GetTableNodeFiles_args, :dbName => dbName, :tabName => tabName, :nodeName => nodeName)
+    end
+
+    def recv_getTableNodeFiles()
+      result = receive_message(GetTableNodeFiles_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getTableNodeFiles failed: unknown result')
+    end
+
+    def listTableFiles(dbName, tabName, max_num)
+      send_listTableFiles(dbName, tabName, max_num)
+      return recv_listTableFiles()
+    end
+
+    def send_listTableFiles(dbName, tabName, max_num)
+      send_message('listTableFiles', ListTableFiles_args, :dbName => dbName, :tabName => tabName, :max_num => max_num)
+    end
+
+    def recv_listTableFiles()
+      result = receive_message(ListTableFiles_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listTableFiles failed: unknown result')
+    end
+
+    def filterTableFiles(dbName, tabName, exp)
+      send_filterTableFiles(dbName, tabName, exp)
+      return recv_filterTableFiles()
+    end
+
+    def send_filterTableFiles(dbName, tabName, exp)
+      send_message('filterTableFiles', FilterTableFiles_args, :dbName => dbName, :tabName => tabName, :exp => exp)
+    end
+
+    def recv_filterTableFiles()
+      result = receive_message(FilterTableFiles_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'filterTableFiles failed: unknown result')
+    end
+
+    def addNodeGroup(ng)
+      send_addNodeGroup(ng)
+      return recv_addNodeGroup()
+    end
+
+    def send_addNodeGroup(ng)
+      send_message('addNodeGroup', AddNodeGroup_args, :ng => ng)
+    end
+
+    def recv_addNodeGroup()
+      result = receive_message(AddNodeGroup_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addNodeGroup failed: unknown result')
+    end
+
+    def modifyNodeGroup(ng)
+      send_modifyNodeGroup(ng)
+      return recv_modifyNodeGroup()
+    end
+
+    def send_modifyNodeGroup(ng)
+      send_message('modifyNodeGroup', ModifyNodeGroup_args, :ng => ng)
+    end
+
+    def recv_modifyNodeGroup()
+      result = receive_message(ModifyNodeGroup_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'modifyNodeGroup failed: unknown result')
+    end
+
+    def deleteNodeGroup(ng)
+      send_deleteNodeGroup(ng)
+      return recv_deleteNodeGroup()
+    end
+
+    def send_deleteNodeGroup(ng)
+      send_message('deleteNodeGroup', DeleteNodeGroup_args, :ng => ng)
+    end
+
+    def recv_deleteNodeGroup()
+      result = receive_message(DeleteNodeGroup_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteNodeGroup failed: unknown result')
+    end
+
+    def listNodeGroups()
+      send_listNodeGroups()
+      return recv_listNodeGroups()
+    end
+
+    def send_listNodeGroups()
+      send_message('listNodeGroups', ListNodeGroups_args)
+    end
+
+    def recv_listNodeGroups()
+      result = receive_message(ListNodeGroups_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listNodeGroups failed: unknown result')
+    end
+
+    def listDBNodeGroups(dbName)
+      send_listDBNodeGroups(dbName)
+      return recv_listDBNodeGroups()
+    end
+
+    def send_listDBNodeGroups(dbName)
+      send_message('listDBNodeGroups', ListDBNodeGroups_args, :dbName => dbName)
+    end
+
+    def recv_listDBNodeGroups()
+      result = receive_message(ListDBNodeGroups_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listDBNodeGroups failed: unknown result')
+    end
+
+    def addTableNodeDist(db, tab, ng)
+      send_addTableNodeDist(db, tab, ng)
+      return recv_addTableNodeDist()
+    end
+
+    def send_addTableNodeDist(db, tab, ng)
+      send_message('addTableNodeDist', AddTableNodeDist_args, :db => db, :tab => tab, :ng => ng)
+    end
+
+    def recv_addTableNodeDist()
+      result = receive_message(AddTableNodeDist_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addTableNodeDist failed: unknown result')
+    end
+
+    def deleteTableNodeDist(db, tab, ng)
+      send_deleteTableNodeDist(db, tab, ng)
+      return recv_deleteTableNodeDist()
+    end
+
+    def send_deleteTableNodeDist(db, tab, ng)
+      send_message('deleteTableNodeDist', DeleteTableNodeDist_args, :db => db, :tab => tab, :ng => ng)
+    end
+
+    def recv_deleteTableNodeDist()
+      result = receive_message(DeleteTableNodeDist_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteTableNodeDist failed: unknown result')
+    end
+
+    def listTableNodeDists(dbName, tabName)
+      send_listTableNodeDists(dbName, tabName)
+      return recv_listTableNodeDists()
+    end
+
+    def send_listTableNodeDists(dbName, tabName)
+      send_message('listTableNodeDists', ListTableNodeDists_args, :dbName => dbName, :tabName => tabName)
+    end
+
+    def recv_listTableNodeDists()
+      result = receive_message(ListTableNodeDists_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listTableNodeDists failed: unknown result')
+    end
+
   end
 
   class Processor < ::FacebookService::Processor 
@@ -4169,6 +4441,193 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'getMP', seqid)
+    end
+
+    def process_createSchema(seqid, iprot, oprot)
+      args = read_args(iprot, CreateSchema_args)
+      result = CreateSchema_result.new()
+      begin
+        result.success = @handler.createSchema(args.schema)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'createSchema', seqid)
+    end
+
+    def process_modifySchema(seqid, iprot, oprot)
+      args = read_args(iprot, ModifySchema_args)
+      result = ModifySchema_result.new()
+      begin
+        result.success = @handler.modifySchema(args.schema)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'modifySchema', seqid)
+    end
+
+    def process_deleteSchema(seqid, iprot, oprot)
+      args = read_args(iprot, DeleteSchema_args)
+      result = DeleteSchema_result.new()
+      begin
+        result.success = @handler.deleteSchema(args.schemaName)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'deleteSchema', seqid)
+    end
+
+    def process_listSchemas(seqid, iprot, oprot)
+      args = read_args(iprot, ListSchemas_args)
+      result = ListSchemas_result.new()
+      begin
+        result.success = @handler.listSchemas()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'listSchemas', seqid)
+    end
+
+    def process_getSchemaByName(seqid, iprot, oprot)
+      args = read_args(iprot, GetSchemaByName_args)
+      result = GetSchemaByName_result.new()
+      begin
+        result.success = @handler.getSchemaByName(args.schemaName)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'getSchemaByName', seqid)
+    end
+
+    def process_getTableNodeGroups(seqid, iprot, oprot)
+      args = read_args(iprot, GetTableNodeGroups_args)
+      result = GetTableNodeGroups_result.new()
+      begin
+        result.success = @handler.getTableNodeGroups(args.dbName, args.tabName)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'getTableNodeGroups', seqid)
+    end
+
+    def process_getTableNodeFiles(seqid, iprot, oprot)
+      args = read_args(iprot, GetTableNodeFiles_args)
+      result = GetTableNodeFiles_result.new()
+      begin
+        result.success = @handler.getTableNodeFiles(args.dbName, args.tabName, args.nodeName)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'getTableNodeFiles', seqid)
+    end
+
+    def process_listTableFiles(seqid, iprot, oprot)
+      args = read_args(iprot, ListTableFiles_args)
+      result = ListTableFiles_result.new()
+      begin
+        result.success = @handler.listTableFiles(args.dbName, args.tabName, args.max_num)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'listTableFiles', seqid)
+    end
+
+    def process_filterTableFiles(seqid, iprot, oprot)
+      args = read_args(iprot, FilterTableFiles_args)
+      result = FilterTableFiles_result.new()
+      begin
+        result.success = @handler.filterTableFiles(args.dbName, args.tabName, args.exp)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'filterTableFiles', seqid)
+    end
+
+    def process_addNodeGroup(seqid, iprot, oprot)
+      args = read_args(iprot, AddNodeGroup_args)
+      result = AddNodeGroup_result.new()
+      begin
+        result.success = @handler.addNodeGroup(args.ng)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'addNodeGroup', seqid)
+    end
+
+    def process_modifyNodeGroup(seqid, iprot, oprot)
+      args = read_args(iprot, ModifyNodeGroup_args)
+      result = ModifyNodeGroup_result.new()
+      begin
+        result.success = @handler.modifyNodeGroup(args.ng)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'modifyNodeGroup', seqid)
+    end
+
+    def process_deleteNodeGroup(seqid, iprot, oprot)
+      args = read_args(iprot, DeleteNodeGroup_args)
+      result = DeleteNodeGroup_result.new()
+      begin
+        result.success = @handler.deleteNodeGroup(args.ng)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'deleteNodeGroup', seqid)
+    end
+
+    def process_listNodeGroups(seqid, iprot, oprot)
+      args = read_args(iprot, ListNodeGroups_args)
+      result = ListNodeGroups_result.new()
+      begin
+        result.success = @handler.listNodeGroups()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'listNodeGroups', seqid)
+    end
+
+    def process_listDBNodeGroups(seqid, iprot, oprot)
+      args = read_args(iprot, ListDBNodeGroups_args)
+      result = ListDBNodeGroups_result.new()
+      begin
+        result.success = @handler.listDBNodeGroups(args.dbName)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'listDBNodeGroups', seqid)
+    end
+
+    def process_addTableNodeDist(seqid, iprot, oprot)
+      args = read_args(iprot, AddTableNodeDist_args)
+      result = AddTableNodeDist_result.new()
+      begin
+        result.success = @handler.addTableNodeDist(args.db, args.tab, args.ng)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'addTableNodeDist', seqid)
+    end
+
+    def process_deleteTableNodeDist(seqid, iprot, oprot)
+      args = read_args(iprot, DeleteTableNodeDist_args)
+      result = DeleteTableNodeDist_result.new()
+      begin
+        result.success = @handler.deleteTableNodeDist(args.db, args.tab, args.ng)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'deleteTableNodeDist', seqid)
+    end
+
+    def process_listTableNodeDists(seqid, iprot, oprot)
+      args = read_args(iprot, ListTableNodeDists_args)
+      result = ListTableNodeDists_result.new()
+      begin
+        result.success = @handler.listTableNodeDists(args.dbName, args.tabName)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'listTableNodeDists', seqid)
     end
 
   end
@@ -9566,6 +10025,606 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class CreateSchema_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SCHEMA = 1
+
+    FIELDS = {
+      SCHEMA => {:type => ::Thrift::Types::STRUCT, :name => 'schema', :class => ::Schema}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class CreateSchema_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ModifySchema_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SCHEMA = 1
+
+    FIELDS = {
+      SCHEMA => {:type => ::Thrift::Types::STRUCT, :name => 'schema', :class => ::Schema}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ModifySchema_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteSchema_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SCHEMANAME = 1
+
+    FIELDS = {
+      SCHEMANAME => {:type => ::Thrift::Types::STRING, :name => 'schemaName'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteSchema_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListSchemas_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListSchemas_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Schema}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetSchemaByName_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SCHEMANAME = 1
+
+    FIELDS = {
+      SCHEMANAME => {:type => ::Thrift::Types::STRING, :name => 'schemaName'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetSchemaByName_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Schema},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetTableNodeGroups_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    TABNAME = 2
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+      TABNAME => {:type => ::Thrift::Types::STRING, :name => 'tabName'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetTableNodeGroups_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::NodeGroup}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetTableNodeFiles_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    TABNAME = 2
+    NODENAME = 3
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+      TABNAME => {:type => ::Thrift::Types::STRING, :name => 'tabName'},
+      NODENAME => {:type => ::Thrift::Types::STRING, :name => 'nodeName'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetTableNodeFiles_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListTableFiles_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    TABNAME = 2
+    MAX_NUM = 3
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+      TABNAME => {:type => ::Thrift::Types::STRING, :name => 'tabName'},
+      MAX_NUM => {:type => ::Thrift::Types::I16, :name => 'max_num'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListTableFiles_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class FilterTableFiles_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    TABNAME = 2
+    EXP = 3
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+      TABNAME => {:type => ::Thrift::Types::STRING, :name => 'tabName'},
+      EXP => {:type => ::Thrift::Types::STRING, :name => 'exp'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class FilterTableFiles_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddNodeGroup_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NG = 1
+
+    FIELDS = {
+      NG => {:type => ::Thrift::Types::STRUCT, :name => 'ng', :class => ::NodeGroup}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddNodeGroup_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ModifyNodeGroup_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NG = 1
+
+    FIELDS = {
+      NG => {:type => ::Thrift::Types::STRUCT, :name => 'ng', :class => ::NodeGroup}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ModifyNodeGroup_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteNodeGroup_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NG = 1
+
+    FIELDS = {
+      NG => {:type => ::Thrift::Types::STRUCT, :name => 'ng', :class => ::NodeGroup}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteNodeGroup_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListNodeGroups_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListNodeGroups_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::NodeGroup}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListDBNodeGroups_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListDBNodeGroups_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::NodeGroup}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddTableNodeDist_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DB = 1
+    TAB = 2
+    NG = 3
+
+    FIELDS = {
+      DB => {:type => ::Thrift::Types::STRING, :name => 'db'},
+      TAB => {:type => ::Thrift::Types::STRING, :name => 'tab'},
+      NG => {:type => ::Thrift::Types::LIST, :name => 'ng', :element => {:type => ::Thrift::Types::STRING}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddTableNodeDist_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteTableNodeDist_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DB = 1
+    TAB = 2
+    NG = 3
+
+    FIELDS = {
+      DB => {:type => ::Thrift::Types::STRING, :name => 'db'},
+      TAB => {:type => ::Thrift::Types::STRING, :name => 'tab'},
+      NG => {:type => ::Thrift::Types::LIST, :name => 'ng', :element => {:type => ::Thrift::Types::STRING}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteTableNodeDist_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListTableNodeDists_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    TABNAME = 2
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+      TABNAME => {:type => ::Thrift::Types::STRING, :name => 'tabName'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListTableNodeDists_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::NodeGroup}},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 

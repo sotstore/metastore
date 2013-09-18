@@ -159,6 +159,23 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void migrate2_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) = 0;
   virtual bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_db, const std::string& to_nas_devid) = 0;
   virtual void getMP(std::string& _return, const std::string& node_name, const std::string& devid) = 0;
+  virtual bool createSchema(const Schema& schema) = 0;
+  virtual bool modifySchema(const Schema& schema) = 0;
+  virtual bool deleteSchema(const std::string& schemaName) = 0;
+  virtual void listSchemas(std::vector<Schema> & _return) = 0;
+  virtual void getSchemaByName(Schema& _return, const std::string& schemaName) = 0;
+  virtual void getTableNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName) = 0;
+  virtual void getTableNodeFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& nodeName) = 0;
+  virtual void listTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const int16_t max_num) = 0;
+  virtual void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& exp) = 0;
+  virtual bool addNodeGroup(const NodeGroup& ng) = 0;
+  virtual bool modifyNodeGroup(const NodeGroup& ng) = 0;
+  virtual bool deleteNodeGroup(const NodeGroup& ng) = 0;
+  virtual void listNodeGroups(std::vector<NodeGroup> & _return) = 0;
+  virtual void listDBNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName) = 0;
+  virtual bool addTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng) = 0;
+  virtual bool deleteTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng) = 0;
+  virtual void listTableNodeDists(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName) = 0;
 };
 
 class ThriftHiveMetastoreIfFactory : virtual public  ::facebook::fb303::FacebookServiceIfFactory {
@@ -669,6 +686,65 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return _return;
   }
   void getMP(std::string& /* _return */, const std::string& /* node_name */, const std::string& /* devid */) {
+    return;
+  }
+  bool createSchema(const Schema& /* schema */) {
+    bool _return = false;
+    return _return;
+  }
+  bool modifySchema(const Schema& /* schema */) {
+    bool _return = false;
+    return _return;
+  }
+  bool deleteSchema(const std::string& /* schemaName */) {
+    bool _return = false;
+    return _return;
+  }
+  void listSchemas(std::vector<Schema> & /* _return */) {
+    return;
+  }
+  void getSchemaByName(Schema& /* _return */, const std::string& /* schemaName */) {
+    return;
+  }
+  void getTableNodeGroups(std::vector<NodeGroup> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */) {
+    return;
+  }
+  void getTableNodeFiles(std::vector<SFile> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const std::string& /* nodeName */) {
+    return;
+  }
+  void listTableFiles(std::vector<SFile> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const int16_t /* max_num */) {
+    return;
+  }
+  void filterTableFiles(std::vector<SFile> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const std::string& /* exp */) {
+    return;
+  }
+  bool addNodeGroup(const NodeGroup& /* ng */) {
+    bool _return = false;
+    return _return;
+  }
+  bool modifyNodeGroup(const NodeGroup& /* ng */) {
+    bool _return = false;
+    return _return;
+  }
+  bool deleteNodeGroup(const NodeGroup& /* ng */) {
+    bool _return = false;
+    return _return;
+  }
+  void listNodeGroups(std::vector<NodeGroup> & /* _return */) {
+    return;
+  }
+  void listDBNodeGroups(std::vector<NodeGroup> & /* _return */, const std::string& /* dbName */) {
+    return;
+  }
+  bool addTableNodeDist(const std::string& /* db */, const std::string& /* tab */, const std::vector<std::string> & /* ng */) {
+    bool _return = false;
+    return _return;
+  }
+  bool deleteTableNodeDist(const std::string& /* db */, const std::string& /* tab */, const std::vector<std::string> & /* ng */) {
+    bool _return = false;
+    return _return;
+  }
+  void listTableNodeDists(std::vector<NodeGroup> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */) {
     return;
   }
 };
@@ -19848,6 +19924,2092 @@ class ThriftHiveMetastore_getMP_presult {
 
 };
 
+typedef struct _ThriftHiveMetastore_createSchema_args__isset {
+  _ThriftHiveMetastore_createSchema_args__isset() : schema(false) {}
+  bool schema;
+} _ThriftHiveMetastore_createSchema_args__isset;
+
+class ThriftHiveMetastore_createSchema_args {
+ public:
+
+  ThriftHiveMetastore_createSchema_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_createSchema_args() throw() {}
+
+  Schema schema;
+
+  _ThriftHiveMetastore_createSchema_args__isset __isset;
+
+  void __set_schema(const Schema& val) {
+    schema = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_createSchema_args & rhs) const
+  {
+    if (!(schema == rhs.schema))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_createSchema_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_createSchema_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_createSchema_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_createSchema_pargs() throw() {}
+
+  const Schema* schema;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_createSchema_result__isset {
+  _ThriftHiveMetastore_createSchema_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_createSchema_result__isset;
+
+class ThriftHiveMetastore_createSchema_result {
+ public:
+
+  ThriftHiveMetastore_createSchema_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_createSchema_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_createSchema_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_createSchema_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_createSchema_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_createSchema_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_createSchema_presult__isset {
+  _ThriftHiveMetastore_createSchema_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_createSchema_presult__isset;
+
+class ThriftHiveMetastore_createSchema_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_createSchema_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_createSchema_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_modifySchema_args__isset {
+  _ThriftHiveMetastore_modifySchema_args__isset() : schema(false) {}
+  bool schema;
+} _ThriftHiveMetastore_modifySchema_args__isset;
+
+class ThriftHiveMetastore_modifySchema_args {
+ public:
+
+  ThriftHiveMetastore_modifySchema_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_modifySchema_args() throw() {}
+
+  Schema schema;
+
+  _ThriftHiveMetastore_modifySchema_args__isset __isset;
+
+  void __set_schema(const Schema& val) {
+    schema = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_modifySchema_args & rhs) const
+  {
+    if (!(schema == rhs.schema))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_modifySchema_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_modifySchema_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_modifySchema_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_modifySchema_pargs() throw() {}
+
+  const Schema* schema;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_modifySchema_result__isset {
+  _ThriftHiveMetastore_modifySchema_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_modifySchema_result__isset;
+
+class ThriftHiveMetastore_modifySchema_result {
+ public:
+
+  ThriftHiveMetastore_modifySchema_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_modifySchema_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_modifySchema_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_modifySchema_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_modifySchema_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_modifySchema_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_modifySchema_presult__isset {
+  _ThriftHiveMetastore_modifySchema_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_modifySchema_presult__isset;
+
+class ThriftHiveMetastore_modifySchema_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_modifySchema_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_modifySchema_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteSchema_args__isset {
+  _ThriftHiveMetastore_deleteSchema_args__isset() : schemaName(false) {}
+  bool schemaName;
+} _ThriftHiveMetastore_deleteSchema_args__isset;
+
+class ThriftHiveMetastore_deleteSchema_args {
+ public:
+
+  ThriftHiveMetastore_deleteSchema_args() : schemaName() {
+  }
+
+  virtual ~ThriftHiveMetastore_deleteSchema_args() throw() {}
+
+  std::string schemaName;
+
+  _ThriftHiveMetastore_deleteSchema_args__isset __isset;
+
+  void __set_schemaName(const std::string& val) {
+    schemaName = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_deleteSchema_args & rhs) const
+  {
+    if (!(schemaName == rhs.schemaName))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_deleteSchema_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_deleteSchema_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_deleteSchema_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_deleteSchema_pargs() throw() {}
+
+  const std::string* schemaName;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteSchema_result__isset {
+  _ThriftHiveMetastore_deleteSchema_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_deleteSchema_result__isset;
+
+class ThriftHiveMetastore_deleteSchema_result {
+ public:
+
+  ThriftHiveMetastore_deleteSchema_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_deleteSchema_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_deleteSchema_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_deleteSchema_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_deleteSchema_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_deleteSchema_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteSchema_presult__isset {
+  _ThriftHiveMetastore_deleteSchema_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_deleteSchema_presult__isset;
+
+class ThriftHiveMetastore_deleteSchema_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_deleteSchema_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_deleteSchema_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class ThriftHiveMetastore_listSchemas_args {
+ public:
+
+  ThriftHiveMetastore_listSchemas_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_listSchemas_args() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_listSchemas_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listSchemas_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listSchemas_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_listSchemas_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listSchemas_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listSchemas_result__isset {
+  _ThriftHiveMetastore_listSchemas_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listSchemas_result__isset;
+
+class ThriftHiveMetastore_listSchemas_result {
+ public:
+
+  ThriftHiveMetastore_listSchemas_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_listSchemas_result() throw() {}
+
+  std::vector<Schema>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listSchemas_result__isset __isset;
+
+  void __set_success(const std::vector<Schema> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listSchemas_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listSchemas_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listSchemas_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listSchemas_presult__isset {
+  _ThriftHiveMetastore_listSchemas_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listSchemas_presult__isset;
+
+class ThriftHiveMetastore_listSchemas_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listSchemas_presult() throw() {}
+
+  std::vector<Schema> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listSchemas_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_getSchemaByName_args__isset {
+  _ThriftHiveMetastore_getSchemaByName_args__isset() : schemaName(false) {}
+  bool schemaName;
+} _ThriftHiveMetastore_getSchemaByName_args__isset;
+
+class ThriftHiveMetastore_getSchemaByName_args {
+ public:
+
+  ThriftHiveMetastore_getSchemaByName_args() : schemaName() {
+  }
+
+  virtual ~ThriftHiveMetastore_getSchemaByName_args() throw() {}
+
+  std::string schemaName;
+
+  _ThriftHiveMetastore_getSchemaByName_args__isset __isset;
+
+  void __set_schemaName(const std::string& val) {
+    schemaName = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_getSchemaByName_args & rhs) const
+  {
+    if (!(schemaName == rhs.schemaName))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_getSchemaByName_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_getSchemaByName_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_getSchemaByName_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_getSchemaByName_pargs() throw() {}
+
+  const std::string* schemaName;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_getSchemaByName_result__isset {
+  _ThriftHiveMetastore_getSchemaByName_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_getSchemaByName_result__isset;
+
+class ThriftHiveMetastore_getSchemaByName_result {
+ public:
+
+  ThriftHiveMetastore_getSchemaByName_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_getSchemaByName_result() throw() {}
+
+  Schema success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_getSchemaByName_result__isset __isset;
+
+  void __set_success(const Schema& val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_getSchemaByName_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_getSchemaByName_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_getSchemaByName_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_getSchemaByName_presult__isset {
+  _ThriftHiveMetastore_getSchemaByName_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_getSchemaByName_presult__isset;
+
+class ThriftHiveMetastore_getSchemaByName_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_getSchemaByName_presult() throw() {}
+
+  Schema* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_getSchemaByName_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_getTableNodeGroups_args__isset {
+  _ThriftHiveMetastore_getTableNodeGroups_args__isset() : dbName(false), tabName(false) {}
+  bool dbName;
+  bool tabName;
+} _ThriftHiveMetastore_getTableNodeGroups_args__isset;
+
+class ThriftHiveMetastore_getTableNodeGroups_args {
+ public:
+
+  ThriftHiveMetastore_getTableNodeGroups_args() : dbName(), tabName() {
+  }
+
+  virtual ~ThriftHiveMetastore_getTableNodeGroups_args() throw() {}
+
+  std::string dbName;
+  std::string tabName;
+
+  _ThriftHiveMetastore_getTableNodeGroups_args__isset __isset;
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_tabName(const std::string& val) {
+    tabName = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_getTableNodeGroups_args & rhs) const
+  {
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(tabName == rhs.tabName))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_getTableNodeGroups_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_getTableNodeGroups_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_getTableNodeGroups_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_getTableNodeGroups_pargs() throw() {}
+
+  const std::string* dbName;
+  const std::string* tabName;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_getTableNodeGroups_result__isset {
+  _ThriftHiveMetastore_getTableNodeGroups_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_getTableNodeGroups_result__isset;
+
+class ThriftHiveMetastore_getTableNodeGroups_result {
+ public:
+
+  ThriftHiveMetastore_getTableNodeGroups_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_getTableNodeGroups_result() throw() {}
+
+  std::vector<NodeGroup>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_getTableNodeGroups_result__isset __isset;
+
+  void __set_success(const std::vector<NodeGroup> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_getTableNodeGroups_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_getTableNodeGroups_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_getTableNodeGroups_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_getTableNodeGroups_presult__isset {
+  _ThriftHiveMetastore_getTableNodeGroups_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_getTableNodeGroups_presult__isset;
+
+class ThriftHiveMetastore_getTableNodeGroups_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_getTableNodeGroups_presult() throw() {}
+
+  std::vector<NodeGroup> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_getTableNodeGroups_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_getTableNodeFiles_args__isset {
+  _ThriftHiveMetastore_getTableNodeFiles_args__isset() : dbName(false), tabName(false), nodeName(false) {}
+  bool dbName;
+  bool tabName;
+  bool nodeName;
+} _ThriftHiveMetastore_getTableNodeFiles_args__isset;
+
+class ThriftHiveMetastore_getTableNodeFiles_args {
+ public:
+
+  ThriftHiveMetastore_getTableNodeFiles_args() : dbName(), tabName(), nodeName() {
+  }
+
+  virtual ~ThriftHiveMetastore_getTableNodeFiles_args() throw() {}
+
+  std::string dbName;
+  std::string tabName;
+  std::string nodeName;
+
+  _ThriftHiveMetastore_getTableNodeFiles_args__isset __isset;
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_tabName(const std::string& val) {
+    tabName = val;
+  }
+
+  void __set_nodeName(const std::string& val) {
+    nodeName = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_getTableNodeFiles_args & rhs) const
+  {
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(tabName == rhs.tabName))
+      return false;
+    if (!(nodeName == rhs.nodeName))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_getTableNodeFiles_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_getTableNodeFiles_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_getTableNodeFiles_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_getTableNodeFiles_pargs() throw() {}
+
+  const std::string* dbName;
+  const std::string* tabName;
+  const std::string* nodeName;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_getTableNodeFiles_result__isset {
+  _ThriftHiveMetastore_getTableNodeFiles_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_getTableNodeFiles_result__isset;
+
+class ThriftHiveMetastore_getTableNodeFiles_result {
+ public:
+
+  ThriftHiveMetastore_getTableNodeFiles_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_getTableNodeFiles_result() throw() {}
+
+  std::vector<SFile>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_getTableNodeFiles_result__isset __isset;
+
+  void __set_success(const std::vector<SFile> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_getTableNodeFiles_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_getTableNodeFiles_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_getTableNodeFiles_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_getTableNodeFiles_presult__isset {
+  _ThriftHiveMetastore_getTableNodeFiles_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_getTableNodeFiles_presult__isset;
+
+class ThriftHiveMetastore_getTableNodeFiles_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_getTableNodeFiles_presult() throw() {}
+
+  std::vector<SFile> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_getTableNodeFiles_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_listTableFiles_args__isset {
+  _ThriftHiveMetastore_listTableFiles_args__isset() : dbName(false), tabName(false), max_num(false) {}
+  bool dbName;
+  bool tabName;
+  bool max_num;
+} _ThriftHiveMetastore_listTableFiles_args__isset;
+
+class ThriftHiveMetastore_listTableFiles_args {
+ public:
+
+  ThriftHiveMetastore_listTableFiles_args() : dbName(), tabName(), max_num(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_listTableFiles_args() throw() {}
+
+  std::string dbName;
+  std::string tabName;
+  int16_t max_num;
+
+  _ThriftHiveMetastore_listTableFiles_args__isset __isset;
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_tabName(const std::string& val) {
+    tabName = val;
+  }
+
+  void __set_max_num(const int16_t val) {
+    max_num = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listTableFiles_args & rhs) const
+  {
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(tabName == rhs.tabName))
+      return false;
+    if (!(max_num == rhs.max_num))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listTableFiles_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listTableFiles_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_listTableFiles_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listTableFiles_pargs() throw() {}
+
+  const std::string* dbName;
+  const std::string* tabName;
+  const int16_t* max_num;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listTableFiles_result__isset {
+  _ThriftHiveMetastore_listTableFiles_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listTableFiles_result__isset;
+
+class ThriftHiveMetastore_listTableFiles_result {
+ public:
+
+  ThriftHiveMetastore_listTableFiles_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_listTableFiles_result() throw() {}
+
+  std::vector<SFile>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listTableFiles_result__isset __isset;
+
+  void __set_success(const std::vector<SFile> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listTableFiles_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listTableFiles_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listTableFiles_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listTableFiles_presult__isset {
+  _ThriftHiveMetastore_listTableFiles_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listTableFiles_presult__isset;
+
+class ThriftHiveMetastore_listTableFiles_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listTableFiles_presult() throw() {}
+
+  std::vector<SFile> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listTableFiles_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_filterTableFiles_args__isset {
+  _ThriftHiveMetastore_filterTableFiles_args__isset() : dbName(false), tabName(false), exp(false) {}
+  bool dbName;
+  bool tabName;
+  bool exp;
+} _ThriftHiveMetastore_filterTableFiles_args__isset;
+
+class ThriftHiveMetastore_filterTableFiles_args {
+ public:
+
+  ThriftHiveMetastore_filterTableFiles_args() : dbName(), tabName(), exp() {
+  }
+
+  virtual ~ThriftHiveMetastore_filterTableFiles_args() throw() {}
+
+  std::string dbName;
+  std::string tabName;
+  std::string exp;
+
+  _ThriftHiveMetastore_filterTableFiles_args__isset __isset;
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_tabName(const std::string& val) {
+    tabName = val;
+  }
+
+  void __set_exp(const std::string& val) {
+    exp = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_filterTableFiles_args & rhs) const
+  {
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(tabName == rhs.tabName))
+      return false;
+    if (!(exp == rhs.exp))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_filterTableFiles_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_filterTableFiles_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_filterTableFiles_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_filterTableFiles_pargs() throw() {}
+
+  const std::string* dbName;
+  const std::string* tabName;
+  const std::string* exp;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_filterTableFiles_result__isset {
+  _ThriftHiveMetastore_filterTableFiles_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_filterTableFiles_result__isset;
+
+class ThriftHiveMetastore_filterTableFiles_result {
+ public:
+
+  ThriftHiveMetastore_filterTableFiles_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_filterTableFiles_result() throw() {}
+
+  std::vector<SFile>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_filterTableFiles_result__isset __isset;
+
+  void __set_success(const std::vector<SFile> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_filterTableFiles_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_filterTableFiles_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_filterTableFiles_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_filterTableFiles_presult__isset {
+  _ThriftHiveMetastore_filterTableFiles_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_filterTableFiles_presult__isset;
+
+class ThriftHiveMetastore_filterTableFiles_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_filterTableFiles_presult() throw() {}
+
+  std::vector<SFile> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_filterTableFiles_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_addNodeGroup_args__isset {
+  _ThriftHiveMetastore_addNodeGroup_args__isset() : ng(false) {}
+  bool ng;
+} _ThriftHiveMetastore_addNodeGroup_args__isset;
+
+class ThriftHiveMetastore_addNodeGroup_args {
+ public:
+
+  ThriftHiveMetastore_addNodeGroup_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_addNodeGroup_args() throw() {}
+
+  NodeGroup ng;
+
+  _ThriftHiveMetastore_addNodeGroup_args__isset __isset;
+
+  void __set_ng(const NodeGroup& val) {
+    ng = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_addNodeGroup_args & rhs) const
+  {
+    if (!(ng == rhs.ng))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_addNodeGroup_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_addNodeGroup_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_addNodeGroup_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_addNodeGroup_pargs() throw() {}
+
+  const NodeGroup* ng;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_addNodeGroup_result__isset {
+  _ThriftHiveMetastore_addNodeGroup_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_addNodeGroup_result__isset;
+
+class ThriftHiveMetastore_addNodeGroup_result {
+ public:
+
+  ThriftHiveMetastore_addNodeGroup_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_addNodeGroup_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_addNodeGroup_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_addNodeGroup_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_addNodeGroup_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_addNodeGroup_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_addNodeGroup_presult__isset {
+  _ThriftHiveMetastore_addNodeGroup_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_addNodeGroup_presult__isset;
+
+class ThriftHiveMetastore_addNodeGroup_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_addNodeGroup_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_addNodeGroup_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_modifyNodeGroup_args__isset {
+  _ThriftHiveMetastore_modifyNodeGroup_args__isset() : ng(false) {}
+  bool ng;
+} _ThriftHiveMetastore_modifyNodeGroup_args__isset;
+
+class ThriftHiveMetastore_modifyNodeGroup_args {
+ public:
+
+  ThriftHiveMetastore_modifyNodeGroup_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_modifyNodeGroup_args() throw() {}
+
+  NodeGroup ng;
+
+  _ThriftHiveMetastore_modifyNodeGroup_args__isset __isset;
+
+  void __set_ng(const NodeGroup& val) {
+    ng = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_modifyNodeGroup_args & rhs) const
+  {
+    if (!(ng == rhs.ng))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_modifyNodeGroup_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_modifyNodeGroup_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_modifyNodeGroup_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_modifyNodeGroup_pargs() throw() {}
+
+  const NodeGroup* ng;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_modifyNodeGroup_result__isset {
+  _ThriftHiveMetastore_modifyNodeGroup_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_modifyNodeGroup_result__isset;
+
+class ThriftHiveMetastore_modifyNodeGroup_result {
+ public:
+
+  ThriftHiveMetastore_modifyNodeGroup_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_modifyNodeGroup_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_modifyNodeGroup_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_modifyNodeGroup_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_modifyNodeGroup_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_modifyNodeGroup_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_modifyNodeGroup_presult__isset {
+  _ThriftHiveMetastore_modifyNodeGroup_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_modifyNodeGroup_presult__isset;
+
+class ThriftHiveMetastore_modifyNodeGroup_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_modifyNodeGroup_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_modifyNodeGroup_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteNodeGroup_args__isset {
+  _ThriftHiveMetastore_deleteNodeGroup_args__isset() : ng(false) {}
+  bool ng;
+} _ThriftHiveMetastore_deleteNodeGroup_args__isset;
+
+class ThriftHiveMetastore_deleteNodeGroup_args {
+ public:
+
+  ThriftHiveMetastore_deleteNodeGroup_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_deleteNodeGroup_args() throw() {}
+
+  NodeGroup ng;
+
+  _ThriftHiveMetastore_deleteNodeGroup_args__isset __isset;
+
+  void __set_ng(const NodeGroup& val) {
+    ng = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_deleteNodeGroup_args & rhs) const
+  {
+    if (!(ng == rhs.ng))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_deleteNodeGroup_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_deleteNodeGroup_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_deleteNodeGroup_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_deleteNodeGroup_pargs() throw() {}
+
+  const NodeGroup* ng;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteNodeGroup_result__isset {
+  _ThriftHiveMetastore_deleteNodeGroup_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_deleteNodeGroup_result__isset;
+
+class ThriftHiveMetastore_deleteNodeGroup_result {
+ public:
+
+  ThriftHiveMetastore_deleteNodeGroup_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_deleteNodeGroup_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_deleteNodeGroup_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_deleteNodeGroup_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_deleteNodeGroup_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_deleteNodeGroup_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteNodeGroup_presult__isset {
+  _ThriftHiveMetastore_deleteNodeGroup_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_deleteNodeGroup_presult__isset;
+
+class ThriftHiveMetastore_deleteNodeGroup_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_deleteNodeGroup_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_deleteNodeGroup_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class ThriftHiveMetastore_listNodeGroups_args {
+ public:
+
+  ThriftHiveMetastore_listNodeGroups_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_listNodeGroups_args() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_listNodeGroups_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listNodeGroups_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listNodeGroups_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_listNodeGroups_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listNodeGroups_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listNodeGroups_result__isset {
+  _ThriftHiveMetastore_listNodeGroups_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listNodeGroups_result__isset;
+
+class ThriftHiveMetastore_listNodeGroups_result {
+ public:
+
+  ThriftHiveMetastore_listNodeGroups_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_listNodeGroups_result() throw() {}
+
+  std::vector<NodeGroup>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listNodeGroups_result__isset __isset;
+
+  void __set_success(const std::vector<NodeGroup> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listNodeGroups_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listNodeGroups_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listNodeGroups_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listNodeGroups_presult__isset {
+  _ThriftHiveMetastore_listNodeGroups_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listNodeGroups_presult__isset;
+
+class ThriftHiveMetastore_listNodeGroups_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listNodeGroups_presult() throw() {}
+
+  std::vector<NodeGroup> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listNodeGroups_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_listDBNodeGroups_args__isset {
+  _ThriftHiveMetastore_listDBNodeGroups_args__isset() : dbName(false) {}
+  bool dbName;
+} _ThriftHiveMetastore_listDBNodeGroups_args__isset;
+
+class ThriftHiveMetastore_listDBNodeGroups_args {
+ public:
+
+  ThriftHiveMetastore_listDBNodeGroups_args() : dbName() {
+  }
+
+  virtual ~ThriftHiveMetastore_listDBNodeGroups_args() throw() {}
+
+  std::string dbName;
+
+  _ThriftHiveMetastore_listDBNodeGroups_args__isset __isset;
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listDBNodeGroups_args & rhs) const
+  {
+    if (!(dbName == rhs.dbName))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listDBNodeGroups_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listDBNodeGroups_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_listDBNodeGroups_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listDBNodeGroups_pargs() throw() {}
+
+  const std::string* dbName;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listDBNodeGroups_result__isset {
+  _ThriftHiveMetastore_listDBNodeGroups_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listDBNodeGroups_result__isset;
+
+class ThriftHiveMetastore_listDBNodeGroups_result {
+ public:
+
+  ThriftHiveMetastore_listDBNodeGroups_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_listDBNodeGroups_result() throw() {}
+
+  std::vector<NodeGroup>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listDBNodeGroups_result__isset __isset;
+
+  void __set_success(const std::vector<NodeGroup> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listDBNodeGroups_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listDBNodeGroups_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listDBNodeGroups_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listDBNodeGroups_presult__isset {
+  _ThriftHiveMetastore_listDBNodeGroups_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listDBNodeGroups_presult__isset;
+
+class ThriftHiveMetastore_listDBNodeGroups_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listDBNodeGroups_presult() throw() {}
+
+  std::vector<NodeGroup> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listDBNodeGroups_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_addTableNodeDist_args__isset {
+  _ThriftHiveMetastore_addTableNodeDist_args__isset() : db(false), tab(false), ng(false) {}
+  bool db;
+  bool tab;
+  bool ng;
+} _ThriftHiveMetastore_addTableNodeDist_args__isset;
+
+class ThriftHiveMetastore_addTableNodeDist_args {
+ public:
+
+  ThriftHiveMetastore_addTableNodeDist_args() : db(), tab() {
+  }
+
+  virtual ~ThriftHiveMetastore_addTableNodeDist_args() throw() {}
+
+  std::string db;
+  std::string tab;
+  std::vector<std::string>  ng;
+
+  _ThriftHiveMetastore_addTableNodeDist_args__isset __isset;
+
+  void __set_db(const std::string& val) {
+    db = val;
+  }
+
+  void __set_tab(const std::string& val) {
+    tab = val;
+  }
+
+  void __set_ng(const std::vector<std::string> & val) {
+    ng = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_addTableNodeDist_args & rhs) const
+  {
+    if (!(db == rhs.db))
+      return false;
+    if (!(tab == rhs.tab))
+      return false;
+    if (!(ng == rhs.ng))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_addTableNodeDist_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_addTableNodeDist_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_addTableNodeDist_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_addTableNodeDist_pargs() throw() {}
+
+  const std::string* db;
+  const std::string* tab;
+  const std::vector<std::string> * ng;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_addTableNodeDist_result__isset {
+  _ThriftHiveMetastore_addTableNodeDist_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_addTableNodeDist_result__isset;
+
+class ThriftHiveMetastore_addTableNodeDist_result {
+ public:
+
+  ThriftHiveMetastore_addTableNodeDist_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_addTableNodeDist_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_addTableNodeDist_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_addTableNodeDist_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_addTableNodeDist_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_addTableNodeDist_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_addTableNodeDist_presult__isset {
+  _ThriftHiveMetastore_addTableNodeDist_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_addTableNodeDist_presult__isset;
+
+class ThriftHiveMetastore_addTableNodeDist_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_addTableNodeDist_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_addTableNodeDist_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteTableNodeDist_args__isset {
+  _ThriftHiveMetastore_deleteTableNodeDist_args__isset() : db(false), tab(false), ng(false) {}
+  bool db;
+  bool tab;
+  bool ng;
+} _ThriftHiveMetastore_deleteTableNodeDist_args__isset;
+
+class ThriftHiveMetastore_deleteTableNodeDist_args {
+ public:
+
+  ThriftHiveMetastore_deleteTableNodeDist_args() : db(), tab() {
+  }
+
+  virtual ~ThriftHiveMetastore_deleteTableNodeDist_args() throw() {}
+
+  std::string db;
+  std::string tab;
+  std::vector<std::string>  ng;
+
+  _ThriftHiveMetastore_deleteTableNodeDist_args__isset __isset;
+
+  void __set_db(const std::string& val) {
+    db = val;
+  }
+
+  void __set_tab(const std::string& val) {
+    tab = val;
+  }
+
+  void __set_ng(const std::vector<std::string> & val) {
+    ng = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_deleteTableNodeDist_args & rhs) const
+  {
+    if (!(db == rhs.db))
+      return false;
+    if (!(tab == rhs.tab))
+      return false;
+    if (!(ng == rhs.ng))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_deleteTableNodeDist_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_deleteTableNodeDist_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_deleteTableNodeDist_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_deleteTableNodeDist_pargs() throw() {}
+
+  const std::string* db;
+  const std::string* tab;
+  const std::vector<std::string> * ng;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteTableNodeDist_result__isset {
+  _ThriftHiveMetastore_deleteTableNodeDist_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_deleteTableNodeDist_result__isset;
+
+class ThriftHiveMetastore_deleteTableNodeDist_result {
+ public:
+
+  ThriftHiveMetastore_deleteTableNodeDist_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_deleteTableNodeDist_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_deleteTableNodeDist_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_deleteTableNodeDist_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_deleteTableNodeDist_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_deleteTableNodeDist_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteTableNodeDist_presult__isset {
+  _ThriftHiveMetastore_deleteTableNodeDist_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_deleteTableNodeDist_presult__isset;
+
+class ThriftHiveMetastore_deleteTableNodeDist_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_deleteTableNodeDist_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_deleteTableNodeDist_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_listTableNodeDists_args__isset {
+  _ThriftHiveMetastore_listTableNodeDists_args__isset() : dbName(false), tabName(false) {}
+  bool dbName;
+  bool tabName;
+} _ThriftHiveMetastore_listTableNodeDists_args__isset;
+
+class ThriftHiveMetastore_listTableNodeDists_args {
+ public:
+
+  ThriftHiveMetastore_listTableNodeDists_args() : dbName(), tabName() {
+  }
+
+  virtual ~ThriftHiveMetastore_listTableNodeDists_args() throw() {}
+
+  std::string dbName;
+  std::string tabName;
+
+  _ThriftHiveMetastore_listTableNodeDists_args__isset __isset;
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_tabName(const std::string& val) {
+    tabName = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listTableNodeDists_args & rhs) const
+  {
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(tabName == rhs.tabName))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listTableNodeDists_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listTableNodeDists_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_listTableNodeDists_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listTableNodeDists_pargs() throw() {}
+
+  const std::string* dbName;
+  const std::string* tabName;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listTableNodeDists_result__isset {
+  _ThriftHiveMetastore_listTableNodeDists_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listTableNodeDists_result__isset;
+
+class ThriftHiveMetastore_listTableNodeDists_result {
+ public:
+
+  ThriftHiveMetastore_listTableNodeDists_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_listTableNodeDists_result() throw() {}
+
+  std::vector<NodeGroup>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listTableNodeDists_result__isset __isset;
+
+  void __set_success(const std::vector<NodeGroup> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listTableNodeDists_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listTableNodeDists_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listTableNodeDists_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listTableNodeDists_presult__isset {
+  _ThriftHiveMetastore_listTableNodeDists_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listTableNodeDists_presult__isset;
+
+class ThriftHiveMetastore_listTableNodeDists_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listTableNodeDists_presult() throw() {}
+
+  std::vector<NodeGroup> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listTableNodeDists_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  ::facebook::fb303::FacebookServiceClient {
  public:
   ThriftHiveMetastoreClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -20289,6 +22451,57 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void getMP(std::string& _return, const std::string& node_name, const std::string& devid);
   void send_getMP(const std::string& node_name, const std::string& devid);
   void recv_getMP(std::string& _return);
+  bool createSchema(const Schema& schema);
+  void send_createSchema(const Schema& schema);
+  bool recv_createSchema();
+  bool modifySchema(const Schema& schema);
+  void send_modifySchema(const Schema& schema);
+  bool recv_modifySchema();
+  bool deleteSchema(const std::string& schemaName);
+  void send_deleteSchema(const std::string& schemaName);
+  bool recv_deleteSchema();
+  void listSchemas(std::vector<Schema> & _return);
+  void send_listSchemas();
+  void recv_listSchemas(std::vector<Schema> & _return);
+  void getSchemaByName(Schema& _return, const std::string& schemaName);
+  void send_getSchemaByName(const std::string& schemaName);
+  void recv_getSchemaByName(Schema& _return);
+  void getTableNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName);
+  void send_getTableNodeGroups(const std::string& dbName, const std::string& tabName);
+  void recv_getTableNodeGroups(std::vector<NodeGroup> & _return);
+  void getTableNodeFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& nodeName);
+  void send_getTableNodeFiles(const std::string& dbName, const std::string& tabName, const std::string& nodeName);
+  void recv_getTableNodeFiles(std::vector<SFile> & _return);
+  void listTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const int16_t max_num);
+  void send_listTableFiles(const std::string& dbName, const std::string& tabName, const int16_t max_num);
+  void recv_listTableFiles(std::vector<SFile> & _return);
+  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& exp);
+  void send_filterTableFiles(const std::string& dbName, const std::string& tabName, const std::string& exp);
+  void recv_filterTableFiles(std::vector<SFile> & _return);
+  bool addNodeGroup(const NodeGroup& ng);
+  void send_addNodeGroup(const NodeGroup& ng);
+  bool recv_addNodeGroup();
+  bool modifyNodeGroup(const NodeGroup& ng);
+  void send_modifyNodeGroup(const NodeGroup& ng);
+  bool recv_modifyNodeGroup();
+  bool deleteNodeGroup(const NodeGroup& ng);
+  void send_deleteNodeGroup(const NodeGroup& ng);
+  bool recv_deleteNodeGroup();
+  void listNodeGroups(std::vector<NodeGroup> & _return);
+  void send_listNodeGroups();
+  void recv_listNodeGroups(std::vector<NodeGroup> & _return);
+  void listDBNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName);
+  void send_listDBNodeGroups(const std::string& dbName);
+  void recv_listDBNodeGroups(std::vector<NodeGroup> & _return);
+  bool addTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng);
+  void send_addTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng);
+  bool recv_addTableNodeDist();
+  bool deleteTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng);
+  void send_deleteTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng);
+  bool recv_deleteTableNodeDist();
+  void listTableNodeDists(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName);
+  void send_listTableNodeDists(const std::string& dbName, const std::string& tabName);
+  void recv_listTableNodeDists(std::vector<NodeGroup> & _return);
 };
 
 class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceProcessor {
@@ -20442,6 +22655,23 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_migrate2_stage1(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_migrate2_stage2(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getMP(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_createSchema(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_modifySchema(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_deleteSchema(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_listSchemas(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_getSchemaByName(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_getTableNodeGroups(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_getTableNodeFiles(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_listTableFiles(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_filterTableFiles(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_addNodeGroup(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_modifyNodeGroup(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_deleteNodeGroup(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_listNodeGroups(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_listDBNodeGroups(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_addTableNodeDist(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_deleteTableNodeDist(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_listTableNodeDists(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   ThriftHiveMetastoreProcessor(boost::shared_ptr<ThriftHiveMetastoreIf> iface) :
      ::facebook::fb303::FacebookServiceProcessor(iface),
@@ -20589,6 +22819,23 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["migrate2_stage1"] = &ThriftHiveMetastoreProcessor::process_migrate2_stage1;
     processMap_["migrate2_stage2"] = &ThriftHiveMetastoreProcessor::process_migrate2_stage2;
     processMap_["getMP"] = &ThriftHiveMetastoreProcessor::process_getMP;
+    processMap_["createSchema"] = &ThriftHiveMetastoreProcessor::process_createSchema;
+    processMap_["modifySchema"] = &ThriftHiveMetastoreProcessor::process_modifySchema;
+    processMap_["deleteSchema"] = &ThriftHiveMetastoreProcessor::process_deleteSchema;
+    processMap_["listSchemas"] = &ThriftHiveMetastoreProcessor::process_listSchemas;
+    processMap_["getSchemaByName"] = &ThriftHiveMetastoreProcessor::process_getSchemaByName;
+    processMap_["getTableNodeGroups"] = &ThriftHiveMetastoreProcessor::process_getTableNodeGroups;
+    processMap_["getTableNodeFiles"] = &ThriftHiveMetastoreProcessor::process_getTableNodeFiles;
+    processMap_["listTableFiles"] = &ThriftHiveMetastoreProcessor::process_listTableFiles;
+    processMap_["filterTableFiles"] = &ThriftHiveMetastoreProcessor::process_filterTableFiles;
+    processMap_["addNodeGroup"] = &ThriftHiveMetastoreProcessor::process_addNodeGroup;
+    processMap_["modifyNodeGroup"] = &ThriftHiveMetastoreProcessor::process_modifyNodeGroup;
+    processMap_["deleteNodeGroup"] = &ThriftHiveMetastoreProcessor::process_deleteNodeGroup;
+    processMap_["listNodeGroups"] = &ThriftHiveMetastoreProcessor::process_listNodeGroups;
+    processMap_["listDBNodeGroups"] = &ThriftHiveMetastoreProcessor::process_listDBNodeGroups;
+    processMap_["addTableNodeDist"] = &ThriftHiveMetastoreProcessor::process_addTableNodeDist;
+    processMap_["deleteTableNodeDist"] = &ThriftHiveMetastoreProcessor::process_deleteTableNodeDist;
+    processMap_["listTableNodeDists"] = &ThriftHiveMetastoreProcessor::process_listTableNodeDists;
   }
 
   virtual ~ThriftHiveMetastoreProcessor() {}
@@ -21976,6 +24223,168 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->getMP(_return, node_name, devid);
     }
     ifaces_[i]->getMP(_return, node_name, devid);
+    return;
+  }
+
+  bool createSchema(const Schema& schema) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->createSchema(schema);
+    }
+    return ifaces_[i]->createSchema(schema);
+  }
+
+  bool modifySchema(const Schema& schema) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->modifySchema(schema);
+    }
+    return ifaces_[i]->modifySchema(schema);
+  }
+
+  bool deleteSchema(const std::string& schemaName) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->deleteSchema(schemaName);
+    }
+    return ifaces_[i]->deleteSchema(schemaName);
+  }
+
+  void listSchemas(std::vector<Schema> & _return) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->listSchemas(_return);
+    }
+    ifaces_[i]->listSchemas(_return);
+    return;
+  }
+
+  void getSchemaByName(Schema& _return, const std::string& schemaName) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->getSchemaByName(_return, schemaName);
+    }
+    ifaces_[i]->getSchemaByName(_return, schemaName);
+    return;
+  }
+
+  void getTableNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->getTableNodeGroups(_return, dbName, tabName);
+    }
+    ifaces_[i]->getTableNodeGroups(_return, dbName, tabName);
+    return;
+  }
+
+  void getTableNodeFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& nodeName) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->getTableNodeFiles(_return, dbName, tabName, nodeName);
+    }
+    ifaces_[i]->getTableNodeFiles(_return, dbName, tabName, nodeName);
+    return;
+  }
+
+  void listTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const int16_t max_num) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->listTableFiles(_return, dbName, tabName, max_num);
+    }
+    ifaces_[i]->listTableFiles(_return, dbName, tabName, max_num);
+    return;
+  }
+
+  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& exp) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->filterTableFiles(_return, dbName, tabName, exp);
+    }
+    ifaces_[i]->filterTableFiles(_return, dbName, tabName, exp);
+    return;
+  }
+
+  bool addNodeGroup(const NodeGroup& ng) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->addNodeGroup(ng);
+    }
+    return ifaces_[i]->addNodeGroup(ng);
+  }
+
+  bool modifyNodeGroup(const NodeGroup& ng) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->modifyNodeGroup(ng);
+    }
+    return ifaces_[i]->modifyNodeGroup(ng);
+  }
+
+  bool deleteNodeGroup(const NodeGroup& ng) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->deleteNodeGroup(ng);
+    }
+    return ifaces_[i]->deleteNodeGroup(ng);
+  }
+
+  void listNodeGroups(std::vector<NodeGroup> & _return) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->listNodeGroups(_return);
+    }
+    ifaces_[i]->listNodeGroups(_return);
+    return;
+  }
+
+  void listDBNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->listDBNodeGroups(_return, dbName);
+    }
+    ifaces_[i]->listDBNodeGroups(_return, dbName);
+    return;
+  }
+
+  bool addTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->addTableNodeDist(db, tab, ng);
+    }
+    return ifaces_[i]->addTableNodeDist(db, tab, ng);
+  }
+
+  bool deleteTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->deleteTableNodeDist(db, tab, ng);
+    }
+    return ifaces_[i]->deleteTableNodeDist(db, tab, ng);
+  }
+
+  void listTableNodeDists(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->listTableNodeDists(_return, dbName, tabName);
+    }
+    ifaces_[i]->listTableNodeDists(_return, dbName, tabName);
     return;
   }
 

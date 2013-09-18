@@ -261,6 +261,48 @@ class User
   ::Thrift::Struct.generate_accessors self
 end
 
+class Node
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  NODE_NAME = 1
+  IPS = 2
+  STATUS = 3
+
+  FIELDS = {
+    NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'},
+    IPS => {:type => ::Thrift::Types::LIST, :name => 'ips', :element => {:type => ::Thrift::Types::STRING}},
+    STATUS => {:type => ::Thrift::Types::I32, :name => 'status'}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
+class NodeGroup
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  NODE_GROUP_NAME = 1
+  COMMENT = 2
+  STATUS = 3
+  NODES = 4
+
+  FIELDS = {
+    NODE_GROUP_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_group_name'},
+    COMMENT => {:type => ::Thrift::Types::STRING, :name => 'comment'},
+    STATUS => {:type => ::Thrift::Types::I32, :name => 'status'},
+    NODES => {:type => ::Thrift::Types::SET, :name => 'nodes', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Node}}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
 class Datacenter
   include ::Thrift::Struct, ::Thrift::Struct_Union
   NAME = 1
@@ -268,13 +310,17 @@ class Datacenter
   LOCATIONURI = 3
   PARAMETERS = 4
   PRIVILEGES = 5
+  NODES = 6
+  NODEGROUPS = 7
 
   FIELDS = {
     NAME => {:type => ::Thrift::Types::STRING, :name => 'name'},
     DESCRIPTION => {:type => ::Thrift::Types::STRING, :name => 'description'},
     LOCATIONURI => {:type => ::Thrift::Types::STRING, :name => 'locationUri'},
     PARAMETERS => {:type => ::Thrift::Types::MAP, :name => 'parameters', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}},
-    PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true}
+    PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true},
+    NODES => {:type => ::Thrift::Types::LIST, :name => 'nodes', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Node}, :optional => true},
+    NODEGROUPS => {:type => ::Thrift::Types::LIST, :name => 'nodeGroups', :element => {:type => ::Thrift::Types::STRUCT, :class => ::NodeGroup}, :optional => true}
   }
 
   def struct_fields; FIELDS; end
@@ -481,26 +527,67 @@ class Partition
   ::Thrift::Struct.generate_accessors self
 end
 
-class Table
+class Schema
   include ::Thrift::Struct, ::Thrift::Struct_Union
-  TABLENAME = 1
+  SCHEMANAME = 1
   DBNAME = 2
   OWNER = 3
   CREATETIME = 4
   LASTACCESSTIME = 5
   RETENTION = 6
   SD = 7
-  PARTITIONKEYS = 8
-  PARAMETERS = 9
-  VIEWORIGINALTEXT = 10
-  VIEWEXPANDEDTEXT = 11
-  TABLETYPE = 12
-  PRIVILEGES = 13
-  PARTITIONS = 14
+  PARAMETERS = 8
+  VIEWORIGINALTEXT = 9
+  VIEWEXPANDEDTEXT = 10
+  SCHEMATYPE = 11
+  PRIVILEGES = 12
+
+  FIELDS = {
+    SCHEMANAME => {:type => ::Thrift::Types::STRING, :name => 'schemaName'},
+    DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+    OWNER => {:type => ::Thrift::Types::STRING, :name => 'owner'},
+    CREATETIME => {:type => ::Thrift::Types::I32, :name => 'createTime'},
+    LASTACCESSTIME => {:type => ::Thrift::Types::I32, :name => 'lastAccessTime'},
+    RETENTION => {:type => ::Thrift::Types::I32, :name => 'retention'},
+    SD => {:type => ::Thrift::Types::STRUCT, :name => 'sd', :class => ::StorageDescriptor},
+    PARAMETERS => {:type => ::Thrift::Types::MAP, :name => 'parameters', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}},
+    VIEWORIGINALTEXT => {:type => ::Thrift::Types::STRING, :name => 'viewOriginalText'},
+    VIEWEXPANDEDTEXT => {:type => ::Thrift::Types::STRING, :name => 'viewExpandedText'},
+    SCHEMATYPE => {:type => ::Thrift::Types::STRING, :name => 'schemaType'},
+    PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
+class Table
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  TABLENAME = 1
+  DBNAME = 2
+  SCHEMANAME = 3
+  OWNER = 4
+  CREATETIME = 5
+  LASTACCESSTIME = 6
+  RETENTION = 7
+  SD = 8
+  PARTITIONKEYS = 9
+  PARAMETERS = 10
+  VIEWORIGINALTEXT = 11
+  VIEWEXPANDEDTEXT = 12
+  TABLETYPE = 13
+  NODEGROUPS = 14
+  PRIVILEGES = 15
+  PARTITIONS = 16
 
   FIELDS = {
     TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
     DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+    SCHEMANAME => {:type => ::Thrift::Types::STRING, :name => 'schemaName'},
     OWNER => {:type => ::Thrift::Types::STRING, :name => 'owner'},
     CREATETIME => {:type => ::Thrift::Types::I32, :name => 'createTime'},
     LASTACCESSTIME => {:type => ::Thrift::Types::I32, :name => 'lastAccessTime'},
@@ -511,6 +598,7 @@ class Table
     VIEWORIGINALTEXT => {:type => ::Thrift::Types::STRING, :name => 'viewOriginalText'},
     VIEWEXPANDEDTEXT => {:type => ::Thrift::Types::STRING, :name => 'viewExpandedText'},
     TABLETYPE => {:type => ::Thrift::Types::STRING, :name => 'tableType'},
+    NODEGROUPS => {:type => ::Thrift::Types::LIST, :name => 'nodeGroups', :element => {:type => ::Thrift::Types::STRUCT, :class => ::NodeGroup}, :optional => true},
     PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true},
     PARTITIONS => {:type => ::Thrift::Types::LIST, :name => 'partitions', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Partition}, :optional => true}
   }
@@ -553,26 +641,6 @@ class BusiTypeDatacenter
     BUSITYPE => {:type => ::Thrift::Types::STRING, :name => 'busiType'},
     DC => {:type => ::Thrift::Types::STRUCT, :name => 'dc', :class => ::Datacenter},
     DB_NAME => {:type => ::Thrift::Types::STRING, :name => 'db_name'}
-  }
-
-  def struct_fields; FIELDS; end
-
-  def validate
-  end
-
-  ::Thrift::Struct.generate_accessors self
-end
-
-class Node
-  include ::Thrift::Struct, ::Thrift::Struct_Union
-  NODE_NAME = 1
-  IPS = 2
-  STATUS = 3
-
-  FIELDS = {
-    NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'},
-    IPS => {:type => ::Thrift::Types::LIST, :name => 'ips', :element => {:type => ::Thrift::Types::STRING}},
-    STATUS => {:type => ::Thrift::Types::I32, :name => 'status'}
   }
 
   def struct_fields; FIELDS; end

@@ -1030,6 +1030,19 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     return false;
   }
 
+  @Override
+  public Device modifyDevice(Device dev, Node node) throws MetaException, NoSuchObjectException,
+      InvalidObjectException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void offlineDevice(String devid) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
 }
 
 

@@ -39,6 +39,8 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
   private static final org.apache.thrift.protocol.TField LOCATION_URI_FIELD_DESC = new org.apache.thrift.protocol.TField("locationUri", org.apache.thrift.protocol.TType.STRING, (short)3);
   private static final org.apache.thrift.protocol.TField PARAMETERS_FIELD_DESC = new org.apache.thrift.protocol.TField("parameters", org.apache.thrift.protocol.TType.MAP, (short)4);
   private static final org.apache.thrift.protocol.TField PRIVILEGES_FIELD_DESC = new org.apache.thrift.protocol.TField("privileges", org.apache.thrift.protocol.TType.STRUCT, (short)5);
+  private static final org.apache.thrift.protocol.TField NODES_FIELD_DESC = new org.apache.thrift.protocol.TField("nodes", org.apache.thrift.protocol.TType.LIST, (short)6);
+  private static final org.apache.thrift.protocol.TField NODE_GROUPS_FIELD_DESC = new org.apache.thrift.protocol.TField("nodeGroups", org.apache.thrift.protocol.TType.LIST, (short)7);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -51,6 +53,8 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
   private String locationUri; // required
   private Map<String,String> parameters; // required
   private PrincipalPrivilegeSet privileges; // optional
+  private List<Node> nodes; // optional
+  private List<NodeGroup> nodeGroups; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -58,7 +62,9 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
     DESCRIPTION((short)2, "description"),
     LOCATION_URI((short)3, "locationUri"),
     PARAMETERS((short)4, "parameters"),
-    PRIVILEGES((short)5, "privileges");
+    PRIVILEGES((short)5, "privileges"),
+    NODES((short)6, "nodes"),
+    NODE_GROUPS((short)7, "nodeGroups");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -83,6 +89,10 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
           return PARAMETERS;
         case 5: // PRIVILEGES
           return PRIVILEGES;
+        case 6: // NODES
+          return NODES;
+        case 7: // NODE_GROUPS
+          return NODE_GROUPS;
         default:
           return null;
       }
@@ -123,7 +133,7 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
   }
 
   // isset id assignments
-  private _Fields optionals[] = {_Fields.PRIVILEGES};
+  private _Fields optionals[] = {_Fields.PRIVILEGES,_Fields.NODES,_Fields.NODE_GROUPS};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -139,6 +149,12 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
     tmpMap.put(_Fields.PRIVILEGES, new org.apache.thrift.meta_data.FieldMetaData("privileges", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PrincipalPrivilegeSet.class)));
+    tmpMap.put(_Fields.NODES, new org.apache.thrift.meta_data.FieldMetaData("nodes", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Node.class))));
+    tmpMap.put(_Fields.NODE_GROUPS, new org.apache.thrift.meta_data.FieldMetaData("nodeGroups", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NodeGroup.class))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Datacenter.class, metaDataMap);
   }
@@ -190,6 +206,20 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
     if (other.isSetPrivileges()) {
       this.privileges = new PrincipalPrivilegeSet(other.privileges);
     }
+    if (other.isSetNodes()) {
+      List<Node> __this__nodes = new ArrayList<Node>();
+      for (Node other_element : other.nodes) {
+        __this__nodes.add(new Node(other_element));
+      }
+      this.nodes = __this__nodes;
+    }
+    if (other.isSetNodeGroups()) {
+      List<NodeGroup> __this__nodeGroups = new ArrayList<NodeGroup>();
+      for (NodeGroup other_element : other.nodeGroups) {
+        __this__nodeGroups.add(new NodeGroup(other_element));
+      }
+      this.nodeGroups = __this__nodeGroups;
+    }
   }
 
   public Datacenter deepCopy() {
@@ -203,6 +233,8 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
     this.locationUri = null;
     this.parameters = null;
     this.privileges = null;
+    this.nodes = null;
+    this.nodeGroups = null;
   }
 
   public String getName() {
@@ -331,6 +363,82 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
     }
   }
 
+  public int getNodesSize() {
+    return (this.nodes == null) ? 0 : this.nodes.size();
+  }
+
+  public java.util.Iterator<Node> getNodesIterator() {
+    return (this.nodes == null) ? null : this.nodes.iterator();
+  }
+
+  public void addToNodes(Node elem) {
+    if (this.nodes == null) {
+      this.nodes = new ArrayList<Node>();
+    }
+    this.nodes.add(elem);
+  }
+
+  public List<Node> getNodes() {
+    return this.nodes;
+  }
+
+  public void setNodes(List<Node> nodes) {
+    this.nodes = nodes;
+  }
+
+  public void unsetNodes() {
+    this.nodes = null;
+  }
+
+  /** Returns true if field nodes is set (has been assigned a value) and false otherwise */
+  public boolean isSetNodes() {
+    return this.nodes != null;
+  }
+
+  public void setNodesIsSet(boolean value) {
+    if (!value) {
+      this.nodes = null;
+    }
+  }
+
+  public int getNodeGroupsSize() {
+    return (this.nodeGroups == null) ? 0 : this.nodeGroups.size();
+  }
+
+  public java.util.Iterator<NodeGroup> getNodeGroupsIterator() {
+    return (this.nodeGroups == null) ? null : this.nodeGroups.iterator();
+  }
+
+  public void addToNodeGroups(NodeGroup elem) {
+    if (this.nodeGroups == null) {
+      this.nodeGroups = new ArrayList<NodeGroup>();
+    }
+    this.nodeGroups.add(elem);
+  }
+
+  public List<NodeGroup> getNodeGroups() {
+    return this.nodeGroups;
+  }
+
+  public void setNodeGroups(List<NodeGroup> nodeGroups) {
+    this.nodeGroups = nodeGroups;
+  }
+
+  public void unsetNodeGroups() {
+    this.nodeGroups = null;
+  }
+
+  /** Returns true if field nodeGroups is set (has been assigned a value) and false otherwise */
+  public boolean isSetNodeGroups() {
+    return this.nodeGroups != null;
+  }
+
+  public void setNodeGroupsIsSet(boolean value) {
+    if (!value) {
+      this.nodeGroups = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case NAME:
@@ -373,6 +481,22 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
       }
       break;
 
+    case NODES:
+      if (value == null) {
+        unsetNodes();
+      } else {
+        setNodes((List<Node>)value);
+      }
+      break;
+
+    case NODE_GROUPS:
+      if (value == null) {
+        unsetNodeGroups();
+      } else {
+        setNodeGroups((List<NodeGroup>)value);
+      }
+      break;
+
     }
   }
 
@@ -392,6 +516,12 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
 
     case PRIVILEGES:
       return getPrivileges();
+
+    case NODES:
+      return getNodes();
+
+    case NODE_GROUPS:
+      return getNodeGroups();
 
     }
     throw new IllegalStateException();
@@ -414,6 +544,10 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
       return isSetParameters();
     case PRIVILEGES:
       return isSetPrivileges();
+    case NODES:
+      return isSetNodes();
+    case NODE_GROUPS:
+      return isSetNodeGroups();
     }
     throw new IllegalStateException();
   }
@@ -476,6 +610,24 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
         return false;
     }
 
+    boolean this_present_nodes = true && this.isSetNodes();
+    boolean that_present_nodes = true && that.isSetNodes();
+    if (this_present_nodes || that_present_nodes) {
+      if (!(this_present_nodes && that_present_nodes))
+        return false;
+      if (!this.nodes.equals(that.nodes))
+        return false;
+    }
+
+    boolean this_present_nodeGroups = true && this.isSetNodeGroups();
+    boolean that_present_nodeGroups = true && that.isSetNodeGroups();
+    if (this_present_nodeGroups || that_present_nodeGroups) {
+      if (!(this_present_nodeGroups && that_present_nodeGroups))
+        return false;
+      if (!this.nodeGroups.equals(that.nodeGroups))
+        return false;
+    }
+
     return true;
   }
 
@@ -507,6 +659,16 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
     builder.append(present_privileges);
     if (present_privileges)
       builder.append(privileges);
+
+    boolean present_nodes = true && (isSetNodes());
+    builder.append(present_nodes);
+    if (present_nodes)
+      builder.append(nodes);
+
+    boolean present_nodeGroups = true && (isSetNodeGroups());
+    builder.append(present_nodeGroups);
+    if (present_nodeGroups)
+      builder.append(nodeGroups);
 
     return builder.toHashCode();
   }
@@ -569,6 +731,26 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetNodes()).compareTo(typedOther.isSetNodes());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetNodes()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.nodes, typedOther.nodes);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetNodeGroups()).compareTo(typedOther.isSetNodeGroups());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetNodeGroups()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.nodeGroups, typedOther.nodeGroups);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -627,6 +809,26 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
         sb.append("null");
       } else {
         sb.append(this.privileges);
+      }
+      first = false;
+    }
+    if (isSetNodes()) {
+      if (!first) sb.append(", ");
+      sb.append("nodes:");
+      if (this.nodes == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.nodes);
+      }
+      first = false;
+    }
+    if (isSetNodeGroups()) {
+      if (!first) sb.append(", ");
+      sb.append("nodeGroups:");
+      if (this.nodeGroups == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.nodeGroups);
       }
       first = false;
     }
@@ -703,15 +905,15 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
           case 4: // PARAMETERS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map78 = iprot.readMapBegin();
-                struct.parameters = new HashMap<String,String>(2*_map78.size);
-                for (int _i79 = 0; _i79 < _map78.size; ++_i79)
+                org.apache.thrift.protocol.TMap _map94 = iprot.readMapBegin();
+                struct.parameters = new HashMap<String,String>(2*_map94.size);
+                for (int _i95 = 0; _i95 < _map94.size; ++_i95)
                 {
-                  String _key80; // required
-                  String _val81; // required
-                  _key80 = iprot.readString();
-                  _val81 = iprot.readString();
-                  struct.parameters.put(_key80, _val81);
+                  String _key96; // required
+                  String _val97; // required
+                  _key96 = iprot.readString();
+                  _val97 = iprot.readString();
+                  struct.parameters.put(_key96, _val97);
                 }
                 iprot.readMapEnd();
               }
@@ -725,6 +927,44 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
               struct.privileges = new PrincipalPrivilegeSet();
               struct.privileges.read(iprot);
               struct.setPrivilegesIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 6: // NODES
+            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              {
+                org.apache.thrift.protocol.TList _list98 = iprot.readListBegin();
+                struct.nodes = new ArrayList<Node>(_list98.size);
+                for (int _i99 = 0; _i99 < _list98.size; ++_i99)
+                {
+                  Node _elem100; // required
+                  _elem100 = new Node();
+                  _elem100.read(iprot);
+                  struct.nodes.add(_elem100);
+                }
+                iprot.readListEnd();
+              }
+              struct.setNodesIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 7: // NODE_GROUPS
+            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              {
+                org.apache.thrift.protocol.TList _list101 = iprot.readListBegin();
+                struct.nodeGroups = new ArrayList<NodeGroup>(_list101.size);
+                for (int _i102 = 0; _i102 < _list101.size; ++_i102)
+                {
+                  NodeGroup _elem103; // required
+                  _elem103 = new NodeGroup();
+                  _elem103.read(iprot);
+                  struct.nodeGroups.add(_elem103);
+                }
+                iprot.readListEnd();
+              }
+              struct.setNodeGroupsIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -761,10 +1001,10 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
         oprot.writeFieldBegin(PARAMETERS_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.parameters.size()));
-          for (Map.Entry<String, String> _iter82 : struct.parameters.entrySet())
+          for (Map.Entry<String, String> _iter104 : struct.parameters.entrySet())
           {
-            oprot.writeString(_iter82.getKey());
-            oprot.writeString(_iter82.getValue());
+            oprot.writeString(_iter104.getKey());
+            oprot.writeString(_iter104.getValue());
           }
           oprot.writeMapEnd();
         }
@@ -774,6 +1014,34 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
         if (struct.isSetPrivileges()) {
           oprot.writeFieldBegin(PRIVILEGES_FIELD_DESC);
           struct.privileges.write(oprot);
+          oprot.writeFieldEnd();
+        }
+      }
+      if (struct.nodes != null) {
+        if (struct.isSetNodes()) {
+          oprot.writeFieldBegin(NODES_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.nodes.size()));
+            for (Node _iter105 : struct.nodes)
+            {
+              _iter105.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+      }
+      if (struct.nodeGroups != null) {
+        if (struct.isSetNodeGroups()) {
+          oprot.writeFieldBegin(NODE_GROUPS_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.nodeGroups.size()));
+            for (NodeGroup _iter106 : struct.nodeGroups)
+            {
+              _iter106.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
           oprot.writeFieldEnd();
         }
       }
@@ -810,7 +1078,13 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
       if (struct.isSetPrivileges()) {
         optionals.set(4);
       }
-      oprot.writeBitSet(optionals, 5);
+      if (struct.isSetNodes()) {
+        optionals.set(5);
+      }
+      if (struct.isSetNodeGroups()) {
+        optionals.set(6);
+      }
+      oprot.writeBitSet(optionals, 7);
       if (struct.isSetName()) {
         oprot.writeString(struct.name);
       }
@@ -823,22 +1097,40 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
       if (struct.isSetParameters()) {
         {
           oprot.writeI32(struct.parameters.size());
-          for (Map.Entry<String, String> _iter83 : struct.parameters.entrySet())
+          for (Map.Entry<String, String> _iter107 : struct.parameters.entrySet())
           {
-            oprot.writeString(_iter83.getKey());
-            oprot.writeString(_iter83.getValue());
+            oprot.writeString(_iter107.getKey());
+            oprot.writeString(_iter107.getValue());
           }
         }
       }
       if (struct.isSetPrivileges()) {
         struct.privileges.write(oprot);
       }
+      if (struct.isSetNodes()) {
+        {
+          oprot.writeI32(struct.nodes.size());
+          for (Node _iter108 : struct.nodes)
+          {
+            _iter108.write(oprot);
+          }
+        }
+      }
+      if (struct.isSetNodeGroups()) {
+        {
+          oprot.writeI32(struct.nodeGroups.size());
+          for (NodeGroup _iter109 : struct.nodeGroups)
+          {
+            _iter109.write(oprot);
+          }
+        }
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, Datacenter struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(5);
+      BitSet incoming = iprot.readBitSet(7);
       if (incoming.get(0)) {
         struct.name = iprot.readString();
         struct.setNameIsSet(true);
@@ -853,15 +1145,15 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
       }
       if (incoming.get(3)) {
         {
-          org.apache.thrift.protocol.TMap _map84 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.parameters = new HashMap<String,String>(2*_map84.size);
-          for (int _i85 = 0; _i85 < _map84.size; ++_i85)
+          org.apache.thrift.protocol.TMap _map110 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.parameters = new HashMap<String,String>(2*_map110.size);
+          for (int _i111 = 0; _i111 < _map110.size; ++_i111)
           {
-            String _key86; // required
-            String _val87; // required
-            _key86 = iprot.readString();
-            _val87 = iprot.readString();
-            struct.parameters.put(_key86, _val87);
+            String _key112; // required
+            String _val113; // required
+            _key112 = iprot.readString();
+            _val113 = iprot.readString();
+            struct.parameters.put(_key112, _val113);
           }
         }
         struct.setParametersIsSet(true);
@@ -870,6 +1162,34 @@ public class Datacenter implements org.apache.thrift.TBase<Datacenter, Datacente
         struct.privileges = new PrincipalPrivilegeSet();
         struct.privileges.read(iprot);
         struct.setPrivilegesIsSet(true);
+      }
+      if (incoming.get(5)) {
+        {
+          org.apache.thrift.protocol.TList _list114 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.nodes = new ArrayList<Node>(_list114.size);
+          for (int _i115 = 0; _i115 < _list114.size; ++_i115)
+          {
+            Node _elem116; // required
+            _elem116 = new Node();
+            _elem116.read(iprot);
+            struct.nodes.add(_elem116);
+          }
+        }
+        struct.setNodesIsSet(true);
+      }
+      if (incoming.get(6)) {
+        {
+          org.apache.thrift.protocol.TList _list117 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.nodeGroups = new ArrayList<NodeGroup>(_list117.size);
+          for (int _i118 = 0; _i118 < _list117.size; ++_i118)
+          {
+            NodeGroup _elem119; // required
+            _elem119 = new NodeGroup();
+            _elem119.read(iprot);
+            struct.nodeGroups.add(_elem119);
+          }
+        }
+        struct.setNodeGroupsIsSet(true);
       }
     }
   }

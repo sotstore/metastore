@@ -7,7 +7,6 @@
 #
 
 from thrift.Thrift import TType, TMessageType, TException, TApplicationException
-import fb303.ttypes
 import hive_metastore.ttypes
 import queryplan.ttypes
 

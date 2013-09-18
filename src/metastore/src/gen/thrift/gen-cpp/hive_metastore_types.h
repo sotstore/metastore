@@ -692,20 +692,148 @@ class User {
 
 void swap(User &a, User &b);
 
+typedef struct _Node__isset {
+  _Node__isset() : node_name(false), ips(false), status(false) {}
+  bool node_name;
+  bool ips;
+  bool status;
+} _Node__isset;
+
+class Node {
+ public:
+
+  static const char* ascii_fingerprint; // = "2B861B7093B3DC2A61450349FC883477";
+  static const uint8_t binary_fingerprint[16]; // = {0x2B,0x86,0x1B,0x70,0x93,0xB3,0xDC,0x2A,0x61,0x45,0x03,0x49,0xFC,0x88,0x34,0x77};
+
+  Node() : node_name(), status(0) {
+  }
+
+  virtual ~Node() throw() {}
+
+  std::string node_name;
+  std::vector<std::string>  ips;
+  int32_t status;
+
+  _Node__isset __isset;
+
+  void __set_node_name(const std::string& val) {
+    node_name = val;
+  }
+
+  void __set_ips(const std::vector<std::string> & val) {
+    ips = val;
+  }
+
+  void __set_status(const int32_t val) {
+    status = val;
+  }
+
+  bool operator == (const Node & rhs) const
+  {
+    if (!(node_name == rhs.node_name))
+      return false;
+    if (!(ips == rhs.ips))
+      return false;
+    if (!(status == rhs.status))
+      return false;
+    return true;
+  }
+  bool operator != (const Node &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Node & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(Node &a, Node &b);
+
+typedef struct _NodeGroup__isset {
+  _NodeGroup__isset() : node_group_name(false), comment(false), status(false), nodes(false) {}
+  bool node_group_name;
+  bool comment;
+  bool status;
+  bool nodes;
+} _NodeGroup__isset;
+
+class NodeGroup {
+ public:
+
+  static const char* ascii_fingerprint; // = "E71E2D61367D2C720DB7E3DEBA98BF91";
+  static const uint8_t binary_fingerprint[16]; // = {0xE7,0x1E,0x2D,0x61,0x36,0x7D,0x2C,0x72,0x0D,0xB7,0xE3,0xDE,0xBA,0x98,0xBF,0x91};
+
+  NodeGroup() : node_group_name(), comment(), status(0) {
+  }
+
+  virtual ~NodeGroup() throw() {}
+
+  std::string node_group_name;
+  std::string comment;
+  int32_t status;
+  std::set<Node>  nodes;
+
+  _NodeGroup__isset __isset;
+
+  void __set_node_group_name(const std::string& val) {
+    node_group_name = val;
+  }
+
+  void __set_comment(const std::string& val) {
+    comment = val;
+  }
+
+  void __set_status(const int32_t val) {
+    status = val;
+  }
+
+  void __set_nodes(const std::set<Node> & val) {
+    nodes = val;
+  }
+
+  bool operator == (const NodeGroup & rhs) const
+  {
+    if (!(node_group_name == rhs.node_group_name))
+      return false;
+    if (!(comment == rhs.comment))
+      return false;
+    if (!(status == rhs.status))
+      return false;
+    if (!(nodes == rhs.nodes))
+      return false;
+    return true;
+  }
+  bool operator != (const NodeGroup &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const NodeGroup & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(NodeGroup &a, NodeGroup &b);
+
 typedef struct _Datacenter__isset {
-  _Datacenter__isset() : name(false), description(false), locationUri(false), parameters(false), privileges(false) {}
+  _Datacenter__isset() : name(false), description(false), locationUri(false), parameters(false), privileges(false), nodes(false), nodeGroups(false) {}
   bool name;
   bool description;
   bool locationUri;
   bool parameters;
   bool privileges;
+  bool nodes;
+  bool nodeGroups;
 } _Datacenter__isset;
 
 class Datacenter {
  public:
 
-  static const char* ascii_fingerprint; // = "213967572143E49C9F1A23F7A866E2F5";
-  static const uint8_t binary_fingerprint[16]; // = {0x21,0x39,0x67,0x57,0x21,0x43,0xE4,0x9C,0x9F,0x1A,0x23,0xF7,0xA8,0x66,0xE2,0xF5};
+  static const char* ascii_fingerprint; // = "10DAA6026F2E077C9DE7E6E32D766CDB";
+  static const uint8_t binary_fingerprint[16]; // = {0x10,0xDA,0xA6,0x02,0x6F,0x2E,0x07,0x7C,0x9D,0xE7,0xE6,0xE3,0x2D,0x76,0x6C,0xDB};
 
   Datacenter() : name(), description(), locationUri() {
   }
@@ -717,6 +845,8 @@ class Datacenter {
   std::string locationUri;
   std::map<std::string, std::string>  parameters;
   PrincipalPrivilegeSet privileges;
+  std::vector<Node>  nodes;
+  std::vector<NodeGroup>  nodeGroups;
 
   _Datacenter__isset __isset;
 
@@ -741,6 +871,16 @@ class Datacenter {
     __isset.privileges = true;
   }
 
+  void __set_nodes(const std::vector<Node> & val) {
+    nodes = val;
+    __isset.nodes = true;
+  }
+
+  void __set_nodeGroups(const std::vector<NodeGroup> & val) {
+    nodeGroups = val;
+    __isset.nodeGroups = true;
+  }
+
   bool operator == (const Datacenter & rhs) const
   {
     if (!(name == rhs.name))
@@ -754,6 +894,14 @@ class Datacenter {
     if (__isset.privileges != rhs.__isset.privileges)
       return false;
     else if (__isset.privileges && !(privileges == rhs.privileges))
+      return false;
+    if (__isset.nodes != rhs.__isset.nodes)
+      return false;
+    else if (__isset.nodes && !(nodes == rhs.nodes))
+      return false;
+    if (__isset.nodeGroups != rhs.__isset.nodeGroups)
+      return false;
+    else if (__isset.nodeGroups && !(nodeGroups == rhs.nodeGroups))
       return false;
     return true;
   }
@@ -783,8 +931,8 @@ typedef struct _Database__isset {
 class Database {
  public:
 
-  static const char* ascii_fingerprint; // = "36BDAA0C78A7BCB4FF0F4C4A5901C8D3";
-  static const uint8_t binary_fingerprint[16]; // = {0x36,0xBD,0xAA,0x0C,0x78,0xA7,0xBC,0xB4,0xFF,0x0F,0x4C,0x4A,0x59,0x01,0xC8,0xD3};
+  static const char* ascii_fingerprint; // = "43FC76D4975F51842B856B85FA3EC1A8";
+  static const uint8_t binary_fingerprint[16]; // = {0x43,0xFC,0x76,0xD4,0x97,0x5F,0x51,0x84,0x2B,0x85,0x6B,0x85,0xFA,0x3E,0xC1,0xA8};
 
   Database() : name(), description(), locationUri() {
   }
@@ -1440,10 +1588,145 @@ class Partition {
 
 void swap(Partition &a, Partition &b);
 
+typedef struct _Schema__isset {
+  _Schema__isset() : schemaName(false), dbName(false), owner(false), createTime(false), lastAccessTime(false), retention(false), sd(false), parameters(false), viewOriginalText(false), viewExpandedText(false), schemaType(false), privileges(false) {}
+  bool schemaName;
+  bool dbName;
+  bool owner;
+  bool createTime;
+  bool lastAccessTime;
+  bool retention;
+  bool sd;
+  bool parameters;
+  bool viewOriginalText;
+  bool viewExpandedText;
+  bool schemaType;
+  bool privileges;
+} _Schema__isset;
+
+class Schema {
+ public:
+
+  static const char* ascii_fingerprint; // = "487279D4556CA8E17BBDD432E23B5A83";
+  static const uint8_t binary_fingerprint[16]; // = {0x48,0x72,0x79,0xD4,0x55,0x6C,0xA8,0xE1,0x7B,0xBD,0xD4,0x32,0xE2,0x3B,0x5A,0x83};
+
+  Schema() : schemaName(), dbName(), owner(), createTime(0), lastAccessTime(0), retention(0), viewOriginalText(), viewExpandedText(), schemaType() {
+  }
+
+  virtual ~Schema() throw() {}
+
+  std::string schemaName;
+  std::string dbName;
+  std::string owner;
+  int32_t createTime;
+  int32_t lastAccessTime;
+  int32_t retention;
+  StorageDescriptor sd;
+  std::map<std::string, std::string>  parameters;
+  std::string viewOriginalText;
+  std::string viewExpandedText;
+  std::string schemaType;
+  PrincipalPrivilegeSet privileges;
+
+  _Schema__isset __isset;
+
+  void __set_schemaName(const std::string& val) {
+    schemaName = val;
+  }
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_owner(const std::string& val) {
+    owner = val;
+  }
+
+  void __set_createTime(const int32_t val) {
+    createTime = val;
+  }
+
+  void __set_lastAccessTime(const int32_t val) {
+    lastAccessTime = val;
+  }
+
+  void __set_retention(const int32_t val) {
+    retention = val;
+  }
+
+  void __set_sd(const StorageDescriptor& val) {
+    sd = val;
+  }
+
+  void __set_parameters(const std::map<std::string, std::string> & val) {
+    parameters = val;
+  }
+
+  void __set_viewOriginalText(const std::string& val) {
+    viewOriginalText = val;
+  }
+
+  void __set_viewExpandedText(const std::string& val) {
+    viewExpandedText = val;
+  }
+
+  void __set_schemaType(const std::string& val) {
+    schemaType = val;
+  }
+
+  void __set_privileges(const PrincipalPrivilegeSet& val) {
+    privileges = val;
+    __isset.privileges = true;
+  }
+
+  bool operator == (const Schema & rhs) const
+  {
+    if (!(schemaName == rhs.schemaName))
+      return false;
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(owner == rhs.owner))
+      return false;
+    if (!(createTime == rhs.createTime))
+      return false;
+    if (!(lastAccessTime == rhs.lastAccessTime))
+      return false;
+    if (!(retention == rhs.retention))
+      return false;
+    if (!(sd == rhs.sd))
+      return false;
+    if (!(parameters == rhs.parameters))
+      return false;
+    if (!(viewOriginalText == rhs.viewOriginalText))
+      return false;
+    if (!(viewExpandedText == rhs.viewExpandedText))
+      return false;
+    if (!(schemaType == rhs.schemaType))
+      return false;
+    if (__isset.privileges != rhs.__isset.privileges)
+      return false;
+    else if (__isset.privileges && !(privileges == rhs.privileges))
+      return false;
+    return true;
+  }
+  bool operator != (const Schema &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Schema & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(Schema &a, Schema &b);
+
 typedef struct _Table__isset {
-  _Table__isset() : tableName(false), dbName(false), owner(false), createTime(false), lastAccessTime(false), retention(false), sd(false), partitionKeys(false), parameters(false), viewOriginalText(false), viewExpandedText(false), tableType(false), privileges(false), partitions(false) {}
+  _Table__isset() : tableName(false), dbName(false), schemaName(false), owner(false), createTime(false), lastAccessTime(false), retention(false), sd(false), partitionKeys(false), parameters(false), viewOriginalText(false), viewExpandedText(false), tableType(false), nodeGroups(false), privileges(false), partitions(false) {}
   bool tableName;
   bool dbName;
+  bool schemaName;
   bool owner;
   bool createTime;
   bool lastAccessTime;
@@ -1454,6 +1737,7 @@ typedef struct _Table__isset {
   bool viewOriginalText;
   bool viewExpandedText;
   bool tableType;
+  bool nodeGroups;
   bool privileges;
   bool partitions;
 } _Table__isset;
@@ -1461,16 +1745,17 @@ typedef struct _Table__isset {
 class Table {
  public:
 
-  static const char* ascii_fingerprint; // = "F28A70F6571CDAEFDA4B1A57B0E0D5D5";
-  static const uint8_t binary_fingerprint[16]; // = {0xF2,0x8A,0x70,0xF6,0x57,0x1C,0xDA,0xEF,0xDA,0x4B,0x1A,0x57,0xB0,0xE0,0xD5,0xD5};
+  static const char* ascii_fingerprint; // = "9805463CD0A472A290696D33C85B7305";
+  static const uint8_t binary_fingerprint[16]; // = {0x98,0x05,0x46,0x3C,0xD0,0xA4,0x72,0xA2,0x90,0x69,0x6D,0x33,0xC8,0x5B,0x73,0x05};
 
-  Table() : tableName(), dbName(), owner(), createTime(0), lastAccessTime(0), retention(0), viewOriginalText(), viewExpandedText(), tableType() {
+  Table() : tableName(), dbName(), schemaName(), owner(), createTime(0), lastAccessTime(0), retention(0), viewOriginalText(), viewExpandedText(), tableType() {
   }
 
   virtual ~Table() throw() {}
 
   std::string tableName;
   std::string dbName;
+  std::string schemaName;
   std::string owner;
   int32_t createTime;
   int32_t lastAccessTime;
@@ -1481,6 +1766,7 @@ class Table {
   std::string viewOriginalText;
   std::string viewExpandedText;
   std::string tableType;
+  std::vector<NodeGroup>  nodeGroups;
   PrincipalPrivilegeSet privileges;
   std::vector<Partition>  partitions;
 
@@ -1492,6 +1778,10 @@ class Table {
 
   void __set_dbName(const std::string& val) {
     dbName = val;
+  }
+
+  void __set_schemaName(const std::string& val) {
+    schemaName = val;
   }
 
   void __set_owner(const std::string& val) {
@@ -1534,6 +1824,11 @@ class Table {
     tableType = val;
   }
 
+  void __set_nodeGroups(const std::vector<NodeGroup> & val) {
+    nodeGroups = val;
+    __isset.nodeGroups = true;
+  }
+
   void __set_privileges(const PrincipalPrivilegeSet& val) {
     privileges = val;
     __isset.privileges = true;
@@ -1549,6 +1844,8 @@ class Table {
     if (!(tableName == rhs.tableName))
       return false;
     if (!(dbName == rhs.dbName))
+      return false;
+    if (!(schemaName == rhs.schemaName))
       return false;
     if (!(owner == rhs.owner))
       return false;
@@ -1569,6 +1866,10 @@ class Table {
     if (!(viewExpandedText == rhs.viewExpandedText))
       return false;
     if (!(tableType == rhs.tableType))
+      return false;
+    if (__isset.nodeGroups != rhs.__isset.nodeGroups)
+      return false;
+    else if (__isset.nodeGroups && !(nodeGroups == rhs.nodeGroups))
       return false;
     if (__isset.privileges != rhs.__isset.privileges)
       return false;
@@ -1603,8 +1904,8 @@ typedef struct _BusiTypeColumn__isset {
 class BusiTypeColumn {
  public:
 
-  static const char* ascii_fingerprint; // = "C5DCADADA0300E1255D699BA497FD949";
-  static const uint8_t binary_fingerprint[16]; // = {0xC5,0xDC,0xAD,0xAD,0xA0,0x30,0x0E,0x12,0x55,0xD6,0x99,0xBA,0x49,0x7F,0xD9,0x49};
+  static const char* ascii_fingerprint; // = "9DF5E31709BAD2B15A9C419E54413480";
+  static const uint8_t binary_fingerprint[16]; // = {0x9D,0xF5,0xE3,0x17,0x09,0xBA,0xD2,0xB1,0x5A,0x9C,0x41,0x9E,0x54,0x41,0x34,0x80};
 
   BusiTypeColumn() : busiType(), column() {
   }
@@ -1662,8 +1963,8 @@ typedef struct _BusiTypeDatacenter__isset {
 class BusiTypeDatacenter {
  public:
 
-  static const char* ascii_fingerprint; // = "EDFBA234DD8D4DEF7CF51A8F3112D35D";
-  static const uint8_t binary_fingerprint[16]; // = {0xED,0xFB,0xA2,0x34,0xDD,0x8D,0x4D,0xEF,0x7C,0xF5,0x1A,0x8F,0x31,0x12,0xD3,0x5D};
+  static const char* ascii_fingerprint; // = "2A578EA4D27E03B025CFB596CECC8EF4";
+  static const uint8_t binary_fingerprint[16]; // = {0x2A,0x57,0x8E,0xA4,0xD2,0x7E,0x03,0xB0,0x25,0xCF,0xB5,0x96,0xCE,0xCC,0x8E,0xF4};
 
   BusiTypeDatacenter() : busiType(), db_name() {
   }
@@ -1710,65 +2011,6 @@ class BusiTypeDatacenter {
 };
 
 void swap(BusiTypeDatacenter &a, BusiTypeDatacenter &b);
-
-typedef struct _Node__isset {
-  _Node__isset() : node_name(false), ips(false), status(false) {}
-  bool node_name;
-  bool ips;
-  bool status;
-} _Node__isset;
-
-class Node {
- public:
-
-  static const char* ascii_fingerprint; // = "2B861B7093B3DC2A61450349FC883477";
-  static const uint8_t binary_fingerprint[16]; // = {0x2B,0x86,0x1B,0x70,0x93,0xB3,0xDC,0x2A,0x61,0x45,0x03,0x49,0xFC,0x88,0x34,0x77};
-
-  Node() : node_name(), status(0) {
-  }
-
-  virtual ~Node() throw() {}
-
-  std::string node_name;
-  std::vector<std::string>  ips;
-  int32_t status;
-
-  _Node__isset __isset;
-
-  void __set_node_name(const std::string& val) {
-    node_name = val;
-  }
-
-  void __set_ips(const std::vector<std::string> & val) {
-    ips = val;
-  }
-
-  void __set_status(const int32_t val) {
-    status = val;
-  }
-
-  bool operator == (const Node & rhs) const
-  {
-    if (!(node_name == rhs.node_name))
-      return false;
-    if (!(ips == rhs.ips))
-      return false;
-    if (!(status == rhs.status))
-      return false;
-    return true;
-  }
-  bool operator != (const Node &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Node & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(Node &a, Node &b);
 
 typedef struct _Device__isset {
   _Device__isset() : devid(false), prop(false), node_name(false), status(false) {}
