@@ -527,24 +527,22 @@ class Partition
   ::Thrift::Struct.generate_accessors self
 end
 
-class Schema
+class GlobalSchema
   include ::Thrift::Struct, ::Thrift::Struct_Union
   SCHEMANAME = 1
-  DBNAME = 2
-  OWNER = 3
-  CREATETIME = 4
-  LASTACCESSTIME = 5
-  RETENTION = 6
-  SD = 7
-  PARAMETERS = 8
-  VIEWORIGINALTEXT = 9
-  VIEWEXPANDEDTEXT = 10
-  SCHEMATYPE = 11
-  PRIVILEGES = 12
+  OWNER = 2
+  CREATETIME = 3
+  LASTACCESSTIME = 4
+  RETENTION = 5
+  SD = 6
+  PARAMETERS = 7
+  VIEWORIGINALTEXT = 8
+  VIEWEXPANDEDTEXT = 9
+  SCHEMATYPE = 10
+  PRIVILEGES = 11
 
   FIELDS = {
     SCHEMANAME => {:type => ::Thrift::Types::STRING, :name => 'schemaName'},
-    DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
     OWNER => {:type => ::Thrift::Types::STRING, :name => 'owner'},
     CREATETIME => {:type => ::Thrift::Types::I32, :name => 'createTime'},
     LASTACCESSTIME => {:type => ::Thrift::Types::I32, :name => 'lastAccessTime'},

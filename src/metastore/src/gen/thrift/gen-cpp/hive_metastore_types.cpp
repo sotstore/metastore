@@ -3011,10 +3011,10 @@ void swap(Partition &a, Partition &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* Schema::ascii_fingerprint = "487279D4556CA8E17BBDD432E23B5A83";
-const uint8_t Schema::binary_fingerprint[16] = {0x48,0x72,0x79,0xD4,0x55,0x6C,0xA8,0xE1,0x7B,0xBD,0xD4,0x32,0xE2,0x3B,0x5A,0x83};
+const char* GlobalSchema::ascii_fingerprint = "63580A9C0450626B7ABC5B545E2350E1";
+const uint8_t GlobalSchema::binary_fingerprint[16] = {0x63,0x58,0x0A,0x9C,0x04,0x50,0x62,0x6B,0x7A,0xBC,0x5B,0x54,0x5E,0x23,0x50,0xE1};
 
-uint32_t Schema::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t GlobalSchema::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -3044,21 +3044,13 @@ uint32_t Schema::read(::apache::thrift::protocol::TProtocol* iprot) {
         break;
       case 2:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->dbName);
-          this->__isset.dbName = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 3:
-        if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->owner);
           this->__isset.owner = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 4:
+      case 3:
         if (ftype == ::apache::thrift::protocol::T_I32) {
           xfer += iprot->readI32(this->createTime);
           this->__isset.createTime = true;
@@ -3066,7 +3058,7 @@ uint32_t Schema::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 5:
+      case 4:
         if (ftype == ::apache::thrift::protocol::T_I32) {
           xfer += iprot->readI32(this->lastAccessTime);
           this->__isset.lastAccessTime = true;
@@ -3074,7 +3066,7 @@ uint32_t Schema::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 6:
+      case 5:
         if (ftype == ::apache::thrift::protocol::T_I32) {
           xfer += iprot->readI32(this->retention);
           this->__isset.retention = true;
@@ -3082,7 +3074,7 @@ uint32_t Schema::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 7:
+      case 6:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->sd.read(iprot);
           this->__isset.sd = true;
@@ -3090,7 +3082,7 @@ uint32_t Schema::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 8:
+      case 7:
         if (ftype == ::apache::thrift::protocol::T_MAP) {
           {
             this->parameters.clear();
@@ -3113,7 +3105,7 @@ uint32_t Schema::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 9:
+      case 8:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->viewOriginalText);
           this->__isset.viewOriginalText = true;
@@ -3121,7 +3113,7 @@ uint32_t Schema::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 10:
+      case 9:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->viewExpandedText);
           this->__isset.viewExpandedText = true;
@@ -3129,7 +3121,7 @@ uint32_t Schema::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 11:
+      case 10:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->schemaType);
           this->__isset.schemaType = true;
@@ -3137,7 +3129,7 @@ uint32_t Schema::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 12:
+      case 11:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->privileges.read(iprot);
           this->__isset.privileges = true;
@@ -3157,39 +3149,35 @@ uint32_t Schema::read(::apache::thrift::protocol::TProtocol* iprot) {
   return xfer;
 }
 
-uint32_t Schema::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t GlobalSchema::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("Schema");
+  xfer += oprot->writeStructBegin("GlobalSchema");
 
   xfer += oprot->writeFieldBegin("schemaName", ::apache::thrift::protocol::T_STRING, 1);
   xfer += oprot->writeString(this->schemaName);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("dbName", ::apache::thrift::protocol::T_STRING, 2);
-  xfer += oprot->writeString(this->dbName);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("owner", ::apache::thrift::protocol::T_STRING, 3);
+  xfer += oprot->writeFieldBegin("owner", ::apache::thrift::protocol::T_STRING, 2);
   xfer += oprot->writeString(this->owner);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("createTime", ::apache::thrift::protocol::T_I32, 4);
+  xfer += oprot->writeFieldBegin("createTime", ::apache::thrift::protocol::T_I32, 3);
   xfer += oprot->writeI32(this->createTime);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("lastAccessTime", ::apache::thrift::protocol::T_I32, 5);
+  xfer += oprot->writeFieldBegin("lastAccessTime", ::apache::thrift::protocol::T_I32, 4);
   xfer += oprot->writeI32(this->lastAccessTime);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("retention", ::apache::thrift::protocol::T_I32, 6);
+  xfer += oprot->writeFieldBegin("retention", ::apache::thrift::protocol::T_I32, 5);
   xfer += oprot->writeI32(this->retention);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("sd", ::apache::thrift::protocol::T_STRUCT, 7);
+  xfer += oprot->writeFieldBegin("sd", ::apache::thrift::protocol::T_STRUCT, 6);
   xfer += this->sd.write(oprot);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("parameters", ::apache::thrift::protocol::T_MAP, 8);
+  xfer += oprot->writeFieldBegin("parameters", ::apache::thrift::protocol::T_MAP, 7);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_STRING, ::apache::thrift::protocol::T_STRING, static_cast<uint32_t>(this->parameters.size()));
     std::map<std::string, std::string> ::const_iterator _iter223;
@@ -3202,20 +3190,20 @@ uint32_t Schema::write(::apache::thrift::protocol::TProtocol* oprot) const {
   }
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("viewOriginalText", ::apache::thrift::protocol::T_STRING, 9);
+  xfer += oprot->writeFieldBegin("viewOriginalText", ::apache::thrift::protocol::T_STRING, 8);
   xfer += oprot->writeString(this->viewOriginalText);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("viewExpandedText", ::apache::thrift::protocol::T_STRING, 10);
+  xfer += oprot->writeFieldBegin("viewExpandedText", ::apache::thrift::protocol::T_STRING, 9);
   xfer += oprot->writeString(this->viewExpandedText);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("schemaType", ::apache::thrift::protocol::T_STRING, 11);
+  xfer += oprot->writeFieldBegin("schemaType", ::apache::thrift::protocol::T_STRING, 10);
   xfer += oprot->writeString(this->schemaType);
   xfer += oprot->writeFieldEnd();
 
   if (this->__isset.privileges) {
-    xfer += oprot->writeFieldBegin("privileges", ::apache::thrift::protocol::T_STRUCT, 12);
+    xfer += oprot->writeFieldBegin("privileges", ::apache::thrift::protocol::T_STRUCT, 11);
     xfer += this->privileges.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
@@ -3224,10 +3212,9 @@ uint32_t Schema::write(::apache::thrift::protocol::TProtocol* oprot) const {
   return xfer;
 }
 
-void swap(Schema &a, Schema &b) {
+void swap(GlobalSchema &a, GlobalSchema &b) {
   using ::std::swap;
   swap(a.schemaName, b.schemaName);
-  swap(a.dbName, b.dbName);
   swap(a.owner, b.owner);
   swap(a.createTime, b.createTime);
   swap(a.lastAccessTime, b.lastAccessTime);

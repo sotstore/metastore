@@ -6352,6 +6352,10 @@ class Client(fb303.FacebookService.Client, Iface):
       return result.success
     if result.o1 is not None:
       raise result.o1
+    if result.o2 is not None:
+      raise result.o2
+    if result.o3 is not None:
+      raise result.o3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "createSchema failed: unknown result");
 
   def modifySchema(self, schema):
@@ -6649,6 +6653,8 @@ class Client(fb303.FacebookService.Client, Iface):
       return result.success
     if result.o1 is not None:
       raise result.o1
+    if result.o2 is not None:
+      raise result.o2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "addNodeGroup failed: unknown result");
 
   def modifyNodeGroup(self, ng):
@@ -9279,8 +9285,12 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     result = createSchema_result()
     try:
       result.success = self._handler.createSchema(args.schema)
-    except MetaException as o1:
+    except AlreadyExistsException as o1:
       result.o1 = o1
+    except InvalidObjectException as o2:
+      result.o2 = o2
+    except MetaException as o3:
+      result.o3 = o3
     oprot.writeMessageBegin("createSchema", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9405,8 +9415,10 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     result = addNodeGroup_result()
     try:
       result.success = self._handler.addNodeGroup(args.ng)
-    except MetaException as o1:
+    except AlreadyExistsException as o1:
       result.o1 = o1
+    except MetaException as o2:
+      result.o2 = o2
     oprot.writeMessageBegin("addNodeGroup", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -32273,7 +32285,7 @@ class createSchema_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'schema', (Schema, Schema.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'schema', (GlobalSchema, GlobalSchema.thrift_spec), None, ), # 1
   )
 
   def __init__(self, schema=None,):
@@ -32290,7 +32302,7 @@ class createSchema_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.schema = Schema()
+          self.schema = GlobalSchema()
           self.schema.read(iprot)
         else:
           iprot.skip(ftype)
@@ -32331,16 +32343,22 @@ class createSchema_result:
   Attributes:
    - success
    - o1
+   - o2
+   - o3
   """
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'o1', (AlreadyExistsException, AlreadyExistsException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (InvalidObjectException, InvalidObjectException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'o3', (MetaException, MetaException.thrift_spec), None, ), # 3
   )
 
-  def __init__(self, success=None, o1=None,):
+  def __init__(self, success=None, o1=None, o2=None, o3=None,):
     self.success = success
     self.o1 = o1
+    self.o2 = o2
+    self.o3 = o3
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -32358,8 +32376,20 @@ class createSchema_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.o1 = MetaException()
+          self.o1 = AlreadyExistsException()
           self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = InvalidObjectException()
+          self.o2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.o3 = MetaException()
+          self.o3.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -32379,6 +32409,14 @@ class createSchema_result:
     if self.o1 is not None:
       oprot.writeFieldBegin('o1', TType.STRUCT, 1)
       self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
+      self.o2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o3 is not None:
+      oprot.writeFieldBegin('o3', TType.STRUCT, 3)
+      self.o3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -32406,7 +32444,7 @@ class modifySchema_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'schema', (Schema, Schema.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'schema', (GlobalSchema, GlobalSchema.thrift_spec), None, ), # 1
   )
 
   def __init__(self, schema=None,):
@@ -32423,7 +32461,7 @@ class modifySchema_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.schema = Schema()
+          self.schema = GlobalSchema()
           self.schema.read(iprot)
         else:
           iprot.skip(ftype)
@@ -32713,7 +32751,7 @@ class listSchemas_result:
   """
 
   thrift_spec = (
-    (0, TType.LIST, 'success', (TType.STRUCT,(Schema, Schema.thrift_spec)), None, ), # 0
+    (0, TType.LIST, 'success', (TType.STRUCT,(GlobalSchema, GlobalSchema.thrift_spec)), None, ), # 0
     (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
   )
 
@@ -32735,7 +32773,7 @@ class listSchemas_result:
           self.success = []
           (_etype913, _size910) = iprot.readListBegin()
           for _i914 in xrange(_size910):
-            _elem915 = Schema()
+            _elem915 = GlobalSchema()
             _elem915.read(iprot)
             self.success.append(_elem915)
           iprot.readListEnd()
@@ -32854,7 +32892,7 @@ class getSchemaByName_result:
   """
 
   thrift_spec = (
-    (0, TType.STRUCT, 'success', (Schema, Schema.thrift_spec), None, ), # 0
+    (0, TType.STRUCT, 'success', (GlobalSchema, GlobalSchema.thrift_spec), None, ), # 0
     (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
   )
 
@@ -32873,7 +32911,7 @@ class getSchemaByName_result:
         break
       if fid == 0:
         if ftype == TType.STRUCT:
-          self.success = Schema()
+          self.success = GlobalSchema()
           self.success.read(iprot)
         else:
           iprot.skip(ftype)
@@ -33633,16 +33671,19 @@ class addNodeGroup_result:
   Attributes:
    - success
    - o1
+   - o2
   """
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'o1', (AlreadyExistsException, AlreadyExistsException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (MetaException, MetaException.thrift_spec), None, ), # 2
   )
 
-  def __init__(self, success=None, o1=None,):
+  def __init__(self, success=None, o1=None, o2=None,):
     self.success = success
     self.o1 = o1
+    self.o2 = o2
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -33660,8 +33701,14 @@ class addNodeGroup_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.o1 = MetaException()
+          self.o1 = AlreadyExistsException()
           self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = MetaException()
+          self.o2.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -33681,6 +33728,10 @@ class addNodeGroup_result:
     if self.o1 is not None:
       oprot.writeFieldBegin('o1', TType.STRUCT, 1)
       self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
+      self.o2.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

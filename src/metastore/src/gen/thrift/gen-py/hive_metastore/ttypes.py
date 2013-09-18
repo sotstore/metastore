@@ -2521,11 +2521,10 @@ class Partition:
   def __ne__(self, other):
     return not (self == other)
 
-class Schema:
+class GlobalSchema:
   """
   Attributes:
    - schemaName
-   - dbName
    - owner
    - createTime
    - lastAccessTime
@@ -2541,22 +2540,20 @@ class Schema:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'schemaName', None, None, ), # 1
-    (2, TType.STRING, 'dbName', None, None, ), # 2
-    (3, TType.STRING, 'owner', None, None, ), # 3
-    (4, TType.I32, 'createTime', None, None, ), # 4
-    (5, TType.I32, 'lastAccessTime', None, None, ), # 5
-    (6, TType.I32, 'retention', None, None, ), # 6
-    (7, TType.STRUCT, 'sd', (StorageDescriptor, StorageDescriptor.thrift_spec), None, ), # 7
-    (8, TType.MAP, 'parameters', (TType.STRING,None,TType.STRING,None), None, ), # 8
-    (9, TType.STRING, 'viewOriginalText', None, None, ), # 9
-    (10, TType.STRING, 'viewExpandedText', None, None, ), # 10
-    (11, TType.STRING, 'schemaType', None, None, ), # 11
-    (12, TType.STRUCT, 'privileges', (PrincipalPrivilegeSet, PrincipalPrivilegeSet.thrift_spec), None, ), # 12
+    (2, TType.STRING, 'owner', None, None, ), # 2
+    (3, TType.I32, 'createTime', None, None, ), # 3
+    (4, TType.I32, 'lastAccessTime', None, None, ), # 4
+    (5, TType.I32, 'retention', None, None, ), # 5
+    (6, TType.STRUCT, 'sd', (StorageDescriptor, StorageDescriptor.thrift_spec), None, ), # 6
+    (7, TType.MAP, 'parameters', (TType.STRING,None,TType.STRING,None), None, ), # 7
+    (8, TType.STRING, 'viewOriginalText', None, None, ), # 8
+    (9, TType.STRING, 'viewExpandedText', None, None, ), # 9
+    (10, TType.STRING, 'schemaType', None, None, ), # 10
+    (11, TType.STRUCT, 'privileges', (PrincipalPrivilegeSet, PrincipalPrivilegeSet.thrift_spec), None, ), # 11
   )
 
-  def __init__(self, schemaName=None, dbName=None, owner=None, createTime=None, lastAccessTime=None, retention=None, sd=None, parameters=None, viewOriginalText=None, viewExpandedText=None, schemaType=None, privileges=None,):
+  def __init__(self, schemaName=None, owner=None, createTime=None, lastAccessTime=None, retention=None, sd=None, parameters=None, viewOriginalText=None, viewExpandedText=None, schemaType=None, privileges=None,):
     self.schemaName = schemaName
-    self.dbName = dbName
     self.owner = owner
     self.createTime = createTime
     self.lastAccessTime = lastAccessTime
@@ -2584,36 +2581,31 @@ class Schema:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRING:
-          self.dbName = iprot.readString();
-        else:
-          iprot.skip(ftype)
-      elif fid == 3:
-        if ftype == TType.STRING:
           self.owner = iprot.readString();
         else:
           iprot.skip(ftype)
-      elif fid == 4:
+      elif fid == 3:
         if ftype == TType.I32:
           self.createTime = iprot.readI32();
         else:
           iprot.skip(ftype)
-      elif fid == 5:
+      elif fid == 4:
         if ftype == TType.I32:
           self.lastAccessTime = iprot.readI32();
         else:
           iprot.skip(ftype)
-      elif fid == 6:
+      elif fid == 5:
         if ftype == TType.I32:
           self.retention = iprot.readI32();
         else:
           iprot.skip(ftype)
-      elif fid == 7:
+      elif fid == 6:
         if ftype == TType.STRUCT:
           self.sd = StorageDescriptor()
           self.sd.read(iprot)
         else:
           iprot.skip(ftype)
-      elif fid == 8:
+      elif fid == 7:
         if ftype == TType.MAP:
           self.parameters = {}
           (_ktype245, _vtype246, _size244 ) = iprot.readMapBegin() 
@@ -2624,22 +2616,22 @@ class Schema:
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
-      elif fid == 9:
+      elif fid == 8:
         if ftype == TType.STRING:
           self.viewOriginalText = iprot.readString();
         else:
           iprot.skip(ftype)
-      elif fid == 10:
+      elif fid == 9:
         if ftype == TType.STRING:
           self.viewExpandedText = iprot.readString();
         else:
           iprot.skip(ftype)
-      elif fid == 11:
+      elif fid == 10:
         if ftype == TType.STRING:
           self.schemaType = iprot.readString();
         else:
           iprot.skip(ftype)
-      elif fid == 12:
+      elif fid == 11:
         if ftype == TType.STRUCT:
           self.privileges = PrincipalPrivilegeSet()
           self.privileges.read(iprot)
@@ -2654,37 +2646,33 @@ class Schema:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('Schema')
+    oprot.writeStructBegin('GlobalSchema')
     if self.schemaName is not None:
       oprot.writeFieldBegin('schemaName', TType.STRING, 1)
       oprot.writeString(self.schemaName)
       oprot.writeFieldEnd()
-    if self.dbName is not None:
-      oprot.writeFieldBegin('dbName', TType.STRING, 2)
-      oprot.writeString(self.dbName)
-      oprot.writeFieldEnd()
     if self.owner is not None:
-      oprot.writeFieldBegin('owner', TType.STRING, 3)
+      oprot.writeFieldBegin('owner', TType.STRING, 2)
       oprot.writeString(self.owner)
       oprot.writeFieldEnd()
     if self.createTime is not None:
-      oprot.writeFieldBegin('createTime', TType.I32, 4)
+      oprot.writeFieldBegin('createTime', TType.I32, 3)
       oprot.writeI32(self.createTime)
       oprot.writeFieldEnd()
     if self.lastAccessTime is not None:
-      oprot.writeFieldBegin('lastAccessTime', TType.I32, 5)
+      oprot.writeFieldBegin('lastAccessTime', TType.I32, 4)
       oprot.writeI32(self.lastAccessTime)
       oprot.writeFieldEnd()
     if self.retention is not None:
-      oprot.writeFieldBegin('retention', TType.I32, 6)
+      oprot.writeFieldBegin('retention', TType.I32, 5)
       oprot.writeI32(self.retention)
       oprot.writeFieldEnd()
     if self.sd is not None:
-      oprot.writeFieldBegin('sd', TType.STRUCT, 7)
+      oprot.writeFieldBegin('sd', TType.STRUCT, 6)
       self.sd.write(oprot)
       oprot.writeFieldEnd()
     if self.parameters is not None:
-      oprot.writeFieldBegin('parameters', TType.MAP, 8)
+      oprot.writeFieldBegin('parameters', TType.MAP, 7)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.parameters))
       for kiter251,viter252 in self.parameters.items():
         oprot.writeString(kiter251)
@@ -2692,19 +2680,19 @@ class Schema:
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.viewOriginalText is not None:
-      oprot.writeFieldBegin('viewOriginalText', TType.STRING, 9)
+      oprot.writeFieldBegin('viewOriginalText', TType.STRING, 8)
       oprot.writeString(self.viewOriginalText)
       oprot.writeFieldEnd()
     if self.viewExpandedText is not None:
-      oprot.writeFieldBegin('viewExpandedText', TType.STRING, 10)
+      oprot.writeFieldBegin('viewExpandedText', TType.STRING, 9)
       oprot.writeString(self.viewExpandedText)
       oprot.writeFieldEnd()
     if self.schemaType is not None:
-      oprot.writeFieldBegin('schemaType', TType.STRING, 11)
+      oprot.writeFieldBegin('schemaType', TType.STRING, 10)
       oprot.writeString(self.schemaType)
       oprot.writeFieldEnd()
     if self.privileges is not None:
-      oprot.writeFieldBegin('privileges', TType.STRUCT, 12)
+      oprot.writeFieldBegin('privileges', TType.STRUCT, 11)
       self.privileges.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()

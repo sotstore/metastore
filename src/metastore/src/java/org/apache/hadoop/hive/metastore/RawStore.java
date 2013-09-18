@@ -33,6 +33,7 @@ import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
+import org.apache.hadoop.hive.metastore.api.GlobalSchema;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -49,6 +50,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.Schema;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -592,5 +594,9 @@ public interface RawStore extends Configurable {
   public abstract boolean deleteGeoLocation(GeoLocation gl) throws MetaException;
 
   public abstract List<GeoLocation> listGeoLocation() throws MetaException;
+
+  public abstract Schema getSchema(String schema_name)throws MetaException;
+
+  public abstract void createSchema(GlobalSchema schema)throws InvalidObjectException, MetaException;
 
 }

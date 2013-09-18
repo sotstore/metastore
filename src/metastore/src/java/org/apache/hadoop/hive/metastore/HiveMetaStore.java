@@ -80,6 +80,7 @@ import org.apache.hadoop.hive.metastore.api.FOFailReason;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
+import org.apache.hadoop.hive.metastore.api.GlobalSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
@@ -103,7 +104,6 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
-import org.apache.hadoop.hive.metastore.api.Schema;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
@@ -242,7 +242,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             "cmd=%s\t"; // command
     public static final Log auditLog = LogFactory.getLog(
         HiveMetaStore.class.getName() + ".audit");
-    private static final ThreadLocal<Formatter> auditFormatter =
+    private static  ThreadLocal<Formatter> auditFormatter =
         new ThreadLocal<Formatter>() {
           @Override
           protected Formatter initialValue() {
@@ -281,7 +281,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     // The next serial number to be assigned
     private boolean checkForDefaultDb;
     private static int nextSerialNum = 0;
-    private static ThreadLocal<Integer> threadLocalId = new ThreadLocal<Integer>() {
+    private static final ThreadLocal<Integer> threadLocalId = new ThreadLocal<Integer>() {
       @Override
       protected synchronized Integer initialValue() {
         return new Integer(nextSerialNum++);
@@ -1238,6 +1238,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     private boolean is_table_exists(RawStore ms, String dbname, String name)
         throws MetaException {
       return (ms.getTable(dbname, name) != null);
+    }
+
+    private boolean is_schema_exists(RawStore ms, String schema_name)
+        throws MetaException {
+      return (ms.getSchema(schema_name) != null);
     }
 
     private void drop_table_core(final RawStore ms, final String dbname, final String name,
@@ -5865,39 +5870,78 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public Device modify_device(Device dev, Node node) throws MetaException, TException {
+    public Device modify_device(Device dev, Node node) throws AlreadyExistsException,
+      InvalidObjectException,MetaException, TException {
       return getMS().modifyDevice(dev, node);
     }
 
     @Override
-    public boolean createSchema(Schema schema) throws MetaException, TException {
+    public boolean createSchema(GlobalSchema schema) throws AlreadyExistsException,
+        InvalidObjectException, MetaException, TException {
+
+      if (!MetaStoreUtils.validateName(schema.getSchemaName())
+          || !MetaStoreUtils.validateColNames(schema.getSd().getCols())
+          || !MetaStoreUtils.validateSkewedColNames(
+              (null == schema.getSd().getSkewedInfo()) ?
+                  null : schema.getSd().getSkewedInfo().getSkewedColNames())
+          || !MetaStoreUtils.validateSkewedColNamesSubsetCol(
+              (null == schema.getSd().getSkewedInfo()) ?
+                  null : schema.getSd().getSkewedInfo().getSkewedColNames(),
+              schema.getSd().getCols())) {
+        throw new InvalidObjectException(schema.getSchemaName()
+            + " is not a valid object name");
+      }
+
+      Path tblPath = null;
+      boolean success = false, madeDir = false;
+      RawStore ms = getMS();
+      try {
+
+        ms.openTransaction();
+
+        // get_table checks whether database exists, it should be moved here
+        if (is_schema_exists(ms, schema.getSchemaName())) {
+          throw new AlreadyExistsException("schema " + schema.getSchemaName()
+              + " already exists");
+        }
+
+        // set create time
+        long time = System.currentTimeMillis() / 1000;
+        schema.setCreateTime((int) time);
+        if (schema.getParameters() == null ||
+            schema.getParameters().get(hive_metastoreConstants.DDL_TIME) == null) {
+          schema.putToParameters(hive_metastoreConstants.DDL_TIME, Long.toString(time));
+        }
+        ms.createSchema(schema);
+        success = ms.commitTransaction();
+
+//        this.createBusiTypeDC(ms, schema);
+      } finally {
+        if (!success) {
+          ms.rollbackTransaction();
+        }
+      }
+          return success;
+    }
+
+
+    @Override
+    public GlobalSchema getSchemaByName(String schemaName) throws MetaException, TException {
       // TODO Auto-generated method stub
-      return false;
+      return null;
     }
 
     @Override
-    public boolean modifySchema(Schema schema) throws MetaException, TException {
+    public boolean modifySchema(GlobalSchema schema) throws MetaException, TException {
       // TODO Auto-generated method stub
       return false;
     }
-
     @Override
     public boolean deleteSchema(String schemaName) throws MetaException, TException {
       // TODO Auto-generated method stub
       return false;
     }
 
-    @Override
-    public List<Schema> listSchemas() throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public Schema getSchemaByName(String schemaName) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
-    }
 
     @Override
     public List<NodeGroup> getTableNodeGroups(String dbName, String tabName) throws MetaException,
@@ -5928,7 +5972,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public boolean addNodeGroup(NodeGroup ng) throws MetaException, TException {
+    public boolean addNodeGroup(NodeGroup ng) throws AlreadyExistsException,MetaException, TException {
       // TODO Auto-generated method stub
       return false;
     }
@@ -5977,6 +6021,15 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       // TODO Auto-generated method stub
       return null;
     }
+
+    @Override
+    public List<GlobalSchema> listSchemas() throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+
+
 
 /*    @Override
     public boolean addNodeAssignment(Node node, Database database) throws MetaException, TException {

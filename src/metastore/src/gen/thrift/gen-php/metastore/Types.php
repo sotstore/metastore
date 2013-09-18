@@ -4030,11 +4030,10 @@ class Partition {
 
 }
 
-class Schema {
+class GlobalSchema {
   static $_TSPEC;
 
   public $schemaName = null;
-  public $dbName = null;
   public $owner = null;
   public $createTime = null;
   public $lastAccessTime = null;
@@ -4054,31 +4053,27 @@ class Schema {
           'type' => TType::STRING,
           ),
         2 => array(
-          'var' => 'dbName',
-          'type' => TType::STRING,
-          ),
-        3 => array(
           'var' => 'owner',
           'type' => TType::STRING,
           ),
-        4 => array(
+        3 => array(
           'var' => 'createTime',
           'type' => TType::I32,
           ),
-        5 => array(
+        4 => array(
           'var' => 'lastAccessTime',
           'type' => TType::I32,
           ),
-        6 => array(
+        5 => array(
           'var' => 'retention',
           'type' => TType::I32,
           ),
-        7 => array(
+        6 => array(
           'var' => 'sd',
           'type' => TType::STRUCT,
           'class' => '\metastore\StorageDescriptor',
           ),
-        8 => array(
+        7 => array(
           'var' => 'parameters',
           'type' => TType::MAP,
           'ktype' => TType::STRING,
@@ -4090,19 +4085,19 @@ class Schema {
             'type' => TType::STRING,
             ),
           ),
-        9 => array(
+        8 => array(
           'var' => 'viewOriginalText',
           'type' => TType::STRING,
           ),
-        10 => array(
+        9 => array(
           'var' => 'viewExpandedText',
           'type' => TType::STRING,
           ),
-        11 => array(
+        10 => array(
           'var' => 'schemaType',
           'type' => TType::STRING,
           ),
-        12 => array(
+        11 => array(
           'var' => 'privileges',
           'type' => TType::STRUCT,
           'class' => '\metastore\PrincipalPrivilegeSet',
@@ -4112,9 +4107,6 @@ class Schema {
     if (is_array($vals)) {
       if (isset($vals['schemaName'])) {
         $this->schemaName = $vals['schemaName'];
-      }
-      if (isset($vals['dbName'])) {
-        $this->dbName = $vals['dbName'];
       }
       if (isset($vals['owner'])) {
         $this->owner = $vals['owner'];
@@ -4150,7 +4142,7 @@ class Schema {
   }
 
   public function getName() {
-    return 'Schema';
+    return 'GlobalSchema';
   }
 
   public function read($input)
@@ -4177,40 +4169,33 @@ class Schema {
           break;
         case 2:
           if ($ftype == TType::STRING) {
-            $xfer += $input->readString($this->dbName);
-          } else {
-            $xfer += $input->skip($ftype);
-          }
-          break;
-        case 3:
-          if ($ftype == TType::STRING) {
             $xfer += $input->readString($this->owner);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
-        case 4:
+        case 3:
           if ($ftype == TType::I32) {
             $xfer += $input->readI32($this->createTime);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
-        case 5:
+        case 4:
           if ($ftype == TType::I32) {
             $xfer += $input->readI32($this->lastAccessTime);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
-        case 6:
+        case 5:
           if ($ftype == TType::I32) {
             $xfer += $input->readI32($this->retention);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
-        case 7:
+        case 6:
           if ($ftype == TType::STRUCT) {
             $this->sd = new \metastore\StorageDescriptor();
             $xfer += $this->sd->read($input);
@@ -4218,7 +4203,7 @@ class Schema {
             $xfer += $input->skip($ftype);
           }
           break;
-        case 8:
+        case 7:
           if ($ftype == TType::MAP) {
             $this->parameters = array();
             $_size245 = 0;
@@ -4238,28 +4223,28 @@ class Schema {
             $xfer += $input->skip($ftype);
           }
           break;
-        case 9:
+        case 8:
           if ($ftype == TType::STRING) {
             $xfer += $input->readString($this->viewOriginalText);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
-        case 10:
+        case 9:
           if ($ftype == TType::STRING) {
             $xfer += $input->readString($this->viewExpandedText);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
-        case 11:
+        case 10:
           if ($ftype == TType::STRING) {
             $xfer += $input->readString($this->schemaType);
           } else {
             $xfer += $input->skip($ftype);
           }
           break;
-        case 12:
+        case 11:
           if ($ftype == TType::STRUCT) {
             $this->privileges = new \metastore\PrincipalPrivilegeSet();
             $xfer += $this->privileges->read($input);
@@ -4279,34 +4264,29 @@ class Schema {
 
   public function write($output) {
     $xfer = 0;
-    $xfer += $output->writeStructBegin('Schema');
+    $xfer += $output->writeStructBegin('GlobalSchema');
     if ($this->schemaName !== null) {
       $xfer += $output->writeFieldBegin('schemaName', TType::STRING, 1);
       $xfer += $output->writeString($this->schemaName);
       $xfer += $output->writeFieldEnd();
     }
-    if ($this->dbName !== null) {
-      $xfer += $output->writeFieldBegin('dbName', TType::STRING, 2);
-      $xfer += $output->writeString($this->dbName);
-      $xfer += $output->writeFieldEnd();
-    }
     if ($this->owner !== null) {
-      $xfer += $output->writeFieldBegin('owner', TType::STRING, 3);
+      $xfer += $output->writeFieldBegin('owner', TType::STRING, 2);
       $xfer += $output->writeString($this->owner);
       $xfer += $output->writeFieldEnd();
     }
     if ($this->createTime !== null) {
-      $xfer += $output->writeFieldBegin('createTime', TType::I32, 4);
+      $xfer += $output->writeFieldBegin('createTime', TType::I32, 3);
       $xfer += $output->writeI32($this->createTime);
       $xfer += $output->writeFieldEnd();
     }
     if ($this->lastAccessTime !== null) {
-      $xfer += $output->writeFieldBegin('lastAccessTime', TType::I32, 5);
+      $xfer += $output->writeFieldBegin('lastAccessTime', TType::I32, 4);
       $xfer += $output->writeI32($this->lastAccessTime);
       $xfer += $output->writeFieldEnd();
     }
     if ($this->retention !== null) {
-      $xfer += $output->writeFieldBegin('retention', TType::I32, 6);
+      $xfer += $output->writeFieldBegin('retention', TType::I32, 5);
       $xfer += $output->writeI32($this->retention);
       $xfer += $output->writeFieldEnd();
     }
@@ -4314,7 +4294,7 @@ class Schema {
       if (!is_object($this->sd)) {
         throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
       }
-      $xfer += $output->writeFieldBegin('sd', TType::STRUCT, 7);
+      $xfer += $output->writeFieldBegin('sd', TType::STRUCT, 6);
       $xfer += $this->sd->write($output);
       $xfer += $output->writeFieldEnd();
     }
@@ -4322,7 +4302,7 @@ class Schema {
       if (!is_array($this->parameters)) {
         throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
       }
-      $xfer += $output->writeFieldBegin('parameters', TType::MAP, 8);
+      $xfer += $output->writeFieldBegin('parameters', TType::MAP, 7);
       {
         $output->writeMapBegin(TType::STRING, TType::STRING, count($this->parameters));
         {
@@ -4337,17 +4317,17 @@ class Schema {
       $xfer += $output->writeFieldEnd();
     }
     if ($this->viewOriginalText !== null) {
-      $xfer += $output->writeFieldBegin('viewOriginalText', TType::STRING, 9);
+      $xfer += $output->writeFieldBegin('viewOriginalText', TType::STRING, 8);
       $xfer += $output->writeString($this->viewOriginalText);
       $xfer += $output->writeFieldEnd();
     }
     if ($this->viewExpandedText !== null) {
-      $xfer += $output->writeFieldBegin('viewExpandedText', TType::STRING, 10);
+      $xfer += $output->writeFieldBegin('viewExpandedText', TType::STRING, 9);
       $xfer += $output->writeString($this->viewExpandedText);
       $xfer += $output->writeFieldEnd();
     }
     if ($this->schemaType !== null) {
-      $xfer += $output->writeFieldBegin('schemaType', TType::STRING, 11);
+      $xfer += $output->writeFieldBegin('schemaType', TType::STRING, 10);
       $xfer += $output->writeString($this->schemaType);
       $xfer += $output->writeFieldEnd();
     }
@@ -4355,7 +4335,7 @@ class Schema {
       if (!is_object($this->privileges)) {
         throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
       }
-      $xfer += $output->writeFieldBegin('privileges', TType::STRUCT, 12);
+      $xfer += $output->writeFieldBegin('privileges', TType::STRUCT, 11);
       $xfer += $this->privileges->write($output);
       $xfer += $output->writeFieldEnd();
     }

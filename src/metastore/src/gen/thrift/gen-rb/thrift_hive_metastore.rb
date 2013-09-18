@@ -2402,6 +2402,8 @@ module ThriftHiveMetastore
       result = receive_message(CreateSchema_result)
       return result.success unless result.success.nil?
       raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise result.o3 unless result.o3.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'createSchema failed: unknown result')
     end
 
@@ -2546,6 +2548,7 @@ module ThriftHiveMetastore
       result = receive_message(AddNodeGroup_result)
       return result.success unless result.success.nil?
       raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addNodeGroup failed: unknown result')
     end
 
@@ -4448,8 +4451,12 @@ module ThriftHiveMetastore
       result = CreateSchema_result.new()
       begin
         result.success = @handler.createSchema(args.schema)
-      rescue ::MetaException => o1
+      rescue ::AlreadyExistsException => o1
         result.o1 = o1
+      rescue ::InvalidObjectException => o2
+        result.o2 = o2
+      rescue ::MetaException => o3
+        result.o3 = o3
       end
       write_result(result, oprot, 'createSchema', seqid)
     end
@@ -4547,8 +4554,10 @@ module ThriftHiveMetastore
       result = AddNodeGroup_result.new()
       begin
         result.success = @handler.addNodeGroup(args.ng)
-      rescue ::MetaException => o1
+      rescue ::AlreadyExistsException => o1
         result.o1 = o1
+      rescue ::MetaException => o2
+        result.o2 = o2
       end
       write_result(result, oprot, 'addNodeGroup', seqid)
     end
@@ -10041,7 +10050,7 @@ module ThriftHiveMetastore
     SCHEMA = 1
 
     FIELDS = {
-      SCHEMA => {:type => ::Thrift::Types::STRUCT, :name => 'schema', :class => ::Schema}
+      SCHEMA => {:type => ::Thrift::Types::STRUCT, :name => 'schema', :class => ::GlobalSchema}
     }
 
     def struct_fields; FIELDS; end
@@ -10056,10 +10065,14 @@ module ThriftHiveMetastore
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1
+    O2 = 2
+    O3 = 3
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::AlreadyExistsException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::InvalidObjectException},
+      O3 => {:type => ::Thrift::Types::STRUCT, :name => 'o3', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end
@@ -10075,7 +10088,7 @@ module ThriftHiveMetastore
     SCHEMA = 1
 
     FIELDS = {
-      SCHEMA => {:type => ::Thrift::Types::STRUCT, :name => 'schema', :class => ::Schema}
+      SCHEMA => {:type => ::Thrift::Types::STRUCT, :name => 'schema', :class => ::GlobalSchema}
     }
 
     def struct_fields; FIELDS; end
@@ -10159,7 +10172,7 @@ module ThriftHiveMetastore
     O1 = 1
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Schema}},
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::GlobalSchema}},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
@@ -10193,7 +10206,7 @@ module ThriftHiveMetastore
     O1 = 1
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Schema},
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::GlobalSchema},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
@@ -10375,10 +10388,12 @@ module ThriftHiveMetastore
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1
+    O2 = 2
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::AlreadyExistsException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end

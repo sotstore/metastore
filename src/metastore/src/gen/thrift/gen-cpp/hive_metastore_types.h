@@ -1588,10 +1588,9 @@ class Partition {
 
 void swap(Partition &a, Partition &b);
 
-typedef struct _Schema__isset {
-  _Schema__isset() : schemaName(false), dbName(false), owner(false), createTime(false), lastAccessTime(false), retention(false), sd(false), parameters(false), viewOriginalText(false), viewExpandedText(false), schemaType(false), privileges(false) {}
+typedef struct _GlobalSchema__isset {
+  _GlobalSchema__isset() : schemaName(false), owner(false), createTime(false), lastAccessTime(false), retention(false), sd(false), parameters(false), viewOriginalText(false), viewExpandedText(false), schemaType(false), privileges(false) {}
   bool schemaName;
-  bool dbName;
   bool owner;
   bool createTime;
   bool lastAccessTime;
@@ -1602,21 +1601,20 @@ typedef struct _Schema__isset {
   bool viewExpandedText;
   bool schemaType;
   bool privileges;
-} _Schema__isset;
+} _GlobalSchema__isset;
 
-class Schema {
+class GlobalSchema {
  public:
 
-  static const char* ascii_fingerprint; // = "487279D4556CA8E17BBDD432E23B5A83";
-  static const uint8_t binary_fingerprint[16]; // = {0x48,0x72,0x79,0xD4,0x55,0x6C,0xA8,0xE1,0x7B,0xBD,0xD4,0x32,0xE2,0x3B,0x5A,0x83};
+  static const char* ascii_fingerprint; // = "63580A9C0450626B7ABC5B545E2350E1";
+  static const uint8_t binary_fingerprint[16]; // = {0x63,0x58,0x0A,0x9C,0x04,0x50,0x62,0x6B,0x7A,0xBC,0x5B,0x54,0x5E,0x23,0x50,0xE1};
 
-  Schema() : schemaName(), dbName(), owner(), createTime(0), lastAccessTime(0), retention(0), viewOriginalText(), viewExpandedText(), schemaType() {
+  GlobalSchema() : schemaName(), owner(), createTime(0), lastAccessTime(0), retention(0), viewOriginalText(), viewExpandedText(), schemaType() {
   }
 
-  virtual ~Schema() throw() {}
+  virtual ~GlobalSchema() throw() {}
 
   std::string schemaName;
-  std::string dbName;
   std::string owner;
   int32_t createTime;
   int32_t lastAccessTime;
@@ -1628,14 +1626,10 @@ class Schema {
   std::string schemaType;
   PrincipalPrivilegeSet privileges;
 
-  _Schema__isset __isset;
+  _GlobalSchema__isset __isset;
 
   void __set_schemaName(const std::string& val) {
     schemaName = val;
-  }
-
-  void __set_dbName(const std::string& val) {
-    dbName = val;
   }
 
   void __set_owner(const std::string& val) {
@@ -1679,11 +1673,9 @@ class Schema {
     __isset.privileges = true;
   }
 
-  bool operator == (const Schema & rhs) const
+  bool operator == (const GlobalSchema & rhs) const
   {
     if (!(schemaName == rhs.schemaName))
-      return false;
-    if (!(dbName == rhs.dbName))
       return false;
     if (!(owner == rhs.owner))
       return false;
@@ -1709,18 +1701,18 @@ class Schema {
       return false;
     return true;
   }
-  bool operator != (const Schema &rhs) const {
+  bool operator != (const GlobalSchema &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Schema & ) const;
+  bool operator < (const GlobalSchema & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-void swap(Schema &a, Schema &b);
+void swap(GlobalSchema &a, GlobalSchema &b);
 
 typedef struct _Table__isset {
   _Table__isset() : tableName(false), dbName(false), schemaName(false), owner(false), createTime(false), lastAccessTime(false), retention(false), sd(false), partitionKeys(false), parameters(false), viewOriginalText(false), viewExpandedText(false), tableType(false), nodeGroups(false), privileges(false), partitions(false) {}

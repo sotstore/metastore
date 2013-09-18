@@ -76,6 +76,7 @@ import org.apache.hadoop.hive.metastore.api.DoubleColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
+import org.apache.hadoop.hive.metastore.api.GlobalSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
@@ -98,6 +99,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.Schema;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
@@ -8306,6 +8308,27 @@ public MUser getMUser(String userName) {
       }
     }
     return gls;
+  }
+
+  @Override
+  public Schema getSchema(String schema_name) throws MetaException {
+    MSchema mSchema = null;
+    try {
+      mSchema =  this.getMSchema(schema_name);
+    } catch (NoSuchObjectException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+    Schema schema = new Schema();
+
+    return schema;
+  }
+
+  @Override
+  public void createSchema(GlobalSchema schema) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
   }
 
 /*  @Override
