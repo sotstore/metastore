@@ -32,6 +32,7 @@ import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -56,6 +57,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnPrivilege;
@@ -63,6 +65,7 @@ import org.apache.hadoop.hive.metastore.model.MPartitionPrivilege;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
 import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
+import org.apache.hadoop.hive.metastore.model.MUser;
 import org.apache.thrift.TException;
 
 /**
@@ -975,6 +978,56 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   public List<GeoLocation> listGeoLocation() throws MetaException {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public boolean addUser(String userName, String passwd, String ownerName)
+      throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean removeUser(String userName) throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public List<String> listUsersNames() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean authentication(String userName, String passwd) throws MetaException,
+      NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public MUser getMUser(String user) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Device getDevice(String devid) throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean delDevice(String devid) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean modifyUser(User user) throws MetaException, NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
   }
 
 }

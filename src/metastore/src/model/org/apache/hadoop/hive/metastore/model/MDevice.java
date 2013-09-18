@@ -4,7 +4,7 @@ public class MDevice {
   private MNode node;
   private String dev_name;
   private int prop;
-  private final int status;
+  private int status;
 
   public MDevice(MNode node, String name, int prop, int status) {
     this.node = node;
