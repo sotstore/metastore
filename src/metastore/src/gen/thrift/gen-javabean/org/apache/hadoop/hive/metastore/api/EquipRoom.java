@@ -36,8 +36,9 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
 
   private static final org.apache.thrift.protocol.TField EQ_ROOM_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("eqRoomName", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField STATUS_FIELD_DESC = new org.apache.thrift.protocol.TField("status", org.apache.thrift.protocol.TType.I32, (short)2);
-  private static final org.apache.thrift.protocol.TField COMMENT_FIELD_DESC = new org.apache.thrift.protocol.TField("comment", org.apache.thrift.protocol.TType.STRING, (short)3);
-  private static final org.apache.thrift.protocol.TField GEOLOCATION_FIELD_DESC = new org.apache.thrift.protocol.TField("geolocation", org.apache.thrift.protocol.TType.STRUCT, (short)4);
+  private static final org.apache.thrift.protocol.TField GEO_LOC_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("geoLocName", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField COMMENT_FIELD_DESC = new org.apache.thrift.protocol.TField("comment", org.apache.thrift.protocol.TType.STRING, (short)4);
+  private static final org.apache.thrift.protocol.TField GEOLOCATION_FIELD_DESC = new org.apache.thrift.protocol.TField("geolocation", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,15 +48,17 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
 
   private String eqRoomName; // required
   private int status; // required
-  private String comment; // required
+  private String geoLocName; // required
+  private String comment; // optional
   private GeoLocation geolocation; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     EQ_ROOM_NAME((short)1, "eqRoomName"),
     STATUS((short)2, "status"),
-    COMMENT((short)3, "comment"),
-    GEOLOCATION((short)4, "geolocation");
+    GEO_LOC_NAME((short)3, "geoLocName"),
+    COMMENT((short)4, "comment"),
+    GEOLOCATION((short)5, "geolocation");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -74,9 +77,11 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
           return EQ_ROOM_NAME;
         case 2: // STATUS
           return STATUS;
-        case 3: // COMMENT
+        case 3: // GEO_LOC_NAME
+          return GEO_LOC_NAME;
+        case 4: // COMMENT
           return COMMENT;
-        case 4: // GEOLOCATION
+        case 5: // GEOLOCATION
           return GEOLOCATION;
         default:
           return null;
@@ -120,7 +125,7 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
   // isset id assignments
   private static final int __STATUS_ISSET_ID = 0;
   private byte __isset_bitfield = 0;
-  private _Fields optionals[] = {_Fields.GEOLOCATION};
+  private _Fields optionals[] = {_Fields.COMMENT,_Fields.GEOLOCATION};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -128,7 +133,9 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.STATUS, new org.apache.thrift.meta_data.FieldMetaData("status", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.COMMENT, new org.apache.thrift.meta_data.FieldMetaData("comment", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.GEO_LOC_NAME, new org.apache.thrift.meta_data.FieldMetaData("geoLocName", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.COMMENT, new org.apache.thrift.meta_data.FieldMetaData("comment", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.GEOLOCATION, new org.apache.thrift.meta_data.FieldMetaData("geolocation", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GeoLocation.class)));
@@ -142,13 +149,13 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
   public EquipRoom(
     String eqRoomName,
     int status,
-    String comment)
+    String geoLocName)
   {
     this();
     this.eqRoomName = eqRoomName;
     this.status = status;
     setStatusIsSet(true);
-    this.comment = comment;
+    this.geoLocName = geoLocName;
   }
 
   /**
@@ -160,6 +167,9 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
       this.eqRoomName = other.eqRoomName;
     }
     this.status = other.status;
+    if (other.isSetGeoLocName()) {
+      this.geoLocName = other.geoLocName;
+    }
     if (other.isSetComment()) {
       this.comment = other.comment;
     }
@@ -177,6 +187,7 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
     this.eqRoomName = null;
     setStatusIsSet(false);
     this.status = 0;
+    this.geoLocName = null;
     this.comment = null;
     this.geolocation = null;
   }
@@ -224,6 +235,29 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
 
   public void setStatusIsSet(boolean value) {
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __STATUS_ISSET_ID, value);
+  }
+
+  public String getGeoLocName() {
+    return this.geoLocName;
+  }
+
+  public void setGeoLocName(String geoLocName) {
+    this.geoLocName = geoLocName;
+  }
+
+  public void unsetGeoLocName() {
+    this.geoLocName = null;
+  }
+
+  /** Returns true if field geoLocName is set (has been assigned a value) and false otherwise */
+  public boolean isSetGeoLocName() {
+    return this.geoLocName != null;
+  }
+
+  public void setGeoLocNameIsSet(boolean value) {
+    if (!value) {
+      this.geoLocName = null;
+    }
   }
 
   public String getComment() {
@@ -290,6 +324,14 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
       }
       break;
 
+    case GEO_LOC_NAME:
+      if (value == null) {
+        unsetGeoLocName();
+      } else {
+        setGeoLocName((String)value);
+      }
+      break;
+
     case COMMENT:
       if (value == null) {
         unsetComment();
@@ -317,6 +359,9 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
     case STATUS:
       return Integer.valueOf(getStatus());
 
+    case GEO_LOC_NAME:
+      return getGeoLocName();
+
     case COMMENT:
       return getComment();
 
@@ -338,6 +383,8 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
       return isSetEqRoomName();
     case STATUS:
       return isSetStatus();
+    case GEO_LOC_NAME:
+      return isSetGeoLocName();
     case COMMENT:
       return isSetComment();
     case GEOLOCATION:
@@ -377,6 +424,15 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
         return false;
     }
 
+    boolean this_present_geoLocName = true && this.isSetGeoLocName();
+    boolean that_present_geoLocName = true && that.isSetGeoLocName();
+    if (this_present_geoLocName || that_present_geoLocName) {
+      if (!(this_present_geoLocName && that_present_geoLocName))
+        return false;
+      if (!this.geoLocName.equals(that.geoLocName))
+        return false;
+    }
+
     boolean this_present_comment = true && this.isSetComment();
     boolean that_present_comment = true && that.isSetComment();
     if (this_present_comment || that_present_comment) {
@@ -411,6 +467,11 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
     builder.append(present_status);
     if (present_status)
       builder.append(status);
+
+    boolean present_geoLocName = true && (isSetGeoLocName());
+    builder.append(present_geoLocName);
+    if (present_geoLocName)
+      builder.append(geoLocName);
 
     boolean present_comment = true && (isSetComment());
     builder.append(present_comment);
@@ -449,6 +510,16 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
     }
     if (isSetStatus()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.status, typedOther.status);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetGeoLocName()).compareTo(typedOther.isSetGeoLocName());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetGeoLocName()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.geoLocName, typedOther.geoLocName);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -505,13 +576,23 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
     sb.append(this.status);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("comment:");
-    if (this.comment == null) {
+    sb.append("geoLocName:");
+    if (this.geoLocName == null) {
       sb.append("null");
     } else {
-      sb.append(this.comment);
+      sb.append(this.geoLocName);
     }
     first = false;
+    if (isSetComment()) {
+      if (!first) sb.append(", ");
+      sb.append("comment:");
+      if (this.comment == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.comment);
+      }
+      first = false;
+    }
     if (isSetGeolocation()) {
       if (!first) sb.append(", ");
       sb.append("geolocation:");
@@ -536,8 +617,8 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
       throw new org.apache.thrift.protocol.TProtocolException("Required field 'status' is unset! Struct:" + toString());
     }
 
-    if (!isSetComment()) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'comment' is unset! Struct:" + toString());
+    if (!isSetGeoLocName()) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'geoLocName' is unset! Struct:" + toString());
     }
 
     // check for sub-struct validity
@@ -598,7 +679,15 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // COMMENT
+          case 3: // GEO_LOC_NAME
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.geoLocName = iprot.readString();
+              struct.setGeoLocNameIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 4: // COMMENT
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.comment = iprot.readString();
               struct.setCommentIsSet(true);
@@ -606,7 +695,7 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // GEOLOCATION
+          case 5: // GEOLOCATION
             if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
               struct.geolocation = new GeoLocation();
               struct.geolocation.read(iprot);
@@ -636,10 +725,17 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
       oprot.writeFieldBegin(STATUS_FIELD_DESC);
       oprot.writeI32(struct.status);
       oprot.writeFieldEnd();
-      if (struct.comment != null) {
-        oprot.writeFieldBegin(COMMENT_FIELD_DESC);
-        oprot.writeString(struct.comment);
+      if (struct.geoLocName != null) {
+        oprot.writeFieldBegin(GEO_LOC_NAME_FIELD_DESC);
+        oprot.writeString(struct.geoLocName);
         oprot.writeFieldEnd();
+      }
+      if (struct.comment != null) {
+        if (struct.isSetComment()) {
+          oprot.writeFieldBegin(COMMENT_FIELD_DESC);
+          oprot.writeString(struct.comment);
+          oprot.writeFieldEnd();
+        }
       }
       if (struct.geolocation != null) {
         if (struct.isSetGeolocation()) {
@@ -667,12 +763,18 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
       TTupleProtocol oprot = (TTupleProtocol) prot;
       oprot.writeString(struct.eqRoomName);
       oprot.writeI32(struct.status);
-      oprot.writeString(struct.comment);
+      oprot.writeString(struct.geoLocName);
       BitSet optionals = new BitSet();
-      if (struct.isSetGeolocation()) {
+      if (struct.isSetComment()) {
         optionals.set(0);
       }
-      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetGeolocation()) {
+        optionals.set(1);
+      }
+      oprot.writeBitSet(optionals, 2);
+      if (struct.isSetComment()) {
+        oprot.writeString(struct.comment);
+      }
       if (struct.isSetGeolocation()) {
         struct.geolocation.write(oprot);
       }
@@ -685,10 +787,14 @@ public class EquipRoom implements org.apache.thrift.TBase<EquipRoom, EquipRoom._
       struct.setEqRoomNameIsSet(true);
       struct.status = iprot.readI32();
       struct.setStatusIsSet(true);
-      struct.comment = iprot.readString();
-      struct.setCommentIsSet(true);
-      BitSet incoming = iprot.readBitSet(1);
+      struct.geoLocName = iprot.readString();
+      struct.setGeoLocNameIsSet(true);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
+        struct.comment = iprot.readString();
+        struct.setCommentIsSet(true);
+      }
+      if (incoming.get(1)) {
         struct.geolocation = new GeoLocation();
         struct.geolocation.read(iprot);
         struct.setGeolocationIsSet(true);

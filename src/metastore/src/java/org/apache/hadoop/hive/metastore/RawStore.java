@@ -601,7 +601,7 @@ public interface RawStore extends Configurable {
 
   public abstract void createSchema(GlobalSchema schema)throws InvalidObjectException, MetaException;
 
-  public boolean addNodeAssignment(String nodename, String dbname) throws MetaException, NoSuchObjectException;
+  public abstract boolean addNodeAssignment(String nodename, String dbname) throws MetaException, NoSuchObjectException;
 
   public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException;
 

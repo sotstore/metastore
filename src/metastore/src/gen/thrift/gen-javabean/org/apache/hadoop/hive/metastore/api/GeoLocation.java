@@ -34,10 +34,11 @@ import org.slf4j.LoggerFactory;
 public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLocation._Fields>, java.io.Serializable, Cloneable {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("GeoLocation");
 
-  private static final org.apache.thrift.protocol.TField NATION_FIELD_DESC = new org.apache.thrift.protocol.TField("nation", org.apache.thrift.protocol.TType.STRING, (short)1);
-  private static final org.apache.thrift.protocol.TField PROVINCE_FIELD_DESC = new org.apache.thrift.protocol.TField("province", org.apache.thrift.protocol.TType.STRING, (short)2);
-  private static final org.apache.thrift.protocol.TField CITY_FIELD_DESC = new org.apache.thrift.protocol.TField("city", org.apache.thrift.protocol.TType.STRING, (short)3);
-  private static final org.apache.thrift.protocol.TField DIST_FIELD_DESC = new org.apache.thrift.protocol.TField("dist", org.apache.thrift.protocol.TType.STRING, (short)4);
+  private static final org.apache.thrift.protocol.TField GEO_LOC_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("geoLocName", org.apache.thrift.protocol.TType.STRING, (short)1);
+  private static final org.apache.thrift.protocol.TField NATION_FIELD_DESC = new org.apache.thrift.protocol.TField("nation", org.apache.thrift.protocol.TType.STRING, (short)2);
+  private static final org.apache.thrift.protocol.TField PROVINCE_FIELD_DESC = new org.apache.thrift.protocol.TField("province", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField CITY_FIELD_DESC = new org.apache.thrift.protocol.TField("city", org.apache.thrift.protocol.TType.STRING, (short)4);
+  private static final org.apache.thrift.protocol.TField DIST_FIELD_DESC = new org.apache.thrift.protocol.TField("dist", org.apache.thrift.protocol.TType.STRING, (short)5);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -45,6 +46,7 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
     schemes.put(TupleScheme.class, new GeoLocationTupleSchemeFactory());
   }
 
+  private String geoLocName; // required
   private String nation; // required
   private String province; // required
   private String city; // required
@@ -52,10 +54,11 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    NATION((short)1, "nation"),
-    PROVINCE((short)2, "province"),
-    CITY((short)3, "city"),
-    DIST((short)4, "dist");
+    GEO_LOC_NAME((short)1, "geoLocName"),
+    NATION((short)2, "nation"),
+    PROVINCE((short)3, "province"),
+    CITY((short)4, "city"),
+    DIST((short)5, "dist");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -70,13 +73,15 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // NATION
+        case 1: // GEO_LOC_NAME
+          return GEO_LOC_NAME;
+        case 2: // NATION
           return NATION;
-        case 2: // PROVINCE
+        case 3: // PROVINCE
           return PROVINCE;
-        case 3: // CITY
+        case 4: // CITY
           return CITY;
-        case 4: // DIST
+        case 5: // DIST
           return DIST;
         default:
           return null;
@@ -121,6 +126,8 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+    tmpMap.put(_Fields.GEO_LOC_NAME, new org.apache.thrift.meta_data.FieldMetaData("geoLocName", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.NATION, new org.apache.thrift.meta_data.FieldMetaData("nation", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.PROVINCE, new org.apache.thrift.meta_data.FieldMetaData("province", org.apache.thrift.TFieldRequirementType.REQUIRED, 
@@ -137,12 +144,14 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
   }
 
   public GeoLocation(
+    String geoLocName,
     String nation,
     String province,
     String city,
     String dist)
   {
     this();
+    this.geoLocName = geoLocName;
     this.nation = nation;
     this.province = province;
     this.city = city;
@@ -153,6 +162,9 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
    * Performs a deep copy on <i>other</i>.
    */
   public GeoLocation(GeoLocation other) {
+    if (other.isSetGeoLocName()) {
+      this.geoLocName = other.geoLocName;
+    }
     if (other.isSetNation()) {
       this.nation = other.nation;
     }
@@ -173,10 +185,34 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
 
   @Override
   public void clear() {
+    this.geoLocName = null;
     this.nation = null;
     this.province = null;
     this.city = null;
     this.dist = null;
+  }
+
+  public String getGeoLocName() {
+    return this.geoLocName;
+  }
+
+  public void setGeoLocName(String geoLocName) {
+    this.geoLocName = geoLocName;
+  }
+
+  public void unsetGeoLocName() {
+    this.geoLocName = null;
+  }
+
+  /** Returns true if field geoLocName is set (has been assigned a value) and false otherwise */
+  public boolean isSetGeoLocName() {
+    return this.geoLocName != null;
+  }
+
+  public void setGeoLocNameIsSet(boolean value) {
+    if (!value) {
+      this.geoLocName = null;
+    }
   }
 
   public String getNation() {
@@ -273,6 +309,14 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
+    case GEO_LOC_NAME:
+      if (value == null) {
+        unsetGeoLocName();
+      } else {
+        setGeoLocName((String)value);
+      }
+      break;
+
     case NATION:
       if (value == null) {
         unsetNation();
@@ -310,6 +354,9 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
+    case GEO_LOC_NAME:
+      return getGeoLocName();
+
     case NATION:
       return getNation();
 
@@ -333,6 +380,8 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
     }
 
     switch (field) {
+    case GEO_LOC_NAME:
+      return isSetGeoLocName();
     case NATION:
       return isSetNation();
     case PROVINCE:
@@ -357,6 +406,15 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
   public boolean equals(GeoLocation that) {
     if (that == null)
       return false;
+
+    boolean this_present_geoLocName = true && this.isSetGeoLocName();
+    boolean that_present_geoLocName = true && that.isSetGeoLocName();
+    if (this_present_geoLocName || that_present_geoLocName) {
+      if (!(this_present_geoLocName && that_present_geoLocName))
+        return false;
+      if (!this.geoLocName.equals(that.geoLocName))
+        return false;
+    }
 
     boolean this_present_nation = true && this.isSetNation();
     boolean that_present_nation = true && that.isSetNation();
@@ -401,6 +459,11 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
 
+    boolean present_geoLocName = true && (isSetGeoLocName());
+    builder.append(present_geoLocName);
+    if (present_geoLocName)
+      builder.append(geoLocName);
+
     boolean present_nation = true && (isSetNation());
     builder.append(present_nation);
     if (present_nation)
@@ -432,6 +495,16 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
     int lastComparison = 0;
     GeoLocation typedOther = (GeoLocation)other;
 
+    lastComparison = Boolean.valueOf(isSetGeoLocName()).compareTo(typedOther.isSetGeoLocName());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetGeoLocName()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.geoLocName, typedOther.geoLocName);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = Boolean.valueOf(isSetNation()).compareTo(typedOther.isSetNation());
     if (lastComparison != 0) {
       return lastComparison;
@@ -492,6 +565,14 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
     StringBuilder sb = new StringBuilder("GeoLocation(");
     boolean first = true;
 
+    sb.append("geoLocName:");
+    if (this.geoLocName == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.geoLocName);
+    }
+    first = false;
+    if (!first) sb.append(", ");
     sb.append("nation:");
     if (this.nation == null) {
       sb.append("null");
@@ -529,6 +610,10 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
+    if (!isSetGeoLocName()) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'geoLocName' is unset! Struct:" + toString());
+    }
+
     if (!isSetNation()) {
       throw new org.apache.thrift.protocol.TProtocolException("Required field 'nation' is unset! Struct:" + toString());
     }
@@ -582,7 +667,15 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
           break;
         }
         switch (schemeField.id) {
-          case 1: // NATION
+          case 1: // GEO_LOC_NAME
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.geoLocName = iprot.readString();
+              struct.setGeoLocNameIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 2: // NATION
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.nation = iprot.readString();
               struct.setNationIsSet(true);
@@ -590,7 +683,7 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // PROVINCE
+          case 3: // PROVINCE
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.province = iprot.readString();
               struct.setProvinceIsSet(true);
@@ -598,7 +691,7 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // CITY
+          case 4: // CITY
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.city = iprot.readString();
               struct.setCityIsSet(true);
@@ -606,7 +699,7 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // DIST
+          case 5: // DIST
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.dist = iprot.readString();
               struct.setDistIsSet(true);
@@ -627,6 +720,11 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (struct.geoLocName != null) {
+        oprot.writeFieldBegin(GEO_LOC_NAME_FIELD_DESC);
+        oprot.writeString(struct.geoLocName);
+        oprot.writeFieldEnd();
+      }
       if (struct.nation != null) {
         oprot.writeFieldBegin(NATION_FIELD_DESC);
         oprot.writeString(struct.nation);
@@ -664,6 +762,7 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, GeoLocation struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
+      oprot.writeString(struct.geoLocName);
       oprot.writeString(struct.nation);
       oprot.writeString(struct.province);
       oprot.writeString(struct.city);
@@ -673,6 +772,8 @@ public class GeoLocation implements org.apache.thrift.TBase<GeoLocation, GeoLoca
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, GeoLocation struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
+      struct.geoLocName = iprot.readString();
+      struct.setGeoLocNameIsSet(true);
       struct.nation = iprot.readString();
       struct.setNationIsSet(true);
       struct.province = iprot.readString();

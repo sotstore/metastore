@@ -1,6 +1,7 @@
 package org.apache.hadoop.hive.metastore.model;
 
 public class MGeoLocation {
+  private String geoLocName;
   private String nation;
   private String province;
   private String city;
@@ -17,17 +18,28 @@ public class MGeoLocation {
    * @param city
    * @param dist
    */
-  public MGeoLocation(String nation, String province, String city, String dist) {
+  public MGeoLocation(String geoLocName, String nation, String province, String city, String dist) {
     super();
+    this.geoLocName = geoLocName;
     this.nation = nation;
     this.province = province;
     this.city = city;
     this.dist = dist;
   }
 
+
   /**
    * @return
    */
+
+  public String getGeoLocName() {
+    return geoLocName;
+  }
+
+  public void setGeoLocName(String geoLocName) {
+    this.geoLocName = geoLocName;
+  }
+
   public String getNation() {
     return nation;
   }

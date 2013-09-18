@@ -5806,7 +5806,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public boolean addEquipRoom(EquipRoom er) throws MetaException, TException {
       LOG.info(er);
       getMS().addEquipRoom(er);
-      return false;
+      return true;
     }
 
     @Override
@@ -5884,6 +5884,18 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public List<GeoLocation> listGeoLocation() throws MetaException, TException {
       return getMS().listGeoLocation();
+    }
+
+    @Override
+    public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException,
+        NoSuchObjectException, TException {
+      return getMS().addNodeAssignment(nodeName, dbName);
+    }
+
+    @Override
+    public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException,
+        NoSuchObjectException, TException {
+      return getMS().deleteNodeAssignment(nodeName, dbName);
     }
 
     @Override
@@ -6066,47 +6078,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       // TODO Auto-generated method stub
       return null;
     }
-
-
-
-
-/*    @Override
-    public boolean addNodeAssignment(Node node, Database database) throws MetaException, TException {
-      getMS().addNodeAssignment(node,database);
-      return true;
-    }
-
-    @Override
-    public boolean modifyNodeAssignment(Node node, Database database) throws MetaException,
-        TException {
-      boolean success = false;
-      Exception ex = null;
-      try {
-        getMS().modifyNodeAssignment(node,database);
-        success = true;
-      } catch (Exception e) {
-        ex = e;
-        if (e instanceof MetaException) {
-          throw (MetaException) e;
-        } else if (e instanceof InvalidOperationException) {
-          throw (InvalidOperationException) e;
-        } else {
-          MetaException me = new MetaException(e.toString());
-          me.initCause(e);
-          throw me;
-        }
-      } finally {
-        endFunction("modifyGeoLocation", success, ex);
-      }
-      return success;
-    }
-
-    @Override
-    public boolean deleteNodeAssignment(Node node, Database database) throws MetaException,
-        TException {
-      getMS().deleteNodeAssignment(node,database);
-      return true;
-    }*/
 
   }
 
