@@ -2758,10 +2758,6 @@ public class Hive {
     return fls;
   }
 
-  public String showHelp() {
-    return "Aha , you get it showHelp().";
-
-  }
 
   public void addGeoLoc(GeoLoc gd) throws HiveException {
       GeoLocation geoLocation = new GeoLocation();
@@ -2852,7 +2848,7 @@ public class Hive {
     }
   }
 
-  public void modifyEqRoom(EqRoom gd) throws HiveException,SemanticException {
+  public void modifyEqRoom(EqRoom gd) throws HiveException {
       try {
         EquipRoom equipRoom = new EquipRoom();
         equipRoom.setEqRoomName(gd.getEqRoomName());
@@ -2892,6 +2888,8 @@ public class Hive {
             eqStatus = "OFFLINE";
           }else if(eqr.getStatus() == 2){
             eqStatus = "SUSPECT";
+          }else{
+            throw new SemanticException("Not valid Status for equipment room.");
           }
           EqRoom er = new EqRoom(eqr.getEqRoomName(),eqStatus,eqr.getComment(),geoLoc);
           ers.add(er);
@@ -2985,6 +2983,52 @@ public class Hive {
     }
   }
 
+  public List<NodeAssignment> showNodeAssignment() throws HiveException {
+    List<NodeAssignment> nats = new ArrayList<NodeAssignment>();
+    /*try{
+      List<NodeAssignment> nodeAssignments = getMSC().listEquipRoom();
+      for(EquipRoom eqr : equipRooms){
+        EqRoom er = new EqRoom(eqr.getEqRoomName(),eqr.getComment());
+        ers.add(er);
+      }
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }*/
+    return nats;
+  }
+
+  public void createNodeGroup(NodeGroups ngs) throws HiveException {
+    try{
+      String ngStatus = ngs.getStatus();
+      int status = -1;
+      if(ngStatus.equals("ONLINE")){
+        status = 0;
+      }else if (ngStatus.equals("OFFLINE")){
+        status = 1;
+      }else if (ngStatus.equals("SUSPECT")){
+        status = 2;
+      }else{
+        throw new SemanticException("Not valid Status for adding equipment room.");
+      }
+      //HashSet<Node> nds = new HashSet<Node>();
+      //NodeGroup ng = new NodeGroup(ngs.getNode_group_name(), ngs.getComment(), status, ngs.getNodes());
+      //getMSC().addNodeGroup(ng);
+      } catch (Exception e) {
+        throw new HiveException(e);
+      }
+
+
+  }
+
+  public void dropNodeGroup(NodeGroups ngs) throws HiveException {
+    try {
+      //NodeGroup ng = getMSC().getNodeGroupByName(ngs.getNode_group_name());
+      //getMSC().deleteNodeGroup(ng);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
 
   public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values) throws HiveException {
     try {
@@ -3007,6 +3051,26 @@ public class Hive {
   public boolean modifyNodeGroup(String schemaName, NodeGroup ng)  throws HiveException {
     try {
     return getMSC().modifyNodeGroup(schemaName, ng);
+     } catch (Exception e) {
+      throw new HiveException(e);
+    }
+   }
+
+  public void modifyNodeGroup(NodeGroups ngs) throws HiveException {
+    try {
+      //NodeGroup ng = getMSC().getNodeGroupByName(ngs.getNode_group_name());
+      //ng.setNode_group_name(ngs.getNode_group_name())
+      //getMSC().modfyNodeGroup(ng);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+
+  }
+  public List<String> getAllNodeGroups(String ng_name)throws HiveException {
+    try{
+     //return getRemoteDbMSC(ng_name).getAllNodeGroups();
+      List<String> a = new ArrayList<String>();
+      return a;
     } catch (Exception e) {
       throw new HiveException(e);
     }
@@ -3082,6 +3146,10 @@ public class Hive {
     } catch (Exception e) {
       throw new HiveException(e);
     }
+   }
+
+  public List<String> getAllNodeGroups() throws HiveException {
+    return getAllTables(getCurrentDatabase());
   }
 
 };

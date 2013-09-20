@@ -107,6 +107,7 @@ import org.apache.hadoop.hive.ql.metadata.HiveMetaStoreChecker;
 import org.apache.hadoop.hive.ql.metadata.HiveStorageHandler;
 import org.apache.hadoop.hive.ql.metadata.InvalidTableException;
 import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
+import org.apache.hadoop.hive.ql.metadata.NodeGroups;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.metadata.formatting.JsonMetaDataFormatter;
@@ -135,6 +136,7 @@ import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
 import org.apache.hadoop.hive.ql.plan.CreateSchemaDesc;
 import org.apache.hadoop.hive.ql.plan.CreateSchemaLikeDesc;
+import org.apache.hadoop.hive.ql.plan.CreateNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableLikeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableLikeSchemaDesc;
@@ -150,6 +152,7 @@ import org.apache.hadoop.hive.ql.plan.DropGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
+import org.apache.hadoop.hive.ql.plan.DropNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
 import org.apache.hadoop.hive.ql.plan.DropSubpartIndexDesc;
@@ -161,6 +164,7 @@ import org.apache.hadoop.hive.ql.plan.LockTableDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyNodeDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartIndexAddFileDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartIndexDropFileDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartitionAddFileDesc;
@@ -190,6 +194,8 @@ import org.apache.hadoop.hive.ql.plan.ShowGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
+import org.apache.hadoop.hive.ql.plan.ShowNodeAssignmentDesc;
+import org.apache.hadoop.hive.ql.plan.ShowNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
@@ -674,6 +680,22 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       CreateTableLikeSchemaDesc crtTblLikeSchemaDesc = work.getCrtTblLikeSchemaDesc();
       if (crtTblLikeSchemaDesc != null) {
         return crtTblLikeSchemaDesc(db, crtTblLikeSchemaDesc);
+      }
+      ShowNodeAssignmentDesc showNodeAssignmentDesc = work.getShowNodeAssignmentDesc();
+      if (showNodeAssignmentDesc != null) {
+        return showNodeAssignment(db, showNodeAssignmentDesc);
+      }
+      CreateNodeGroupDesc createNodeGroupDesc = work.getCreateNodeGroupDesc();
+      if (null != createNodeGroupDesc) {
+        return createNodeGroup(db, createNodeGroupDesc);
+      }
+      DropNodeGroupDesc dropNodeGroupDesc = work.getDropNodeGroupDesc();
+      if (null != dropNodeGroupDesc) {
+        return dropNodeGroup(db, dropNodeGroupDesc);
+      }
+      ModifyNodeGroupDesc modifyNodeGroupDesc = work.getModifyNodeGroupDesc();
+      if (null != modifyNodeGroupDesc) {
+        return modifyNodeGroup(db, modifyNodeGroupDesc);
       }
 
     } catch (InvalidTableException e) {
@@ -4992,19 +5014,98 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   }
 
   private int addNodeAssignment(Hive db, AddNodeAssignmentDesc addNodeAssignmentDesc) throws HiveException {
-
     NodeAssignment gd = new NodeAssignment(addNodeAssignmentDesc.getNodeName(),addNodeAssignmentDesc.getDbName());
     this.db.addNodeAssignment(gd);
     return 0;
-
   }
 
   private int dropNodeAssignment(Hive db, DropNodeAssignmentDesc dropNodeAssignmentDesc) throws HiveException {
-
     NodeAssignment gd = new NodeAssignment(dropNodeAssignmentDesc.getNodeName(),dropNodeAssignmentDesc.getDbName());
     this.db.dropNodeAssignment(gd);
     return 0;
+  }
 
+  private int showNodeAssignment(Hive db, ShowNodeAssignmentDesc showNodeAssignmentDesc) throws HiveException {
+    List<NodeAssignment> nodeAssignment = db.showNodeAssignment();
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showNodeAssignmentDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      formatter.showNodeAssignment(outStream, nodeAssignment);
+
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+  private int createNodeGroup(Hive db, CreateNodeGroupDesc createNodeGroupDesc)throws HiveException {
+    NodeGroups ng = new NodeGroups(createNodeGroupDesc.getNodeGroupName(),
+        createNodeGroupDesc.getComment(),"ONLINE",createNodeGroupDesc.getNodes());
+    db.createNodeGroup(ng);
+    return 0;
+  }
+
+  private int dropNodeGroup(Hive db, DropNodeGroupDesc dropNodeGroupDesc)throws HiveException {
+    NodeGroups ng = new NodeGroups(dropNodeGroupDesc.getNodeGroupName());
+    db.dropNodeGroup(ng);
+    return 0;
+  }
+
+  private int modifyNodeGroup(Hive db, ModifyNodeGroupDesc modifyNodeGroupDesc) throws HiveException {
+    NodeGroups ng = new NodeGroups(modifyNodeGroupDesc.getNodeGroupName());
+    db.modifyNodeGroup(ng);
+    return 0;
+  }
+
+  private int showNodeGroups(Hive db, ShowNodeGroupDesc showNodeGroupDesc) throws HiveException {
+    // get the databases for the desired pattern - populate the output stream
+    List<String> nodeGroups = null;
+    if(showNodeGroupDesc.getNg_name() != null && !"".equals(showNodeGroupDesc.getNg_name())){
+      nodeGroups = db.getAllDatabases(showNodeGroupDesc.getNg_name());
+
+    } else{
+      nodeGroups = db.getAllDatabases();
+    }
+    LOG.info("results : " + nodeGroups.size());
+
+    // write the results in the file
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showNodeGroupDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      formatter.showNodeGroups(outStream, nodeGroups);
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+      formatter.logWarn(outStream, "show databases: " + stringifyException(e),
+                        formatter.ERROR);
+      return 1;
+    } catch (IOException e) {
+      formatter.logWarn(outStream, "show databases: " + stringifyException(e),
+                        formatter.ERROR);
+      return 1;
+    } catch (Exception e) {
+      throw new HiveException(e.toString());
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
   }
 
 

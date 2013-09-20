@@ -362,6 +362,7 @@ TOK_ALTERSCHEMA_REPLACECOLS;
 TOK_ALTERSCHEMA_RENAMECOL;
 TOK_ALTERSCHEMA_CHANGECOL_AFTER_POSITION;
 TOK_ALTERSCHEMA_PROPERTIES;
+TOK_SHOWNODEASSIGNMENT;
 }
 
 
@@ -477,7 +478,7 @@ ddlStatement
     | showEqRoom
     | createNodeAssignmentStatement
     | dropNodeAssignmentStatement
-    
+    | showNodeAssignment
     | createRoleStatement
     | dropRoleStatement
     
@@ -490,7 +491,12 @@ ddlStatement
     
     ;
 //
-
+showNodeAssignment
+@init { msgs.push("show NodeAssignment"); }
+@after { msgs.pop(); }
+    :  KW_SHOW KW_NODEASSIGNMENT
+     -> ^(TOK_SHOWNODEASSIGNMENT)
+    ;
         
 dropNodeAssignmentStatement
 @init { msgs.push("drop NodeAssignmentStatement"); }
@@ -602,7 +608,8 @@ createNodeGroupStatement
         name=Identifier
         nodegroupComment?
         (KW_WITH KW_DBPROPERTIES nodegroupprops=nodegroupProperties)?
-    -> ^(TOK_CREATENODEGROUP $name ifNotExists?  nodegroupComment? $nodegroupprops?)
+        (KW_ON KW_NODEPROPERTIES nodeprops=nodeProperties)?
+    -> ^(TOK_CREATENODEGROUP $name ifNotExists?  nodegroupComment? $nodegroupprops? $nodeprops?)
     ;
 
 nodegroupProperties
@@ -611,7 +618,7 @@ nodegroupProperties
     :
       LPAREN nodegroupPropertiesList RPAREN -> ^(TOK_NODEGROUPPROPERTIES nodegroupPropertiesList)
     ;
-
+    
 nodegroupPropertiesList
 @init { msgs.push("nodegroup properties list"); }
 @after { msgs.pop(); }
