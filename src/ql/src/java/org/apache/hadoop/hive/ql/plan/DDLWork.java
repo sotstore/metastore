@@ -119,6 +119,14 @@ public class DDLWork implements Serializable {
   private ShowFilesDesc showFilesDesc;
   private ShowNodesDesc showNodesDesc;
   private ShowFileLocationsDesc showFileLocationsDesc;
+  private AddGeoLocDesc addGeoLocDesc;
+  private DropGeoLocDesc dropGeoLocDesc;
+  private ModifyGeoLocDesc modifyGeoLocDesc;
+  private ShowGeoLocDesc showGeoLocDesc;
+  private AddEqRoomDesc addEqRoomDesc;
+  private DropEqRoomDesc dropEqRoomDesc;
+  private ModifyEqRoomDesc modifyEqRoomDesc;
+  private ShowEqRoomDesc showEqRoomDesc;
 
 
   public DDLWork() {
@@ -653,6 +661,56 @@ public class DDLWork implements Serializable {
       ShowFileLocationsDesc showFileLocationsDesc) {
     this(inputs, outputs);
     this.setShowFileLocationsDesc(showFileLocationsDesc);
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      AddGeoLocDesc addGeoLocDesc) {
+    this(inputs, outputs);
+    this.addGeoLocDesc = addGeoLocDesc;
+  }
+
+
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DropGeoLocDesc dropGeoLocDesc) {
+    this(inputs, outputs);
+    this.dropGeoLocDesc = dropGeoLocDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ModifyGeoLocDesc modifyGeoLocDesc) {
+    this(inputs, outputs);
+    this.modifyGeoLocDesc = modifyGeoLocDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowGeoLocDesc showGeoLocDesc) {
+    this(inputs, outputs);
+    this.showGeoLocDesc = showGeoLocDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      AddEqRoomDesc addEqRoomDesc) {
+    this(inputs, outputs);
+    this.addEqRoomDesc = addEqRoomDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DropEqRoomDesc dropEqRoomDesc) {
+    this(inputs, outputs);
+    this.dropEqRoomDesc = dropEqRoomDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ModifyEqRoomDesc modifyEqRoomDesc) {
+    this(inputs, outputs);
+    this.modifyEqRoomDesc = modifyEqRoomDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowEqRoomDesc showEqRoomDesc) {
+    this(inputs, outputs);
+    this.showEqRoomDesc = showEqRoomDesc;
   }
 
   /**
@@ -1450,6 +1508,70 @@ public class DDLWork implements Serializable {
 
   public void setShowFileLocationsDesc(ShowFileLocationsDesc showFileLocationsDesc) {
     this.showFileLocationsDesc = showFileLocationsDesc;
+  }
+
+  public AddGeoLocDesc getAddGeoLocDesc() {
+    return addGeoLocDesc;
+  }
+
+  public void setAddGeoLocDesc(AddGeoLocDesc addGeoLocDesc) {
+    this.addGeoLocDesc = addGeoLocDesc;
+  }
+
+  public DropGeoLocDesc getDropGeoLocDesc() {
+    return dropGeoLocDesc;
+  }
+
+  public void setDropGeoLocDesc(DropGeoLocDesc dropGeoLocDesc) {
+    this.dropGeoLocDesc = dropGeoLocDesc;
+  }
+
+  public ModifyGeoLocDesc getModifyGeoLocDesc() {
+    return modifyGeoLocDesc;
+  }
+
+  public void setModifyGeoLocDesc(ModifyGeoLocDesc modifyGeoLocDesc) {
+    this.modifyGeoLocDesc = modifyGeoLocDesc;
+  }
+
+  public ShowGeoLocDesc getShowGeoLocDesc() {
+    return showGeoLocDesc;
+  }
+
+  public void setShowGeoLocDesc(ShowGeoLocDesc showGeoLocDesc) {
+    this.showGeoLocDesc = showGeoLocDesc;
+  }
+
+  public AddEqRoomDesc getAddEqRoomDesc() {
+    return addEqRoomDesc;
+  }
+
+  public void setAddEqRoomDesc(AddEqRoomDesc addEqRoomDesc) {
+    this.addEqRoomDesc = addEqRoomDesc;
+  }
+
+  public DropEqRoomDesc getDropEqRoomDesc() {
+    return dropEqRoomDesc;
+  }
+
+  public void setDropEqRoomDesc(DropEqRoomDesc dropEqRoomDesc) {
+    this.dropEqRoomDesc = dropEqRoomDesc;
+  }
+
+  public ModifyEqRoomDesc getModifyEqRoomDesc() {
+    return modifyEqRoomDesc;
+  }
+
+  public void setModifyEqRoomDesc(ModifyEqRoomDesc modifyEqRoomDesc) {
+    this.modifyEqRoomDesc = modifyEqRoomDesc;
+  }
+
+  public ShowEqRoomDesc getShowEqRoomDesc() {
+    return showEqRoomDesc;
+  }
+
+  public void setShowEqRoomDesc(ShowEqRoomDesc showEqRoomDesc) {
+    this.showEqRoomDesc = showEqRoomDesc;
   }
 
 

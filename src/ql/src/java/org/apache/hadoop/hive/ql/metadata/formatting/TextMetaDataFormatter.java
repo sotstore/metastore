@@ -600,5 +600,28 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
 
     }
 
+    @Override
+    public void showHelp(DataOutputStream outStream, String result) throws HiveException {
+      // TODO Auto-generated method stub
+        try{
+          outStream.writeBytes(result);
+          outStream.write(terminator);
+        } catch (IOException e) {
+          throw new HiveException(e);
+        }
+    }
+
+    @Override
+    public void showGeoLoc(DataOutputStream outStream, String result) throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void showEqRoom(DataOutputStream outStream, String result) throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
 
 }

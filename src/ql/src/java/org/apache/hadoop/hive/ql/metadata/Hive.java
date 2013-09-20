@@ -2496,5 +2496,18 @@ public class Hive {
     return fls;
   }
 
+  public String showHelp() {
+    return "Aha , you get it showHelp().";
+
+  }
+  public String showGeoLoc() {
+    return "Aha , you get it showGeoLoc().";
+
+  }
+  public String showEqRoom() {
+    return "Aha , you get it showEqRoom().";
+
+  }
+
 
 };

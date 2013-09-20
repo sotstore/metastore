@@ -294,6 +294,7 @@ TOK_SWITCHDATACENTER;
 TOK_DROPDATACENTER;
 TOK_DATACENTERCOMMENT;
 TOK_ADDNODE;
+
 TOK_DROPNODE;
 TOK_NODERPROPERTIES;
 TOK_MODIFYNODE;
@@ -323,7 +324,18 @@ TOK_CREATEBUSITYPE;
 TOK_SHOWNODES;
 TOK_SHOWFILES;
 TOK_SHOWFILELOCATIONS;
-
+TOK_ADDGEO_LOC;
+TOK_DROPGEO_LOC;
+TOK_MODIFYGEO_LOC;
+TOK_SHOWGEO_LOC;
+TOK_ADDEQ_ROOM;
+TOK_SHOWEQ_ROOM;
+TOK_MODIFYEQ_ROOM;
+TOK_DROPEQ_ROOM;
+TOK_ADDNODE_ASSIGNMENT;
+TOK_DROPNODE_ASSIGNMENT;
+TOK_MODIFYNODE_ASSIGNMENT;
+TOK_SHOWNODE_ASSIGNMENT;
 }
 
 
@@ -426,8 +438,94 @@ ddlStatement
     | dropNodeStatement
     | alterNodeStatement
     | createBusitypeStatement
+    | addGeoLocStatement
+    | dropGeoLocStatement
+    | alterGeoLocStatement
+    | showGeoLoc
+    | addEqRoomStatement
+    | dropEqRoomStatement
+    | alterEqRoomStatement
+    | showEqRoom
+    | addNodeAssignmentStatement
+    | dropNodeAssignmentStatement
+    | alterNodeAssignmentStatement
+    | showNodeAssignmentStatement
     ;
 
+showNodeAssignmentStatement
+@init { msgs.push("show NodeAssignmentStatement"); }
+@after { msgs.pop(); }
+    :  KW_SHOW KW_NODE_ASSIGNMENT
+     -> ^(TOK_SHOWNODE_ASSIGNMENT)
+    ;
+alterNodeAssignmentStatement
+@init { msgs.push("alter NodeAssignmentStatement"); }
+@after { msgs.pop(); }
+    :  KW_MODIFY KW_NODE_ASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA NAME= StringLiteral RPAREN 
+    -> ^(TOK_MODIFYNODE_ASSIGNMENT $NODE_NAME $NAME)
+    ;
+        
+dropNodeAssignmentStatement
+@init { msgs.push("drop NodeAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_DROP KW_NODE_ASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA NAME= StringLiteral RPAREN 
+    -> ^(TOK_DROPNODE_ASSIGNMENT $NODE_NAME $NAME)
+    ;
+    
+addNodeAssignmentStatement
+@init { msgs.push("add NodeAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_ADD KW_NODE_ASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA NAME= StringLiteral RPAREN 
+    -> ^(TOK_ADDNODE_ASSIGNMENT $NODE_NAME $NAME)
+        ;
+showEqRoom
+@init { msgs.push("show EqRoom"); }
+@after { msgs.pop(); }
+    :  KW_SHOW KW_EQ_ROOM
+     -> ^(TOK_SHOWEQ_ROOM)
+    ;
+alterEqRoomStatement
+@init { msgs.push("alter EqRoomStatement"); }
+@after { msgs.pop(); }
+    :  KW_MODIFY KW_EQ_ROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier COMMA GEO_LOC_NAME=StringLiteral COMMA  COMMENT=StringLiteral RPAREN 
+    -> ^(TOK_MODIFYEQ_ROOM $EQ_ROOM_NAME $STATUS $GEO_LOC_NAME $COMMENT)
+    ;
+dropEqRoomStatement
+@init { msgs.push("drop EqRoomStatement"); }
+@after { msgs.pop(); }
+    : KW_DROP KW_EQ_ROOM StringLiteral 
+    -> ^(TOK_DROPEQ_ROOM StringLiteral)
+    ;
+addEqRoomStatement
+@init { msgs.push("add EqRoomStatement"); }
+@after { msgs.pop(); }
+    : KW_ADD KW_EQ_ROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier COMMA GEO_LOC_NAME=StringLiteral COMMA COMMENT=StringLiteral RPAREN 
+    -> ^(TOK_ADDEQ_ROOM $EQ_ROOM_NAME $STATUS $GEO_LOC_NAME $COMMENT)
+        ;
+showGeoLoc
+@init { msgs.push("show GeoLoc"); }
+@after { msgs.pop(); }
+    :  KW_SHOW KW_GEO_LOC
+     -> ^(TOK_SHOWGEO_LOC)
+    ;
+alterGeoLocStatement
+@init { msgs.push("alter GeoLocstatement"); }
+@after { msgs.pop(); }
+    :  KW_MODIFY KW_GEO_LOC LPAREN GEO_LOC_NAME=StringLiteral COMMA NATION=StringLiteral COMMA PROVINCE=StringLiteral COMMA CITY= StringLiteral COMMA DIST=StringLiteral RPAREN 
+    -> ^(TOK_MODIFYGEO_LOC $GEO_LOC_NAME $NATION $PROVINCE $CITY $DIST)
+    ;
+dropGeoLocStatement
+@init { msgs.push("drop GeoLocStatement"); }
+@after { msgs.pop(); }
+    : KW_DROP KW_GEO_LOC StringLiteral 
+    -> ^(TOK_DROPGEO_LOC StringLiteral)
+    ;
+addGeoLocStatement
+@init { msgs.push("add GeoLocStatement"); }
+@after { msgs.pop(); }
+    : KW_ADD KW_GEO_LOC LPAREN  GEO_LOC_NAME=StringLiteral COMMA NATION=StringLiteral COMMA PROVINCE=StringLiteral COMMA CITY= StringLiteral COMMA DIST=StringLiteral RPAREN 
+    -> ^(TOK_ADDGEO_LOC $GEO_LOC_NAME $NATION $PROVINCE $CITY $DIST)
+        ;
 ifExists
 @init { msgs.push("if exists clause"); }
 @after { msgs.pop(); }
@@ -2982,7 +3080,9 @@ KW_BUSITYPE:'BUSITYPE';
 KW_NODES:'NODES';
 KW_FILES:'FILES';
 KW_FILELOCATIONS:'FILELOCATIONS';
-
+KW_GEO_LOC:'GEO_LOC';
+KW_EQ_ROOM:'EQ_ROOM';
+KW_NODE_ASSIGNMENT:'NODE_ASSIGNMENT';
 // Operators
 // NOTE: if you add a new function/operator, add it to sysFuncNames so that describe function _FUNC_ will work.
 
@@ -3102,4 +3202,7 @@ COMMENT
   : '--' (~('\n'|'\r'))*
     { $channel=HIDDEN; }
   ;
+
+
+
 
