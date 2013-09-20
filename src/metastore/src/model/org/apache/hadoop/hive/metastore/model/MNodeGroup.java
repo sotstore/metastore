@@ -11,6 +11,15 @@ public class MNodeGroup {
   private Set<MTable> attachedtables;
   private Set<MDatabase> dbs;
 
+  public void setMNodeGroup(MNodeGroup other){
+    this.node_group_name = other.node_group_name;
+    this.comment = other.comment;
+    this.status = other.status;
+    this.nodes = other.nodes;
+    this.attachedtables = other.attachedtables;
+    this.dbs = other.dbs;
+  }
+
   public MNodeGroup(String node_group_name,String comment, int status,Set<MNode> nodes) {
 
     this.node_group_name = node_group_name;

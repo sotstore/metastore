@@ -2473,13 +2473,13 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'createSchema failed: unknown result')
     end
 
-    def modifySchema(schema)
-      send_modifySchema(schema)
+    def modifySchema(schemaName, schema)
+      send_modifySchema(schemaName, schema)
       return recv_modifySchema()
     end
 
-    def send_modifySchema(schema)
-      send_message('modifySchema', ModifySchema_args, :schema => schema)
+    def send_modifySchema(schemaName, schema)
+      send_message('modifySchema', ModifySchema_args, :schemaName => schemaName, :schema => schema)
     end
 
     def recv_modifySchema()
@@ -2534,6 +2534,7 @@ module ThriftHiveMetastore
       result = receive_message(GetSchemaByName_result)
       return result.success unless result.success.nil?
       raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getSchemaByName failed: unknown result')
     end
 
@@ -2618,13 +2619,13 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addNodeGroup failed: unknown result')
     end
 
-    def modifyNodeGroup(ng)
-      send_modifyNodeGroup(ng)
+    def modifyNodeGroup(schemaName, ng)
+      send_modifyNodeGroup(schemaName, ng)
       return recv_modifyNodeGroup()
     end
 
-    def send_modifyNodeGroup(ng)
-      send_message('modifyNodeGroup', ModifyNodeGroup_args, :ng => ng)
+    def send_modifyNodeGroup(schemaName, ng)
+      send_message('modifyNodeGroup', ModifyNodeGroup_args, :schemaName => schemaName, :ng => ng)
     end
 
     def recv_modifyNodeGroup()
@@ -4597,7 +4598,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, ModifySchema_args)
       result = ModifySchema_result.new()
       begin
-        result.success = @handler.modifySchema(args.schema)
+        result.success = @handler.modifySchema(args.schemaName, args.schema)
       rescue ::MetaException => o1
         result.o1 = o1
       end
@@ -4631,8 +4632,10 @@ module ThriftHiveMetastore
       result = GetSchemaByName_result.new()
       begin
         result.success = @handler.getSchemaByName(args.schemaName)
-      rescue ::MetaException => o1
+      rescue ::NoSuchObjectException => o1
         result.o1 = o1
+      rescue ::MetaException => o2
+        result.o2 = o2
       end
       write_result(result, oprot, 'getSchemaByName', seqid)
     end
@@ -4698,7 +4701,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, ModifyNodeGroup_args)
       result = ModifyNodeGroup_result.new()
       begin
-        result.success = @handler.modifyNodeGroup(args.ng)
+        result.success = @handler.modifyNodeGroup(args.schemaName, args.ng)
       rescue ::MetaException => o1
         result.o1 = o1
       end
@@ -10379,9 +10382,11 @@ module ThriftHiveMetastore
 
   class ModifySchema_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
-    SCHEMA = 1
+    SCHEMANAME = 1
+    SCHEMA = 2
 
     FIELDS = {
+      SCHEMANAME => {:type => ::Thrift::Types::STRING, :name => 'schemaName'},
       SCHEMA => {:type => ::Thrift::Types::STRUCT, :name => 'schema', :class => ::GlobalSchema}
     }
 
@@ -10498,10 +10503,12 @@ module ThriftHiveMetastore
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1
+    O2 = 2
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::GlobalSchema},
-      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::NoSuchObjectException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end
@@ -10700,9 +10707,11 @@ module ThriftHiveMetastore
 
   class ModifyNodeGroup_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
-    NG = 1
+    SCHEMANAME = 1
+    NG = 2
 
     FIELDS = {
+      SCHEMANAME => {:type => ::Thrift::Types::STRING, :name => 'schemaName'},
       NG => {:type => ::Thrift::Types::STRUCT, :name => 'ng', :class => ::NodeGroup}
     }
 

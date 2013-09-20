@@ -164,7 +164,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& from_db, const std::string& to_db, const std::string& to_nas_devid) = 0;
   virtual void getMP(std::string& _return, const std::string& node_name, const std::string& devid) = 0;
   virtual bool createSchema(const GlobalSchema& schema) = 0;
-  virtual bool modifySchema(const GlobalSchema& schema) = 0;
+  virtual bool modifySchema(const std::string& schemaName, const GlobalSchema& schema) = 0;
   virtual bool deleteSchema(const std::string& schemaName) = 0;
   virtual void listSchemas(std::vector<GlobalSchema> & _return) = 0;
   virtual void getSchemaByName(GlobalSchema& _return, const std::string& schemaName) = 0;
@@ -173,7 +173,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void listTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const int16_t max_num) = 0;
   virtual void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<std::string> & values) = 0;
   virtual bool addNodeGroup(const NodeGroup& ng) = 0;
-  virtual bool modifyNodeGroup(const NodeGroup& ng) = 0;
+  virtual bool modifyNodeGroup(const std::string& schemaName, const NodeGroup& ng) = 0;
   virtual bool deleteNodeGroup(const NodeGroup& ng) = 0;
   virtual void listNodeGroups(std::vector<NodeGroup> & _return) = 0;
   virtual void listDBNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName) = 0;
@@ -711,7 +711,7 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     bool _return = false;
     return _return;
   }
-  bool modifySchema(const GlobalSchema& /* schema */) {
+  bool modifySchema(const std::string& /* schemaName */, const GlobalSchema& /* schema */) {
     bool _return = false;
     return _return;
   }
@@ -741,7 +741,7 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     bool _return = false;
     return _return;
   }
-  bool modifyNodeGroup(const NodeGroup& /* ng */) {
+  bool modifyNodeGroup(const std::string& /* schemaName */, const NodeGroup& /* ng */) {
     bool _return = false;
     return _return;
   }
@@ -20596,21 +20596,27 @@ class ThriftHiveMetastore_createSchema_presult {
 };
 
 typedef struct _ThriftHiveMetastore_modifySchema_args__isset {
-  _ThriftHiveMetastore_modifySchema_args__isset() : schema(false) {}
+  _ThriftHiveMetastore_modifySchema_args__isset() : schemaName(false), schema(false) {}
+  bool schemaName;
   bool schema;
 } _ThriftHiveMetastore_modifySchema_args__isset;
 
 class ThriftHiveMetastore_modifySchema_args {
  public:
 
-  ThriftHiveMetastore_modifySchema_args() {
+  ThriftHiveMetastore_modifySchema_args() : schemaName() {
   }
 
   virtual ~ThriftHiveMetastore_modifySchema_args() throw() {}
 
+  std::string schemaName;
   GlobalSchema schema;
 
   _ThriftHiveMetastore_modifySchema_args__isset __isset;
+
+  void __set_schemaName(const std::string& val) {
+    schemaName = val;
+  }
 
   void __set_schema(const GlobalSchema& val) {
     schema = val;
@@ -20618,6 +20624,8 @@ class ThriftHiveMetastore_modifySchema_args {
 
   bool operator == (const ThriftHiveMetastore_modifySchema_args & rhs) const
   {
+    if (!(schemaName == rhs.schemaName))
+      return false;
     if (!(schema == rhs.schema))
       return false;
     return true;
@@ -20640,6 +20648,7 @@ class ThriftHiveMetastore_modifySchema_pargs {
 
   virtual ~ThriftHiveMetastore_modifySchema_pargs() throw() {}
 
+  const std::string* schemaName;
   const GlobalSchema* schema;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -20987,9 +20996,10 @@ class ThriftHiveMetastore_getSchemaByName_pargs {
 };
 
 typedef struct _ThriftHiveMetastore_getSchemaByName_result__isset {
-  _ThriftHiveMetastore_getSchemaByName_result__isset() : success(false), o1(false) {}
+  _ThriftHiveMetastore_getSchemaByName_result__isset() : success(false), o1(false), o2(false) {}
   bool success;
   bool o1;
+  bool o2;
 } _ThriftHiveMetastore_getSchemaByName_result__isset;
 
 class ThriftHiveMetastore_getSchemaByName_result {
@@ -21001,7 +21011,8 @@ class ThriftHiveMetastore_getSchemaByName_result {
   virtual ~ThriftHiveMetastore_getSchemaByName_result() throw() {}
 
   GlobalSchema success;
-  MetaException o1;
+  NoSuchObjectException o1;
+  MetaException o2;
 
   _ThriftHiveMetastore_getSchemaByName_result__isset __isset;
 
@@ -21009,8 +21020,12 @@ class ThriftHiveMetastore_getSchemaByName_result {
     success = val;
   }
 
-  void __set_o1(const MetaException& val) {
+  void __set_o1(const NoSuchObjectException& val) {
     o1 = val;
+  }
+
+  void __set_o2(const MetaException& val) {
+    o2 = val;
   }
 
   bool operator == (const ThriftHiveMetastore_getSchemaByName_result & rhs) const
@@ -21018,6 +21033,8 @@ class ThriftHiveMetastore_getSchemaByName_result {
     if (!(success == rhs.success))
       return false;
     if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
       return false;
     return true;
   }
@@ -21033,9 +21050,10 @@ class ThriftHiveMetastore_getSchemaByName_result {
 };
 
 typedef struct _ThriftHiveMetastore_getSchemaByName_presult__isset {
-  _ThriftHiveMetastore_getSchemaByName_presult__isset() : success(false), o1(false) {}
+  _ThriftHiveMetastore_getSchemaByName_presult__isset() : success(false), o1(false), o2(false) {}
   bool success;
   bool o1;
+  bool o2;
 } _ThriftHiveMetastore_getSchemaByName_presult__isset;
 
 class ThriftHiveMetastore_getSchemaByName_presult {
@@ -21045,7 +21063,8 @@ class ThriftHiveMetastore_getSchemaByName_presult {
   virtual ~ThriftHiveMetastore_getSchemaByName_presult() throw() {}
 
   GlobalSchema* success;
-  MetaException o1;
+  NoSuchObjectException o1;
+  MetaException o2;
 
   _ThriftHiveMetastore_getSchemaByName_presult__isset __isset;
 
@@ -21717,21 +21736,27 @@ class ThriftHiveMetastore_addNodeGroup_presult {
 };
 
 typedef struct _ThriftHiveMetastore_modifyNodeGroup_args__isset {
-  _ThriftHiveMetastore_modifyNodeGroup_args__isset() : ng(false) {}
+  _ThriftHiveMetastore_modifyNodeGroup_args__isset() : schemaName(false), ng(false) {}
+  bool schemaName;
   bool ng;
 } _ThriftHiveMetastore_modifyNodeGroup_args__isset;
 
 class ThriftHiveMetastore_modifyNodeGroup_args {
  public:
 
-  ThriftHiveMetastore_modifyNodeGroup_args() {
+  ThriftHiveMetastore_modifyNodeGroup_args() : schemaName() {
   }
 
   virtual ~ThriftHiveMetastore_modifyNodeGroup_args() throw() {}
 
+  std::string schemaName;
   NodeGroup ng;
 
   _ThriftHiveMetastore_modifyNodeGroup_args__isset __isset;
+
+  void __set_schemaName(const std::string& val) {
+    schemaName = val;
+  }
 
   void __set_ng(const NodeGroup& val) {
     ng = val;
@@ -21739,6 +21764,8 @@ class ThriftHiveMetastore_modifyNodeGroup_args {
 
   bool operator == (const ThriftHiveMetastore_modifyNodeGroup_args & rhs) const
   {
+    if (!(schemaName == rhs.schemaName))
+      return false;
     if (!(ng == rhs.ng))
       return false;
     return true;
@@ -21761,6 +21788,7 @@ class ThriftHiveMetastore_modifyNodeGroup_pargs {
 
   virtual ~ThriftHiveMetastore_modifyNodeGroup_pargs() throw() {}
 
+  const std::string* schemaName;
   const NodeGroup* ng;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -23203,8 +23231,8 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   bool createSchema(const GlobalSchema& schema);
   void send_createSchema(const GlobalSchema& schema);
   bool recv_createSchema();
-  bool modifySchema(const GlobalSchema& schema);
-  void send_modifySchema(const GlobalSchema& schema);
+  bool modifySchema(const std::string& schemaName, const GlobalSchema& schema);
+  void send_modifySchema(const std::string& schemaName, const GlobalSchema& schema);
   bool recv_modifySchema();
   bool deleteSchema(const std::string& schemaName);
   void send_deleteSchema(const std::string& schemaName);
@@ -23230,8 +23258,8 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   bool addNodeGroup(const NodeGroup& ng);
   void send_addNodeGroup(const NodeGroup& ng);
   bool recv_addNodeGroup();
-  bool modifyNodeGroup(const NodeGroup& ng);
-  void send_modifyNodeGroup(const NodeGroup& ng);
+  bool modifyNodeGroup(const std::string& schemaName, const NodeGroup& ng);
+  void send_modifyNodeGroup(const std::string& schemaName, const NodeGroup& ng);
   bool recv_modifyNodeGroup();
   bool deleteNodeGroup(const NodeGroup& ng);
   void send_deleteNodeGroup(const NodeGroup& ng);
@@ -25035,13 +25063,13 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return ifaces_[i]->createSchema(schema);
   }
 
-  bool modifySchema(const GlobalSchema& schema) {
+  bool modifySchema(const std::string& schemaName, const GlobalSchema& schema) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->modifySchema(schema);
+      ifaces_[i]->modifySchema(schemaName, schema);
     }
-    return ifaces_[i]->modifySchema(schema);
+    return ifaces_[i]->modifySchema(schemaName, schema);
   }
 
   bool deleteSchema(const std::string& schemaName) {
@@ -25122,13 +25150,13 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return ifaces_[i]->addNodeGroup(ng);
   }
 
-  bool modifyNodeGroup(const NodeGroup& ng) {
+  bool modifyNodeGroup(const std::string& schemaName, const NodeGroup& ng) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->modifyNodeGroup(ng);
+      ifaces_[i]->modifyNodeGroup(schemaName, ng);
     }
-    return ifaces_[i]->modifyNodeGroup(ng);
+    return ifaces_[i]->modifyNodeGroup(schemaName, ng);
   }
 
   bool deleteNodeGroup(const NodeGroup& ng) {

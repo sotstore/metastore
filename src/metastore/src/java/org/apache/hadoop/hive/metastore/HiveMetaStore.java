@@ -1274,7 +1274,18 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     private boolean is_schema_exists(RawStore ms, String schema_name)
         throws MetaException {
-      return (ms.getSchema(schema_name) != null);
+      boolean isExist = false;
+      try {
+        GlobalSchema gSchema = ms.getSchema(schema_name);
+        if (gSchema!= null) {
+          isExist = true;
+        }
+      } catch (NoSuchObjectException e) {
+
+      }
+
+
+      return isExist;
     }
 
     private void drop_table_core(final RawStore ms, final String dbname, final String name,
@@ -5754,19 +5765,16 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public GlobalSchema getSchemaByName(String schemaName) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getMS().getSchema(schemaName);
     }
 
     @Override
-    public boolean modifySchema(GlobalSchema schema) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+    public boolean modifySchema(String schemaName,GlobalSchema schema) throws MetaException, TException {
+      return getMS().modifySchema(schemaName, schema);
     }
     @Override
     public boolean deleteSchema(String schemaName) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+      return getMS().deleteSchema(schemaName);
     }
 
 
@@ -5797,59 +5805,51 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public boolean addNodeGroup(NodeGroup ng) throws AlreadyExistsException,MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+      return getMS().addNodeGroup(ng);
     }
 
     @Override
-    public boolean modifyNodeGroup(NodeGroup ng) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+    public boolean modifyNodeGroup(String ngName,NodeGroup ng) throws MetaException, TException {
+      return getMS().modifyNodeGroup(ngName,ng);
     }
 
     @Override
     public boolean deleteNodeGroup(NodeGroup ng) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+      return getMS().deleteNodeGroup(ng);
     }
 
     @Override
     public List<NodeGroup> listNodeGroups() throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getMS().listNodeGroups();
     }
 
     @Override
     public List<NodeGroup> listDBNodeGroups(String dbName) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getMS().listDBNodeGroups(dbName);
     }
 
     @Override
     public boolean addTableNodeDist(String db, String tab, List<String> ng) throws MetaException,
         TException {
-      // TODO Auto-generated method stub
-      return false;
+      return getMS().addTableNodeDist(db, tab, ng);
     }
 
     @Override
     public boolean deleteTableNodeDist(String db, String tab, List<String> ng)
         throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+      return getMS().deleteTableNodeDist(db, tab, ng);
     }
 
     @Override
     public List<NodeGroup> listTableNodeDists(String dbName, String tabName) throws MetaException,
         TException {
       // TODO Auto-generated method stub
-      return null;
+      return getMS().listTableNodeDists(dbName, tabName);
     }
 
     @Override
     public List<GlobalSchema> listSchemas() throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getMS().listSchemas();
     }
 
     @Override
@@ -5863,6 +5863,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public void update_attribution(Database db) throws NoSuchObjectException,
         InvalidOperationException, MetaException, TException {
       getMS().alterDatabase(db.getName(), db);
+    }
+
+    @Override
+    public boolean assiginSchematoDB(String dbName, String schemaName,
+        List<FieldSchema> fileSplitKeys, List<FieldSchema> part_keys, List<NodeGroup> ngs)
+        throws InvalidObjectException, NoSuchObjectException, MetaException, TException {
+
+      return getMS().assiginSchematoDB(dbName, schemaName, fileSplitKeys, part_keys, ngs);
     }
 
   }

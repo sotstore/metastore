@@ -948,10 +948,10 @@ service ThriftHiveMetastore extends fb303.FacebookService
   string getMP(1:string node_name, 2:string devid) throws (1:MetaException o1) 
   
   bool createSchema(1:GlobalSchema schema) throws (1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
-  bool modifySchema(1:GlobalSchema schema) throws (1:MetaException o1)
+  bool modifySchema(1:string schemaName,2:GlobalSchema schema) throws (1:MetaException o1)
   bool deleteSchema(1:string schemaName) throws (1:MetaException o1)
   list<GlobalSchema> listSchemas() throws (1:MetaException o1)
-  GlobalSchema getSchemaByName(1:string schemaName) throws (1:MetaException o1)
+  GlobalSchema getSchemaByName(1:string schemaName) throws (1:NoSuchObjectException o1,2:MetaException o2)
   
   list<NodeGroup> getTableNodeGroups(1:string dbName,2:string tabName) throws (1:MetaException o1)
   list<SFile> getTableNodeFiles(1:string dbName,2:string tabName,3:string nodeName)  throws (1:MetaException o1)
@@ -960,7 +960,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   list<SFile> filterTableFiles(1:string dbName,2:string tabName,3:list<string> values)  throws (1:MetaException o1)
   
   bool addNodeGroup(1:NodeGroup ng) throws (1:AlreadyExistsException o1,2:MetaException o2)
-  bool modifyNodeGroup (1:NodeGroup ng) throws (1:MetaException o1)
+  bool modifyNodeGroup (1:string schemaName,2:NodeGroup ng) throws (1:MetaException o1)
   bool deleteNodeGroup (1:NodeGroup ng) throws (1:MetaException o1)
   list<NodeGroup> listNodeGroups() throws (1:MetaException o1)
   list<NodeGroup> listDBNodeGroups(1:string dbName) throws (1:MetaException o1)

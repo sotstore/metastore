@@ -762,7 +762,7 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("createSchema\n");
   }
 
-  bool modifySchema(const GlobalSchema& schema) {
+  bool modifySchema(const std::string& schemaName, const GlobalSchema& schema) {
     // Your implementation goes here
     printf("modifySchema\n");
   }
@@ -807,7 +807,7 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("addNodeGroup\n");
   }
 
-  bool modifyNodeGroup(const NodeGroup& ng) {
+  bool modifyNodeGroup(const std::string& schemaName, const NodeGroup& ng) {
     // Your implementation goes here
     printf("modifyNodeGroup\n");
   }
