@@ -233,6 +233,11 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_SHOWFILELOCATIONS:
       case HiveParser.TOK_ADDGEO_LOC:
 
+      case HiveParser.TOK_CREATENODEGROUP:
+      case HiveParser.TOK_MODIFYNODEGROUP:
+      case HiveParser.TOK_DROPNODEGROUP:
+      case HiveParser.TOK_SHOWNODEGROUPS:
+
 
         return new DDLSemanticAnalyzer(conf);
       case HiveParser.TOK_ALTERTABLE_PARTITION:
