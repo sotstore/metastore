@@ -124,7 +124,6 @@ import org.apache.hadoop.hive.metastore.model.MGeoLocation;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
 import org.apache.hadoop.hive.metastore.model.MIndex;
 import org.apache.hadoop.hive.metastore.model.MNode;
-import org.apache.hadoop.hive.metastore.model.MNodeAssignment;
 import org.apache.hadoop.hive.metastore.model.MOrder;
 import org.apache.hadoop.hive.metastore.model.MPartition;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnPrivilege;
@@ -7987,7 +7986,7 @@ public class ObjectStore implements RawStore, Configurable {
     return gls;
   }
 
-  @Override
+/*  @Override
   public boolean addNodeAssignment(Node node, Database database) throws MetaException {
     MNodeAssignment mna = new MNodeAssignment();
     boolean success = false;
@@ -8031,5 +8030,5 @@ public class ObjectStore implements RawStore, Configurable {
     }
     return success;
   }
-
+*/
 }

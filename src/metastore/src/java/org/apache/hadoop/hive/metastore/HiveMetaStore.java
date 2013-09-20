@@ -5765,7 +5765,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return getMS().listGeoLocation();
     }
 
-    @Override
+/*    @Override
     public boolean addNodeAssignment(Node node, Database database) throws MetaException, TException {
       getMS().addNodeAssignment(node,database);
       return true;
@@ -5801,7 +5801,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         TException {
       getMS().deleteNodeAssignment(node,database);
       return true;
-    }
+    }*/
 
   }
 

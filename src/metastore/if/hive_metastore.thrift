@@ -501,11 +501,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   bool modifyGeoLocation(1:GeoLocation gl) throws(1:MetaException o1)
   bool deleteGeoLocation(1:GeoLocation gl) throws(1:MetaException o1)
   list<GeoLocation> listGeoLocation() throws(1:MetaException o1)
-  
-  bool addNodeAssignment (1:Node node,2:Database database) throws(1:MetaException o1)
-  bool modifyNodeAssignment (1:Node node,2:Database database) throws(1:MetaException o1)
-  bool deleteNodeAssignment (1:Node node,2:Database database) throws(1:MetaException o1)
-  
+   
 //end up with cry
 
   void create_database(1:Database database) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
