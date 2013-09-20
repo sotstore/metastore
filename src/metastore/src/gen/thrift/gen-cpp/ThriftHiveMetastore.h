@@ -133,7 +133,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void get_delegation_token(std::string& _return, const std::string& token_owner, const std::string& renewer_kerberos_principal_name) = 0;
   virtual int64_t renew_delegation_token(const std::string& token_str_form) = 0;
   virtual void cancel_delegation_token(const std::string& token_str_form) = 0;
-  virtual void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name) = 0;
+  virtual void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<std::string> & values) = 0;
   virtual int32_t close_file(const SFile& file) = 0;
   virtual bool online_filelocation(const SFile& file) = 0;
   virtual bool toggle_safemode() = 0;
@@ -146,7 +146,9 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void add_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl) = 0;
   virtual int32_t del_node(const std::string& node_name) = 0;
   virtual void create_device(Device& _return, const std::string& devid, const int32_t prop, const std::string& node_name) = 0;
+  virtual void get_device(Device& _return, const std::string& devid) = 0;
   virtual bool del_device(const std::string& devid) = 0;
+  virtual void modify_device(Device& _return, const Device& dev, const Node& node) = 0;
   virtual void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status) = 0;
   virtual void find_best_nodes(std::vector<Node> & _return, const int32_t nr) = 0;
   virtual void get_all_nodes(std::vector<Node> & _return) = 0;
@@ -580,7 +582,7 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void cancel_delegation_token(const std::string& /* token_str_form */) {
     return;
   }
-  void create_file(SFile& /* _return */, const std::string& /* node_name */, const int32_t /* repnr */, const std::string& /* db_name */, const std::string& /* table_name */) {
+  void create_file(SFile& /* _return */, const std::string& /* node_name */, const int32_t /* repnr */, const std::string& /* db_name */, const std::string& /* table_name */, const std::vector<std::string> & /* values */) {
     return;
   }
   int32_t close_file(const SFile& /* file */) {
@@ -626,9 +628,15 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void create_device(Device& /* _return */, const std::string& /* devid */, const int32_t /* prop */, const std::string& /* node_name */) {
     return;
   }
+  void get_device(Device& /* _return */, const std::string& /* devid */) {
+    return;
+  }
   bool del_device(const std::string& /* devid */) {
     bool _return = false;
     return _return;
+  }
+  void modify_device(Device& /* _return */, const Device& /* dev */, const Node& /* node */) {
+    return;
   }
   void alter_node(Node& /* _return */, const std::string& /* node_name */, const std::vector<std::string> & /* ipl */, const int32_t /* status */) {
     return;
@@ -16466,11 +16474,12 @@ class ThriftHiveMetastore_cancel_delegation_token_presult {
 };
 
 typedef struct _ThriftHiveMetastore_create_file_args__isset {
-  _ThriftHiveMetastore_create_file_args__isset() : node_name(false), repnr(false), db_name(false), table_name(false) {}
+  _ThriftHiveMetastore_create_file_args__isset() : node_name(false), repnr(false), db_name(false), table_name(false), values(false) {}
   bool node_name;
   bool repnr;
   bool db_name;
   bool table_name;
+  bool values;
 } _ThriftHiveMetastore_create_file_args__isset;
 
 class ThriftHiveMetastore_create_file_args {
@@ -16485,6 +16494,7 @@ class ThriftHiveMetastore_create_file_args {
   int32_t repnr;
   std::string db_name;
   std::string table_name;
+  std::vector<std::string>  values;
 
   _ThriftHiveMetastore_create_file_args__isset __isset;
 
@@ -16504,6 +16514,10 @@ class ThriftHiveMetastore_create_file_args {
     table_name = val;
   }
 
+  void __set_values(const std::vector<std::string> & val) {
+    values = val;
+  }
+
   bool operator == (const ThriftHiveMetastore_create_file_args & rhs) const
   {
     if (!(node_name == rhs.node_name))
@@ -16513,6 +16527,8 @@ class ThriftHiveMetastore_create_file_args {
     if (!(db_name == rhs.db_name))
       return false;
     if (!(table_name == rhs.table_name))
+      return false;
+    if (!(values == rhs.values))
       return false;
     return true;
   }
@@ -16538,6 +16554,7 @@ class ThriftHiveMetastore_create_file_pargs {
   const int32_t* repnr;
   const std::string* db_name;
   const std::string* table_name;
+  const std::vector<std::string> * values;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -18117,6 +18134,134 @@ class ThriftHiveMetastore_create_device_presult {
 
 };
 
+typedef struct _ThriftHiveMetastore_get_device_args__isset {
+  _ThriftHiveMetastore_get_device_args__isset() : devid(false) {}
+  bool devid;
+} _ThriftHiveMetastore_get_device_args__isset;
+
+class ThriftHiveMetastore_get_device_args {
+ public:
+
+  ThriftHiveMetastore_get_device_args() : devid() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_device_args() throw() {}
+
+  std::string devid;
+
+  _ThriftHiveMetastore_get_device_args__isset __isset;
+
+  void __set_devid(const std::string& val) {
+    devid = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_device_args & rhs) const
+  {
+    if (!(devid == rhs.devid))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_device_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_device_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_get_device_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_device_pargs() throw() {}
+
+  const std::string* devid;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_device_result__isset {
+  _ThriftHiveMetastore_get_device_result__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_get_device_result__isset;
+
+class ThriftHiveMetastore_get_device_result {
+ public:
+
+  ThriftHiveMetastore_get_device_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_device_result() throw() {}
+
+  Device success;
+  MetaException o1;
+  NoSuchObjectException o2;
+
+  _ThriftHiveMetastore_get_device_result__isset __isset;
+
+  void __set_success(const Device& val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const NoSuchObjectException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_get_device_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_device_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_device_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_device_presult__isset {
+  _ThriftHiveMetastore_get_device_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_get_device_presult__isset;
+
+class ThriftHiveMetastore_get_device_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_device_presult() throw() {}
+
+  Device* success;
+  MetaException o1;
+  NoSuchObjectException o2;
+
+  _ThriftHiveMetastore_get_device_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 typedef struct _ThriftHiveMetastore_del_device_args__isset {
   _ThriftHiveMetastore_del_device_args__isset() : devid(false) {}
   bool devid;
@@ -18230,6 +18375,133 @@ class ThriftHiveMetastore_del_device_presult {
   MetaException o1;
 
   _ThriftHiveMetastore_del_device_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_modify_device_args__isset {
+  _ThriftHiveMetastore_modify_device_args__isset() : dev(false), node(false) {}
+  bool dev;
+  bool node;
+} _ThriftHiveMetastore_modify_device_args__isset;
+
+class ThriftHiveMetastore_modify_device_args {
+ public:
+
+  ThriftHiveMetastore_modify_device_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_modify_device_args() throw() {}
+
+  Device dev;
+  Node node;
+
+  _ThriftHiveMetastore_modify_device_args__isset __isset;
+
+  void __set_dev(const Device& val) {
+    dev = val;
+  }
+
+  void __set_node(const Node& val) {
+    node = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_modify_device_args & rhs) const
+  {
+    if (!(dev == rhs.dev))
+      return false;
+    if (!(node == rhs.node))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_modify_device_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_modify_device_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_modify_device_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_modify_device_pargs() throw() {}
+
+  const Device* dev;
+  const Node* node;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_modify_device_result__isset {
+  _ThriftHiveMetastore_modify_device_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_modify_device_result__isset;
+
+class ThriftHiveMetastore_modify_device_result {
+ public:
+
+  ThriftHiveMetastore_modify_device_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_modify_device_result() throw() {}
+
+  Device success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_modify_device_result__isset __isset;
+
+  void __set_success(const Device& val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_modify_device_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_modify_device_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_modify_device_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_modify_device_presult__isset {
+  _ThriftHiveMetastore_modify_device_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_modify_device_presult__isset;
+
+class ThriftHiveMetastore_modify_device_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_modify_device_presult() throw() {}
+
+  Device* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_modify_device_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -19939,8 +20211,8 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void cancel_delegation_token(const std::string& token_str_form);
   void send_cancel_delegation_token(const std::string& token_str_form);
   void recv_cancel_delegation_token();
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name);
-  void send_create_file(const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name);
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<std::string> & values);
+  void send_create_file(const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<std::string> & values);
   void recv_create_file(SFile& _return);
   int32_t close_file(const SFile& file);
   void send_close_file(const SFile& file);
@@ -19978,9 +20250,15 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void create_device(Device& _return, const std::string& devid, const int32_t prop, const std::string& node_name);
   void send_create_device(const std::string& devid, const int32_t prop, const std::string& node_name);
   void recv_create_device(Device& _return);
+  void get_device(Device& _return, const std::string& devid);
+  void send_get_device(const std::string& devid);
+  void recv_get_device(Device& _return);
   bool del_device(const std::string& devid);
   void send_del_device(const std::string& devid);
   bool recv_del_device();
+  void modify_device(Device& _return, const Device& dev, const Node& node);
+  void send_modify_device(const Device& dev, const Node& node);
+  void recv_modify_device(Device& _return);
   void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status);
   void send_alter_node(const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status);
   void recv_alter_node(Node& _return);
@@ -20151,7 +20429,9 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_add_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_del_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_create_device(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_device(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_del_device(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_modify_device(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_alter_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_find_best_nodes(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_all_nodes(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -20296,7 +20576,9 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["add_node"] = &ThriftHiveMetastoreProcessor::process_add_node;
     processMap_["del_node"] = &ThriftHiveMetastoreProcessor::process_del_node;
     processMap_["create_device"] = &ThriftHiveMetastoreProcessor::process_create_device;
+    processMap_["get_device"] = &ThriftHiveMetastoreProcessor::process_get_device;
     processMap_["del_device"] = &ThriftHiveMetastoreProcessor::process_del_device;
+    processMap_["modify_device"] = &ThriftHiveMetastoreProcessor::process_modify_device;
     processMap_["alter_node"] = &ThriftHiveMetastoreProcessor::process_alter_node;
     processMap_["find_best_nodes"] = &ThriftHiveMetastoreProcessor::process_find_best_nodes;
     processMap_["get_all_nodes"] = &ThriftHiveMetastoreProcessor::process_get_all_nodes;
@@ -21448,13 +21730,13 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     ifaces_[i]->cancel_delegation_token(token_str_form);
   }
 
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name) {
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<std::string> & values) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->create_file(_return, node_name, repnr, db_name, table_name);
+      ifaces_[i]->create_file(_return, node_name, repnr, db_name, table_name, values);
     }
-    ifaces_[i]->create_file(_return, node_name, repnr, db_name, table_name);
+    ifaces_[i]->create_file(_return, node_name, repnr, db_name, table_name, values);
     return;
   }
 
@@ -21571,6 +21853,16 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return;
   }
 
+  void get_device(Device& _return, const std::string& devid) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->get_device(_return, devid);
+    }
+    ifaces_[i]->get_device(_return, devid);
+    return;
+  }
+
   bool del_device(const std::string& devid) {
     size_t sz = ifaces_.size();
     size_t i = 0;
@@ -21578,6 +21870,16 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->del_device(devid);
     }
     return ifaces_[i]->del_device(devid);
+  }
+
+  void modify_device(Device& _return, const Device& dev, const Node& node) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->modify_device(_return, dev, node);
+    }
+    ifaces_[i]->modify_device(_return, dev, node);
+    return;
   }
 
   void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status) {

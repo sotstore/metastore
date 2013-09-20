@@ -638,25 +638,29 @@ end
 class SFile
   include ::Thrift::Struct, ::Thrift::Struct_Union
   FID = 1
-  PLACEMENT = 2
-  STORE_STATUS = 3
-  REP_NR = 4
-  DIGEST = 5
-  RECORD_NR = 6
-  ALL_RECORD_NR = 7
-  LOCATIONS = 8
-  LENGTH = 9
+  DBNAME = 2
+  TABLENAME = 3
+  STORE_STATUS = 4
+  REP_NR = 5
+  DIGEST = 6
+  RECORD_NR = 7
+  ALL_RECORD_NR = 8
+  LOCATIONS = 9
+  LENGTH = 10
+  VALUES = 11
 
   FIELDS = {
     FID => {:type => ::Thrift::Types::I64, :name => 'fid'},
-    PLACEMENT => {:type => ::Thrift::Types::I64, :name => 'placement'},
+    DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+    TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
     STORE_STATUS => {:type => ::Thrift::Types::I32, :name => 'store_status'},
     REP_NR => {:type => ::Thrift::Types::I32, :name => 'rep_nr'},
     DIGEST => {:type => ::Thrift::Types::STRING, :name => 'digest'},
     RECORD_NR => {:type => ::Thrift::Types::I64, :name => 'record_nr'},
     ALL_RECORD_NR => {:type => ::Thrift::Types::I64, :name => 'all_record_nr'},
     LOCATIONS => {:type => ::Thrift::Types::LIST, :name => 'locations', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFileLocation}},
-    LENGTH => {:type => ::Thrift::Types::I64, :name => 'length'}
+    LENGTH => {:type => ::Thrift::Types::I64, :name => 'length'},
+    VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRING}}
   }
 
   def struct_fields; FIELDS; end

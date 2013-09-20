@@ -1508,7 +1508,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   }
 
   @Override
-  public SFile create_file(String node_name, int repnr, String db_name, String table_name)
+  public SFile create_file(String node_name, int repnr, String db_name, String table_name, List<String> values)
       throws FileOperationException, TException {
 
     if ("".equals(node_name)) {
@@ -1524,7 +1524,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       repnr = 1;
     }
 
-    return client.create_file(node_name, repnr, db_name, table_name);
+    return client.create_file(node_name, repnr, db_name, table_name, values);
   }
 
   @Override
@@ -1932,5 +1932,37 @@ public boolean authentication(String user_name, String passwd)
   public boolean delDevice(String devid) throws MetaException, TException {
     assert devid != null;
     return client.del_device(devid);
+  }
+
+  @Override
+  public Device getDevice(String devid) throws MetaException, TException {
+    assert devid != null;
+    return client.get_device(devid);
+  }
+
+  @Override
+  public boolean onlineDevice(String devid) throws MetaException, TException {
+    assert devid != null;
+    Device dev = client.get_device(devid);
+    dev.setStatus(MetaStoreConst.MDeviceStatus.ONLINE);
+    client.modify_device(dev, null);
+
+    return true;
+  }
+
+  @Override
+  public boolean offlineDevice(String devid) throws MetaException, TException {
+    assert devid != null;
+    Device dev = client.get_device(devid);
+    dev.setStatus(MetaStoreConst.MDeviceStatus.OFFLINE);
+    client.modify_device(dev, null);
+
+    return true;
+  }
+
+  @Override
+  public Device changeDeviceLocation(Device dev, Node node) throws MetaException, TException {
+    assert dev != null;
+    return client.modify_device(dev, node);
   }
 }

@@ -979,7 +979,7 @@ public interface IMetaStoreClient {
    */
   public void cancelDelegationToken(String tokenStrForm) throws MetaException, TException;
 
-  public SFile create_file(String node_name, int repnr, String db_name, String table_name)
+  public SFile create_file(String node_name, int repnr, String db_name, String table_name, List<String> values)
       throws FileOperationException, TException;
 
   public int close_file(SFile file) throws FileOperationException, TException;
@@ -1020,7 +1020,7 @@ public interface IMetaStoreClient {
    * @throws MetaException
    * @throws TException
    */
-  public boolean drop_user(String user_name) throws NoSuchObjectException, MetaException, TException;
+  public boolean drop_user(String userName) throws NoSuchObjectException, MetaException, TException;
 
   /**
    * @param user_name
@@ -1146,6 +1146,13 @@ public interface IMetaStoreClient {
 
   public Device createDevice(String devid, int prop, String node_name) throws MetaException, TException;
 
+  public Device getDevice(String devid) throws MetaException, TException;
+
   public boolean delDevice(String devid) throws MetaException, TException;
 
+  public boolean onlineDevice(String devid) throws MetaException, TException;
+
+  public boolean offlineDevice(String devid) throws MetaException, TException;
+
+  public Device changeDeviceLocation(Device dev, Node node) throws MetaException, TException;
 }

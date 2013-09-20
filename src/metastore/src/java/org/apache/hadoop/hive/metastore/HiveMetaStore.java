@@ -4274,7 +4274,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public SFile create_file(String node_name, int repnr, String db_name, String table_name)
+    public SFile create_file(String node_name, int repnr, String db_name, String table_name, List<String> values)
         throws FileOperationException, TException {
       // TODO: if repnr less than 1, we should increase it to replicate to BACKUP-STORE
       if (repnr <= 1) {
@@ -4282,26 +4282,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       }
       // do not select the backup/shared device for the first entry
       FileLocatingPolicy flp = new FileLocatingPolicy(null, dm.backupDevs, FileLocatingPolicy.EXCLUDE_NODES_DEVS_SHARED, false);
-      return create_file(flp, node_name, repnr, db_name, table_name);
+      return create_file(flp, node_name, repnr, db_name, table_name, values);
     }
 
-    private SFile create_file_wo_location(int repnr, String dbName, String tableName)
+    private SFile create_file_wo_location(int repnr, String dbName, String tableName, List<String> values)
       throws FileOperationException, TException {
-      long table_id = -1;
 
-      // try to parse table_name
-      if (dbName != null && tableName != null) {
-        Table tbl;
-        try {
-          tbl = getMS().getTable(dbName, tableName);
-          table_id = getMS().getTableOID(dbName, tableName);
-        } catch (MetaException me) {
-          throw new FileOperationException("Invalid Table name:" + dbName + "/" + tableName, FOFailReason.INVALID_TABLE);
-        }
-        tableName = tbl.getDbName() + "/" + tbl.getTableName();
-      }
-      SFile cfile = new SFile(0, table_id, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
-          "SFILE_DEFAULT_X", 0, 0, null, 0);
+      SFile cfile = new SFile(0, dbName, tableName, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
+          "SFILE_DEFAULT_X", 0, 0, null, 0, values);
       getMS().createFile(cfile);
       cfile = getMS().getSFile(cfile.getFid());
       if (cfile == null) {
@@ -4311,7 +4299,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return cfile;
     }
 
-    private SFile create_file(FileLocatingPolicy flp, String node_name, int repnr, String db_name, String table_name)
+    private SFile create_file(FileLocatingPolicy flp, String node_name, int repnr, String db_name, String table_name, List<String> values)
         throws FileOperationException, TException {
 
       if (node_name == null) {
@@ -4338,7 +4326,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           flp = new FileLocatingPolicy(null, null, FileLocatingPolicy.EXCLUDE_NODES_DEVS_SHARED, true);
         }
         String devid = dm.findBestDevice(node_name, flp);
-        long table_id = -1;
 
         if (devid == null) {
           throw new FileOperationException("Can not find any available device on node '" + node_name + "' now", FOFailReason.NOTEXIST);
@@ -4348,7 +4335,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           Table tbl;
           try {
             tbl = getMS().getTable(db_name, table_name);
-            table_id = getMS().getTableOID(db_name, table_name);
           } catch (MetaException me) {
             throw new FileOperationException("Invalid Table name:" + db_name + "/" + table_name, FOFailReason.INVALID_TABLE);
           }
@@ -4356,8 +4342,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
 
         // how to convert table_name to tbl_id?
-        cfile = new SFile(0, table_id, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
-            "SFILE_DEFALUT", 0, 0, null, 0);
+        cfile = new SFile(0, db_name, table_name, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
+            "SFILE_DEFALUT", 0, 0, null, 0, values);
         getMS().createFile(cfile);
         cfile = getMS().getSFile(cfile.getFid());
         if (cfile == null) {
@@ -4957,7 +4943,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             if (subpart.getFilesSize() > 0) {
               for (long fid : subpart.getFiles()) {
                 // create a new target file
-                SFile f = create_file(null, 3, tbl.getDbName(), tbl.getTableName());
+                SFile f = create_file(null, 3, tbl.getDbName(), tbl.getTableName(), part.getValues());
                 files.add(f);
                 rmap.put(fid, f);
               }
@@ -4977,7 +4963,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
             for (long fid : part.getFiles()) {
               // create a new target file
-              SFile f = create_file(null, 3, tbl.getDbName(), tbl.getTableName());
+              SFile f = create_file(null, 3, tbl.getDbName(), tbl.getTableName(), part.getValues());
               files.add(f);
               rmap.put(fid, f);
             }
@@ -5642,7 +5628,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         SFileLocation sfl = entry.getValue();
 
         LOG.info("Add NEW SFL DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
-        SFile nfile = create_file_wo_location(3, tbl.getDbName(), tbl.getTableName());
+        // FIXME: v0.2 to fix: add file values here!
+        SFile nfile = create_file_wo_location(3, tbl.getDbName(), tbl.getTableName(), null);
         fileToDel.add(nfile);
 
         sfl.setNode_name(dm.getAnyNode());
@@ -5868,6 +5855,16 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public List<GeoLocation> listGeoLocation() throws MetaException, TException {
       return getMS().listGeoLocation();
+    }
+
+    @Override
+    public Device get_device(String devid) throws MetaException, NoSuchObjectException, TException {
+      return getMS().getDevice(devid);
+    }
+
+    @Override
+    public Device modify_device(Device dev, Node node) throws MetaException, TException {
+      return getMS().modifyDevice(dev, node);
     }
 
 /*    @Override

@@ -740,9 +740,9 @@ public class DiskManager {
 
             do {
               location = "/data/";
-              if (f.getPlacement() > 0) {
+              if (f.getDbName() != null && f.getTableName() != null) {
                 synchronized (trs) {
-                  Table t = trs.getTableByID(f.getPlacement());
+                  Table t = trs.getTable(f.getDbName(), f.getTableName());
                   location += t.getDbName() + "/" + t.getTableName() + "/"
                       + rand.nextInt(Integer.MAX_VALUE);
                 }
@@ -1903,9 +1903,9 @@ public class DiskManager {
 
                 do {
                   location = "/data/";
-                  if (r.file.getPlacement() > 0) {
+                  if (r.file.getDbName() != null && r.file.getTableName() != null) {
                     synchronized (rs) {
-                      Table t = rs.getTableByID(r.file.getPlacement());
+                      Table t = rs.getTable(r.file.getDbName(), r.file.getTableName());
                       location += t.getDbName() + "/" + t.getTableName() + "/"
                           + rand.nextInt(Integer.MAX_VALUE);
                     }

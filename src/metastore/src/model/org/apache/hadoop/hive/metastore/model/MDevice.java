@@ -1,10 +1,19 @@
 package org.apache.hadoop.hive.metastore.model;
 
+import org.apache.hadoop.hive.metastore.MetaStoreConst;
+
 public class MDevice {
   private MNode node;
   private String dev_name;
   private int prop;
-  private final int status;
+  private int status;
+
+  public MDevice(MNode node, String name, int prop) {
+    this.node = node;
+    this.dev_name = name;
+    this.prop = prop;
+    this.status = MetaStoreConst.MDeviceStatus.SUSPECT;
+  }
 
   public MDevice(MNode node, String name, int prop, int status) {
     this.node = node;
@@ -39,5 +48,9 @@ public class MDevice {
 
   public int getStatus() {
     return status;
+  }
+
+  public void setStatus(int status) {
+    this.status = status;
   }
 }
