@@ -969,6 +969,8 @@ service ThriftHiveMetastore extends fb303.FacebookService
   bool deleteTableNodeDist(1:string db,2:string tab,3:list<string> ng) throws (1:MetaException o1)
   list<NodeGroup> listTableNodeDists (1:string dbName,2:string tabName) throws (1:MetaException o1)
   
+  bool assiginSchematoDB(1:string dbName, 2:string schemaName,3:list<FieldSchema> fileSplitKeys,
+      4:list<FieldSchema> part_keys,5:list<NodeGroup> ngs) throws (1:InvalidObjectException o1, 2:NoSuchObjectException o2, 3:MetaException o3)
   
 }
 

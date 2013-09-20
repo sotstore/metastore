@@ -842,6 +842,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("listTableNodeDists\n");
   }
 
+  bool assiginSchematoDB(const std::string& dbName, const std::string& schemaName, const std::vector<FieldSchema> & fileSplitKeys, const std::vector<FieldSchema> & part_keys, const std::vector<NodeGroup> & ngs) {
+    // Your implementation goes here
+    printf("assiginSchematoDB\n");
+  }
+
 };
 
 int main(int argc, char **argv) {
