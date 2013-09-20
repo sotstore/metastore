@@ -18,29 +18,23 @@
 
 package org.apache.hadoop.hive.metastore.model;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-public class MTable {
+public class MSchema {
 
-  private String tableName;
-  private MDatabase database;
+  private String schemaName;
   private MStorageDescriptor sd;
   private String owner;
   private int createTime;
   private int lastAccessTime;
   private int retention;
-  private List<MFieldSchema> partitionKeys;
+  //private List<MFieldSchema> partitionKeys;
   private Map<String, String> parameters;
   private String viewOriginalText;
   private String viewExpandedText;
-  private String tableType;
+  private String schemaType;
 
-  private List<MFieldSchema> fileSplitKeys;
-  private Set<MNodeGroup> groupDistribute;
-
-  public MTable() {}
+  public MSchema() {}
 
   /**
    * @param tableName
@@ -56,64 +50,34 @@ public class MTable {
    * @param viewExpandedText
    * @param tableType
    */
-  public MTable(String tableName, MDatabase database, MStorageDescriptor sd, String owner,
-      int createTime, int lastAccessTime, int retention, List<MFieldSchema> partitionKeys,
+  public MSchema(String tableName, MDatabase database, MStorageDescriptor sd,
+      int createTime, int lastAccessTime, int retention, //List<MFieldSchema> partitionKeys,
       Map<String, String> parameters,
       String viewOriginalText, String viewExpandedText, String tableType) {
-    this.tableName = tableName;
-    this.database = database;
+    this.schemaName = tableName;
     this.sd = sd;
-    this.owner = owner;
     this.createTime = createTime;
     this.setLastAccessTime(lastAccessTime);
     this.retention = retention;
-    this.partitionKeys = partitionKeys;
+    //this.partitionKeys = partitionKeys;
     this.parameters = parameters;
     this.viewOriginalText = viewOriginalText;
     this.viewExpandedText = viewExpandedText;
-    this.tableType = tableType;
-  }
-
-  public MTable(String tableName, MDatabase database, MStorageDescriptor sd, String owner,
-      int createTime, int lastAccessTime, int retention, List<MFieldSchema> fileSplitKeys,
-      List<MFieldSchema> partitionKeys, Map<String, String> parameters,
-      String viewOriginalText, String viewExpandedText, String tableType) {
-    this.tableName = tableName;
-    this.database = database;
-    this.sd = sd;
-    this.owner = owner;
-    this.createTime = createTime;
-    this.setLastAccessTime(lastAccessTime);
-    this.retention = retention;
-    this.fileSplitKeys = fileSplitKeys;
-    this.partitionKeys = partitionKeys;
-    this.parameters = parameters;
-    this.viewOriginalText = viewOriginalText;
-    this.viewExpandedText = viewExpandedText;
-    this.tableType = tableType;
-  }
-
-  public MTable(String tableName, MDatabase database, MStorageDescriptor sd, String owner,
-      int createTime, int lastAccessTime, int retention, List<MFieldSchema> fileSplitKeys,
-      List<MFieldSchema> partitionKeys,Map<String, String> parameters,
-      String viewOriginalText, String viewExpandedText, String tableType,Set<MNodeGroup> groupDistribute) {
-    this(tableName, database, sd, owner, createTime, lastAccessTime, retention,fileSplitKeys,
-        partitionKeys, parameters, viewOriginalText, viewExpandedText, tableType);
-    this.groupDistribute = groupDistribute;
+    this.schemaType = tableType;
   }
 
   /**
    * @return the tableName
    */
   public String getTableName() {
-    return tableName;
+    return schemaName;
   }
 
   /**
    * @param tableName the tableName to set
    */
   public void setTableName(String tableName) {
-    this.tableName = tableName;
+    this.schemaName = tableName;
   }
 
   /**
@@ -130,19 +94,19 @@ public class MTable {
     this.sd = sd;
   }
 
-  /**
-   * @return the partKeys
-   */
-  public List<MFieldSchema> getPartitionKeys() {
-    return partitionKeys;
-  }
-
-  /**
-   * @param partKeys the partKeys to set
-   */
-  public void setPartitionKeys(List<MFieldSchema> partKeys) {
-    this.partitionKeys = partKeys;
-  }
+//  /**
+//   * @return the partKeys
+//   */
+//  public List<MFieldSchema> getPartitionKeys() {
+//    return partitionKeys;
+//  }
+//
+//  /**
+//   * @param partKeys the partKeys to set
+//   */
+//  public void setPartitionKeys(List<MFieldSchema> partKeys) {
+//    this.partitionKeys = partKeys;
+//  }
 
   /**
    * @return the parameters
@@ -215,20 +179,6 @@ public class MTable {
   }
 
   /**
-   * @return the database
-   */
-  public MDatabase getDatabase() {
-    return database;
-  }
-
-  /**
-   * @param database the database to set
-   */
-  public void setDatabase(MDatabase database) {
-    this.database = database;
-  }
-
-  /**
    * @return the retention
    */
   public int getRetention() {
@@ -257,26 +207,16 @@ public class MTable {
   }
 
   /**
-   * @param tableType the tableType to set
+   * @param schemaType the schemaType to set
    */
-  public void setTableType(String tableType) {
-    this.tableType = tableType;
+  public void setSchemaType(String schemaType) {
+    this.schemaType = schemaType;
   }
 
   /**
-   * @return the tableType
+   * @return the schemaType
    */
-  public String getTableType() {
-    return tableType;
+  public String getSchemaType() {
+    return schemaType;
   }
-
-  public Set<MNodeGroup> getGroupDistribute() {
-    return groupDistribute;
-  }
-
-  public void setGroupDistribute(Set<MNodeGroup> groupDistribute) {
-    this.groupDistribute = groupDistribute;
-  }
-
-
 }

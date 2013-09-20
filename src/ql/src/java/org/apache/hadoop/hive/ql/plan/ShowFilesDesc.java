@@ -19,21 +19,7 @@ public class ShowFilesDesc extends DDLDesc implements Serializable {
 
 
 
-  public ShowFilesDesc() {
-    super();
-  }
-
-
-
-
-
-  public ShowFilesDesc(String resFile) {
-    super();
-    this.resFile = resFile;
-  }
-
   public ShowFilesDesc(String resFile,Table table,String partName) {
-    super();
     this.partName = partName;
     this.table = table;
     this.resFile = resFile;

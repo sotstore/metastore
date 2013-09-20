@@ -20,43 +20,64 @@ package org.apache.hadoop.hive.metastore.model;
 
 import java.util.Set;
 
-public class MRole {
+public class MUser {
 
-  private String roleName;
+  private String userName;
+
+  private MRole role;
 
   private int createTime;
 
   private String ownerName;
 
+  private String passwd;
+
   private Set<MDatabase> dbs;
 
-  public MRole() {
+  public MUser() {
   }
 
-  public MRole(String roleName, int createTime, String ownerName) {
+  public MUser(String userName, int createTime, String ownerName) {
     super();
-    this.roleName = roleName;
+    this.userName = userName;
     this.createTime = createTime;
     this.ownerName = ownerName;
   }
 
-  public MRole(String roleName, int createTime, String ownerName ,Set<MDatabase> dbs) {
-    this(roleName, createTime, ownerName);
+  public MUser(String userName,MRole role, int createTime, String ownerName ,String passwd) {
+    super();
+    this.userName = userName;
+    this.role = role;
+    this.createTime = createTime;
+    this.passwd = ownerName;
+    this.passwd = passwd;
+  }
+
+  public MUser(String userName,MRole role, int createTime, String ownerName ,String passwd,Set<MDatabase> dbs) {
+    this(userName, role, createTime, ownerName, passwd);
     this.dbs = dbs;
   }
 
   /**
    * @return role name
    */
-  public String getRoleName() {
-    return roleName;
+  public String getUserName() {
+    return userName;
   }
 
   /**
    * @param roleName
    */
-  public void setRoleName(String roleName) {
-    this.roleName = roleName;
+  public void setUserName(String userName) {
+    this.userName = userName;
+  }
+
+  public MRole getRole() {
+    return role;
+  }
+
+  public void setRole(MRole role) {
+    this.role = role;
   }
 
   /**
@@ -72,6 +93,16 @@ public class MRole {
    */
   public void setCreateTime(int createTime) {
     this.createTime = createTime;
+  }
+
+
+
+  public String getPasswd() {
+    return passwd;
+  }
+
+  public void setPasswd(String passwd) {
+    this.passwd = passwd;
   }
 
   /**
@@ -92,7 +123,6 @@ public class MRole {
   public void setDbs(Set<MDatabase> dbs) {
     this.dbs = dbs;
   }
-
 
 
 }

@@ -530,16 +530,18 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
 
 
   private void analyzeShowFileLocations(ASTNode ast) throws SemanticException {
-    ASTNode tabTree = (ASTNode)ast.getChild(0);
     String tabName = null;
     String part_name = null;
     Table tab = null;
-    if(tabTree.getChildCount() ==2){
-      part_name = unescapeSQLString(tabTree.getChild(0).getText());
-      tabName = unescapeIdentifier(tabTree.getChild(1).getText());
-      tab = validateAndGetTable(tabName);
-      if(tab == null){
-        throw new SemanticException("table:"+tabName+" is not exist!");
+    if(ast.getChildCount() ==2){
+      if(ast.getChildCount() ==2){
+        part_name = unescapeSQLString(ast.getChild(0).getText());
+        tabName = unescapeIdentifier(ast.getChild(1).getChild(0).getText());
+        LOG.info("---zjw--part_name:"+part_name+"--tabName:"+tabName);
+        tab = validateAndGetTable(tabName);
+        if(tab == null){
+          throw new SemanticException("table:"+tabName+" is not exist!");
+        }
       }
     }
 
@@ -551,17 +553,20 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
   }
 
   private void analyzeShowFiles(ASTNode ast) throws SemanticException {
-    ASTNode tabTree = (ASTNode)ast.getChild(0);
     String tabName = null;
     String part_name = null;
     Table tab = null;
-    if(tabTree.getChildCount() ==2){
-      part_name = unescapeSQLString(tabTree.getChild(0).getText());
-      tabName = unescapeIdentifier(tabTree.getChild(1).getText());
+    LOG.info("---zjw--ast:"+ast.toStringTree());
+    if(ast.getChildCount() ==2){
+      part_name = unescapeSQLString(ast.getChild(0).getText());
+      tabName = unescapeIdentifier(ast.getChild(1).getChild(0).getText());
+      LOG.info("---zjw--part_name:"+part_name+"--tabName:"+tabName);
       tab = validateAndGetTable(tabName);
       if(tab == null){
         throw new SemanticException("table:"+tabName+" is not exist!");
       }
+    }else{
+      throw new SemanticException("table or partition is not identified!");
     }
     ShowFilesDesc showFilesDesc = new ShowFilesDesc(ctx.getResFile().toString(),tab,part_name);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),

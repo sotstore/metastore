@@ -920,6 +920,12 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
 
   }
+
+  @Override
+  public void findVoidFiles(List<SFile> voidFiles) throws MetaException {
+    // TODO Auto-generated method stub
+
+  }
 }
 
 

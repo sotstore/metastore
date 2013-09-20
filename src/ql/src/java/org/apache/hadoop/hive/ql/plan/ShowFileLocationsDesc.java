@@ -20,13 +20,6 @@ public class ShowFileLocationsDesc extends DDLDesc implements Serializable {
 
 
 
-  public ShowFileLocationsDesc() {
-    super();
-  }
-
-
-
-
 
   public ShowFileLocationsDesc( String resFile, Table table,String partName) {
     super();
