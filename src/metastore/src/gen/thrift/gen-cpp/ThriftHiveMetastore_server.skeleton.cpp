@@ -167,6 +167,46 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("drop_subpartition_index_files\n");
   }
 
+  bool addEquipRoom(const EquipRoom& er) {
+    // Your implementation goes here
+    printf("addEquipRoom\n");
+  }
+
+  bool modifyEquipRoom(const EquipRoom& er) {
+    // Your implementation goes here
+    printf("modifyEquipRoom\n");
+  }
+
+  bool deleteEquipRoom(const EquipRoom& er) {
+    // Your implementation goes here
+    printf("deleteEquipRoom\n");
+  }
+
+  void listEquipRoom(std::vector<EquipRoom> & _return) {
+    // Your implementation goes here
+    printf("listEquipRoom\n");
+  }
+
+  bool addGeoLocation(const GeoLocation& gl) {
+    // Your implementation goes here
+    printf("addGeoLocation\n");
+  }
+
+  bool modifyGeoLocation(const GeoLocation& gl) {
+    // Your implementation goes here
+    printf("modifyGeoLocation\n");
+  }
+
+  bool deleteGeoLocation(const GeoLocation& gl) {
+    // Your implementation goes here
+    printf("deleteGeoLocation\n");
+  }
+
+  void listGeoLocation(std::vector<GeoLocation> & _return) {
+    // Your implementation goes here
+    printf("listGeoLocation\n");
+  }
+
   void create_database(const Database& database) {
     // Your implementation goes here
     printf("create_database\n");

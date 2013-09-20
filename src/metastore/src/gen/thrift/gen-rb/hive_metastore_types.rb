@@ -1010,6 +1010,57 @@ class EnvironmentContext
   ::Thrift::Struct.generate_accessors self
 end
 
+class GeoLocation
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  NATION = 1
+  PROVINCE = 2
+  CITY = 3
+  DIST = 4
+
+  FIELDS = {
+    NATION => {:type => ::Thrift::Types::STRING, :name => 'nation'},
+    PROVINCE => {:type => ::Thrift::Types::STRING, :name => 'province'},
+    CITY => {:type => ::Thrift::Types::STRING, :name => 'city'},
+    DIST => {:type => ::Thrift::Types::STRING, :name => 'dist'}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+    raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field nation is unset!') unless @nation
+    raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field province is unset!') unless @province
+    raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field city is unset!') unless @city
+    raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field dist is unset!') unless @dist
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
+class EquipRoom
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  EQROOMNAME = 1
+  STATUS = 2
+  COMMENT = 3
+  GEOLOCATION = 4
+
+  FIELDS = {
+    EQROOMNAME => {:type => ::Thrift::Types::STRING, :name => 'eqRoomName'},
+    STATUS => {:type => ::Thrift::Types::I32, :name => 'status'},
+    COMMENT => {:type => ::Thrift::Types::STRING, :name => 'comment'},
+    GEOLOCATION => {:type => ::Thrift::Types::STRUCT, :name => 'geolocation', :class => ::GeoLocation, :optional => true}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+    raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field eqRoomName is unset!') unless @eqRoomName
+    raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field status is unset!') unless @status
+    raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field comment is unset!') unless @comment
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
 class MetaException < ::Thrift::Exception
   include ::Thrift::Struct, ::Thrift::Struct_Union
   def initialize(message=nil)

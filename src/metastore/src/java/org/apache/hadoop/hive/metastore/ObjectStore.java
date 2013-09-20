@@ -73,7 +73,9 @@ import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.DoubleColumnStatsData;
+import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.GeoLocation;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
@@ -116,9 +118,11 @@ import org.apache.hadoop.hive.metastore.model.MDatabase;
 import org.apache.hadoop.hive.metastore.model.MDatacenter;
 import org.apache.hadoop.hive.metastore.model.MDevice;
 import org.apache.hadoop.hive.metastore.model.MDirectDDL;
+import org.apache.hadoop.hive.metastore.model.MEquipRoom;
 import org.apache.hadoop.hive.metastore.model.MFieldSchema;
 import org.apache.hadoop.hive.metastore.model.MFile;
 import org.apache.hadoop.hive.metastore.model.MFileLocation;
+import org.apache.hadoop.hive.metastore.model.MGeoLocation;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
 import org.apache.hadoop.hive.metastore.model.MIndex;
 import org.apache.hadoop.hive.metastore.model.MNode;
@@ -8047,4 +8051,231 @@ public MUser getMUser(String userName) {
     }
   }
 
+  @Override
+  public boolean addEquipRoom(EquipRoom er) throws MetaException {
+    MEquipRoom mer = new MEquipRoom();
+    boolean success = false;
+    int now = (int)(System.currentTimeMillis()/1000);
+    try {
+      openTransaction();
+      pm.makePersistent(mer);
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    if(success){
+      return true ;
+    }else{
+      return false;
+    }
+  }
+
+  @Override
+  public boolean modifyEquipRoom(EquipRoom er) throws MetaException {
+    boolean success = false;
+    boolean committed = false;
+    //......
+    if (er != null) {
+      er.setEqRoomName(er.getEqRoomName());
+      er.setStatus(er.getStatus());
+      er.setComment(er.getComment());
+
+      er.setGeolocation(er.getGeolocation());
+
+    } else {
+      return success;
+    }
+    try {
+      openTransaction();
+      pm.makePersistent(er);
+      committed = commitTransaction();
+    } finally {
+      if (!committed) {
+        rollbackTransaction();
+      } else {
+        success = true;
+      }
+    }
+    return true;
+  }
+  @Override
+  public boolean deleteEquipRoom(EquipRoom er) throws MetaException {
+    boolean success = false;
+    try {
+      openTransaction();
+      MEquipRoom mer = new MEquipRoom();
+      if (mer != null) {
+        pm.deletePersistent(mer);
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public List<EquipRoom> listEquipRoom() throws MetaException {
+    List<EquipRoom> ers = new ArrayList<EquipRoom>();
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MEquipRoom.class);
+      List<MEquipRoom> mers = (List<MEquipRoom>) query.execute();
+      pm.retrieveAll(mers);
+      for (Iterator i = mers.iterator(); i.hasNext();) {
+        MEquipRoom mer = (MEquipRoom)i.next();
+        EquipRoom er = new EquipRoom(mer.getEqRoomName(),mer.getStatus(),mer.getComment());
+        if(mer.getGeolocation() !=  null){
+          er.setGeolocation(er.getGeolocation());
+        }
+        ers.add(er);
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return ers;
+  }
+
+  @Override
+  public boolean addGeoLocation(GeoLocation gl) throws MetaException {
+    MGeoLocation mgl = new MGeoLocation();
+    boolean success = false;
+    int now = (int)(System.currentTimeMillis()/1000);
+    try {
+      openTransaction();
+      pm.makePersistent(mgl);
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    if(success){
+      return true ;
+    }else{
+      return false;
+    }
+  }
+
+  @Override
+  public boolean modifyGeoLocation(GeoLocation gl) throws MetaException {
+
+    boolean success = false;
+    boolean committed = false;
+    //......
+    if (gl != null) {
+      gl.setNation(gl.getNation());
+      gl.setProvince(gl.getProvince());
+      gl.setCity(gl.getCity());
+      gl.setDist(gl.getDist());
+    } else {
+      return success;
+    }
+    try {
+      openTransaction();
+      pm.makePersistent(gl);
+      committed = commitTransaction();
+    } finally {
+      if (!committed) {
+        rollbackTransaction();
+      } else {
+        success = true;
+      }
+    }
+    return true;
+  }
+  @Override
+  public boolean deleteGeoLocation(GeoLocation gl) throws MetaException {
+    boolean success = false;
+    try {
+      openTransaction();
+      MGeoLocation mgl = new MGeoLocation();
+      if (mgl != null) {
+        pm.deletePersistent(mgl);
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public List<GeoLocation> listGeoLocation() throws MetaException {
+    List<GeoLocation> gls = new ArrayList<GeoLocation>();
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MGeoLocation.class);
+      List<MGeoLocation> mgls = (List<MGeoLocation>) query.execute();
+      pm.retrieveAll(mgls);
+      for (Iterator i = mgls.iterator(); i.hasNext();) {
+        MGeoLocation mgl = (MGeoLocation)i.next();
+        GeoLocation gl = new GeoLocation(mgl.getNation(),mgl.getProvince(),mgl.getCity(),mgl.getDist());
+        gls.add(gl);
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return gls;
+  }
+
+/*  @Override
+  public boolean addNodeAssignment(Node node, Database database) throws MetaException {
+    MNodeAssignment mna = new MNodeAssignment();
+    boolean success = false;
+    int now = (int)(System.currentTimeMillis()/1000);
+    try {
+      openTransaction();
+      pm.makePersistent(mna);
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    if(success){
+      return true ;
+    }else{
+      return false;
+    }
+  }
+
+  @Override
+  public boolean modifyNodeAssignment(Node node, Database database) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean deleteNodeAssignment(Node node, Database database) throws MetaException {
+    boolean success = false;
+    try {
+      openTransaction();
+      MNodeAssignment mna = new MNodeAssignment();
+      if (mna != null) {
+        pm.deletePersistent(mna);
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+*/
 }

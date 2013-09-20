@@ -4564,6 +4564,213 @@ class EnvironmentContext:
   def __ne__(self, other):
     return not (self == other)
 
+class GeoLocation:
+  """
+  Attributes:
+   - nation
+   - province
+   - city
+   - dist
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'nation', None, None, ), # 1
+    (2, TType.STRING, 'province', None, None, ), # 2
+    (3, TType.STRING, 'city', None, None, ), # 3
+    (4, TType.STRING, 'dist', None, None, ), # 4
+  )
+
+  def __init__(self, nation=None, province=None, city=None, dist=None,):
+    self.nation = nation
+    self.province = province
+    self.city = city
+    self.dist = dist
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.nation = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.province = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRING:
+          self.city = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRING:
+          self.dist = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('GeoLocation')
+    if self.nation is not None:
+      oprot.writeFieldBegin('nation', TType.STRING, 1)
+      oprot.writeString(self.nation)
+      oprot.writeFieldEnd()
+    if self.province is not None:
+      oprot.writeFieldBegin('province', TType.STRING, 2)
+      oprot.writeString(self.province)
+      oprot.writeFieldEnd()
+    if self.city is not None:
+      oprot.writeFieldBegin('city', TType.STRING, 3)
+      oprot.writeString(self.city)
+      oprot.writeFieldEnd()
+    if self.dist is not None:
+      oprot.writeFieldBegin('dist', TType.STRING, 4)
+      oprot.writeString(self.dist)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    if self.nation is None:
+      raise TProtocol.TProtocolException(message='Required field nation is unset!')
+    if self.province is None:
+      raise TProtocol.TProtocolException(message='Required field province is unset!')
+    if self.city is None:
+      raise TProtocol.TProtocolException(message='Required field city is unset!')
+    if self.dist is None:
+      raise TProtocol.TProtocolException(message='Required field dist is unset!')
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class EquipRoom:
+  """
+  Attributes:
+   - eqRoomName
+   - status
+   - comment
+   - geolocation
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'eqRoomName', None, None, ), # 1
+    (2, TType.I32, 'status', None, None, ), # 2
+    (3, TType.STRING, 'comment', None, None, ), # 3
+    (4, TType.STRUCT, 'geolocation', (GeoLocation, GeoLocation.thrift_spec), None, ), # 4
+  )
+
+  def __init__(self, eqRoomName=None, status=None, comment=None, geolocation=None,):
+    self.eqRoomName = eqRoomName
+    self.status = status
+    self.comment = comment
+    self.geolocation = geolocation
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.eqRoomName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.I32:
+          self.status = iprot.readI32();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRING:
+          self.comment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.geolocation = GeoLocation()
+          self.geolocation.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('EquipRoom')
+    if self.eqRoomName is not None:
+      oprot.writeFieldBegin('eqRoomName', TType.STRING, 1)
+      oprot.writeString(self.eqRoomName)
+      oprot.writeFieldEnd()
+    if self.status is not None:
+      oprot.writeFieldBegin('status', TType.I32, 2)
+      oprot.writeI32(self.status)
+      oprot.writeFieldEnd()
+    if self.comment is not None:
+      oprot.writeFieldBegin('comment', TType.STRING, 3)
+      oprot.writeString(self.comment)
+      oprot.writeFieldEnd()
+    if self.geolocation is not None:
+      oprot.writeFieldBegin('geolocation', TType.STRUCT, 4)
+      self.geolocation.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    if self.eqRoomName is None:
+      raise TProtocol.TProtocolException(message='Required field eqRoomName is unset!')
+    if self.status is None:
+      raise TProtocol.TProtocolException(message='Required field status is unset!')
+    if self.comment is None:
+      raise TProtocol.TProtocolException(message='Required field comment is unset!')
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class MetaException(TException):
   """
   Attributes:

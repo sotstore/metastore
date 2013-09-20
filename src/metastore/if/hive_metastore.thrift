@@ -381,6 +381,21 @@ struct EnvironmentContext {
   1: map<string, string> properties
 }
 
+//strat off with cry
+struct GeoLocation {
+1: required string nation,
+2: required string province,
+3: required string city,
+4: required string dist
+}
+struct EquipRoom {
+1: required string eqRoomName,
+2: required i32 status,
+3: required string comment,
+4: optional GeoLocation geolocation
+}
+//end up with cry
+
 exception MetaException {
   1: string message
 }
@@ -489,6 +504,20 @@ service ThriftHiveMetastore extends fb303.FacebookService
   bool drop_subpartition_index_files(1:Index index, 2: Subpartition subpart,3:list<SFile> file) throws(1:MetaException o1)
   
 //end of zjw
+
+//strat off with cry
+  bool addEquipRoom(1:EquipRoom er) throws(1:MetaException o1)
+  bool modifyEquipRoom(1:EquipRoom er) throws(1:MetaException o1)
+  bool deleteEquipRoom(1:EquipRoom er) throws(1:MetaException o1)
+  list<EquipRoom> listEquipRoom() throws(1:MetaException o1)
+
+  bool addGeoLocation(1:GeoLocation gl) throws(1:MetaException o1)
+  bool modifyGeoLocation(1:GeoLocation gl) throws(1:MetaException o1)
+  bool deleteGeoLocation(1:GeoLocation gl) throws(1:MetaException o1)
+  list<GeoLocation> listGeoLocation() throws(1:MetaException o1)
+   
+//end up with cry
+
   void create_database(1:Database database) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
   Database get_database(1:string name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
   void drop_database(1:string name, 2:bool deleteData, 3:bool cascade) throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)

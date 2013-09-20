@@ -45,6 +45,14 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual bool add_subpartition_index_files(const Index& index, const Subpartition& subpart, const std::vector<SFile> & file, const std::vector<int64_t> & originfid) = 0;
   virtual void get_subpartition_index_files(std::vector<SFileRef> & _return, const Index& index, const Subpartition& subpart) = 0;
   virtual bool drop_subpartition_index_files(const Index& index, const Subpartition& subpart, const std::vector<SFile> & file) = 0;
+  virtual bool addEquipRoom(const EquipRoom& er) = 0;
+  virtual bool modifyEquipRoom(const EquipRoom& er) = 0;
+  virtual bool deleteEquipRoom(const EquipRoom& er) = 0;
+  virtual void listEquipRoom(std::vector<EquipRoom> & _return) = 0;
+  virtual bool addGeoLocation(const GeoLocation& gl) = 0;
+  virtual bool modifyGeoLocation(const GeoLocation& gl) = 0;
+  virtual bool deleteGeoLocation(const GeoLocation& gl) = 0;
+  virtual void listGeoLocation(std::vector<GeoLocation> & _return) = 0;
   virtual void create_database(const Database& database) = 0;
   virtual void get_database(Database& _return, const std::string& name) = 0;
   virtual void drop_database(const std::string& name, const bool deleteData, const bool cascade) = 0;
@@ -279,6 +287,36 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   bool drop_subpartition_index_files(const Index& /* index */, const Subpartition& /* subpart */, const std::vector<SFile> & /* file */) {
     bool _return = false;
     return _return;
+  }
+  bool addEquipRoom(const EquipRoom& /* er */) {
+    bool _return = false;
+    return _return;
+  }
+  bool modifyEquipRoom(const EquipRoom& /* er */) {
+    bool _return = false;
+    return _return;
+  }
+  bool deleteEquipRoom(const EquipRoom& /* er */) {
+    bool _return = false;
+    return _return;
+  }
+  void listEquipRoom(std::vector<EquipRoom> & /* _return */) {
+    return;
+  }
+  bool addGeoLocation(const GeoLocation& /* gl */) {
+    bool _return = false;
+    return _return;
+  }
+  bool modifyGeoLocation(const GeoLocation& /* gl */) {
+    bool _return = false;
+    return _return;
+  }
+  bool deleteGeoLocation(const GeoLocation& /* gl */) {
+    bool _return = false;
+    return _return;
+  }
+  void listGeoLocation(std::vector<GeoLocation> & /* _return */) {
+    return;
   }
   void create_database(const Database& /* database */) {
     return;
@@ -4294,6 +4332,922 @@ class ThriftHiveMetastore_drop_subpartition_index_files_presult {
   MetaException o1;
 
   _ThriftHiveMetastore_drop_subpartition_index_files_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_addEquipRoom_args__isset {
+  _ThriftHiveMetastore_addEquipRoom_args__isset() : er(false) {}
+  bool er;
+} _ThriftHiveMetastore_addEquipRoom_args__isset;
+
+class ThriftHiveMetastore_addEquipRoom_args {
+ public:
+
+  ThriftHiveMetastore_addEquipRoom_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_addEquipRoom_args() throw() {}
+
+  EquipRoom er;
+
+  _ThriftHiveMetastore_addEquipRoom_args__isset __isset;
+
+  void __set_er(const EquipRoom& val) {
+    er = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_addEquipRoom_args & rhs) const
+  {
+    if (!(er == rhs.er))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_addEquipRoom_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_addEquipRoom_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_addEquipRoom_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_addEquipRoom_pargs() throw() {}
+
+  const EquipRoom* er;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_addEquipRoom_result__isset {
+  _ThriftHiveMetastore_addEquipRoom_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_addEquipRoom_result__isset;
+
+class ThriftHiveMetastore_addEquipRoom_result {
+ public:
+
+  ThriftHiveMetastore_addEquipRoom_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_addEquipRoom_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_addEquipRoom_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_addEquipRoom_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_addEquipRoom_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_addEquipRoom_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_addEquipRoom_presult__isset {
+  _ThriftHiveMetastore_addEquipRoom_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_addEquipRoom_presult__isset;
+
+class ThriftHiveMetastore_addEquipRoom_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_addEquipRoom_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_addEquipRoom_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_modifyEquipRoom_args__isset {
+  _ThriftHiveMetastore_modifyEquipRoom_args__isset() : er(false) {}
+  bool er;
+} _ThriftHiveMetastore_modifyEquipRoom_args__isset;
+
+class ThriftHiveMetastore_modifyEquipRoom_args {
+ public:
+
+  ThriftHiveMetastore_modifyEquipRoom_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_modifyEquipRoom_args() throw() {}
+
+  EquipRoom er;
+
+  _ThriftHiveMetastore_modifyEquipRoom_args__isset __isset;
+
+  void __set_er(const EquipRoom& val) {
+    er = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_modifyEquipRoom_args & rhs) const
+  {
+    if (!(er == rhs.er))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_modifyEquipRoom_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_modifyEquipRoom_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_modifyEquipRoom_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_modifyEquipRoom_pargs() throw() {}
+
+  const EquipRoom* er;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_modifyEquipRoom_result__isset {
+  _ThriftHiveMetastore_modifyEquipRoom_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_modifyEquipRoom_result__isset;
+
+class ThriftHiveMetastore_modifyEquipRoom_result {
+ public:
+
+  ThriftHiveMetastore_modifyEquipRoom_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_modifyEquipRoom_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_modifyEquipRoom_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_modifyEquipRoom_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_modifyEquipRoom_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_modifyEquipRoom_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_modifyEquipRoom_presult__isset {
+  _ThriftHiveMetastore_modifyEquipRoom_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_modifyEquipRoom_presult__isset;
+
+class ThriftHiveMetastore_modifyEquipRoom_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_modifyEquipRoom_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_modifyEquipRoom_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteEquipRoom_args__isset {
+  _ThriftHiveMetastore_deleteEquipRoom_args__isset() : er(false) {}
+  bool er;
+} _ThriftHiveMetastore_deleteEquipRoom_args__isset;
+
+class ThriftHiveMetastore_deleteEquipRoom_args {
+ public:
+
+  ThriftHiveMetastore_deleteEquipRoom_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_deleteEquipRoom_args() throw() {}
+
+  EquipRoom er;
+
+  _ThriftHiveMetastore_deleteEquipRoom_args__isset __isset;
+
+  void __set_er(const EquipRoom& val) {
+    er = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_deleteEquipRoom_args & rhs) const
+  {
+    if (!(er == rhs.er))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_deleteEquipRoom_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_deleteEquipRoom_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_deleteEquipRoom_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_deleteEquipRoom_pargs() throw() {}
+
+  const EquipRoom* er;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteEquipRoom_result__isset {
+  _ThriftHiveMetastore_deleteEquipRoom_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_deleteEquipRoom_result__isset;
+
+class ThriftHiveMetastore_deleteEquipRoom_result {
+ public:
+
+  ThriftHiveMetastore_deleteEquipRoom_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_deleteEquipRoom_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_deleteEquipRoom_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_deleteEquipRoom_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_deleteEquipRoom_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_deleteEquipRoom_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteEquipRoom_presult__isset {
+  _ThriftHiveMetastore_deleteEquipRoom_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_deleteEquipRoom_presult__isset;
+
+class ThriftHiveMetastore_deleteEquipRoom_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_deleteEquipRoom_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_deleteEquipRoom_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class ThriftHiveMetastore_listEquipRoom_args {
+ public:
+
+  ThriftHiveMetastore_listEquipRoom_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_listEquipRoom_args() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_listEquipRoom_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listEquipRoom_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listEquipRoom_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_listEquipRoom_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listEquipRoom_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listEquipRoom_result__isset {
+  _ThriftHiveMetastore_listEquipRoom_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listEquipRoom_result__isset;
+
+class ThriftHiveMetastore_listEquipRoom_result {
+ public:
+
+  ThriftHiveMetastore_listEquipRoom_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_listEquipRoom_result() throw() {}
+
+  std::vector<EquipRoom>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listEquipRoom_result__isset __isset;
+
+  void __set_success(const std::vector<EquipRoom> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listEquipRoom_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listEquipRoom_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listEquipRoom_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listEquipRoom_presult__isset {
+  _ThriftHiveMetastore_listEquipRoom_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listEquipRoom_presult__isset;
+
+class ThriftHiveMetastore_listEquipRoom_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listEquipRoom_presult() throw() {}
+
+  std::vector<EquipRoom> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listEquipRoom_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_addGeoLocation_args__isset {
+  _ThriftHiveMetastore_addGeoLocation_args__isset() : gl(false) {}
+  bool gl;
+} _ThriftHiveMetastore_addGeoLocation_args__isset;
+
+class ThriftHiveMetastore_addGeoLocation_args {
+ public:
+
+  ThriftHiveMetastore_addGeoLocation_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_addGeoLocation_args() throw() {}
+
+  GeoLocation gl;
+
+  _ThriftHiveMetastore_addGeoLocation_args__isset __isset;
+
+  void __set_gl(const GeoLocation& val) {
+    gl = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_addGeoLocation_args & rhs) const
+  {
+    if (!(gl == rhs.gl))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_addGeoLocation_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_addGeoLocation_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_addGeoLocation_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_addGeoLocation_pargs() throw() {}
+
+  const GeoLocation* gl;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_addGeoLocation_result__isset {
+  _ThriftHiveMetastore_addGeoLocation_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_addGeoLocation_result__isset;
+
+class ThriftHiveMetastore_addGeoLocation_result {
+ public:
+
+  ThriftHiveMetastore_addGeoLocation_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_addGeoLocation_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_addGeoLocation_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_addGeoLocation_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_addGeoLocation_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_addGeoLocation_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_addGeoLocation_presult__isset {
+  _ThriftHiveMetastore_addGeoLocation_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_addGeoLocation_presult__isset;
+
+class ThriftHiveMetastore_addGeoLocation_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_addGeoLocation_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_addGeoLocation_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_modifyGeoLocation_args__isset {
+  _ThriftHiveMetastore_modifyGeoLocation_args__isset() : gl(false) {}
+  bool gl;
+} _ThriftHiveMetastore_modifyGeoLocation_args__isset;
+
+class ThriftHiveMetastore_modifyGeoLocation_args {
+ public:
+
+  ThriftHiveMetastore_modifyGeoLocation_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_modifyGeoLocation_args() throw() {}
+
+  GeoLocation gl;
+
+  _ThriftHiveMetastore_modifyGeoLocation_args__isset __isset;
+
+  void __set_gl(const GeoLocation& val) {
+    gl = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_modifyGeoLocation_args & rhs) const
+  {
+    if (!(gl == rhs.gl))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_modifyGeoLocation_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_modifyGeoLocation_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_modifyGeoLocation_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_modifyGeoLocation_pargs() throw() {}
+
+  const GeoLocation* gl;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_modifyGeoLocation_result__isset {
+  _ThriftHiveMetastore_modifyGeoLocation_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_modifyGeoLocation_result__isset;
+
+class ThriftHiveMetastore_modifyGeoLocation_result {
+ public:
+
+  ThriftHiveMetastore_modifyGeoLocation_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_modifyGeoLocation_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_modifyGeoLocation_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_modifyGeoLocation_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_modifyGeoLocation_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_modifyGeoLocation_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_modifyGeoLocation_presult__isset {
+  _ThriftHiveMetastore_modifyGeoLocation_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_modifyGeoLocation_presult__isset;
+
+class ThriftHiveMetastore_modifyGeoLocation_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_modifyGeoLocation_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_modifyGeoLocation_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteGeoLocation_args__isset {
+  _ThriftHiveMetastore_deleteGeoLocation_args__isset() : gl(false) {}
+  bool gl;
+} _ThriftHiveMetastore_deleteGeoLocation_args__isset;
+
+class ThriftHiveMetastore_deleteGeoLocation_args {
+ public:
+
+  ThriftHiveMetastore_deleteGeoLocation_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_deleteGeoLocation_args() throw() {}
+
+  GeoLocation gl;
+
+  _ThriftHiveMetastore_deleteGeoLocation_args__isset __isset;
+
+  void __set_gl(const GeoLocation& val) {
+    gl = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_deleteGeoLocation_args & rhs) const
+  {
+    if (!(gl == rhs.gl))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_deleteGeoLocation_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_deleteGeoLocation_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_deleteGeoLocation_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_deleteGeoLocation_pargs() throw() {}
+
+  const GeoLocation* gl;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteGeoLocation_result__isset {
+  _ThriftHiveMetastore_deleteGeoLocation_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_deleteGeoLocation_result__isset;
+
+class ThriftHiveMetastore_deleteGeoLocation_result {
+ public:
+
+  ThriftHiveMetastore_deleteGeoLocation_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_deleteGeoLocation_result() throw() {}
+
+  bool success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_deleteGeoLocation_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_deleteGeoLocation_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_deleteGeoLocation_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_deleteGeoLocation_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteGeoLocation_presult__isset {
+  _ThriftHiveMetastore_deleteGeoLocation_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_deleteGeoLocation_presult__isset;
+
+class ThriftHiveMetastore_deleteGeoLocation_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_deleteGeoLocation_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_deleteGeoLocation_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class ThriftHiveMetastore_listGeoLocation_args {
+ public:
+
+  ThriftHiveMetastore_listGeoLocation_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_listGeoLocation_args() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_listGeoLocation_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listGeoLocation_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listGeoLocation_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_listGeoLocation_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listGeoLocation_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listGeoLocation_result__isset {
+  _ThriftHiveMetastore_listGeoLocation_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listGeoLocation_result__isset;
+
+class ThriftHiveMetastore_listGeoLocation_result {
+ public:
+
+  ThriftHiveMetastore_listGeoLocation_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_listGeoLocation_result() throw() {}
+
+  std::vector<GeoLocation>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listGeoLocation_result__isset __isset;
+
+  void __set_success(const std::vector<GeoLocation> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listGeoLocation_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listGeoLocation_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listGeoLocation_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listGeoLocation_presult__isset {
+  _ThriftHiveMetastore_listGeoLocation_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listGeoLocation_presult__isset;
+
+class ThriftHiveMetastore_listGeoLocation_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listGeoLocation_presult() throw() {}
+
+  std::vector<GeoLocation> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listGeoLocation_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -13455,7 +14409,7 @@ class ThriftHiveMetastore_modify_user_result {
   virtual ~ThriftHiveMetastore_modify_user_result() throw() {}
 
   bool success;
-  InvalidObjectException o1;
+  NoSuchObjectException o1;
   MetaException o2;
 
   _ThriftHiveMetastore_modify_user_result__isset __isset;
@@ -13464,7 +14418,7 @@ class ThriftHiveMetastore_modify_user_result {
     success = val;
   }
 
-  void __set_o1(const InvalidObjectException& val) {
+  void __set_o1(const NoSuchObjectException& val) {
     o1 = val;
   }
 
@@ -13507,7 +14461,7 @@ class ThriftHiveMetastore_modify_user_presult {
   virtual ~ThriftHiveMetastore_modify_user_presult() throw() {}
 
   bool* success;
-  InvalidObjectException o1;
+  NoSuchObjectException o1;
   MetaException o2;
 
   _ThriftHiveMetastore_modify_user_presult__isset __isset;
@@ -18721,6 +19675,30 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   bool drop_subpartition_index_files(const Index& index, const Subpartition& subpart, const std::vector<SFile> & file);
   void send_drop_subpartition_index_files(const Index& index, const Subpartition& subpart, const std::vector<SFile> & file);
   bool recv_drop_subpartition_index_files();
+  bool addEquipRoom(const EquipRoom& er);
+  void send_addEquipRoom(const EquipRoom& er);
+  bool recv_addEquipRoom();
+  bool modifyEquipRoom(const EquipRoom& er);
+  void send_modifyEquipRoom(const EquipRoom& er);
+  bool recv_modifyEquipRoom();
+  bool deleteEquipRoom(const EquipRoom& er);
+  void send_deleteEquipRoom(const EquipRoom& er);
+  bool recv_deleteEquipRoom();
+  void listEquipRoom(std::vector<EquipRoom> & _return);
+  void send_listEquipRoom();
+  void recv_listEquipRoom(std::vector<EquipRoom> & _return);
+  bool addGeoLocation(const GeoLocation& gl);
+  void send_addGeoLocation(const GeoLocation& gl);
+  bool recv_addGeoLocation();
+  bool modifyGeoLocation(const GeoLocation& gl);
+  void send_modifyGeoLocation(const GeoLocation& gl);
+  bool recv_modifyGeoLocation();
+  bool deleteGeoLocation(const GeoLocation& gl);
+  void send_deleteGeoLocation(const GeoLocation& gl);
+  bool recv_deleteGeoLocation();
+  void listGeoLocation(std::vector<GeoLocation> & _return);
+  void send_listGeoLocation();
+  void recv_listGeoLocation(std::vector<GeoLocation> & _return);
   void create_database(const Database& database);
   void send_create_database(const Database& database);
   void recv_create_database();
@@ -19072,6 +20050,14 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_add_subpartition_index_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_subpartition_index_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_drop_subpartition_index_files(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_addEquipRoom(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_modifyEquipRoom(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_deleteEquipRoom(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_listEquipRoom(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_addGeoLocation(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_modifyGeoLocation(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_deleteGeoLocation(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_listGeoLocation(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_create_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_drop_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -19209,6 +20195,14 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["add_subpartition_index_files"] = &ThriftHiveMetastoreProcessor::process_add_subpartition_index_files;
     processMap_["get_subpartition_index_files"] = &ThriftHiveMetastoreProcessor::process_get_subpartition_index_files;
     processMap_["drop_subpartition_index_files"] = &ThriftHiveMetastoreProcessor::process_drop_subpartition_index_files;
+    processMap_["addEquipRoom"] = &ThriftHiveMetastoreProcessor::process_addEquipRoom;
+    processMap_["modifyEquipRoom"] = &ThriftHiveMetastoreProcessor::process_modifyEquipRoom;
+    processMap_["deleteEquipRoom"] = &ThriftHiveMetastoreProcessor::process_deleteEquipRoom;
+    processMap_["listEquipRoom"] = &ThriftHiveMetastoreProcessor::process_listEquipRoom;
+    processMap_["addGeoLocation"] = &ThriftHiveMetastoreProcessor::process_addGeoLocation;
+    processMap_["modifyGeoLocation"] = &ThriftHiveMetastoreProcessor::process_modifyGeoLocation;
+    processMap_["deleteGeoLocation"] = &ThriftHiveMetastoreProcessor::process_deleteGeoLocation;
+    processMap_["listGeoLocation"] = &ThriftHiveMetastoreProcessor::process_listGeoLocation;
     processMap_["create_database"] = &ThriftHiveMetastoreProcessor::process_create_database;
     processMap_["get_database"] = &ThriftHiveMetastoreProcessor::process_get_database;
     processMap_["drop_database"] = &ThriftHiveMetastoreProcessor::process_drop_database;
@@ -19615,6 +20609,80 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->drop_subpartition_index_files(index, subpart, file);
     }
     return ifaces_[i]->drop_subpartition_index_files(index, subpart, file);
+  }
+
+  bool addEquipRoom(const EquipRoom& er) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->addEquipRoom(er);
+    }
+    return ifaces_[i]->addEquipRoom(er);
+  }
+
+  bool modifyEquipRoom(const EquipRoom& er) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->modifyEquipRoom(er);
+    }
+    return ifaces_[i]->modifyEquipRoom(er);
+  }
+
+  bool deleteEquipRoom(const EquipRoom& er) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->deleteEquipRoom(er);
+    }
+    return ifaces_[i]->deleteEquipRoom(er);
+  }
+
+  void listEquipRoom(std::vector<EquipRoom> & _return) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->listEquipRoom(_return);
+    }
+    ifaces_[i]->listEquipRoom(_return);
+    return;
+  }
+
+  bool addGeoLocation(const GeoLocation& gl) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->addGeoLocation(gl);
+    }
+    return ifaces_[i]->addGeoLocation(gl);
+  }
+
+  bool modifyGeoLocation(const GeoLocation& gl) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->modifyGeoLocation(gl);
+    }
+    return ifaces_[i]->modifyGeoLocation(gl);
+  }
+
+  bool deleteGeoLocation(const GeoLocation& gl) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->deleteGeoLocation(gl);
+    }
+    return ifaces_[i]->deleteGeoLocation(gl);
+  }
+
+  void listGeoLocation(std::vector<GeoLocation> & _return) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->listGeoLocation(_return);
+    }
+    ifaces_[i]->listGeoLocation(_return);
+    return;
   }
 
   void create_database(const Database& database) {

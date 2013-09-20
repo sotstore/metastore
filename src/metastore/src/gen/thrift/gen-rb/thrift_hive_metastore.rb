@@ -481,6 +481,134 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_subpartition_index_files failed: unknown result')
     end
 
+    def addEquipRoom(er)
+      send_addEquipRoom(er)
+      return recv_addEquipRoom()
+    end
+
+    def send_addEquipRoom(er)
+      send_message('addEquipRoom', AddEquipRoom_args, :er => er)
+    end
+
+    def recv_addEquipRoom()
+      result = receive_message(AddEquipRoom_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addEquipRoom failed: unknown result')
+    end
+
+    def modifyEquipRoom(er)
+      send_modifyEquipRoom(er)
+      return recv_modifyEquipRoom()
+    end
+
+    def send_modifyEquipRoom(er)
+      send_message('modifyEquipRoom', ModifyEquipRoom_args, :er => er)
+    end
+
+    def recv_modifyEquipRoom()
+      result = receive_message(ModifyEquipRoom_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'modifyEquipRoom failed: unknown result')
+    end
+
+    def deleteEquipRoom(er)
+      send_deleteEquipRoom(er)
+      return recv_deleteEquipRoom()
+    end
+
+    def send_deleteEquipRoom(er)
+      send_message('deleteEquipRoom', DeleteEquipRoom_args, :er => er)
+    end
+
+    def recv_deleteEquipRoom()
+      result = receive_message(DeleteEquipRoom_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteEquipRoom failed: unknown result')
+    end
+
+    def listEquipRoom()
+      send_listEquipRoom()
+      return recv_listEquipRoom()
+    end
+
+    def send_listEquipRoom()
+      send_message('listEquipRoom', ListEquipRoom_args)
+    end
+
+    def recv_listEquipRoom()
+      result = receive_message(ListEquipRoom_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listEquipRoom failed: unknown result')
+    end
+
+    def addGeoLocation(gl)
+      send_addGeoLocation(gl)
+      return recv_addGeoLocation()
+    end
+
+    def send_addGeoLocation(gl)
+      send_message('addGeoLocation', AddGeoLocation_args, :gl => gl)
+    end
+
+    def recv_addGeoLocation()
+      result = receive_message(AddGeoLocation_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addGeoLocation failed: unknown result')
+    end
+
+    def modifyGeoLocation(gl)
+      send_modifyGeoLocation(gl)
+      return recv_modifyGeoLocation()
+    end
+
+    def send_modifyGeoLocation(gl)
+      send_message('modifyGeoLocation', ModifyGeoLocation_args, :gl => gl)
+    end
+
+    def recv_modifyGeoLocation()
+      result = receive_message(ModifyGeoLocation_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'modifyGeoLocation failed: unknown result')
+    end
+
+    def deleteGeoLocation(gl)
+      send_deleteGeoLocation(gl)
+      return recv_deleteGeoLocation()
+    end
+
+    def send_deleteGeoLocation(gl)
+      send_message('deleteGeoLocation', DeleteGeoLocation_args, :gl => gl)
+    end
+
+    def recv_deleteGeoLocation()
+      result = receive_message(DeleteGeoLocation_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteGeoLocation failed: unknown result')
+    end
+
+    def listGeoLocation()
+      send_listGeoLocation()
+      return recv_listGeoLocation()
+    end
+
+    def send_listGeoLocation()
+      send_message('listGeoLocation', ListGeoLocation_args)
+    end
+
+    def recv_listGeoLocation()
+      result = receive_message(ListGeoLocation_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listGeoLocation failed: unknown result')
+    end
+
     def create_database(database)
       send_create_database(database)
       recv_create_database()
@@ -2558,6 +2686,94 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'drop_subpartition_index_files', seqid)
     end
 
+    def process_addEquipRoom(seqid, iprot, oprot)
+      args = read_args(iprot, AddEquipRoom_args)
+      result = AddEquipRoom_result.new()
+      begin
+        result.success = @handler.addEquipRoom(args.er)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'addEquipRoom', seqid)
+    end
+
+    def process_modifyEquipRoom(seqid, iprot, oprot)
+      args = read_args(iprot, ModifyEquipRoom_args)
+      result = ModifyEquipRoom_result.new()
+      begin
+        result.success = @handler.modifyEquipRoom(args.er)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'modifyEquipRoom', seqid)
+    end
+
+    def process_deleteEquipRoom(seqid, iprot, oprot)
+      args = read_args(iprot, DeleteEquipRoom_args)
+      result = DeleteEquipRoom_result.new()
+      begin
+        result.success = @handler.deleteEquipRoom(args.er)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'deleteEquipRoom', seqid)
+    end
+
+    def process_listEquipRoom(seqid, iprot, oprot)
+      args = read_args(iprot, ListEquipRoom_args)
+      result = ListEquipRoom_result.new()
+      begin
+        result.success = @handler.listEquipRoom()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'listEquipRoom', seqid)
+    end
+
+    def process_addGeoLocation(seqid, iprot, oprot)
+      args = read_args(iprot, AddGeoLocation_args)
+      result = AddGeoLocation_result.new()
+      begin
+        result.success = @handler.addGeoLocation(args.gl)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'addGeoLocation', seqid)
+    end
+
+    def process_modifyGeoLocation(seqid, iprot, oprot)
+      args = read_args(iprot, ModifyGeoLocation_args)
+      result = ModifyGeoLocation_result.new()
+      begin
+        result.success = @handler.modifyGeoLocation(args.gl)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'modifyGeoLocation', seqid)
+    end
+
+    def process_deleteGeoLocation(seqid, iprot, oprot)
+      args = read_args(iprot, DeleteGeoLocation_args)
+      result = DeleteGeoLocation_result.new()
+      begin
+        result.success = @handler.deleteGeoLocation(args.gl)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'deleteGeoLocation', seqid)
+    end
+
+    def process_listGeoLocation(seqid, iprot, oprot)
+      args = read_args(iprot, ListGeoLocation_args)
+      result = ListGeoLocation_result.new()
+      begin
+        result.success = @handler.listGeoLocation()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'listGeoLocation', seqid)
+    end
+
     def process_create_database(seqid, iprot, oprot)
       args = read_args(iprot, Create_database_args)
       result = Create_database_result.new()
@@ -3436,7 +3652,7 @@ module ThriftHiveMetastore
       result = Modify_user_result.new()
       begin
         result.success = @handler.modify_user(args.user)
-      rescue ::InvalidObjectException => o1
+      rescue ::NoSuchObjectException => o1
         result.o1 = o1
       rescue ::MetaException => o2
         result.o2 = o2
@@ -4942,6 +5158,276 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddEquipRoom_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    ER = 1
+
+    FIELDS = {
+      ER => {:type => ::Thrift::Types::STRUCT, :name => 'er', :class => ::EquipRoom}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddEquipRoom_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ModifyEquipRoom_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    ER = 1
+
+    FIELDS = {
+      ER => {:type => ::Thrift::Types::STRUCT, :name => 'er', :class => ::EquipRoom}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ModifyEquipRoom_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteEquipRoom_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    ER = 1
+
+    FIELDS = {
+      ER => {:type => ::Thrift::Types::STRUCT, :name => 'er', :class => ::EquipRoom}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteEquipRoom_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListEquipRoom_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListEquipRoom_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::EquipRoom}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddGeoLocation_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    GL = 1
+
+    FIELDS = {
+      GL => {:type => ::Thrift::Types::STRUCT, :name => 'gl', :class => ::GeoLocation}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddGeoLocation_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ModifyGeoLocation_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    GL = 1
+
+    FIELDS = {
+      GL => {:type => ::Thrift::Types::STRUCT, :name => 'gl', :class => ::GeoLocation}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ModifyGeoLocation_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteGeoLocation_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    GL = 1
+
+    FIELDS = {
+      GL => {:type => ::Thrift::Types::STRUCT, :name => 'gl', :class => ::GeoLocation}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteGeoLocation_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListGeoLocation_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListGeoLocation_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::GeoLocation}},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
@@ -7478,7 +7964,7 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::InvalidObjectException},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::NoSuchObjectException},
       O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
     }
 

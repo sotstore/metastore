@@ -31,6 +31,8 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
+import org.apache.hadoop.hive.metastore.api.EquipRoom;
+import org.apache.hadoop.hive.metastore.api.GeoLocation;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -570,4 +572,21 @@ public interface RawStore extends Configurable {
   public boolean delDevice(String devid) throws MetaException;
 
   boolean modifyUser(User user) throws MetaException, NoSuchObjectException;
+
+  public abstract boolean addEquipRoom(EquipRoom er) throws MetaException;
+
+  public abstract boolean modifyEquipRoom(EquipRoom er) throws MetaException;
+
+  public abstract boolean deleteEquipRoom(EquipRoom er) throws MetaException;
+
+  public abstract List<EquipRoom> listEquipRoom() throws MetaException;
+
+  public abstract boolean addGeoLocation(GeoLocation gl) throws MetaException;
+
+  public abstract boolean modifyGeoLocation(GeoLocation gl) throws MetaException;
+
+  public abstract boolean deleteGeoLocation(GeoLocation gl) throws MetaException;
+
+  public abstract List<GeoLocation> listGeoLocation() throws MetaException;
+
 }

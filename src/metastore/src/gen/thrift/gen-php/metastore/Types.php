@@ -6947,6 +6947,275 @@ class EnvironmentContext {
 
 }
 
+class GeoLocation {
+  static $_TSPEC;
+
+  public $nation = null;
+  public $province = null;
+  public $city = null;
+  public $dist = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'nation',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'province',
+          'type' => TType::STRING,
+          ),
+        3 => array(
+          'var' => 'city',
+          'type' => TType::STRING,
+          ),
+        4 => array(
+          'var' => 'dist',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['nation'])) {
+        $this->nation = $vals['nation'];
+      }
+      if (isset($vals['province'])) {
+        $this->province = $vals['province'];
+      }
+      if (isset($vals['city'])) {
+        $this->city = $vals['city'];
+      }
+      if (isset($vals['dist'])) {
+        $this->dist = $vals['dist'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'GeoLocation';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->nation);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->province);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->city);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->dist);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('GeoLocation');
+    if ($this->nation !== null) {
+      $xfer += $output->writeFieldBegin('nation', TType::STRING, 1);
+      $xfer += $output->writeString($this->nation);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->province !== null) {
+      $xfer += $output->writeFieldBegin('province', TType::STRING, 2);
+      $xfer += $output->writeString($this->province);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->city !== null) {
+      $xfer += $output->writeFieldBegin('city', TType::STRING, 3);
+      $xfer += $output->writeString($this->city);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->dist !== null) {
+      $xfer += $output->writeFieldBegin('dist', TType::STRING, 4);
+      $xfer += $output->writeString($this->dist);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class EquipRoom {
+  static $_TSPEC;
+
+  public $eqRoomName = null;
+  public $status = null;
+  public $comment = null;
+  public $geolocation = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'eqRoomName',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'status',
+          'type' => TType::I32,
+          ),
+        3 => array(
+          'var' => 'comment',
+          'type' => TType::STRING,
+          ),
+        4 => array(
+          'var' => 'geolocation',
+          'type' => TType::STRUCT,
+          'class' => '\metastore\GeoLocation',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['eqRoomName'])) {
+        $this->eqRoomName = $vals['eqRoomName'];
+      }
+      if (isset($vals['status'])) {
+        $this->status = $vals['status'];
+      }
+      if (isset($vals['comment'])) {
+        $this->comment = $vals['comment'];
+      }
+      if (isset($vals['geolocation'])) {
+        $this->geolocation = $vals['geolocation'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'EquipRoom';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->eqRoomName);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->status);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->comment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->geolocation = new \metastore\GeoLocation();
+            $xfer += $this->geolocation->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('EquipRoom');
+    if ($this->eqRoomName !== null) {
+      $xfer += $output->writeFieldBegin('eqRoomName', TType::STRING, 1);
+      $xfer += $output->writeString($this->eqRoomName);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->status !== null) {
+      $xfer += $output->writeFieldBegin('status', TType::I32, 2);
+      $xfer += $output->writeI32($this->status);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->comment !== null) {
+      $xfer += $output->writeFieldBegin('comment', TType::STRING, 3);
+      $xfer += $output->writeString($this->comment);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->geolocation !== null) {
+      if (!is_object($this->geolocation)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('geolocation', TType::STRUCT, 4);
+      $xfer += $this->geolocation->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
 class MetaException extends TException {
   static $_TSPEC;
 

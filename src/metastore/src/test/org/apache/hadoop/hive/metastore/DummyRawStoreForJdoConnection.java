@@ -32,6 +32,8 @@ import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.EquipRoom;
+import org.apache.hadoop.hive.metastore.api.GeoLocation;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -926,6 +928,55 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
 
   }
+
+  @Override
+  public boolean addEquipRoom(EquipRoom er) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean modifyEquipRoom(EquipRoom er) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean deleteEquipRoom(EquipRoom er) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public List<EquipRoom> listEquipRoom() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean addGeoLocation(GeoLocation gl) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean modifyGeoLocation(GeoLocation gl) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean deleteGeoLocation(GeoLocation gl) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public List<GeoLocation> listGeoLocation() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 }
 
 
