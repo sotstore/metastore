@@ -200,9 +200,9 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_CHANGE_PWD:     //added by liulichao
       case HiveParser.TOK_AUTHENTICATION: //added by liulichao
       case HiveParser.TOK_SHOW_USERNAMES: //added by liulichao
-      case HiveParser.TOK_CREATEDATACENTER:
-      case HiveParser.TOK_DROPDATACENTER:
-      case HiveParser.TOK_DATACENTERCOMMENT:
+//      case HiveParser.TOK_CREATEDATACENTER:
+//      case HiveParser.TOK_DROPDATACENTER:
+//      case HiveParser.TOK_DATACENTERCOMMENT:
       case HiveParser.TOK_ADDNODE:
       case HiveParser.TOK_DROPNODE:
       case HiveParser.TOK_MODIFYNODE:

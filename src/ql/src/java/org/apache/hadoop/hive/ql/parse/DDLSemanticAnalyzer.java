@@ -91,14 +91,12 @@ import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
 import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DDLWork;
 import org.apache.hadoop.hive.ql.plan.DescDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.DescFunctionDesc;
 import org.apache.hadoop.hive.ql.plan.DescTableDesc;
 import org.apache.hadoop.hive.ql.plan.DropDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.DropDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.DropEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.DropGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
@@ -159,7 +157,6 @@ import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
 import org.apache.hadoop.hive.ql.plan.StatsWork;
 import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.SwitchDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.TableDesc;
 import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
 import org.apache.hadoop.hive.ql.plan.UserDDLDesc;
@@ -454,15 +451,15 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     //added by liulichao for authentification and authorization, end.
     // added by zjw for additional DDL
 
-    case HiveParser.TOK_CREATEDATACENTER:
-      analyzeCreateDatacenter(ast);
-      break;
-    case HiveParser.TOK_SWITCHDATACENTER:
-      analyzeSwitchDatacenter(ast);
-      break;
-    case HiveParser.TOK_DROPDATACENTER:
-      analyzeDropDatacenter(ast);
-      break;
+//    case HiveParser.TOK_CREATEDATACENTER:
+//      analyzeCreateDatacenter(ast);
+//      break;
+//    case HiveParser.TOK_SWITCHDATACENTER:
+//      analyzeSwitchDatacenter(ast);
+//      break;
+//    case HiveParser.TOK_DROPDATACENTER:
+//      analyzeDropDatacenter(ast);
+//      break;
     case HiveParser.TOK_ADDNODE:
       analyzeAddNode(ast);
       break;
@@ -1328,6 +1325,8 @@ private void analyzeCreateUser(ASTNode ast) {
     return idx;
   }
 
+  //deleled by zjw for metastorev0.2
+/*
   private void analyzeSwitchDatacenter(ASTNode ast) {
 
     String dcName = unescapeIdentifier(ast.getChild(0).getText());
@@ -1387,6 +1386,7 @@ private void analyzeCreateUser(ASTNode ast) {
     DropDatacenterDesc dropDatacenterDesc = new DropDatacenterDesc(dbName, ifExists, ifCascade);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), dropDatacenterDesc), conf));
   }
+*/
 
   private void analyzeGrantRevokeRole(boolean grant, ASTNode ast) {
     List<PrincipalDesc> principalDesc = analyzePrincipalListDef(

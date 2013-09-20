@@ -120,6 +120,7 @@ TOK_CREATEINDEX_INDEXTBLNAME;
 TOK_DEFERRED_REBUILDINDEX;
 TOK_DROPINDEX;
 TOK_LIKETABLE;
+TOK_LIKESCHEMA;
 TOK_DESCTABLE;
 TOK_DESCFUNCTION;
 TOK_ALTERTABLE_PARTITION;
@@ -301,13 +302,14 @@ TOK_ALTER_DW;
 TOK_VALUES_LESS;
 TOK_VALUES_GREATER;
 TOK_VALUES;
-
+/*
 TOK_CREATEDATACENTER;
 TOK_DATACENTERPROPERTIES;
 TOK_DCPROPLIST;
 TOK_SWITCHDATACENTER;
 TOK_DROPDATACENTER;
 TOK_DATACENTERCOMMENT;
+*/
 TOK_ADDNODE;
 
 TOK_DROPNODE;
@@ -351,6 +353,17 @@ TOK_ADDNODE_ASSIGNMENT;
 TOK_DROPNODE_ASSIGNMENT;
 TOK_MODIFYNODE_ASSIGNMENT;
 TOK_SHOWNODE_ASSIGNMENT;
+
+TOK_STRINGLITERALLIST;
+TOK_TABLEDISTRIBUTION;
+
+TOK_CREATENODEGROUP;
+TOK_NODEGROUPPROPERTIES;
+TOK_MODIFYNODEGROUP;
+TOK_DROPNODEGROUP;
+TOK_NODEGROUPCOMMENT;
+TOK_SHOWNODEGROUPS;
+
 }
 
 
@@ -420,9 +433,9 @@ ddlStatement
 @init { msgs.push("ddl statement"); }
 @after { msgs.pop(); }
     : createDatabaseStatement
-    | createDatacenterStatement
-    | switchDatacenterStatement
-    | dropDatacenterStatement
+//    | createDatacenterStatement
+//    | switchDatacenterStatement
+//    | dropDatacenterStatement
     | switchDatabaseStatement
     | dropDatabaseStatement
     | createTableStatement
@@ -474,6 +487,11 @@ ddlStatement
     
     | createRoleStatement
     | dropRoleStatement
+    
+    | createNodeGroupStatement
+    | modifyNodeGroupStatement
+    | dropNodeGroupStatement
+    
     ;
 //
 
@@ -512,9 +530,10 @@ showEqRoom
 alterEqRoomStatement
 @init { msgs.push("alter EqRoomStatement"); }
 @after { msgs.pop(); }
-    :  KW_MODIFY KW_EQ_ROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier COMMA GEO_LOC_NAME=StringLiteral COMMA  COMMENT=StringLiteral RPAREN 
-    -> ^(TOK_MODIFYEQ_ROOM $EQ_ROOM_NAME $STATUS $GEO_LOC_NAME $COMMENT)
+    :  KW_MODIFY KW_EQ_ROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier COMMA GEO_LOC_NAME=StringLiteral COMMA  cmt=StringLiteral RPAREN 
+    -> ^(TOK_MODIFYEQ_ROOM $EQ_ROOM_NAME $STATUS $GEO_LOC_NAME $cmt)
     ;
+    
 dropEqRoomStatement
 @init { msgs.push("drop EqRoomStatement"); }
 @after { msgs.pop(); }
@@ -524,9 +543,10 @@ dropEqRoomStatement
 addEqRoomStatement
 @init { msgs.push("add EqRoomStatement"); }
 @after { msgs.pop(); }
-    : KW_CREATE KW_EQ_ROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier COMMA GEO_LOC_NAME=StringLiteral COMMA COMMENT=StringLiteral RPAREN 
-    -> ^(TOK_ADDEQ_ROOM $EQ_ROOM_NAME $STATUS $GEO_LOC_NAME $COMMENT)
+    : KW_CREATE KW_EQ_ROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier COMMA GEO_LOC_NAME=StringLiteral COMMA cmt=StringLiteral RPAREN 
+    -> ^(TOK_ADDEQ_ROOM $EQ_ROOM_NAME $STATUS $GEO_LOC_NAME $cmt)
         ;
+        
 showGeoLoc
 @init { msgs.push("show GeoLoc"); }
 @after { msgs.pop(); }
@@ -590,6 +610,8 @@ orReplace
     
 //start of datacenter
 
+//delted by zjw for metastorev0.2
+/*
 createDatacenterStatement
 @init { msgs.push("create datacenter statement"); }
 @after { msgs.pop(); }
@@ -623,7 +645,6 @@ dcPropertiesList
       keyValueProperty (COMMA keyValueProperty)* -> ^(TOK_DCPROPLIST keyValueProperty+)
     ;
 
-
 switchDatacenterStatement
 @init { msgs.push("switch datacenter statement"); }
 @after { msgs.pop(); }
@@ -644,10 +665,58 @@ datacenterComment
     : KW_COMMENT comment=StringLiteral
     -> ^(TOK_DATACENTERCOMMENT $comment)
     ;
-    
+*/
+   
 //end of datacenter
 
+createNodeGroupStatement
+@init { msgs.push("create datacenter statement"); }
+@after { msgs.pop(); }
+    : KW_CREATE KW_NODEGROUP
+        ifNotExists?
+        name=Identifier
+        nodegroupComment?
+        (KW_WITH KW_DCPROPERTIES nodegroupprops=nodegroupProperties)?
+    -> ^(TOK_CREATENODEGROUP $name ifNotExists?  nodegroupComment? $nodegroupprops?)
+    ;
 
+nodegroupProperties
+@init { msgs.push("nodegroupproperties"); }
+@after { msgs.pop(); }
+    :
+      LPAREN nodegroupPropertiesList RPAREN -> ^(TOK_NODEGROUPPROPERTIES nodegroupPropertiesList)
+    ;
+
+nodegroupPropertiesList
+@init { msgs.push("nodegroup properties list"); }
+@after { msgs.pop(); }
+    :
+      keyValueProperty (COMMA keyValueProperty)* -> ^(TOK_NODEGROUPPROPERTIES keyValueProperty+)
+    ;
+
+modifyNodeGroupStatement
+@init { msgs.push("switch nodegroup statement"); }
+@after { msgs.pop(); }
+    : KW_USE Identifier
+    -> ^(TOK_MODIFYNODEGROUP Identifier)
+    ;
+
+dropNodeGroupStatement
+@init { msgs.push("drop nodegroup statement"); }
+@after { msgs.pop(); }
+    : KW_DROP (KW_NODEGROUP|KW_SCHEMA) ifExists? Identifier restrictOrCascade?
+    -> ^(TOK_DROPNODEGROUP Identifier ifExists? restrictOrCascade?)
+    ;
+
+nodegroupComment
+@init { msgs.push("nodegroup's comment"); }
+@after { msgs.pop(); }
+    : KW_COMMENT comment=StringLiteral
+    -> ^(TOK_NODEGROUPCOMMENT $comment)
+    ;
+
+   
+//end of nodegroup
     
 createBusitypeStatement
 @init { msgs.push("create busiType statement"); }
@@ -687,7 +756,7 @@ nodePropertiesList
 @init { msgs.push("node properties list"); }
 @after { msgs.pop(); }
     :
-      keyValueProperty (COMMA keyValueProperty)* -> ^(TOK_DCPROPLIST keyValueProperty+)
+      keyValueProperty (COMMA keyValueProperty)* -> ^(TOK_DBPROPLIST keyValueProperty+)
     ;
 
 dropNodeStatement
@@ -792,6 +861,22 @@ createTableStatement
          tableLocation?
          tablePropertiesPrefixed?
          selectStatement?
+        )
+    |KW_CREATE KW_TABLE ifNotExists? 
+      (  like=KW_LIKE likeName=tableName
+         tableLocation?
+       | (LPAREN columnNameTypeList RPAREN)?
+         tableComment?
+         tablePartition?
+         tableDistribution?
+         tablePropertiesPrefixed?
+      )
+    -> ^(TOK_CREATETABLE ifNotExists?
+         ^(TOK_LIKETABLE $likeName?)
+         tableComment?
+         tablePartition?
+         tableDistribution?
+         tablePropertiesPrefixed?
         )
     ;
 
@@ -1334,7 +1419,7 @@ showStatement
 @init { msgs.push("show statement"); }
 @after { msgs.pop(); }
     : KW_SHOW (KW_DATABASES|KW_SCHEMAS) (dc_name=Identifier )?  (KW_LIKE  showStmtIdentifier)? -> ^(TOK_SHOWDATABASES $dc_name? (KW_LIKE showStmtIdentifier)?)
-    | KW_SHOW KW_DATACENTERS showStmtIdentifier?  -> ^(TOK_SHOWDATACENTERS showStmtIdentifier?)
+    | KW_SHOW KW_NODEGROUPS showStmtIdentifier?  -> ^(TOK_SHOWNODEGROUPS showStmtIdentifier?)
     | KW_SHOW KW_BUSITYPES  -> ^(TOK_SHOWBUSITYPES )
     | KW_SHOW KW_NODES (dc_name=Identifier )? -> ^(TOK_SHOWNODES $dc_name?)
     | KW_SHOW KW_FILES (part_name=StringLiteral (KW_FROM|KW_IN) tabname=tableName)? -> ^(TOK_SHOWFILES ($part_name $tabname)?)
@@ -1882,6 +1967,13 @@ tableFileFormat
       -> ^(TOK_STORAGEHANDLER $storageHandler $serdeprops?)
       | KW_STORED KW_AS genericSpec=Identifier
       -> ^(TOK_FILEFORMAT_GENERIC $genericSpec)
+    ;
+
+tableDistribution
+@init { msgs.push("table location specification"); }
+@after { msgs.pop(); }
+    :
+      KW_DISTRIBUTE KW_ON KW_NODEGROUP nodegroupnames=stringLiteralList-> ^(TOK_TABLEDISTRIBUTION $nodegroupnames)
     ;
 
 tableLocation
@@ -2635,6 +2727,12 @@ constant
     | booleanValue
     ;
 
+stringLiteralList
+    :
+    StringLiteral (COMMA StringLiteral)* -> ^(TOK_STRINGLITERALLIST StringLiteral+)
+    ;
+
+
 stringLiteralSequence
     :
     StringLiteral StringLiteral+ -> ^(TOK_STRINGLITERALSEQUENCE StringLiteral StringLiteral+)
@@ -3161,7 +3259,7 @@ KW_THAN:'THAN';
 KW_DW:'DATAWAREHOUSE';
 KW_DIRECT:'DIRECT';
 
-KW_DATACENTER:'DATACENTER';
+//KW_DATACENTER:'DATACENTER';
 KW_DCPROPERTIES:'DCPROPERTIES';
 KW_NODE:'NODE';
 KW_NODEPROPERTIES:'NODEPROPERTIES';
@@ -3179,6 +3277,9 @@ KW_FILELOCATIONS:'FILELOCATIONS';
 KW_GEO_LOC:'GEOLOC';
 KW_EQ_ROOM:'EQROOM';
 KW_NODE_ASSIGNMENT:'NODEASSIGNMENT';
+
+KW_NODEGROUP:'NODEGROUP';
+KW_NODEGROUPS:'NODEGROUPS';
 // Operators
 // NOTE: if you add a new function/operator, add it to sysFuncNames so that describe function _FUNC_ will work.
 
