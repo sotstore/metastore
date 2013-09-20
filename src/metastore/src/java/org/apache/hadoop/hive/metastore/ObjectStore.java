@@ -1291,7 +1291,7 @@ public class ObjectStore implements RawStore, Configurable {
       if (mn == null) {
         throw new InvalidObjectException("Invalid Node name '" + node.getNode_name() + "'!");
       }
-      md = new MDevice(mn, di.dev.trim(), di.prop);
+      md = new MDevice(mn, di.dev.trim(), di.prop, MetaStoreConst.MDeviceStatus.ONLINE);
       doCreate = true;
     } else {
       // update it now?
@@ -1320,8 +1320,8 @@ public class ObjectStore implements RawStore, Configurable {
     Node n = new Node("macan", ips, MetaStoreConst.MNodeStatus.SUSPECT);
     SFile sf = new SFile(0, 10, 5, 6, "xyzadfads", 1, 2, null, 100);
     createNode(n);
-    MDevice md1 = new MDevice(getMNode("macan"), "dev-hello", 0);
-    MDevice md2 = new MDevice(getMNode("macan"), "xyz1", 0);
+    MDevice md1 = new MDevice(getMNode("macan"), "dev-hello", 0, 0);
+    MDevice md2 = new MDevice(getMNode("macan"), "xyz1", 0, 0);
     createDevice(md1);
     createDevice(md2);
 
@@ -2414,7 +2414,8 @@ public class ObjectStore implements RawStore, Configurable {
     if (md == null) {
       return null;
     }
-    return new Device(md.getDev_name(), md.getProp(), md.getNode() != null ? md.getNode().getNode_name() : null);
+    return new Device(md.getDev_name(), md.getProp(), md.getNode() != null ? md.getNode().getNode_name() : null,
+        md.getStatus());
   }
 
   private Datacenter convertToDatacenter(MDatacenter mdc) throws MetaException {
@@ -2490,7 +2491,7 @@ public class ObjectStore implements RawStore, Configurable {
     }
     MNode mn = this.getMNode(device.getNode_name());
 
-    return new MDevice(mn, device.getDevid(), device.getProp());
+    return new MDevice(mn, device.getDevid(), device.getProp(), device.getStatus());
   }
 
   private MDatacenter convertToMDatacenter(Datacenter dc) {

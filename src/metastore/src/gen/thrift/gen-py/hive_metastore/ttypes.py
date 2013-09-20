@@ -2796,6 +2796,7 @@ class Device:
    - devid
    - prop
    - node_name
+   - status
   """
 
   thrift_spec = (
@@ -2803,12 +2804,14 @@ class Device:
     (1, TType.STRING, 'devid', None, None, ), # 1
     (2, TType.I32, 'prop', None, None, ), # 2
     (3, TType.STRING, 'node_name', None, None, ), # 3
+    (4, TType.I32, 'status', None, None, ), # 4
   )
 
-  def __init__(self, devid=None, prop=None, node_name=None,):
+  def __init__(self, devid=None, prop=None, node_name=None, status=None,):
     self.devid = devid
     self.prop = prop
     self.node_name = node_name
+    self.status = status
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -2834,6 +2837,11 @@ class Device:
           self.node_name = iprot.readString();
         else:
           iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.I32:
+          self.status = iprot.readI32();
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -2855,6 +2863,10 @@ class Device:
     if self.node_name is not None:
       oprot.writeFieldBegin('node_name', TType.STRING, 3)
       oprot.writeString(self.node_name)
+      oprot.writeFieldEnd()
+    if self.status is not None:
+      oprot.writeFieldBegin('status', TType.I32, 4)
+      oprot.writeI32(self.status)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

@@ -257,6 +257,7 @@ struct Device {
   1: string devid,
   2: i32    prop,
   3: string node_name,
+  4: i32	status,
 }
 
 struct SFileLocation {

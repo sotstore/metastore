@@ -3294,8 +3294,8 @@ void swap(Node &a, Node &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* Device::ascii_fingerprint = "70563A0628F75DF9555F4D24690B1E26";
-const uint8_t Device::binary_fingerprint[16] = {0x70,0x56,0x3A,0x06,0x28,0xF7,0x5D,0xF9,0x55,0x5F,0x4D,0x24,0x69,0x0B,0x1E,0x26};
+const char* Device::ascii_fingerprint = "2A8D2B57C3E20FF7D0F9FCA97EECB292";
+const uint8_t Device::binary_fingerprint[16] = {0x2A,0x8D,0x2B,0x57,0xC3,0xE2,0x0F,0xF7,0xD0,0xF9,0xFC,0xA9,0x7E,0xEC,0xB2,0x92};
 
 uint32_t Device::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -3341,6 +3341,14 @@ uint32_t Device::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
+      case 4:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->status);
+          this->__isset.status = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -3369,6 +3377,10 @@ uint32_t Device::write(::apache::thrift::protocol::TProtocol* oprot) const {
   xfer += oprot->writeString(this->node_name);
   xfer += oprot->writeFieldEnd();
 
+  xfer += oprot->writeFieldBegin("status", ::apache::thrift::protocol::T_I32, 4);
+  xfer += oprot->writeI32(this->status);
+  xfer += oprot->writeFieldEnd();
+
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -3379,6 +3391,7 @@ void swap(Device &a, Device &b) {
   swap(a.devid, b.devid);
   swap(a.prop, b.prop);
   swap(a.node_name, b.node_name);
+  swap(a.status, b.status);
   swap(a.__isset, b.__isset);
 }
 

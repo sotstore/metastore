@@ -28,4 +28,11 @@ public class MetaStoreConst {
     public static final int BACKUP = 2; // this means it's special SHARED device for backup use
     public static final int BACKUP_ALONE = 3; // special ALONE device for backup use
   }
+
+  public class MDeviceStatus {
+    public static final int ONLINE = 0;
+    public static final int OFFLINE = 1;
+    public static final int SUSPECT = 2;
+    public static final int __MAX__ = 3;
+  }
 }

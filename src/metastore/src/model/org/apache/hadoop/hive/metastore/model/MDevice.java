@@ -4,11 +4,13 @@ public class MDevice {
   private MNode node;
   private String dev_name;
   private int prop;
+  private final int status;
 
-  public MDevice(MNode node, String name, int prop) {
+  public MDevice(MNode node, String name, int prop, int status) {
     this.node = node;
     this.dev_name = name;
     this.prop = prop;
+    this.status = status;
   }
 
   public String getDev_name() {
@@ -33,5 +35,9 @@ public class MDevice {
 
   public void setProp(int prop) {
     this.prop = prop;
+  }
+
+  public int getStatus() {
+    return status;
   }
 }

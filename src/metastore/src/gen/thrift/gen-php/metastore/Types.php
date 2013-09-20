@@ -4438,6 +4438,7 @@ class Device {
   public $devid = null;
   public $prop = null;
   public $node_name = null;
+  public $status = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -4454,6 +4455,10 @@ class Device {
           'var' => 'node_name',
           'type' => TType::STRING,
           ),
+        4 => array(
+          'var' => 'status',
+          'type' => TType::I32,
+          ),
         );
     }
     if (is_array($vals)) {
@@ -4465,6 +4470,9 @@ class Device {
       }
       if (isset($vals['node_name'])) {
         $this->node_name = $vals['node_name'];
+      }
+      if (isset($vals['status'])) {
+        $this->status = $vals['status'];
       }
     }
   }
@@ -4509,6 +4517,13 @@ class Device {
             $xfer += $input->skip($ftype);
           }
           break;
+        case 4:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->status);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
         default:
           $xfer += $input->skip($ftype);
           break;
@@ -4535,6 +4550,11 @@ class Device {
     if ($this->node_name !== null) {
       $xfer += $output->writeFieldBegin('node_name', TType::STRING, 3);
       $xfer += $output->writeString($this->node_name);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->status !== null) {
+      $xfer += $output->writeFieldBegin('status', TType::I32, 4);
+      $xfer += $output->writeI32($this->status);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();

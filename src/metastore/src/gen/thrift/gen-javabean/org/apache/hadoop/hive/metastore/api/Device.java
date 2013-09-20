@@ -37,6 +37,7 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
   private static final org.apache.thrift.protocol.TField DEVID_FIELD_DESC = new org.apache.thrift.protocol.TField("devid", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField PROP_FIELD_DESC = new org.apache.thrift.protocol.TField("prop", org.apache.thrift.protocol.TType.I32, (short)2);
   private static final org.apache.thrift.protocol.TField NODE_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("node_name", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField STATUS_FIELD_DESC = new org.apache.thrift.protocol.TField("status", org.apache.thrift.protocol.TType.I32, (short)4);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,12 +48,14 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
   private String devid; // required
   private int prop; // required
   private String node_name; // required
+  private int status; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     DEVID((short)1, "devid"),
     PROP((short)2, "prop"),
-    NODE_NAME((short)3, "node_name");
+    NODE_NAME((short)3, "node_name"),
+    STATUS((short)4, "status");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -73,6 +76,8 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
           return PROP;
         case 3: // NODE_NAME
           return NODE_NAME;
+        case 4: // STATUS
+          return STATUS;
         default:
           return null;
       }
@@ -114,6 +119,7 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
 
   // isset id assignments
   private static final int __PROP_ISSET_ID = 0;
+  private static final int __STATUS_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -124,6 +130,8 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.NODE_NAME, new org.apache.thrift.meta_data.FieldMetaData("node_name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.STATUS, new org.apache.thrift.meta_data.FieldMetaData("status", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Device.class, metaDataMap);
   }
@@ -134,13 +142,16 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
   public Device(
     String devid,
     int prop,
-    String node_name)
+    String node_name,
+    int status)
   {
     this();
     this.devid = devid;
     this.prop = prop;
     setPropIsSet(true);
     this.node_name = node_name;
+    this.status = status;
+    setStatusIsSet(true);
   }
 
   /**
@@ -155,6 +166,7 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
     if (other.isSetNode_name()) {
       this.node_name = other.node_name;
     }
+    this.status = other.status;
   }
 
   public Device deepCopy() {
@@ -167,6 +179,8 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
     setPropIsSet(false);
     this.prop = 0;
     this.node_name = null;
+    setStatusIsSet(false);
+    this.status = 0;
   }
 
   public String getDevid() {
@@ -237,6 +251,28 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
     }
   }
 
+  public int getStatus() {
+    return this.status;
+  }
+
+  public void setStatus(int status) {
+    this.status = status;
+    setStatusIsSet(true);
+  }
+
+  public void unsetStatus() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __STATUS_ISSET_ID);
+  }
+
+  /** Returns true if field status is set (has been assigned a value) and false otherwise */
+  public boolean isSetStatus() {
+    return EncodingUtils.testBit(__isset_bitfield, __STATUS_ISSET_ID);
+  }
+
+  public void setStatusIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __STATUS_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case DEVID:
@@ -263,6 +299,14 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
       }
       break;
 
+    case STATUS:
+      if (value == null) {
+        unsetStatus();
+      } else {
+        setStatus((Integer)value);
+      }
+      break;
+
     }
   }
 
@@ -276,6 +320,9 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
 
     case NODE_NAME:
       return getNode_name();
+
+    case STATUS:
+      return Integer.valueOf(getStatus());
 
     }
     throw new IllegalStateException();
@@ -294,6 +341,8 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
       return isSetProp();
     case NODE_NAME:
       return isSetNode_name();
+    case STATUS:
+      return isSetStatus();
     }
     throw new IllegalStateException();
   }
@@ -338,6 +387,15 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
         return false;
     }
 
+    boolean this_present_status = true;
+    boolean that_present_status = true;
+    if (this_present_status || that_present_status) {
+      if (!(this_present_status && that_present_status))
+        return false;
+      if (this.status != that.status)
+        return false;
+    }
+
     return true;
   }
 
@@ -359,6 +417,11 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
     builder.append(present_node_name);
     if (present_node_name)
       builder.append(node_name);
+
+    boolean present_status = true;
+    builder.append(present_status);
+    if (present_status)
+      builder.append(status);
 
     return builder.toHashCode();
   }
@@ -401,6 +464,16 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetStatus()).compareTo(typedOther.isSetStatus());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetStatus()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.status, typedOther.status);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -439,6 +512,10 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
     } else {
       sb.append(this.node_name);
     }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("status:");
+    sb.append(this.status);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -509,6 +586,14 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 4: // STATUS
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.status = iprot.readI32();
+              struct.setStatusIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -535,6 +620,9 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
         oprot.writeString(struct.node_name);
         oprot.writeFieldEnd();
       }
+      oprot.writeFieldBegin(STATUS_FIELD_DESC);
+      oprot.writeI32(struct.status);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -562,7 +650,10 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
       if (struct.isSetNode_name()) {
         optionals.set(2);
       }
-      oprot.writeBitSet(optionals, 3);
+      if (struct.isSetStatus()) {
+        optionals.set(3);
+      }
+      oprot.writeBitSet(optionals, 4);
       if (struct.isSetDevid()) {
         oprot.writeString(struct.devid);
       }
@@ -572,12 +663,15 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
       if (struct.isSetNode_name()) {
         oprot.writeString(struct.node_name);
       }
+      if (struct.isSetStatus()) {
+        oprot.writeI32(struct.status);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, Device struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(4);
       if (incoming.get(0)) {
         struct.devid = iprot.readString();
         struct.setDevidIsSet(true);
@@ -589,6 +683,10 @@ public class Device implements org.apache.thrift.TBase<Device, Device._Fields>, 
       if (incoming.get(2)) {
         struct.node_name = iprot.readString();
         struct.setNode_nameIsSet(true);
+      }
+      if (incoming.get(3)) {
+        struct.status = iprot.readI32();
+        struct.setStatusIsSet(true);
       }
     }
   }

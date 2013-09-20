@@ -1771,19 +1771,20 @@ class Node {
 void swap(Node &a, Node &b);
 
 typedef struct _Device__isset {
-  _Device__isset() : devid(false), prop(false), node_name(false) {}
+  _Device__isset() : devid(false), prop(false), node_name(false), status(false) {}
   bool devid;
   bool prop;
   bool node_name;
+  bool status;
 } _Device__isset;
 
 class Device {
  public:
 
-  static const char* ascii_fingerprint; // = "70563A0628F75DF9555F4D24690B1E26";
-  static const uint8_t binary_fingerprint[16]; // = {0x70,0x56,0x3A,0x06,0x28,0xF7,0x5D,0xF9,0x55,0x5F,0x4D,0x24,0x69,0x0B,0x1E,0x26};
+  static const char* ascii_fingerprint; // = "2A8D2B57C3E20FF7D0F9FCA97EECB292";
+  static const uint8_t binary_fingerprint[16]; // = {0x2A,0x8D,0x2B,0x57,0xC3,0xE2,0x0F,0xF7,0xD0,0xF9,0xFC,0xA9,0x7E,0xEC,0xB2,0x92};
 
-  Device() : devid(), prop(0), node_name() {
+  Device() : devid(), prop(0), node_name(), status(0) {
   }
 
   virtual ~Device() throw() {}
@@ -1791,6 +1792,7 @@ class Device {
   std::string devid;
   int32_t prop;
   std::string node_name;
+  int32_t status;
 
   _Device__isset __isset;
 
@@ -1806,6 +1808,10 @@ class Device {
     node_name = val;
   }
 
+  void __set_status(const int32_t val) {
+    status = val;
+  }
+
   bool operator == (const Device & rhs) const
   {
     if (!(devid == rhs.devid))
@@ -1813,6 +1819,8 @@ class Device {
     if (!(prop == rhs.prop))
       return false;
     if (!(node_name == rhs.node_name))
+      return false;
+    if (!(status == rhs.status))
       return false;
     return true;
   }

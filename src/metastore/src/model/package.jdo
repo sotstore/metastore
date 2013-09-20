@@ -1214,6 +1214,12 @@
       <field name="dev_name">
         <column name="DEV_NAME"/>
       </field>
+      <field name="prop">
+      	<column name="PROP"/>
+      </field>
+      <field name="status">
+      	<column name="STATUS"/>
+      </field>
     </class>
     
     <class name="MFile" table="FILES" identity-type="datastore" detachable="true">
