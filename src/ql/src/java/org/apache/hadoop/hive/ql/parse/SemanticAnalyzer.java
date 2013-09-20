@@ -8523,7 +8523,13 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       if ((child = analyzeCreateTable(ast, qb)) == null) {
         return;
       }
-    } else {
+    } else if(ast.getToken().getType() == HiveParser.TOK_CREATESCHEMA) {
+
+      if ((child = analyzeCreateSchema(ast, qb)) == null) {
+        return;
+      }
+    }
+    else {
       SessionState.get().setCommandType(HiveOperation.QUERY);
     }
 
@@ -9320,7 +9326,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       if(nodeGroupNames != null){
         crtTblLikeSchemaDesc.setNodeGroupNames(nodeGroupNames);
       }
-      SessionState.get().setCommandType(HiveOperation.CREATETABLE);
+      //FIXME
+//      SessionState.get().setCommandType(HiveOperation.CREATETABLE);
       rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
           crtTblLikeSchemaDesc), conf));
       break;
@@ -9461,7 +9468,9 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       crtSchemaDesc.validate();
       // outputs is empty, which means this create Schema happens in the current
       // database.
-      SessionState.get().setCommandType(HiveOperation.CREATETABLE);
+
+      //FIXME check this
+//      SessionState.get().setCommandType(HiveOperation.CREATETABLE);
       rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
           crtSchemaDesc), conf));
       break;
@@ -9470,7 +9479,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       CreateSchemaLikeDesc crtSchemaLikeDesc = new CreateSchemaLikeDesc(schemaName,
            ifNotExists, likeSchemaName);
 
-      SessionState.get().setCommandType(HiveOperation.CREATETABLE);
+    //FIXME check this
+//      SessionState.get().setCommandType(HiveOperation.CREATETABLE);
       rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
           crtSchemaLikeDesc), conf));
       break;

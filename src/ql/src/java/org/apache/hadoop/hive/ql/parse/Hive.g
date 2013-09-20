@@ -336,6 +336,7 @@ TOK_SHOWFILELOCATIONS;
 TOK_STRINGLITERALLIST;
 TOK_TABLEDISTRIBUTION;
 
+TOK_SCHEMANAME;
 TOK_CREATESCHEMA;
 TOK_DROPSCHEMA;
 
@@ -712,7 +713,7 @@ alterNodeStatement
 createDatabaseStatement
 @init { msgs.push("create database statement"); }
 @after { msgs.pop(); }
-    : KW_CREATE (KW_DATABASE|KW_SCHEMA)
+    : KW_CREATE (KW_DATABASE)
         ifNotExists?
         name=Identifier
         databaseComment?
@@ -783,32 +784,35 @@ createSchemaStatement
          (like=KW_LIKE likeName=schemaName) tableComment?
          tablePropertiesPrefixed?
     -> ^(TOK_CREATESCHEMA $name ifNotExists?
-         TOK_LIKESCHEMA $likeName)
+         TOK_LIKESCHEMA $likeName
          tableComment?
          tablePropertiesPrefixed?
         )
-     */
+    */
+    
       KW_CREATE KW_SCHEMA ifNotExists? name=schemaName
          (
-         (like=KW_LIKE likeName=schemaName) 
+         (like=KW_LIKE KW_SCHEMA likeName=schemaName) 
          |
           (LPAREN columnNameTypeList RPAREN)
           )
          tableComment?
          schemaPropertiesPrefixed?
     -> ^(TOK_CREATESCHEMA $name ifNotExists?
-         ^(TOK_LIKESCHEMA $likeName)?
+         ^(TOK_LIKESCHEMA $likeName)
          columnNameTypeList?
          tableComment?
          schemaPropertiesPrefixed?
          )
     ;
-
+ 
 createTableStatement
 @init { msgs.push("create table statement"); }
 @after { msgs.pop(); }
-    : KW_CREATE (ext=KW_EXTERNAL)? KW_TABLE ifNotExists? name=tableName
-      (  like=KW_LIKE likeName=tableName
+    : 
+    /*
+    KW_CREATE (ext=KW_EXTERNAL)? KW_TABLE ifNotExists? name=tableName
+      (  like=KW_LIKE likeTabName=tableName
          tableLocation?
        | (LPAREN columnNameTypeList RPAREN)?
          tableComment?
@@ -822,7 +826,7 @@ createTableStatement
          (KW_AS selectStatement)?
       )
     -> ^(TOK_CREATETABLE $name $ext? ifNotExists?
-         ^(TOK_LIKETABLE $likeName?)
+         ^(TOK_LIKETABLE $likeTabName?)
          columnNameTypeList?
          tableComment?
          tablePartition?
@@ -834,20 +838,50 @@ createTableStatement
          tablePropertiesPrefixed?
          selectStatement?
         )
-    |KW_CREATE KW_TABLE ifNotExists? 
-      (  like=KW_LIKE KW_SCHEMA likeName=tableName KW_TO dbName=Identifier
+    |KW_CREATE KW_TABLE ifNotExists? tname=tableName
+      (  like=KW_LIKE KW_SCHEMA likeName=schemaName KW_TO dbName=Identifier
          tableLocation?
          tableComment?
          tablePartition?
          tableDistribution?
          tablePropertiesPrefixed?
       )
-    -> ^(TOK_CREATETABLE ifNotExists?
+    -> ^(TOK_CREATETABLE ifNotExists? $tname
          ^(TOK_LIKESCHEMA $likeName $dbName)
          tableComment?
          tablePartition?
          tableDistribution?
          tablePropertiesPrefixed?
+        )
+        */
+        
+        KW_CREATE (ext=KW_EXTERNAL)? KW_TABLE ifNotExists? name=tableName
+      (  like=KW_LIKE (KW_TABLE likeTabName=tableName |KW_SCHEMA likeName=schemaName KW_TO dbName=Identifier)
+         tableLocation?
+       | (LPAREN columnNameTypeList RPAREN)?
+         tableComment?
+         tablePartition?
+         tableBuckets?
+         tableSkewed?
+         tableRowFormat?
+         tableFileFormat?
+         tableLocation?
+         tablePropertiesPrefixed?
+         (KW_AS selectStatement)?
+      )
+    -> ^(TOK_CREATETABLE $name $ext? ifNotExists?
+         ^(TOK_LIKETABLE $likeTabName? )
+         ^(TOK_LIKESCHEMA $likeName? $dbName?)
+         columnNameTypeList?
+         tableComment?
+         tablePartition?
+         tableBuckets?
+         tableSkewed?
+         tableRowFormat?
+         tableFileFormat?
+         tableLocation?
+         tablePropertiesPrefixed?
+         selectStatement?
         )
     ;
 
@@ -2551,7 +2585,7 @@ schemaName
 @init { msgs.push("schema name"); }
 @after { msgs.pop(); }
     :schema=Identifier
-    -> ^(TOK_TABNAME $schema)
+    -> ^(TOK_SCHEMANAME $schema)
     ;
 
 viewName
