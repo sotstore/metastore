@@ -82,7 +82,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
-import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -1567,6 +1567,40 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     assert file != null;
     return client.rm_file_physical(file);
   }
+
+  //added by liulichao
+@Override
+public boolean create_user(User user) throws InvalidObjectException,
+    MetaException, TException {
+   return client.create_user(user);
+}
+
+@Override
+public boolean drop_user(String user_name) throws NoSuchObjectException,
+    MetaException, TException {
+  return client.drop_user(user_name);
+}
+
+@Override
+public boolean setPasswd(String user_name, String passwd)
+    throws NoSuchObjectException, MetaException, TException {
+  return client.setPasswd(user_name, passwd);
+
+}
+
+@Override
+public List<String> list_users_names() throws MetaException, TException {
+  return client.list_users_names();
+}
+
+@Override
+public boolean authentication(String user_name, String passwd)
+    throws NoSuchObjectException, MetaException, TException {
+  return client.authentication(user_name, passwd);
+}
+//added by liulichao
+
+
 
   @Override
   public Node alter_node(String node_name, List<String> ipl, int status) throws MetaException,

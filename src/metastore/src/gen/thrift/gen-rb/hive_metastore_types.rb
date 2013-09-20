@@ -239,6 +239,28 @@ class Role
   ::Thrift::Struct.generate_accessors self
 end
 
+class User
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  USERNAME = 1
+  PASSWORD = 2
+  CREATETIME = 3
+  OWNERNAME = 4
+
+  FIELDS = {
+    USERNAME => {:type => ::Thrift::Types::STRING, :name => 'userName'},
+    PASSWORD => {:type => ::Thrift::Types::STRING, :name => 'password'},
+    CREATETIME => {:type => ::Thrift::Types::I64, :name => 'createTime'},
+    OWNERNAME => {:type => ::Thrift::Types::STRING, :name => 'ownerName'}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
 class Datacenter
   include ::Thrift::Struct, ::Thrift::Struct_Union
   NAME = 1

@@ -139,6 +139,7 @@ import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTableColumnStatistics;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
 import org.apache.hadoop.hive.metastore.model.MType;
+import org.apache.hadoop.hive.metastore.model.MUser;
 import org.apache.hadoop.hive.metastore.msg.MSGFactory;
 import org.apache.hadoop.hive.metastore.msg.MSGFactory.DDLMsg;
 import org.apache.hadoop.hive.metastore.msg.MSGType;
@@ -4536,6 +4537,199 @@ public class ObjectStore implements RawStore, Configurable {
     }
     return success;
   }
+
+  //authentication and authorization with user by liulichao, begin
+  @Override
+  public boolean addUser(String userName, String passwd, String ownerName)
+      throws InvalidObjectException, MetaException {
+    boolean success = false;
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      MUser nameCheck = this.getMUser(userName);
+      if (nameCheck != null) {
+        LOG.info("User "+ userName +" already exists！");
+        return false;
+      }
+        int now = (int)(System.currentTimeMillis()/1000);
+      MUser mUser = new MUser(userName, passwd, now, ownerName);
+      pm.makePersistent(mUser);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+@Override
+  public boolean removeUser(String userName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+
+    try {
+      openTransaction();
+      MUser mUser = getMUser(userName);
+      pm.retrieve(mUser);
+
+      LOG.debug("remove.getusername"+mUser.getUserName());
+      LOG.debug("remove.getusername:boolean"+(mUser.getUserName().equals(null)));
+
+      if (!mUser.getUserName().equals(null)) {
+        // first remove all then remove all the grants
+        List<MRoleMap> uRoleMember =listMSecurityPrincipalMembershipRole(
+            userName, PrincipalType.USER);
+        if(uRoleMember.size() > 0){
+          pm.deletePersistentAll(uRoleMember);
+        }
+
+        List<MGlobalPrivilege> userGrants = listPrincipalGlobalGrants(
+            mUser.getUserName(), PrincipalType.USER);
+        if (userGrants.size() > 0) {
+          pm.deletePersistentAll(userGrants);
+        }
+        List<MDBPrivilege> dbGrants = listPrincipalAllDBGrant(
+            mUser.getUserName(), PrincipalType.USER);
+        if (dbGrants.size() > 0) {
+          pm.deletePersistentAll(dbGrants);
+        }
+        List<MTablePrivilege> tabPartGrants = listPrincipalAllTableGrants(
+            mUser.getUserName(), PrincipalType.USER);
+        if (tabPartGrants.size() > 0) {
+          pm.deletePersistentAll(tabPartGrants);
+        }
+        List<MPartitionPrivilege> partGrants = listPrincipalAllPartitionGrants(
+            mUser.getUserName(), PrincipalType.USER);
+        if (partGrants.size() > 0) {
+          pm.deletePersistentAll(partGrants);
+        }
+        List<MTableColumnPrivilege> tblColumnGrants = listPrincipalAllTableColumnGrants(
+            mUser.getUserName(), PrincipalType.USER);
+        if (tblColumnGrants.size() > 0) {
+          pm.deletePersistentAll(tblColumnGrants);
+        }
+        List<MPartitionColumnPrivilege> partColumnGrants = listPrincipalAllPartitionColumnGrants(
+            mUser.getUserName(), PrincipalType.USER);
+        if (tblColumnGrants.size() > 0) {
+          pm.deletePersistentAll(partColumnGrants);
+        }
+        // finally remove the role
+        pm.deletePersistent(mUser);
+      } else {
+        //LOG.debug("用户" + userName + "不存在！");
+        LOG.debug("User " + userName + " doesnt exist！");
+        return false;
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+@Override
+public boolean setPasswd(String userName, String passwd) throws MetaException,
+    NoSuchObjectException {
+  boolean commited = false;
+
+  try {
+    openTransaction();
+    MUser nameCheck = this.getMUser(userName);
+    //pm.retr...
+    if (nameCheck == null) {
+      //LOG.debug("用户 "+ userName+" 不存在！");
+      LOG.debug("User " + userName + " doesnt exist！");
+//      throw new NoSuchObjectException("User " + userName
+//          + " does not exist.");
+      return false;
+    }
+    nameCheck.setPasswd(passwd);
+    pm.makePersistent(nameCheck);
+    commited = commitTransaction();
+
+    return commited;
+  } finally {
+    if (!commited) {
+      rollbackTransaction();
+    }
+  }
+}
+
+@Override
+public List<String> listUsersNames() {
+    boolean success = false;
+    try {
+      openTransaction();
+      LOG.debug("Executing listAllUserNames");
+      Query query = pm.newQuery("select userName from org.apache.hadoop.hive.metastore.model.MUser");
+      query.setResult("userName");
+
+      Collection names = (Collection) query.execute();
+
+      List<String> userNames  = new ArrayList<String>();
+      for (Iterator i = names.iterator(); i.hasNext();) {
+        userNames.add((String) i.next());
+      }
+      success = commitTransaction();
+
+      LOG.debug("sizeofuserNames"+userNames.size());
+      return userNames;
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+}
+
+@Override
+public boolean authentication(String userName, String passwd)
+    throws MetaException, NoSuchObjectException {
+  boolean auth = false;
+
+  try {
+    openTransaction();
+    MUser nameCheck = this.getMUser(userName);
+    if (nameCheck == null) {
+      //LOG.debug("用户 " + userName + " 不存在！");
+      LOG.debug("User " + userName + " doesnt exist！");
+      return false;
+    } else if (nameCheck.getPasswd().equals(passwd)){
+      auth = true;
+    } else {
+      //LOG.debug("用户名或密码错误！");
+      LOG.debug("User or password error!"+nameCheck.getPasswd()+", "+passwd);
+      return false;
+    }
+
+  } finally {
+  }
+  return auth;
+}
+
+//utilities for authentication and authorization, liulichao
+public MUser getMUser(String userName) {
+  MUser muser = null;
+  boolean commited = false;
+  try {
+    openTransaction();
+    Query query = pm.newQuery(MUser.class, "userName == t1");
+    query.declareParameters("java.lang.String t1");
+    query.setUnique(true);
+    muser = (MUser) query.execute(userName);
+    pm.retrieve(muser);
+    commited = commitTransaction();
+  } finally {
+    if (!commited) {
+      rollbackTransaction();
+    }
+  }
+  return muser;
+}
 
   private MRoleMap getMSecurityUserRoleMap(String userName,
       PrincipalType principalType, String roleName) {

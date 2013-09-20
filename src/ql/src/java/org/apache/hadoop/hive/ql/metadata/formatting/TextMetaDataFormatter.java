@@ -126,6 +126,24 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
         }
     }
 
+    //added by liulichao
+    @Override
+    public void showUserNames(DataOutputStream out, Set<String> users) throws HiveException {
+      // TODO Auto-generated method stub
+      Iterator<String> iterUsers = users.iterator();
+
+      try {
+          while (iterUsers.hasNext()) {
+              // create a row per table name
+              out.writeBytes(iterUsers.next());
+              out.write(terminator);
+              LOG.info("iterUsers");
+          }
+      } catch (IOException e) {
+         throw new HiveException(e);
+      }
+    }
+
     public void describeTable(DataOutputStream outStream,
                               String colPath, String tableName,
                               Table tbl, Partition part, List<FieldSchema> cols,

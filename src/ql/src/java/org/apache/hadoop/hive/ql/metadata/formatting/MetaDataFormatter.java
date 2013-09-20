@@ -96,6 +96,13 @@ public interface MetaDataFormatter {
         throws HiveException;
 
     /**
+     * Show a list of userNames. added by liulichao
+     */
+    public void showUserNames(DataOutputStream out, Set<String> tables)
+        throws HiveException;
+
+
+    /**
      * Describe table.
      */
     public void describeTable(DataOutputStream out,

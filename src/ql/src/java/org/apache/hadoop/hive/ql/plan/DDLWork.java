@@ -71,6 +71,8 @@ public class DDLWork implements Serializable {
 
   boolean needLock = false;
 
+  private UserDDLDesc userDDLDesc;          //added by liulichao
+
   /**
    * ReadEntitites that are passed to the hooks.
    */
@@ -473,6 +475,13 @@ public class DDLWork implements Serializable {
       AlterTablePartMergeFilesDesc mergeDesc) {
     this(inputs, outputs);
     this.mergeFilesDesc = mergeDesc;
+  }
+
+  //added by liulichao.
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      UserDDLDesc userDDLDesc) {
+    this(inputs, outputs);
+    this.userDDLDesc = userDDLDesc;
   }
 
   public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
@@ -1207,6 +1216,22 @@ public class DDLWork implements Serializable {
   public void setNeedLock(boolean needLock) {
     this.needLock = needLock;
   }
+
+//added by liulichao
+  /**
+   * @return user ddl desc
+   */
+  public UserDDLDesc getUserDDLDesc() {
+    return userDDLDesc;
+  }
+
+  /**
+   * @param userDDLDesc user ddl desc
+   */
+  public void setUserDDLDesc(UserDDLDesc userDDLDesc) {
+    this.userDDLDesc = userDDLDesc;
+  }
+  //added by liulichao
 
   public CreateDatacenterDesc getCreateDatacenterDesc() {
     return createDatacenterDesc;

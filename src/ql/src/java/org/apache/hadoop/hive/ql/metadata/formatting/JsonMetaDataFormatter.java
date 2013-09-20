@@ -146,6 +146,16 @@ public class JsonMetaDataFormatter implements MetaDataFormatter {
                .build());
     }
 
+    //added by liulichao
+    @Override
+    public void showUserNames(DataOutputStream out, Set<String> users) throws HiveException {
+      // TODO Auto-generated method stub
+      asJson(out,
+          MapBuilder.create()
+          .put("userNames",users)
+          .build());
+    }
+
     /**
      * Describe table.
      */

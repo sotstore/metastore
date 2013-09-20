@@ -83,4 +83,12 @@ service ThriftHive extends hive_metastore.ThriftHiveMetastore {
 
   # clean up last Hive query (releasing locks etc.)
   void clean()
+  
+   #authenticator, added by liulichao, begin
+   # Authenticate the user
+  i32 doAuth(1:string user, 2:string password) throws(1:HiveServerException ex)
+  
+  # Execute with User info
+  void execute2(1:string query, 2:string user, 3:i32 token) throws(1:HiveServerException ex)
+  #authenticator, added by liulichao, end
 }

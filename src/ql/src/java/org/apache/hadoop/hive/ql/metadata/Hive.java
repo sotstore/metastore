@@ -79,6 +79,7 @@ import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
+import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.index.HiveIndex.IndexType;
@@ -92,7 +93,7 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.thrift.TException;
 
 /**
- * The Hive class contains information about this instance of Hive. An instance
+ * The Hive class contains information about this instance of Hive. An instances
  * of Hive represents a set of data in a file system (usually HDFS) organized
  * for easy query processing
  *
@@ -106,6 +107,10 @@ public class Hive {
   private IMetaStoreClient metaStoreClient;
 
   private String currentDatabase;
+
+  //added by liulichao
+  private static String rootName = "root";//root
+  private static String rootPWD = "111111";//root
 
   private static ThreadLocal<Hive> hiveDB = new ThreadLocal() {
     @Override
@@ -1862,6 +1867,194 @@ public class Hive {
   public void setCurrentDatabase(String currentDatabase) {
     this.currentDatabase = currentDatabase;
   }
+
+  //added by liulichao for authentication, begin
+  public int createUser(String userName, String passwd, String ownerName)
+      throws HiveException {
+    int ret = -100;
+
+    try {
+      userName = userName.trim();
+      ownerName= ownerName.trim();
+      LOG.info("username-passed:"+userName);
+      LOG.info("ownername-passed:"+ownerName);
+      if (!ownerName.equalsIgnoreCase(rootName)) {
+        LOG.info("User " + ownerName + " has no privilege to create user.");
+        return -1;
+      }
+//      if (userName.equalsIgnoreCase(rootName) ) {  //the userName can't be root.
+////        throw new MetaException("User " + userName
+////            + " is root user, please change the name.");
+//        LOG.info("User " + userName + " already exists.");
+//        return -2;
+//      }
+
+      if(userName.length()>16 || userName.length()<1) {
+//        throw new HiveException("Length of the new user's name must be between 1 and 16 !");
+        LOG.info("Length of the new user's name must be between 1 and 16 !");
+        return -3;
+      }
+      if(passwd.length()>41 || passwd.length()<8) {//passwd with '' outside
+//        throw new HiveException("Length of the passwd must be between 6 and 41 !");
+        LOG.info("Length of the passwd must be between 6 and 41 !");
+        return -4;
+      }
+
+      int now = (int)(System.currentTimeMillis()/1000);
+      boolean success = false;
+      success = getMSC().create_user(new User(userName, passwd, now, ownerName));
+      if (success) {
+        ret = 0;
+      } else {
+        LOG.info("User " + userName + " already exists.");
+        ret = -2;
+      }
+
+      return ret;
+    } catch (Exception e) {
+//      throw new HiveException(e);
+      LOG.info("Create user error!"+e.getMessage());
+      return -5;
+    }
+  }
+
+  public int dropUser(String userName) throws HiveException {
+    int ret = -100;
+
+    try {
+      //privilege check here...
+      SessionState ss = SessionState.get();
+      String ownerName = ss.getUser();
+      LOG.info(ownerName);
+      if (!ownerName.equalsIgnoreCase(rootName) && userName.equalsIgnoreCase(rootName)) {
+        //LOG.debug("没有删除用户的权限！");
+        LOG.debug("Not root, no priv to drop users.！");
+        return -1;
+      }
+
+      boolean success = false;
+      success = getMSC().drop_user(userName);
+      if (success) {
+        ret = 0;
+      } else {
+        LOG.info("user doesnt exist！");
+        ret = -2;
+      }
+
+      return ret;
+    } catch (Exception e) {
+      //throw new HiveException(e);
+      LOG.info("drop user error！");
+      return -3;
+    }
+  }
+
+  public int setPasswd(String userName, String passwd) throws HiveException {
+    int ret = -100;
+
+    try {
+      //privilege check here...
+      SessionState ss = SessionState.get();
+      String localName = ss.getAuthenticator().getUserName();
+      if (!userName.equals(localName) && !localName.equalsIgnoreCase(rootName)) {
+        //LOG.debug("没有修改其他用户密码的权限！");
+        LOG.info("Not root, has no priv to change password for other users. ！");
+        //throw new NoSuchObjectException("没有修改其他用户密码的权限！");
+        return -1;
+      }
+
+      if(passwd.length()>41 || passwd.length()<8) {//passwd with '' outside
+        //throw new HiveException("Length of the passwd must be between 6 and 41 !");
+        LOG.info("Length of the passwd must be between 6 and 41 !");
+        return -2;
+      }
+
+      boolean success = false;
+      success = getMSC().setPasswd(userName, passwd);
+      if (success) {
+        ret = 0;
+      } else {
+        LOG.info("user doesnt exist！");
+        ret = -3;
+      }
+
+      return ret;
+    } catch (Exception e) {
+      //throw new HiveException(e);
+      LOG.info("setpasswd error！");
+      return -4;
+    }
+  }
+
+  public int authUser(String userName, String passwd) throws HiveException {
+    int ret = -100;
+    try {
+      LOG.debug("user:"+userName+",pwd:"+passwd);
+
+//      if (userName.equals("root")) {
+//        MUser nameCheck = getMSC().getMUser(userName);//IMetaStorClient.java
+//        if (nameCheck == null ) {
+//          long now = System.currentTimeMillis() / 1000;//change .thrift, User(string,string, long, string)//liulichao
+//          User user = new User("root", passwd, now, "root");
+//          getMSC().create_user(user);
+//        }
+//      }
+//      if (userName.equalsIgnoreCase(rootName)) {
+//        if (passwd.equals("'"+rootPWD+"'")) {
+//          return 1;
+//        } else {
+//          LOG.debug("user or pwd error！");
+//          return -1;
+//        }
+//      }
+
+      boolean success = false;
+      success = getMSC().authentication(userName, passwd);
+      if (success) {
+        ret = 0;
+      } else {
+        LOG.debug("user or pwd error！");
+        ret = -1;
+      }
+
+      if (ret >= 0 ) {
+        SessionState ss = SessionState.get();
+        //ss.setUser("root");     //added by liulichao, authenticated user, set it in SessionState.
+        ss.setUser(userName);
+      }
+
+      return ret;
+    } catch (Exception e) {
+//      throw new HiveException(e);
+      LOG.info("authentication error!"+e.getMessage());//?
+      return -2;
+    }
+  }
+
+  public List<String> listUserNames() throws HiveException {
+    try {
+      SessionState ss = SessionState.get();
+      String localName = ss.getAuthenticator().getUserName();
+      LOG.debug("localName:"+localName);
+      if (!localName.equalsIgnoreCase(rootName)) {
+          LOG.debug("Not root, has no priv to list userNames!");
+          return new ArrayList<String>(0);
+      }
+
+      List<String> ret = getMSC().list_users_names();
+      for (int i = 0; i< ret.size(); i++) {
+        LOG.info("user(i)=" + ret.get(i));
+      }
+
+      return ret;
+    } catch (Exception e) {
+      e.printStackTrace();
+      LOG.debug("list userNames error:"+e.getMessage().toString());
+      return new ArrayList<String>(0);
+    }
+  }
+
+  //added by liulichao for authentication, end
 
   public void createRole(String roleName, String ownerName)
       throws HiveException {

@@ -1098,6 +1098,107 @@ void swap(Role &a, Role &b) {
   swap(a.__isset, b.__isset);
 }
 
+const char* User::ascii_fingerprint = "67CA7CC4061D5EB7B29D9595C88340E6";
+const uint8_t User::binary_fingerprint[16] = {0x67,0xCA,0x7C,0xC4,0x06,0x1D,0x5E,0xB7,0xB2,0x9D,0x95,0x95,0xC8,0x83,0x40,0xE6};
+
+uint32_t User::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->userName);
+          this->__isset.userName = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->password);
+          this->__isset.password = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 3:
+        if (ftype == ::apache::thrift::protocol::T_I64) {
+          xfer += iprot->readI64(this->createTime);
+          this->__isset.createTime = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 4:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->ownerName);
+          this->__isset.ownerName = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t User::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("User");
+
+  xfer += oprot->writeFieldBegin("userName", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString(this->userName);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("password", ::apache::thrift::protocol::T_STRING, 2);
+  xfer += oprot->writeString(this->password);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("createTime", ::apache::thrift::protocol::T_I64, 3);
+  xfer += oprot->writeI64(this->createTime);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("ownerName", ::apache::thrift::protocol::T_STRING, 4);
+  xfer += oprot->writeString(this->ownerName);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+void swap(User &a, User &b) {
+  using ::std::swap;
+  swap(a.userName, b.userName);
+  swap(a.password, b.password);
+  swap(a.createTime, b.createTime);
+  swap(a.ownerName, b.ownerName);
+  swap(a.__isset, b.__isset);
+}
+
 const char* Datacenter::ascii_fingerprint = "213967572143E49C9F1A23F7A866E2F5";
 const uint8_t Datacenter::binary_fingerprint[16] = {0x21,0x39,0x67,0x57,0x21,0x43,0xE4,0x9C,0x9F,0x1A,0x23,0xF7,0xA8,0x66,0xE2,0xF5};
 

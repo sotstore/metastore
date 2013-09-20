@@ -93,6 +93,11 @@ public final class SemanticAnalyzerFactory {
     commandType.put(HiveParser.TOK_DESCDATABASE, HiveOperation.DESCDATABASE);
     commandType.put(HiveParser.TOK_ALTERTABLE_SKEWED, HiveOperation.ALTERTABLE_SKEWED);
     commandType.put(HiveParser.TOK_ANALYZE, HiveOperation.ANALYZE_TABLE);
+    commandType.put(HiveParser.TOK_CREATEUSER, HiveOperation.CREATEUSER);         //added by liulichao
+    commandType.put(HiveParser.TOK_DROPUSER, HiveOperation.DROPUSER);             //added by liulichao
+    commandType.put(HiveParser.TOK_CHANGE_PWD, HiveOperation.CHANGE_PWD);         //added by liulichao
+    commandType.put(HiveParser.TOK_AUTHENTICATION, HiveOperation.AUTHENTICATION); //added by liulichao
+    commandType.put(HiveParser.TOK_SHOW_USERNAMES, HiveOperation.SHOW_USERNAMES); //added by liulichao
   }
 
   static {
@@ -190,6 +195,11 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_SHOW_ROLE_GRANT:
       case HiveParser.TOK_ALTERDATABASE_PROPERTIES:
       case HiveParser.TOK_ALTERTABLE_SKEWED:
+      case HiveParser.TOK_CREATEUSER:     //added by liulichao
+      case HiveParser.TOK_DROPUSER:       //added by liulichao
+      case HiveParser.TOK_CHANGE_PWD:     //added by liulichao
+      case HiveParser.TOK_AUTHENTICATION: //added by liulichao
+      case HiveParser.TOK_SHOW_USERNAMES: //added by liulichao
       case HiveParser.TOK_CREATEDATACENTER:
       case HiveParser.TOK_DROPDATACENTER:
       case HiveParser.TOK_DATACENTERCOMMENT:
