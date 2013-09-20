@@ -22082,7 +22082,7 @@ uint32_t ThriftHiveMetastore_drop_user_presult::read(::apache::thrift::protocol:
   return xfer;
 }
 
-uint32_t ThriftHiveMetastore_setPasswd_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t ThriftHiveMetastore_modify_user_args::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -22103,17 +22103,9 @@ uint32_t ThriftHiveMetastore_setPasswd_args::read(::apache::thrift::protocol::TP
     switch (fid)
     {
       case 1:
-        if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->user_name);
-          this->__isset.user_name = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 2:
-        if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->passwd);
-          this->__isset.passwd = true;
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->user.read(iprot);
+          this->__isset.user = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -22130,16 +22122,12 @@ uint32_t ThriftHiveMetastore_setPasswd_args::read(::apache::thrift::protocol::TP
   return xfer;
 }
 
-uint32_t ThriftHiveMetastore_setPasswd_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t ThriftHiveMetastore_modify_user_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("ThriftHiveMetastore_setPasswd_args");
+  xfer += oprot->writeStructBegin("ThriftHiveMetastore_modify_user_args");
 
-  xfer += oprot->writeFieldBegin("user_name", ::apache::thrift::protocol::T_STRING, 1);
-  xfer += oprot->writeString(this->user_name);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("passwd", ::apache::thrift::protocol::T_STRING, 2);
-  xfer += oprot->writeString(this->passwd);
+  xfer += oprot->writeFieldBegin("user", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += this->user.write(oprot);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -22147,16 +22135,12 @@ uint32_t ThriftHiveMetastore_setPasswd_args::write(::apache::thrift::protocol::T
   return xfer;
 }
 
-uint32_t ThriftHiveMetastore_setPasswd_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t ThriftHiveMetastore_modify_user_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("ThriftHiveMetastore_setPasswd_pargs");
+  xfer += oprot->writeStructBegin("ThriftHiveMetastore_modify_user_pargs");
 
-  xfer += oprot->writeFieldBegin("user_name", ::apache::thrift::protocol::T_STRING, 1);
-  xfer += oprot->writeString((*(this->user_name)));
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("passwd", ::apache::thrift::protocol::T_STRING, 2);
-  xfer += oprot->writeString((*(this->passwd)));
+  xfer += oprot->writeFieldBegin("user", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += (*(this->user)).write(oprot);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -22164,7 +22148,7 @@ uint32_t ThriftHiveMetastore_setPasswd_pargs::write(::apache::thrift::protocol::
   return xfer;
 }
 
-uint32_t ThriftHiveMetastore_setPasswd_result::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t ThriftHiveMetastore_modify_user_result::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -22220,11 +22204,11 @@ uint32_t ThriftHiveMetastore_setPasswd_result::read(::apache::thrift::protocol::
   return xfer;
 }
 
-uint32_t ThriftHiveMetastore_setPasswd_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t ThriftHiveMetastore_modify_user_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
 
   uint32_t xfer = 0;
 
-  xfer += oprot->writeStructBegin("ThriftHiveMetastore_setPasswd_result");
+  xfer += oprot->writeStructBegin("ThriftHiveMetastore_modify_user_result");
 
   if (this->__isset.success) {
     xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_BOOL, 0);
@@ -22244,7 +22228,7 @@ uint32_t ThriftHiveMetastore_setPasswd_result::write(::apache::thrift::protocol:
   return xfer;
 }
 
-uint32_t ThriftHiveMetastore_setPasswd_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t ThriftHiveMetastore_modify_user_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -36861,20 +36845,19 @@ bool ThriftHiveMetastoreClient::recv_drop_user()
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "drop_user failed: unknown result");
 }
 
-bool ThriftHiveMetastoreClient::setPasswd(const std::string& user_name, const std::string& passwd)
+bool ThriftHiveMetastoreClient::modify_user(const User& user)
 {
-  send_setPasswd(user_name, passwd);
-  return recv_setPasswd();
+  send_modify_user(user);
+  return recv_modify_user();
 }
 
-void ThriftHiveMetastoreClient::send_setPasswd(const std::string& user_name, const std::string& passwd)
+void ThriftHiveMetastoreClient::send_modify_user(const User& user)
 {
   int32_t cseqid = 0;
-  oprot_->writeMessageBegin("setPasswd", ::apache::thrift::protocol::T_CALL, cseqid);
+  oprot_->writeMessageBegin("modify_user", ::apache::thrift::protocol::T_CALL, cseqid);
 
-  ThriftHiveMetastore_setPasswd_pargs args;
-  args.user_name = &user_name;
-  args.passwd = &passwd;
+  ThriftHiveMetastore_modify_user_pargs args;
+  args.user = &user;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -36882,7 +36865,7 @@ void ThriftHiveMetastoreClient::send_setPasswd(const std::string& user_name, con
   oprot_->getTransport()->flush();
 }
 
-bool ThriftHiveMetastoreClient::recv_setPasswd()
+bool ThriftHiveMetastoreClient::recv_modify_user()
 {
 
   int32_t rseqid = 0;
@@ -36902,13 +36885,13 @@ bool ThriftHiveMetastoreClient::recv_setPasswd()
     iprot_->readMessageEnd();
     iprot_->getTransport()->readEnd();
   }
-  if (fname.compare("setPasswd") != 0) {
+  if (fname.compare("modify_user") != 0) {
     iprot_->skip(::apache::thrift::protocol::T_STRUCT);
     iprot_->readMessageEnd();
     iprot_->getTransport()->readEnd();
   }
   bool _return;
-  ThriftHiveMetastore_setPasswd_presult result;
+  ThriftHiveMetastore_modify_user_presult result;
   result.success = &_return;
   result.read(iprot_);
   iprot_->readMessageEnd();
@@ -36923,7 +36906,7 @@ bool ThriftHiveMetastoreClient::recv_setPasswd()
   if (result.__isset.o2) {
     throw result.o2;
   }
-  throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "setPasswd failed: unknown result");
+  throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "modify_user failed: unknown result");
 }
 
 void ThriftHiveMetastoreClient::list_users_names(std::vector<std::string> & _return)
@@ -44954,32 +44937,32 @@ void ThriftHiveMetastoreProcessor::process_drop_user(int32_t seqid, ::apache::th
   }
 }
 
-void ThriftHiveMetastoreProcessor::process_setPasswd(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
+void ThriftHiveMetastoreProcessor::process_modify_user(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
 {
   void* ctx = NULL;
   if (this->eventHandler_.get() != NULL) {
-    ctx = this->eventHandler_->getContext("ThriftHiveMetastore.setPasswd", callContext);
+    ctx = this->eventHandler_->getContext("ThriftHiveMetastore.modify_user", callContext);
   }
-  ::apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "ThriftHiveMetastore.setPasswd");
+  ::apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "ThriftHiveMetastore.modify_user");
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preRead(ctx, "ThriftHiveMetastore.setPasswd");
+    this->eventHandler_->preRead(ctx, "ThriftHiveMetastore.modify_user");
   }
 
-  ThriftHiveMetastore_setPasswd_args args;
+  ThriftHiveMetastore_modify_user_args args;
   args.read(iprot);
   iprot->readMessageEnd();
   uint32_t bytes = iprot->getTransport()->readEnd();
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postRead(ctx, "ThriftHiveMetastore.setPasswd", bytes);
+    this->eventHandler_->postRead(ctx, "ThriftHiveMetastore.modify_user", bytes);
   }
 
-  ThriftHiveMetastore_setPasswd_result result;
+  ThriftHiveMetastore_modify_user_result result;
   try {
-    result.success = iface_->setPasswd(args.user_name, args.passwd);
+    result.success = iface_->modify_user(args.user);
     result.__isset.success = true;
-  } catch (NoSuchObjectException &o1) {
+  } catch (InvalidObjectException &o1) {
     result.o1 = o1;
     result.__isset.o1 = true;
   } catch (MetaException &o2) {
@@ -44987,11 +44970,11 @@ void ThriftHiveMetastoreProcessor::process_setPasswd(int32_t seqid, ::apache::th
     result.__isset.o2 = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
-      this->eventHandler_->handlerError(ctx, "ThriftHiveMetastore.setPasswd");
+      this->eventHandler_->handlerError(ctx, "ThriftHiveMetastore.modify_user");
     }
 
     ::apache::thrift::TApplicationException x(e.what());
-    oprot->writeMessageBegin("setPasswd", ::apache::thrift::protocol::T_EXCEPTION, seqid);
+    oprot->writeMessageBegin("modify_user", ::apache::thrift::protocol::T_EXCEPTION, seqid);
     x.write(oprot);
     oprot->writeMessageEnd();
     oprot->getTransport()->writeEnd();
@@ -45000,17 +44983,17 @@ void ThriftHiveMetastoreProcessor::process_setPasswd(int32_t seqid, ::apache::th
   }
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preWrite(ctx, "ThriftHiveMetastore.setPasswd");
+    this->eventHandler_->preWrite(ctx, "ThriftHiveMetastore.modify_user");
   }
 
-  oprot->writeMessageBegin("setPasswd", ::apache::thrift::protocol::T_REPLY, seqid);
+  oprot->writeMessageBegin("modify_user", ::apache::thrift::protocol::T_REPLY, seqid);
   result.write(oprot);
   oprot->writeMessageEnd();
   bytes = oprot->getTransport()->writeEnd();
   oprot->getTransport()->flush();
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postWrite(ctx, "ThriftHiveMetastore.setPasswd", bytes);
+    this->eventHandler_->postWrite(ctx, "ThriftHiveMetastore.modify_user", bytes);
   }
 }
 

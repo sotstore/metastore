@@ -108,7 +108,7 @@ interface ThriftHiveMetastoreIf extends \FacebookServiceIf {
   public function delete_table_column_statistics($db_name, $tbl_name, $col_name);
   public function create_user(\metastore\User $user);
   public function drop_user($user_name);
-  public function setPasswd($user_name, $passwd);
+  public function modify_user(\metastore\User $user);
   public function list_users_names();
   public function authentication($user_name, $passwd);
   public function create_role(\metastore\Role $role);
@@ -5492,35 +5492,34 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
     throw new \Exception("drop_user failed: unknown result");
   }
 
-  public function setPasswd($user_name, $passwd)
+  public function modify_user(\metastore\User $user)
   {
-    $this->send_setPasswd($user_name, $passwd);
-    return $this->recv_setPasswd();
+    $this->send_modify_user($user);
+    return $this->recv_modify_user();
   }
 
-  public function send_setPasswd($user_name, $passwd)
+  public function send_modify_user(\metastore\User $user)
   {
-    $args = new \metastore\ThriftHiveMetastore_setPasswd_args();
-    $args->user_name = $user_name;
-    $args->passwd = $passwd;
+    $args = new \metastore\ThriftHiveMetastore_modify_user_args();
+    $args->user = $user;
     $bin_accel = ($this->output_ instanceof TProtocol::$TBINARYPROTOCOLACCELERATED) && function_exists('thrift_protocol_write_binary');
     if ($bin_accel)
     {
-      thrift_protocol_write_binary($this->output_, 'setPasswd', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+      thrift_protocol_write_binary($this->output_, 'modify_user', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
     }
     else
     {
-      $this->output_->writeMessageBegin('setPasswd', TMessageType::CALL, $this->seqid_);
+      $this->output_->writeMessageBegin('modify_user', TMessageType::CALL, $this->seqid_);
       $args->write($this->output_);
       $this->output_->writeMessageEnd();
       $this->output_->getTransport()->flush();
     }
   }
 
-  public function recv_setPasswd()
+  public function recv_modify_user()
   {
     $bin_accel = ($this->input_ instanceof TProtocol::$TBINARYPROTOCOLACCELERATED) && function_exists('thrift_protocol_read_binary');
-    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\metastore\ThriftHiveMetastore_setPasswd_result', $this->input_->isStrictRead());
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\metastore\ThriftHiveMetastore_modify_user_result', $this->input_->isStrictRead());
     else
     {
       $rseqid = 0;
@@ -5534,7 +5533,7 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
         $this->input_->readMessageEnd();
         throw $x;
       }
-      $result = new \metastore\ThriftHiveMetastore_setPasswd_result();
+      $result = new \metastore\ThriftHiveMetastore_modify_user_result();
       $result->read($this->input_);
       $this->input_->readMessageEnd();
     }
@@ -5547,7 +5546,7 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
     if ($result->o2 !== null) {
       throw $result->o2;
     }
-    throw new \Exception("setPasswd failed: unknown result");
+    throw new \Exception("modify_user failed: unknown result");
   }
 
   public function list_users_names()
@@ -29259,37 +29258,30 @@ class ThriftHiveMetastore_drop_user_result {
 
 }
 
-class ThriftHiveMetastore_setPasswd_args {
+class ThriftHiveMetastore_modify_user_args {
   static $_TSPEC;
 
-  public $user_name = null;
-  public $passwd = null;
+  public $user = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
       self::$_TSPEC = array(
         1 => array(
-          'var' => 'user_name',
-          'type' => TType::STRING,
-          ),
-        2 => array(
-          'var' => 'passwd',
-          'type' => TType::STRING,
+          'var' => 'user',
+          'type' => TType::STRUCT,
+          'class' => '\metastore\User',
           ),
         );
     }
     if (is_array($vals)) {
-      if (isset($vals['user_name'])) {
-        $this->user_name = $vals['user_name'];
-      }
-      if (isset($vals['passwd'])) {
-        $this->passwd = $vals['passwd'];
+      if (isset($vals['user'])) {
+        $this->user = $vals['user'];
       }
     }
   }
 
   public function getName() {
-    return 'ThriftHiveMetastore_setPasswd_args';
+    return 'ThriftHiveMetastore_modify_user_args';
   }
 
   public function read($input)
@@ -29308,15 +29300,9 @@ class ThriftHiveMetastore_setPasswd_args {
       switch ($fid)
       {
         case 1:
-          if ($ftype == TType::STRING) {
-            $xfer += $input->readString($this->user_name);
-          } else {
-            $xfer += $input->skip($ftype);
-          }
-          break;
-        case 2:
-          if ($ftype == TType::STRING) {
-            $xfer += $input->readString($this->passwd);
+          if ($ftype == TType::STRUCT) {
+            $this->user = new \metastore\User();
+            $xfer += $this->user->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -29333,15 +29319,13 @@ class ThriftHiveMetastore_setPasswd_args {
 
   public function write($output) {
     $xfer = 0;
-    $xfer += $output->writeStructBegin('ThriftHiveMetastore_setPasswd_args');
-    if ($this->user_name !== null) {
-      $xfer += $output->writeFieldBegin('user_name', TType::STRING, 1);
-      $xfer += $output->writeString($this->user_name);
-      $xfer += $output->writeFieldEnd();
-    }
-    if ($this->passwd !== null) {
-      $xfer += $output->writeFieldBegin('passwd', TType::STRING, 2);
-      $xfer += $output->writeString($this->passwd);
+    $xfer += $output->writeStructBegin('ThriftHiveMetastore_modify_user_args');
+    if ($this->user !== null) {
+      if (!is_object($this->user)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('user', TType::STRUCT, 1);
+      $xfer += $this->user->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -29351,7 +29335,7 @@ class ThriftHiveMetastore_setPasswd_args {
 
 }
 
-class ThriftHiveMetastore_setPasswd_result {
+class ThriftHiveMetastore_modify_user_result {
   static $_TSPEC;
 
   public $success = null;
@@ -29368,7 +29352,7 @@ class ThriftHiveMetastore_setPasswd_result {
         1 => array(
           'var' => 'o1',
           'type' => TType::STRUCT,
-          'class' => '\metastore\NoSuchObjectException',
+          'class' => '\metastore\InvalidObjectException',
           ),
         2 => array(
           'var' => 'o2',
@@ -29391,7 +29375,7 @@ class ThriftHiveMetastore_setPasswd_result {
   }
 
   public function getName() {
-    return 'ThriftHiveMetastore_setPasswd_result';
+    return 'ThriftHiveMetastore_modify_user_result';
   }
 
   public function read($input)
@@ -29418,7 +29402,7 @@ class ThriftHiveMetastore_setPasswd_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->o1 = new \metastore\NoSuchObjectException();
+            $this->o1 = new \metastore\InvalidObjectException();
             $xfer += $this->o1->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -29444,7 +29428,7 @@ class ThriftHiveMetastore_setPasswd_result {
 
   public function write($output) {
     $xfer = 0;
-    $xfer += $output->writeStructBegin('ThriftHiveMetastore_setPasswd_result');
+    $xfer += $output->writeStructBegin('ThriftHiveMetastore_modify_user_result');
     if ($this->success !== null) {
       $xfer += $output->writeFieldBegin('success', TType::BOOL, 0);
       $xfer += $output->writeBool($this->success);

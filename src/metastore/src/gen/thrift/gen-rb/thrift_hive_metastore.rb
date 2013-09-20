@@ -1565,21 +1565,21 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_user failed: unknown result')
     end
 
-    def setPasswd(user_name, passwd)
-      send_setPasswd(user_name, passwd)
-      return recv_setPasswd()
+    def modify_user(user)
+      send_modify_user(user)
+      return recv_modify_user()
     end
 
-    def send_setPasswd(user_name, passwd)
-      send_message('setPasswd', SetPasswd_args, :user_name => user_name, :passwd => passwd)
+    def send_modify_user(user)
+      send_message('modify_user', Modify_user_args, :user => user)
     end
 
-    def recv_setPasswd()
-      result = receive_message(SetPasswd_result)
+    def recv_modify_user()
+      result = receive_message(Modify_user_result)
       return result.success unless result.success.nil?
       raise result.o1 unless result.o1.nil?
       raise result.o2 unless result.o2.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'setPasswd failed: unknown result')
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'modify_user failed: unknown result')
     end
 
     def list_users_names()
@@ -3431,17 +3431,17 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'drop_user', seqid)
     end
 
-    def process_setPasswd(seqid, iprot, oprot)
-      args = read_args(iprot, SetPasswd_args)
-      result = SetPasswd_result.new()
+    def process_modify_user(seqid, iprot, oprot)
+      args = read_args(iprot, Modify_user_args)
+      result = Modify_user_result.new()
       begin
-        result.success = @handler.setPasswd(args.user_name, args.passwd)
-      rescue ::NoSuchObjectException => o1
+        result.success = @handler.modify_user(args.user)
+      rescue ::InvalidObjectException => o1
         result.o1 = o1
       rescue ::MetaException => o2
         result.o2 = o2
       end
-      write_result(result, oprot, 'setPasswd', seqid)
+      write_result(result, oprot, 'modify_user', seqid)
     end
 
     def process_list_users_names(seqid, iprot, oprot)
@@ -7454,14 +7454,12 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class SetPasswd_args
+  class Modify_user_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
-    USER_NAME = 1
-    PASSWD = 2
+    USER = 1
 
     FIELDS = {
-      USER_NAME => {:type => ::Thrift::Types::STRING, :name => 'user_name'},
-      PASSWD => {:type => ::Thrift::Types::STRING, :name => 'passwd'}
+      USER => {:type => ::Thrift::Types::STRUCT, :name => 'user', :class => ::User}
     }
 
     def struct_fields; FIELDS; end
@@ -7472,7 +7470,7 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class SetPasswd_result
+  class Modify_user_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1
@@ -7480,7 +7478,7 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::NoSuchObjectException},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::InvalidObjectException},
       O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
     }
 

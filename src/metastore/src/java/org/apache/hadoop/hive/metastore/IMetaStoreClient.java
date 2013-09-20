@@ -1029,7 +1029,7 @@ public interface IMetaStoreClient {
    * @throws MetaException
    * @throws TException
    */
-  public boolean setPasswd(String user_name, String passwd) throws NoSuchObjectException, MetaException, TException;
+  public boolean modify_user(User user) throws NoSuchObjectException, MetaException, TException;
 
   /**
    * @return names of all users

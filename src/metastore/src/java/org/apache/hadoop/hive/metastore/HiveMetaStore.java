@@ -5231,9 +5231,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
         Boolean ret = null;
         try {
-//          LOG.info("create user start, HiveMetaStore.");
           ret = getMS().addUser(user.getUserName(), user.getPassword(), user.getOwnerName());
-//          LOG.info("create user end, HiveMetaStore.");
         } catch (InvalidObjectException e) {
           throw e;
         } catch (MetaException e) {
@@ -5259,17 +5257,10 @@ public class HiveMetaStore extends ThriftHiveMetastore {
   }
 
   @Override
-  public boolean setPasswd(String user_name, String passwd)
-      throws NoSuchObjectException, MetaException, TException {
-        incrementCounter("setPassword");
-
-        try {
-         return getMS().setPasswd(user_name, passwd);
-        } catch (NoSuchObjectException e) {
-          throw e;
-        } catch (MetaException e) {
-          throw e;
-        }
+  public boolean modify_user(User user) throws MetaException,
+      NoSuchObjectException, TException {
+    incrementCounter("modify_user");
+    return getMS().modifyUser(user);
   }
 
   @Override

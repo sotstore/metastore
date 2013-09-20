@@ -738,7 +738,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
 
   bool create_user(1:User user) throws(1:InvalidObjectException o1, 2:MetaException o2)
   bool drop_user(1:string user_name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
-  bool setPasswd(1:string user_name, 2:string passwd) throws(1:NoSuchObjectException o1, 2:MetaException o2)
+  bool modify_user(1:User user) throws(1:NoSuchObjectException o1, 2:MetaException o2)
   list<string> list_users_names() throws(1:MetaException o1)
   bool authentication(1:string user_name, 2:string passwd) throws(1:NoSuchObjectException o1, 2:MetaException o2) //authenticate the userName and passwd.
 

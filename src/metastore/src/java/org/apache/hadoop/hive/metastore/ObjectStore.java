@@ -106,6 +106,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.model.MBusiTypeColumn;
 import org.apache.hadoop.hive.metastore.model.MBusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.model.MBusitype;
@@ -4633,31 +4634,26 @@ public class ObjectStore implements RawStore, Configurable {
   }
 
 @Override
-public boolean setPasswd(String userName, String passwd) throws MetaException,
+public boolean modifyUser(User user) throws MetaException,
     NoSuchObjectException {
   boolean commited = false;
 
   try {
     openTransaction();
-    MUser nameCheck = this.getMUser(userName);
-    //pm.retr...
+    MUser nameCheck = this.getMUser(user.getUserName());
     if (nameCheck == null) {
-      //LOG.debug("用户 "+ userName+" 不存在！");
-      LOG.debug("User " + userName + " doesnt exist！");
-//      throw new NoSuchObjectException("User " + userName
-//          + " does not exist.");
+      LOG.debug("User " + user.getUserName() + " doesnt exist！");
       return false;
     }
-    nameCheck.setPasswd(passwd);
+    nameCheck.setPasswd(user.getPassword());
     pm.makePersistent(nameCheck);
     commited = commitTransaction();
-
-    return commited;
   } finally {
     if (!commited) {
       rollbackTransaction();
     }
   }
+  return commited;
 }
 
 @Override

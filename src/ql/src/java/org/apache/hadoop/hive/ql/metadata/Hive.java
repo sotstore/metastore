@@ -1970,7 +1970,11 @@ public class Hive {
       }
 
       boolean success = false;
-      success = getMSC().setPasswd(userName, passwd);
+      User u = new User();
+      u.setUserName(userName);
+      u.setPassword(passwd);
+
+      success = getMSC().modify_user(u);
       if (success) {
         ret = 0;
       } else {

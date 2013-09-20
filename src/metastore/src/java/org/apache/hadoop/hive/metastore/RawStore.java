@@ -53,6 +53,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnPrivilege;
@@ -498,8 +499,6 @@ public interface RawStore extends Configurable {
 
   public abstract boolean removeUser(String userName) throws MetaException, NoSuchObjectException;
 
-  public abstract boolean setPasswd(String userName, String passwd) throws MetaException, NoSuchObjectException;
-
   public List<String> listUsersNames();
 
   public abstract boolean authentication(String userName, String passwd) throws MetaException, NoSuchObjectException;
@@ -569,4 +568,6 @@ public interface RawStore extends Configurable {
   public Device getDevice(String devid) throws MetaException, NoSuchObjectException;
 
   public boolean delDevice(String devid) throws MetaException;
+
+  boolean modifyUser(User user) throws MetaException, NoSuchObjectException;
 }

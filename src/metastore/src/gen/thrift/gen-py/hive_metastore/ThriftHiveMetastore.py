@@ -773,11 +773,10 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
-  def setPasswd(self, user_name, passwd):
+  def modify_user(self, user):
     """
     Parameters:
-     - user_name
-     - passwd
+     - user
     """
     pass
 
@@ -4431,32 +4430,30 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "drop_user failed: unknown result");
 
-  def setPasswd(self, user_name, passwd):
+  def modify_user(self, user):
     """
     Parameters:
-     - user_name
-     - passwd
+     - user
     """
-    self.send_setPasswd(user_name, passwd)
-    return self.recv_setPasswd()
+    self.send_modify_user(user)
+    return self.recv_modify_user()
 
-  def send_setPasswd(self, user_name, passwd):
-    self._oprot.writeMessageBegin('setPasswd', TMessageType.CALL, self._seqid)
-    args = setPasswd_args()
-    args.user_name = user_name
-    args.passwd = passwd
+  def send_modify_user(self, user):
+    self._oprot.writeMessageBegin('modify_user', TMessageType.CALL, self._seqid)
+    args = modify_user_args()
+    args.user = user
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
 
-  def recv_setPasswd(self, ):
+  def recv_modify_user(self, ):
     (fname, mtype, rseqid) = self._iprot.readMessageBegin()
     if mtype == TMessageType.EXCEPTION:
       x = TApplicationException()
       x.read(self._iprot)
       self._iprot.readMessageEnd()
       raise x
-    result = setPasswd_result()
+    result = modify_user_result()
     result.read(self._iprot)
     self._iprot.readMessageEnd()
     if result.success is not None:
@@ -4465,7 +4462,7 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     if result.o2 is not None:
       raise result.o2
-    raise TApplicationException(TApplicationException.MISSING_RESULT, "setPasswd failed: unknown result");
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "modify_user failed: unknown result");
 
   def list_users_names(self, ):
     self.send_list_users_names()
@@ -5918,7 +5915,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["delete_table_column_statistics"] = Processor.process_delete_table_column_statistics
     self._processMap["create_user"] = Processor.process_create_user
     self._processMap["drop_user"] = Processor.process_drop_user
-    self._processMap["setPasswd"] = Processor.process_setPasswd
+    self._processMap["modify_user"] = Processor.process_modify_user
     self._processMap["list_users_names"] = Processor.process_list_users_names
     self._processMap["authentication"] = Processor.process_authentication
     self._processMap["create_role"] = Processor.process_create_role
@@ -7455,18 +7452,18 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
-  def process_setPasswd(self, seqid, iprot, oprot):
-    args = setPasswd_args()
+  def process_modify_user(self, seqid, iprot, oprot):
+    args = modify_user_args()
     args.read(iprot)
     iprot.readMessageEnd()
-    result = setPasswd_result()
+    result = modify_user_result()
     try:
-      result.success = self._handler.setPasswd(args.user_name, args.passwd)
-    except NoSuchObjectException as o1:
+      result.success = self._handler.modify_user(args.user)
+    except InvalidObjectException as o1:
       result.o1 = o1
     except MetaException as o2:
       result.o2 = o2
-    oprot.writeMessageBegin("setPasswd", TMessageType.REPLY, seqid)
+    oprot.writeMessageBegin("modify_user", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -23305,22 +23302,19 @@ class drop_user_result:
   def __ne__(self, other):
     return not (self == other)
 
-class setPasswd_args:
+class modify_user_args:
   """
   Attributes:
-   - user_name
-   - passwd
+   - user
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRING, 'user_name', None, None, ), # 1
-    (2, TType.STRING, 'passwd', None, None, ), # 2
+    (1, TType.STRUCT, 'user', (User, User.thrift_spec), None, ), # 1
   )
 
-  def __init__(self, user_name=None, passwd=None,):
-    self.user_name = user_name
-    self.passwd = passwd
+  def __init__(self, user=None,):
+    self.user = user
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -23332,13 +23326,9 @@ class setPasswd_args:
       if ftype == TType.STOP:
         break
       if fid == 1:
-        if ftype == TType.STRING:
-          self.user_name = iprot.readString();
-        else:
-          iprot.skip(ftype)
-      elif fid == 2:
-        if ftype == TType.STRING:
-          self.passwd = iprot.readString();
+        if ftype == TType.STRUCT:
+          self.user = User()
+          self.user.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -23350,14 +23340,10 @@ class setPasswd_args:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('setPasswd_args')
-    if self.user_name is not None:
-      oprot.writeFieldBegin('user_name', TType.STRING, 1)
-      oprot.writeString(self.user_name)
-      oprot.writeFieldEnd()
-    if self.passwd is not None:
-      oprot.writeFieldBegin('passwd', TType.STRING, 2)
-      oprot.writeString(self.passwd)
+    oprot.writeStructBegin('modify_user_args')
+    if self.user is not None:
+      oprot.writeFieldBegin('user', TType.STRUCT, 1)
+      self.user.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -23377,7 +23363,7 @@ class setPasswd_args:
   def __ne__(self, other):
     return not (self == other)
 
-class setPasswd_result:
+class modify_user_result:
   """
   Attributes:
    - success
@@ -23387,7 +23373,7 @@ class setPasswd_result:
 
   thrift_spec = (
     (0, TType.BOOL, 'success', None, None, ), # 0
-    (1, TType.STRUCT, 'o1', (NoSuchObjectException, NoSuchObjectException.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'o1', (InvalidObjectException, InvalidObjectException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'o2', (MetaException, MetaException.thrift_spec), None, ), # 2
   )
 
@@ -23412,7 +23398,7 @@ class setPasswd_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.o1 = NoSuchObjectException()
+          self.o1 = InvalidObjectException()
           self.o1.read(iprot)
         else:
           iprot.skip(ftype)
@@ -23431,7 +23417,7 @@ class setPasswd_result:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('setPasswd_result')
+    oprot.writeStructBegin('modify_user_result')
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.BOOL, 0)
       oprot.writeBool(self.success)

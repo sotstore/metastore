@@ -83,6 +83,7 @@ import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.api.User;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -1582,9 +1583,9 @@ public boolean drop_user(String user_name) throws NoSuchObjectException,
 }
 
 @Override
-public boolean setPasswd(String user_name, String passwd)
+public boolean modify_user(User user)
     throws NoSuchObjectException, MetaException, TException {
-  return client.setPasswd(user_name, passwd);
+  return client.modify_user(user);
 
 }
 

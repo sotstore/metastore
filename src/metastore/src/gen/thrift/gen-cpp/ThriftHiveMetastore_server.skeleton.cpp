@@ -482,9 +482,9 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("drop_user\n");
   }
 
-  bool setPasswd(const std::string& user_name, const std::string& passwd) {
+  bool modify_user(const User& user) {
     // Your implementation goes here
-    printf("setPasswd\n");
+    printf("modify_user\n");
   }
 
   void list_users_names(std::vector<std::string> & _return) {
