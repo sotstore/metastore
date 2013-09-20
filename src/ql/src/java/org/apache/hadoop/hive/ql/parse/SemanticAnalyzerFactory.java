@@ -231,6 +231,8 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_SHOWNODES:
       case HiveParser.TOK_SHOWFILES:
       case HiveParser.TOK_SHOWFILELOCATIONS:
+      case HiveParser.TOK_ADDGEO_LOC:
+
 
         return new DDLSemanticAnalyzer(conf);
       case HiveParser.TOK_ALTERTABLE_PARTITION:

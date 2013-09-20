@@ -163,5 +163,11 @@ public interface MetaDataFormatter {
     public void showNodes(DataOutputStream outStream, List<Node> nodes)throws HiveException;
 
     public void showFileLocations(DataOutputStream outStream, List<SFileLocation> fls)throws HiveException;
+
+    public void showHelp(DataOutputStream outStream, String result) throws HiveException;
+
+    public void showGeoLoc(DataOutputStream outStream, String result) throws HiveException;
+
+    public void showEqRoom(DataOutputStream outStream, String result) throws HiveException;
 }
 

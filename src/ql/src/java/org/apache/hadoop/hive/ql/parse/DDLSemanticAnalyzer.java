@@ -74,6 +74,8 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveUtils;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
+import org.apache.hadoop.hive.ql.plan.AddEqRoomDesc;
+import org.apache.hadoop.hive.ql.plan.AddGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.AddNodeDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
@@ -96,6 +98,8 @@ import org.apache.hadoop.hive.ql.plan.DescFunctionDesc;
 import org.apache.hadoop.hive.ql.plan.DescTableDesc;
 import org.apache.hadoop.hive.ql.plan.DropDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.DropDatacenterDesc;
+import org.apache.hadoop.hive.ql.plan.DropEqRoomDesc;
+import org.apache.hadoop.hive.ql.plan.DropGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
@@ -108,6 +112,8 @@ import org.apache.hadoop.hive.ql.plan.GrantDesc;
 import org.apache.hadoop.hive.ql.plan.GrantRevokeRoleDDL;
 import org.apache.hadoop.hive.ql.plan.LoadTableDesc;
 import org.apache.hadoop.hive.ql.plan.LockTableDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyEqRoomDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyNodeDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartIndexAddFileDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartIndexDropFileDesc;
@@ -132,9 +138,11 @@ import org.apache.hadoop.hive.ql.plan.ShowColumnsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowCreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.ShowDatabasesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowDatacentersDesc;
+import org.apache.hadoop.hive.ql.plan.ShowEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.ShowFileLocationsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowFilesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowFunctionsDesc;
+import org.apache.hadoop.hive.ql.plan.ShowGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
@@ -542,6 +550,32 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
       analyzeShowFileLocations(ast);
       break;
+    case HiveParser.TOK_ADDGEO_LOC:
+      analyzeAddGeoLoc(ast);
+      break;
+    case HiveParser.TOK_DROPGEO_LOC:
+      analyzeDropGeoLoc(ast);
+      break;
+    case HiveParser.TOK_MODIFYGEO_LOC:
+      analyzeModifyGeoLoc(ast);
+      break;
+    case HiveParser.TOK_SHOWGEO_LOC:
+       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+       analyzeShowGeoLoc(ast);
+       break;
+    case HiveParser.TOK_ADDEQ_ROOM:
+      analyzeAddEqRoom(ast);
+      break;
+    case HiveParser.TOK_DROPEQ_ROOM:
+      analyzeDropEqRoom(ast);
+      break;
+    case HiveParser.TOK_MODIFYEQ_ROOM:
+      analyzeModifyEqRoom(ast);
+      break;
+    case HiveParser.TOK_SHOWEQ_ROOM:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowEqRoom(ast);
+      break;
     default:
       throw new SemanticException("Unsupported command.");
     }
@@ -619,6 +653,106 @@ private void analyzeCreateUser(ASTNode ast) {
         createUserDesc), conf));
 }
 //added by liulichao
+
+  private void analyzeShowEqRoom(ASTNode ast) {
+    ShowEqRoomDesc showEqRoomDesc = new ShowEqRoomDesc(ctx.getResFile().toString());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showEqRoomDesc), conf));
+    setFetchTask(createFetchTask(showEqRoomDesc.getSchema()));
+  }
+
+  private void analyzeModifyEqRoom(ASTNode ast)  throws SemanticException{
+
+    String eqRoomName = "";
+    String status = "";
+    String geoLocName = "";
+    String comment = "";
+    if(ast.getChildCount() >= 2){
+      eqRoomName = unescapeSQLString((ast.getChild(0).getText()));
+      status = unescapeIdentifier((ast.getChild(1).getText()));
+      if(ast.getChildCount() >= 3){
+        geoLocName = unescapeSQLString((ast.getChild(2).getText()));
+      }
+      if(ast.getChildCount() == 4){
+        comment = unescapeSQLString(ast.getChild(3).getText());
+      }else{
+        throw new SemanticException("Not valid augument number for modifying equipment room.");
+      }
+      ModifyEqRoomDesc modifyEqRoomDesc = new ModifyEqRoomDesc(eqRoomName,status,geoLocName,comment);
+      rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+          modifyEqRoomDesc), conf));
+    }else{
+      throw new SemanticException("Not valid augument number for modifying equipment room.");
+    }
+  }
+
+  private void analyzeDropEqRoom(ASTNode ast) {
+    String eqRoomName = unescapeSQLString((ast.getChild(0).getText()));
+    DropEqRoomDesc dropEqRoomDesc = new DropEqRoomDesc(eqRoomName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        dropEqRoomDesc), conf));
+  }
+
+  private void analyzeAddEqRoom(ASTNode ast) throws SemanticException {
+    String eqRoomName = "";
+    String status = "";
+    String geoLocName = "";
+    String comment = "";
+    if(ast.getChildCount() >= 2){
+      eqRoomName = unescapeSQLString((ast.getChild(0).getText()));
+      status = unescapeIdentifier((ast.getChild(1).getText()));
+      if(ast.getChildCount() >= 3){
+        geoLocName = unescapeSQLString((ast.getChild(2).getText()));
+      }
+      if(ast.getChildCount() == 4){
+        comment = unescapeSQLString(ast.getChild(3).getText());
+      }else{
+        throw new SemanticException("Not valid augument number for adding equipment room.");
+      }
+      AddEqRoomDesc addEqRoomDesc = new AddEqRoomDesc(eqRoomName,status,geoLocName,comment);
+      rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+          addEqRoomDesc), conf));
+    }else{
+      throw new SemanticException("Not valid augument number for adding equipment room.");
+    }
+  }
+
+  private void analyzeShowGeoLoc(ASTNode ast)  throws SemanticException {
+    ShowGeoLocDesc showGeoLocDesc = new ShowGeoLocDesc(ctx.getResFile().toString());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showGeoLocDesc), conf));
+    setFetchTask(createFetchTask(showGeoLocDesc.getSchema()));
+
+  }
+
+  private void analyzeModifyGeoLoc(ASTNode ast) {
+    String geoLocName = unescapeSQLString((ast.getChild(0).getText()));
+    String nation = unescapeSQLString(ast.getChild(1).getText());
+    String province = unescapeSQLString(ast.getChild(2).getText());
+    String city = unescapeSQLString(ast.getChild(3).getText());
+    String dist = unescapeSQLString(ast.getChild(4).getText());
+    ModifyGeoLocDesc modifyGeoLocDesc = new ModifyGeoLocDesc(geoLocName,nation,province,city,dist);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        modifyGeoLocDesc), conf));
+  }
+
+  private void analyzeDropGeoLoc(ASTNode ast) {
+    String geoLocName = unescapeSQLString((ast.getChild(0).getText()));
+    DropGeoLocDesc dropGeoLocDesc = new DropGeoLocDesc(geoLocName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        dropGeoLocDesc), conf));
+  }
+
+  private void analyzeAddGeoLoc(ASTNode ast) {
+    String geoLocName = unescapeSQLString(ast.getChild(0).getText());
+    String nation = unescapeSQLString(ast.getChild(1).getText());
+    String province = unescapeSQLString(ast.getChild(2).getText());
+    String city = unescapeSQLString(ast.getChild(3).getText());
+    String dist = unescapeSQLString(ast.getChild(4).getText());
+    AddGeoLocDesc addGeoLocDesc = new AddGeoLocDesc(geoLocName,nation,province,city,dist);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        addGeoLocDesc), conf));
+  }
 
   private void analyzeShowFileLocations(ASTNode ast) throws SemanticException {
     String tabName = null;
