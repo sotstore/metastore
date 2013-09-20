@@ -52,6 +52,14 @@ public class ParseDriver {
     xlateMap = new HashMap<String, String>();
 
     // Keywords
+    xlateMap.put("KW_DBA", "DBA");                //added by liulichao,begin
+    xlateMap.put("KW_SETPASSWD", "SETPASSWD");
+    xlateMap.put("KW_FOR", "FOR");
+    xlateMap.put("KW_IDENTIFIED", "IDENTIFIED");
+    xlateMap.put("KW_CONNECT", "CONNECT");
+    xlateMap.put("kwUsers", "USERS");
+    xlateMap.put("kwUser", "USER");               //added by liulichao,end
+
     xlateMap.put("KW_TRUE", "TRUE");
     xlateMap.put("KW_FALSE", "FALSE");
     xlateMap.put("KW_ALL", "ALL");

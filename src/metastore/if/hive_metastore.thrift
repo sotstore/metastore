@@ -122,6 +122,14 @@ struct Role {
   3: string ownerName,
 }
 
+//struct User, added by liulichao for authentication
+struct User {  
+  1: string userName,
+  2: string password,
+  3: i64 createTime,
+  4: string ownerName
+}
+
 // namespace for dbs
 struct Datacenter {
   1: string name,
@@ -243,6 +251,12 @@ struct Node {
   1: string node_name,
   2: list<string> ips,
   3: i32    status,
+}
+
+struct Device {
+  1: string devid,
+  2: i32    prop,
+  3: string node_name,
 }
 
 struct SFileLocation {
@@ -720,6 +734,18 @@ service ThriftHiveMetastore extends fb303.FacebookService
               (1:NoSuchObjectException o1, 2:MetaException o2, 3:InvalidObjectException o3,
                4:InvalidInputException o4)
 
+//authentication and authorization with user by liulichao, begin
+
+  bool create_user(1:User user) throws(1:InvalidObjectException o1, 2:MetaException o2)
+  bool drop_user(1:string user_name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
+  bool modify_user(1:User user) throws(1:NoSuchObjectException o1, 2:MetaException o2)
+  list<string> list_users_names() throws(1:MetaException o1)
+  bool authentication(1:string user_name, 2:string passwd) throws(1:NoSuchObjectException o1, 2:MetaException o2) //authenticate the userName and passwd.
+
+//  list<string> get_user_grants(1:string user_name) throws(1:MetaException o1, 2:NoSuchObjectException o2) //if there is no user_name, then show all users' grants.
+
+  //authentication and authorization with user by liulichao, end  
+
   //authorization privileges
                        
   bool create_role(1:Role role) throws(1:MetaException o1)
@@ -781,6 +807,10 @@ service ThriftHiveMetastore extends fb303.FacebookService
   Node add_node(1:string node_name, 2:list<string> ipl) throws (1:MetaException o1)
   
   i32 del_node(1:string node_name) throws (1:MetaException o1)
+  
+  Device create_device(1:string devid, 2:i32 prop, 3:string node_name) throws (1:MetaException o1)
+  
+  bool del_device(1:string devid) throws (1:MetaException o1)
   
   Node alter_node(1:string node_name, 2:list<string> ipl, 3:i32 status) throws (1:MetaException o1)
   

@@ -71,6 +71,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.DoubleColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -105,6 +106,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.model.MBusiTypeColumn;
 import org.apache.hadoop.hive.metastore.model.MBusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.model.MBusitype;
@@ -138,6 +140,7 @@ import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTableColumnStatistics;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
 import org.apache.hadoop.hive.metastore.model.MType;
+import org.apache.hadoop.hive.metastore.model.MUser;
 import org.apache.hadoop.hive.metastore.msg.MSGFactory;
 import org.apache.hadoop.hive.metastore.msg.MSGFactory.DDLMsg;
 import org.apache.hadoop.hive.metastore.msg.MSGType;
@@ -315,6 +318,8 @@ public class ObjectStore implements RawStore, Configurable {
       MetaMsgServer.start();
     } catch (MetaClientException e) {
       LOG.error(e+"---start-metaQ--error",e);
+    } catch (Exception e) {
+      LOG.error(e, e);
     }
 
     return;
@@ -1282,11 +1287,12 @@ public class ObjectStore implements RawStore, Configurable {
       if (mn == null) {
         throw new InvalidObjectException("Invalid Node name '" + node.getNode_name() + "'!");
       }
-      md = new MDevice(mn, di.dev.trim());
+      md = new MDevice(mn, di.dev.trim(), di.prop);
       doCreate = true;
     } else {
-      // update it now
-      if (!md.getNode().getNode_name().equals(node.getNode_name())) {
+      // update it now?
+      if (!md.getNode().getNode_name().equals(node.getNode_name()) &&
+          md.getProp() == MetaStoreConst.MDeviceProp.ALONE) {
         LOG.info("Saved " + md.getNode().getNode_name() + ", this " + node.getNode_name());
         // should update it.
         MNode mn = getMNode(node.getNode_name());
@@ -1310,8 +1316,8 @@ public class ObjectStore implements RawStore, Configurable {
     Node n = new Node("macan", ips, MetaStoreConst.MNodeStatus.SUSPECT);
     SFile sf = new SFile(0, 10, 5, 6, "xyzadfads", 1, 2, null, 100);
     createNode(n);
-    MDevice md1 = new MDevice(getMNode("macan"), "dev-hello");
-    MDevice md2 = new MDevice(getMNode("macan"), "xyz1");
+    MDevice md1 = new MDevice(getMNode("macan"), "dev-hello", 0);
+    MDevice md2 = new MDevice(getMNode("macan"), "xyz1", 0);
     createDevice(md1);
     createDevice(md2);
 
@@ -1675,6 +1681,25 @@ public class ObjectStore implements RawStore, Configurable {
       throw new NoSuchObjectException("Can not find Datacenter " + name + ", please check it!");
     }
     return dc;
+  }
+
+  public Device getDevice(String devid) throws MetaException, NoSuchObjectException {
+    boolean commited = false;
+    Device d = null;
+
+    try {
+      openTransaction();
+      d = convertToDevice(getMDevice(devid));
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    if (d == null) {
+      throw new NoSuchObjectException("Can not find Device " + devid + ", please check it!");
+    }
+    return d;
   }
 
   public Node getNode(String node_name) throws MetaException {
@@ -2381,6 +2406,13 @@ public class ObjectStore implements RawStore, Configurable {
     return new Node(mn.getNode_name(), mn.getIPList(), mn.getStatus());
   }
 
+  private Device convertToDevice(MDevice md) throws MetaException {
+    if (md == null) {
+      return null;
+    }
+    return new Device(md.getDev_name(), md.getProp(), md.getNode() != null ? md.getNode().getNode_name() : null);
+  }
+
   private Datacenter convertToDatacenter(MDatacenter mdc) throws MetaException {
     if (mdc == null) {
       return null;
@@ -2402,7 +2434,7 @@ public class ObjectStore implements RawStore, Configurable {
     }
     List<SFileLocation> r = new ArrayList<SFileLocation>();
     for (MFileLocation mf : mfl) {
-      r.add(new SFileLocation(mf.getNode().getNode_name(), mf.getFile().getFid(), mf.getDev().getDev_name(),
+      r.add(new SFileLocation(mf.getDev().getNode().getNode_name(), mf.getFile().getFid(), mf.getDev().getDev_name(),
           mf.getLocation(), mf.getRep_id(), mf.getUpdate_time(), mf.getVisit_status(), mf.getDigest()));
     }
     return r;
@@ -2413,7 +2445,7 @@ public class ObjectStore implements RawStore, Configurable {
       return null;
     }
     pm.retrieve(mfl);
-    return new SFileLocation(mfl.getNode().getNode_name(), mfl.getFile().getFid(), mfl.getDev().getDev_name(),
+    return new SFileLocation(mfl.getDev().getNode().getNode_name(), mfl.getFile().getFid(), mfl.getDev().getDev_name(),
         mfl.getLocation(), mfl.getRep_id(), mfl.getUpdate_time(), mfl.getVisit_status(), mfl.getDigest());
   }
 
@@ -2446,6 +2478,15 @@ public class ObjectStore implements RawStore, Configurable {
     }
 
     return new MNode(node.getNode_name().trim(), node.getIps(), node.getStatus());
+  }
+
+  private MDevice convertToMDevice(Device device) {
+    if (device == null) {
+      return null;
+    }
+    MNode mn = this.getMNode(device.getNode_name());
+
+    return new MDevice(mn, device.getDevid(), device.getProp());
   }
 
   private MDatacenter convertToMDatacenter(Datacenter dc) {
@@ -2486,7 +2527,7 @@ public class ObjectStore implements RawStore, Configurable {
       return null;
     }
 
-    return new MFileLocation(mn, mf, md, location.getLocation(),
+    return new MFileLocation(mf, md, location.getLocation(),
         location.getRep_id(), System.currentTimeMillis(), location.getVisit_status(), location.getDigest());
   }
 
@@ -4497,6 +4538,194 @@ public class ObjectStore implements RawStore, Configurable {
     }
     return success;
   }
+
+  //authentication and authorization with user by liulichao, begin
+  @Override
+  public boolean addUser(String userName, String passwd, String ownerName)
+      throws InvalidObjectException, MetaException {
+    boolean success = false;
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      MUser nameCheck = this.getMUser(userName);
+      if (nameCheck != null) {
+        LOG.info("User "+ userName +" already exists！");
+        return false;
+      }
+        int now = (int)(System.currentTimeMillis()/1000);
+      MUser mUser = new MUser(userName, passwd, now, ownerName);
+      pm.makePersistent(mUser);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+@Override
+  public boolean removeUser(String userName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+
+    try {
+      openTransaction();
+      MUser mUser = getMUser(userName);
+      pm.retrieve(mUser);
+
+      LOG.debug("remove.getusername"+mUser.getUserName());
+      LOG.debug("remove.getusername:boolean"+(mUser.getUserName().equals(null)));
+
+      if (!mUser.getUserName().equals(null)) {
+        // first remove all then remove all the grants
+        List<MRoleMap> uRoleMember =listMSecurityPrincipalMembershipRole(
+            userName, PrincipalType.USER);
+        if(uRoleMember.size() > 0){
+          pm.deletePersistentAll(uRoleMember);
+        }
+
+        List<MGlobalPrivilege> userGrants = listPrincipalGlobalGrants(
+            mUser.getUserName(), PrincipalType.USER);
+        if (userGrants.size() > 0) {
+          pm.deletePersistentAll(userGrants);
+        }
+        List<MDBPrivilege> dbGrants = listPrincipalAllDBGrant(
+            mUser.getUserName(), PrincipalType.USER);
+        if (dbGrants.size() > 0) {
+          pm.deletePersistentAll(dbGrants);
+        }
+        List<MTablePrivilege> tabPartGrants = listPrincipalAllTableGrants(
+            mUser.getUserName(), PrincipalType.USER);
+        if (tabPartGrants.size() > 0) {
+          pm.deletePersistentAll(tabPartGrants);
+        }
+        List<MPartitionPrivilege> partGrants = listPrincipalAllPartitionGrants(
+            mUser.getUserName(), PrincipalType.USER);
+        if (partGrants.size() > 0) {
+          pm.deletePersistentAll(partGrants);
+        }
+        List<MTableColumnPrivilege> tblColumnGrants = listPrincipalAllTableColumnGrants(
+            mUser.getUserName(), PrincipalType.USER);
+        if (tblColumnGrants.size() > 0) {
+          pm.deletePersistentAll(tblColumnGrants);
+        }
+        List<MPartitionColumnPrivilege> partColumnGrants = listPrincipalAllPartitionColumnGrants(
+            mUser.getUserName(), PrincipalType.USER);
+        if (tblColumnGrants.size() > 0) {
+          pm.deletePersistentAll(partColumnGrants);
+        }
+        // finally remove the role
+        pm.deletePersistent(mUser);
+      } else {
+        //LOG.debug("用户" + userName + "不存在！");
+        LOG.debug("User " + userName + " doesnt exist！");
+        return false;
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+@Override
+public boolean modifyUser(User user) throws MetaException,
+    NoSuchObjectException {
+  boolean commited = false;
+
+  try {
+    openTransaction();
+    MUser nameCheck = this.getMUser(user.getUserName());
+    if (nameCheck == null) {
+      LOG.debug("User " + user.getUserName() + " doesnt exist！");
+      return false;
+    }
+    nameCheck.setPasswd(user.getPassword());
+    pm.makePersistent(nameCheck);
+    commited = commitTransaction();
+  } finally {
+    if (!commited) {
+      rollbackTransaction();
+    }
+  }
+  return commited;
+}
+
+@Override
+public List<String> listUsersNames() {
+    boolean success = false;
+    try {
+      openTransaction();
+      LOG.debug("Executing listAllUserNames");
+      Query query = pm.newQuery("select userName from org.apache.hadoop.hive.metastore.model.MUser");
+      query.setResult("userName");
+
+      Collection names = (Collection) query.execute();
+
+      List<String> userNames  = new ArrayList<String>();
+      for (Iterator i = names.iterator(); i.hasNext();) {
+        userNames.add((String) i.next());
+      }
+      success = commitTransaction();
+
+      LOG.debug("sizeofuserNames"+userNames.size());
+      return userNames;
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+}
+
+@Override
+public boolean authentication(String userName, String passwd)
+    throws MetaException, NoSuchObjectException {
+  boolean auth = false;
+
+  try {
+    openTransaction();
+    MUser nameCheck = this.getMUser(userName);
+    if (nameCheck == null) {
+      //LOG.debug("用户 " + userName + " 不存在！");
+      LOG.debug("User " + userName + " doesnt exist！");
+      return false;
+    } else if (nameCheck.getPasswd().equals(passwd)){
+      auth = true;
+    } else {
+      //LOG.debug("用户名或密码错误！");
+      LOG.debug("User or password error!"+nameCheck.getPasswd()+", "+passwd);
+      return false;
+    }
+
+  } finally {
+  }
+  return auth;
+}
+
+//utilities for authentication and authorization, liulichao
+public MUser getMUser(String userName) {
+  MUser muser = null;
+  boolean commited = false;
+  try {
+    openTransaction();
+    Query query = pm.newQuery(MUser.class, "userName == t1");
+    query.declareParameters("java.lang.String t1");
+    query.setUnique(true);
+    muser = (MUser) query.execute(userName);
+    pm.retrieve(muser);
+    commited = commitTransaction();
+  } finally {
+    if (!commited) {
+      rollbackTransaction();
+    }
+  }
+  return muser;
+}
 
   private MRoleMap getMSecurityUserRoleMap(String userName,
       PrincipalType principalType, String roleName) {
@@ -7346,6 +7575,23 @@ public class ObjectStore implements RawStore, Configurable {
       MFile mf = getMFile(fid);
       if (mf != null) {
         pm.deletePersistent(mf);
+      }
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  public boolean delDevice(String devid) throws MetaException {
+    boolean success = false;
+    try {
+      openTransaction();
+      MDevice md = getMDevice(devid);
+      if (md != null) {
+        pm.deletePersistent(md);
       }
       success = commitTransaction();
     } finally {

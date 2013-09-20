@@ -1531,6 +1531,90 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'delete_table_column_statistics failed: unknown result')
     end
 
+    def create_user(user)
+      send_create_user(user)
+      return recv_create_user()
+    end
+
+    def send_create_user(user)
+      send_message('create_user', Create_user_args, :user => user)
+    end
+
+    def recv_create_user()
+      result = receive_message(Create_user_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'create_user failed: unknown result')
+    end
+
+    def drop_user(user_name)
+      send_drop_user(user_name)
+      return recv_drop_user()
+    end
+
+    def send_drop_user(user_name)
+      send_message('drop_user', Drop_user_args, :user_name => user_name)
+    end
+
+    def recv_drop_user()
+      result = receive_message(Drop_user_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_user failed: unknown result')
+    end
+
+    def modify_user(user)
+      send_modify_user(user)
+      return recv_modify_user()
+    end
+
+    def send_modify_user(user)
+      send_message('modify_user', Modify_user_args, :user => user)
+    end
+
+    def recv_modify_user()
+      result = receive_message(Modify_user_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'modify_user failed: unknown result')
+    end
+
+    def list_users_names()
+      send_list_users_names()
+      return recv_list_users_names()
+    end
+
+    def send_list_users_names()
+      send_message('list_users_names', List_users_names_args)
+    end
+
+    def recv_list_users_names()
+      result = receive_message(List_users_names_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'list_users_names failed: unknown result')
+    end
+
+    def authentication(user_name, passwd)
+      send_authentication(user_name, passwd)
+      return recv_authentication()
+    end
+
+    def send_authentication(user_name, passwd)
+      send_message('authentication', Authentication_args, :user_name => user_name, :passwd => passwd)
+    end
+
+    def recv_authentication()
+      result = receive_message(Authentication_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'authentication failed: unknown result')
+    end
+
     def create_role(role)
       send_create_role(role)
       return recv_create_role()
@@ -1950,6 +2034,38 @@ module ThriftHiveMetastore
       return result.success unless result.success.nil?
       raise result.o1 unless result.o1.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'del_node failed: unknown result')
+    end
+
+    def create_device(devid, prop, node_name)
+      send_create_device(devid, prop, node_name)
+      return recv_create_device()
+    end
+
+    def send_create_device(devid, prop, node_name)
+      send_message('create_device', Create_device_args, :devid => devid, :prop => prop, :node_name => node_name)
+    end
+
+    def recv_create_device()
+      result = receive_message(Create_device_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'create_device failed: unknown result')
+    end
+
+    def del_device(devid)
+      send_del_device(devid)
+      return recv_del_device()
+    end
+
+    def send_del_device(devid)
+      send_message('del_device', Del_device_args, :devid => devid)
+    end
+
+    def recv_del_device()
+      result = receive_message(Del_device_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'del_device failed: unknown result')
     end
 
     def alter_node(node_name, ipl, status)
@@ -3289,6 +3405,69 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'delete_table_column_statistics', seqid)
     end
 
+    def process_create_user(seqid, iprot, oprot)
+      args = read_args(iprot, Create_user_args)
+      result = Create_user_result.new()
+      begin
+        result.success = @handler.create_user(args.user)
+      rescue ::InvalidObjectException => o1
+        result.o1 = o1
+      rescue ::MetaException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'create_user', seqid)
+    end
+
+    def process_drop_user(seqid, iprot, oprot)
+      args = read_args(iprot, Drop_user_args)
+      result = Drop_user_result.new()
+      begin
+        result.success = @handler.drop_user(args.user_name)
+      rescue ::NoSuchObjectException => o1
+        result.o1 = o1
+      rescue ::MetaException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'drop_user', seqid)
+    end
+
+    def process_modify_user(seqid, iprot, oprot)
+      args = read_args(iprot, Modify_user_args)
+      result = Modify_user_result.new()
+      begin
+        result.success = @handler.modify_user(args.user)
+      rescue ::InvalidObjectException => o1
+        result.o1 = o1
+      rescue ::MetaException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'modify_user', seqid)
+    end
+
+    def process_list_users_names(seqid, iprot, oprot)
+      args = read_args(iprot, List_users_names_args)
+      result = List_users_names_result.new()
+      begin
+        result.success = @handler.list_users_names()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'list_users_names', seqid)
+    end
+
+    def process_authentication(seqid, iprot, oprot)
+      args = read_args(iprot, Authentication_args)
+      result = Authentication_result.new()
+      begin
+        result.success = @handler.authentication(args.user_name, args.passwd)
+      rescue ::NoSuchObjectException => o1
+        result.o1 = o1
+      rescue ::MetaException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'authentication', seqid)
+    end
+
     def process_create_role(seqid, iprot, oprot)
       args = read_args(iprot, Create_role_args)
       result = Create_role_result.new()
@@ -3585,6 +3764,28 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'del_node', seqid)
+    end
+
+    def process_create_device(seqid, iprot, oprot)
+      args = read_args(iprot, Create_device_args)
+      result = Create_device_result.new()
+      begin
+        result.success = @handler.create_device(args.devid, args.prop, args.node_name)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'create_device', seqid)
+    end
+
+    def process_del_device(seqid, iprot, oprot)
+      args = read_args(iprot, Del_device_args)
+      result = Del_device_result.new()
+      begin
+        result.success = @handler.del_device(args.devid)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'del_device', seqid)
     end
 
     def process_alter_node(seqid, iprot, oprot)
@@ -7181,6 +7382,185 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
+  class Create_user_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    USER = 1
+
+    FIELDS = {
+      USER => {:type => ::Thrift::Types::STRUCT, :name => 'user', :class => ::User}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Create_user_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::InvalidObjectException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_user_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    USER_NAME = 1
+
+    FIELDS = {
+      USER_NAME => {:type => ::Thrift::Types::STRING, :name => 'user_name'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Drop_user_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::NoSuchObjectException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Modify_user_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    USER = 1
+
+    FIELDS = {
+      USER => {:type => ::Thrift::Types::STRUCT, :name => 'user', :class => ::User}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Modify_user_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::InvalidObjectException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class List_users_names_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class List_users_names_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRING}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Authentication_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    USER_NAME = 1
+    PASSWD = 2
+
+    FIELDS = {
+      USER_NAME => {:type => ::Thrift::Types::STRING, :name => 'user_name'},
+      PASSWD => {:type => ::Thrift::Types::STRING, :name => 'passwd'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Authentication_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::NoSuchObjectException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class Create_role_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     ROLE = 1
@@ -8117,6 +8497,78 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::I32, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Create_device_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DEVID = 1
+    PROP = 2
+    NODE_NAME = 3
+
+    FIELDS = {
+      DEVID => {:type => ::Thrift::Types::STRING, :name => 'devid'},
+      PROP => {:type => ::Thrift::Types::I32, :name => 'prop'},
+      NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Create_device_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Device},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Del_device_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DEVID = 1
+
+    FIELDS = {
+      DEVID => {:type => ::Thrift::Types::STRING, :name => 'devid'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Del_device_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 

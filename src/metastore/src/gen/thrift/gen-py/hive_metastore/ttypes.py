@@ -976,6 +976,102 @@ class Role:
   def __ne__(self, other):
     return not (self == other)
 
+class User:
+  """
+  Attributes:
+   - userName
+   - password
+   - createTime
+   - ownerName
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'userName', None, None, ), # 1
+    (2, TType.STRING, 'password', None, None, ), # 2
+    (3, TType.I64, 'createTime', None, None, ), # 3
+    (4, TType.STRING, 'ownerName', None, None, ), # 4
+  )
+
+  def __init__(self, userName=None, password=None, createTime=None, ownerName=None,):
+    self.userName = userName
+    self.password = password
+    self.createTime = createTime
+    self.ownerName = ownerName
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.userName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.password = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.I64:
+          self.createTime = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRING:
+          self.ownerName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('User')
+    if self.userName is not None:
+      oprot.writeFieldBegin('userName', TType.STRING, 1)
+      oprot.writeString(self.userName)
+      oprot.writeFieldEnd()
+    if self.password is not None:
+      oprot.writeFieldBegin('password', TType.STRING, 2)
+      oprot.writeString(self.password)
+      oprot.writeFieldEnd()
+    if self.createTime is not None:
+      oprot.writeFieldBegin('createTime', TType.I64, 3)
+      oprot.writeI64(self.createTime)
+      oprot.writeFieldEnd()
+    if self.ownerName is not None:
+      oprot.writeFieldBegin('ownerName', TType.STRING, 4)
+      oprot.writeString(self.ownerName)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class Datacenter:
   """
   Attributes:
@@ -2675,6 +2771,90 @@ class Node:
     if self.status is not None:
       oprot.writeFieldBegin('status', TType.I32, 3)
       oprot.writeI32(self.status)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class Device:
+  """
+  Attributes:
+   - devid
+   - prop
+   - node_name
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'devid', None, None, ), # 1
+    (2, TType.I32, 'prop', None, None, ), # 2
+    (3, TType.STRING, 'node_name', None, None, ), # 3
+  )
+
+  def __init__(self, devid=None, prop=None, node_name=None,):
+    self.devid = devid
+    self.prop = prop
+    self.node_name = node_name
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.devid = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.I32:
+          self.prop = iprot.readI32();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRING:
+          self.node_name = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('Device')
+    if self.devid is not None:
+      oprot.writeFieldBegin('devid', TType.STRING, 1)
+      oprot.writeString(self.devid)
+      oprot.writeFieldEnd()
+    if self.prop is not None:
+      oprot.writeFieldBegin('prop', TType.I32, 2)
+      oprot.writeI32(self.prop)
+      oprot.writeFieldEnd()
+    if self.node_name is not None:
+      oprot.writeFieldBegin('node_name', TType.STRING, 3)
+      oprot.writeString(self.node_name)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

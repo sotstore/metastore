@@ -1257,9 +1257,6 @@
         <column name="LOCATION_ID"/>
       </datastore-identity>
       
-      <field name="node">
-        <column name="NODE_ID"/>
-      </field>
       <field name="file">
         <column name="FILE_ID"/>
       </field>
@@ -1282,6 +1279,29 @@
         <column name="DIGEST" length="256" jdbc-type="VARCHAR"/>
       </field>
     </class>
+
+<!-- Added by : liulichao begin     -->
+     <class name="MUser" identity-type="datastore" table="USER" detachable="true">
+
+      <datastore-identity>
+        <column name="USER_ID"/>
+      </datastore-identity>
+      <field name="userName">
+        <column name="USER_NAME" length="16" jdbc-type="VARCHAR" allows-null="false"/>
+        <index name="UniqueUser" unique="true"/>
+      </field>
+      <field name="passwd">
+        <column name="PASSWD" length="64" jdbc-type="VARCHAR" allows-null="false"/>
+      </field>
+      <field name="createTime">
+        <column name="CREATE_TIME" jdbc-type="integer"/>
+      </field>
+      <field name="ownerName">
+        <column name="OWNER_NAME" length="128" jdbc-type="VARCHAR"/>
+      </field>
+
+      </class>
+      <!-- Added by : liulichao end     -->
     
     <class name="MPartitionIndex" table="PARTITION_INDEX" identity-type="datastore" detachable="true">
       <index name="UniquePartitionIndex" unique="true">

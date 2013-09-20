@@ -625,6 +625,73 @@ class Role {
 
 void swap(Role &a, Role &b);
 
+typedef struct _User__isset {
+  _User__isset() : userName(false), password(false), createTime(false), ownerName(false) {}
+  bool userName;
+  bool password;
+  bool createTime;
+  bool ownerName;
+} _User__isset;
+
+class User {
+ public:
+
+  static const char* ascii_fingerprint; // = "67CA7CC4061D5EB7B29D9595C88340E6";
+  static const uint8_t binary_fingerprint[16]; // = {0x67,0xCA,0x7C,0xC4,0x06,0x1D,0x5E,0xB7,0xB2,0x9D,0x95,0x95,0xC8,0x83,0x40,0xE6};
+
+  User() : userName(), password(), createTime(0), ownerName() {
+  }
+
+  virtual ~User() throw() {}
+
+  std::string userName;
+  std::string password;
+  int64_t createTime;
+  std::string ownerName;
+
+  _User__isset __isset;
+
+  void __set_userName(const std::string& val) {
+    userName = val;
+  }
+
+  void __set_password(const std::string& val) {
+    password = val;
+  }
+
+  void __set_createTime(const int64_t val) {
+    createTime = val;
+  }
+
+  void __set_ownerName(const std::string& val) {
+    ownerName = val;
+  }
+
+  bool operator == (const User & rhs) const
+  {
+    if (!(userName == rhs.userName))
+      return false;
+    if (!(password == rhs.password))
+      return false;
+    if (!(createTime == rhs.createTime))
+      return false;
+    if (!(ownerName == rhs.ownerName))
+      return false;
+    return true;
+  }
+  bool operator != (const User &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const User & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(User &a, User &b);
+
 typedef struct _Datacenter__isset {
   _Datacenter__isset() : name(false), description(false), locationUri(false), parameters(false), privileges(false) {}
   bool name;
@@ -1702,6 +1769,65 @@ class Node {
 };
 
 void swap(Node &a, Node &b);
+
+typedef struct _Device__isset {
+  _Device__isset() : devid(false), prop(false), node_name(false) {}
+  bool devid;
+  bool prop;
+  bool node_name;
+} _Device__isset;
+
+class Device {
+ public:
+
+  static const char* ascii_fingerprint; // = "70563A0628F75DF9555F4D24690B1E26";
+  static const uint8_t binary_fingerprint[16]; // = {0x70,0x56,0x3A,0x06,0x28,0xF7,0x5D,0xF9,0x55,0x5F,0x4D,0x24,0x69,0x0B,0x1E,0x26};
+
+  Device() : devid(), prop(0), node_name() {
+  }
+
+  virtual ~Device() throw() {}
+
+  std::string devid;
+  int32_t prop;
+  std::string node_name;
+
+  _Device__isset __isset;
+
+  void __set_devid(const std::string& val) {
+    devid = val;
+  }
+
+  void __set_prop(const int32_t val) {
+    prop = val;
+  }
+
+  void __set_node_name(const std::string& val) {
+    node_name = val;
+  }
+
+  bool operator == (const Device & rhs) const
+  {
+    if (!(devid == rhs.devid))
+      return false;
+    if (!(prop == rhs.prop))
+      return false;
+    if (!(node_name == rhs.node_name))
+      return false;
+    return true;
+  }
+  bool operator != (const Device &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Device & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(Device &a, Device &b);
 
 typedef struct _SFileLocation__isset {
   _SFileLocation__isset() : node_name(false), fid(false), devid(false), location(false), rep_id(false), update_time(false), visit_status(false), digest(false) {}

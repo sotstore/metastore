@@ -125,6 +125,9 @@ public class Driver implements CommandProcessor {
   private String errorMessage;
   private String SQLState;
 
+  //added by liulichao
+  private static String rootName = "root";
+
   // A limit on the number of threads that can be launched
   private int maxthreads;
   private static final int SLEEP_TIME = 2000;
@@ -475,8 +478,13 @@ public class Driver implements CommandProcessor {
       schema = getSchema(sem, conf);
 
       //do the authorization check
+    //don't check root user. added by liulichao
+      SessionState ss = SessionState.get();
+
       if (HiveConf.getBoolVar(conf,
-          HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED)) {
+          //HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED)) {
+          HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED) 
+          && !ss.getAuthenticator().getUserName().equals(rootName)) {//added by liulichao, the root user doesn't need to be checked.
         try {
           perfLogger.PerfLogBegin(LOG, PerfLogger.DO_AUTHORIZATION);
           doAuthorization(sem);

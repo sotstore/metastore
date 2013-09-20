@@ -67,6 +67,16 @@ class ThriftHiveHandler : virtual public ThriftHiveIf {
     printf("clean\n");
   }
 
+  int32_t doAuth(const std::string& user, const std::string& password) {
+    // Your implementation goes here
+    printf("doAuth\n");
+  }
+
+  void execute2(const std::string& query, const std::string& user, const int32_t token) {
+    // Your implementation goes here
+    printf("execute2\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

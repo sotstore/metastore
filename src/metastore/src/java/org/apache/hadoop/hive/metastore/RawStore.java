@@ -30,6 +30,7 @@ import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -52,6 +53,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnPrivilege;
@@ -59,6 +61,7 @@ import org.apache.hadoop.hive.metastore.model.MPartitionPrivilege;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
 import org.apache.hadoop.hive.metastore.model.MTableColumnPrivilege;
 import org.apache.hadoop.hive.metastore.model.MTablePrivilege;
+import org.apache.hadoop.hive.metastore.model.MUser;
 import org.apache.thrift.TException;
 
 public interface RawStore extends Configurable {
@@ -490,6 +493,19 @@ public interface RawStore extends Configurable {
 
   public abstract Node findNode(String ip) throws MetaException;
 
+//authentication  with user by liulichao, begin
+  public abstract boolean addUser(String userName, String passwd, String ownerName)
+        throws InvalidObjectException, MetaException;
+
+  public abstract boolean removeUser(String userName) throws MetaException, NoSuchObjectException;
+
+  public List<String> listUsersNames();
+
+  public abstract boolean authentication(String userName, String passwd) throws MetaException, NoSuchObjectException;
+  //authentication and authorization with user by liulichao, end
+
+  public abstract MUser getMUser(String user);  //added by liulichao
+
   public List<SFile> findUnderReplicatedFiles() throws MetaException;
 
   public List<SFile> findOverReplicatedFiles() throws MetaException;
@@ -548,4 +564,10 @@ public interface RawStore extends Configurable {
   public abstract List<Busitype> showBusitypes()throws  MetaException, TException;
 
   public abstract int createBusitype(Busitype busitype)throws InvalidObjectException, MetaException, TException;
+
+  public Device getDevice(String devid) throws MetaException, NoSuchObjectException;
+
+  public boolean delDevice(String devid) throws MetaException;
+
+  boolean modifyUser(User user) throws MetaException, NoSuchObjectException;
 }

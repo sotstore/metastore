@@ -472,6 +472,31 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("delete_table_column_statistics\n");
   }
 
+  bool create_user(const User& user) {
+    // Your implementation goes here
+    printf("create_user\n");
+  }
+
+  bool drop_user(const std::string& user_name) {
+    // Your implementation goes here
+    printf("drop_user\n");
+  }
+
+  bool modify_user(const User& user) {
+    // Your implementation goes here
+    printf("modify_user\n");
+  }
+
+  void list_users_names(std::vector<std::string> & _return) {
+    // Your implementation goes here
+    printf("list_users_names\n");
+  }
+
+  bool authentication(const std::string& user_name, const std::string& passwd) {
+    // Your implementation goes here
+    printf("authentication\n");
+  }
+
   bool create_role(const Role& role) {
     // Your implementation goes here
     printf("create_role\n");
@@ -600,6 +625,16 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
   int32_t del_node(const std::string& node_name) {
     // Your implementation goes here
     printf("del_node\n");
+  }
+
+  void create_device(Device& _return, const std::string& devid, const int32_t prop, const std::string& node_name) {
+    // Your implementation goes here
+    printf("create_device\n");
+  }
+
+  bool del_device(const std::string& devid) {
+    // Your implementation goes here
+    printf("del_device\n");
   }
 
   void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status) {

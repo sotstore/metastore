@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
@@ -71,7 +72,7 @@ public class DiskManager {
     public long backupTimeout = 1 * 60 * 1000;
     public long backupQTimeout = 5 * 3600 * 1000; // 5 hour
     public long fileSizeThreshold = 64 * 1024 * 1024;
-    public String backupNodeName = "BACKUP-STORE";
+    public Set<String> backupDevs = new TreeSet<String>();
 
     public static class SFLTriple implements Comparable<SFLTriple> {
       public String node;
@@ -247,9 +248,10 @@ public class DiskManager {
       }
     }
 
-    public class DeviceInfo implements Comparable<DeviceInfo> {
+    public static class DeviceInfo implements Comparable<DeviceInfo> {
       public String dev; // dev name
       public String mp; // mount point
+      public int prop;
       public long read_nr;
       public long write_nr;
       public long err_nr;
@@ -368,7 +370,17 @@ public class DiskManager {
         String content = "";
         for (FileToPart ftp : toAdd) {
           for (SFileLocation sfl : ftp.file.getLocations()) {
-            if (sfl.getNode_name().equals(backupNodeName)) {
+            Device device = null;
+            synchronized (rs) {
+              try {
+                device = rs.getDevice(sfl.getDevid());
+              } catch (MetaException e) {
+                LOG.error(e, e);
+              } catch (NoSuchObjectException e) {
+                LOG.error(e, e);
+              }
+            }
+            if (device != null && (device.getProp() == MetaStoreConst.MDeviceProp.BACKUP)) {
               content += sfl.getLocation().substring(sfl.getLocation().lastIndexOf('/') + 1);
               if (ftp.isPart) {
                 content += "\tADD\t" + ftp.part.getDbName() + "\t" + ftp.part.getTableName() + "\t";
@@ -435,7 +447,17 @@ public class DiskManager {
         }
         for (FileToPart ftp : toDrop) {
           for (SFileLocation sfl : ftp.file.getLocations()) {
-            if (sfl.getNode_name().equals(backupNodeName)) {
+            Device device = null;
+            synchronized (rs) {
+              try {
+                device = rs.getDevice(sfl.getDevid());
+              } catch (MetaException e) {
+                LOG.error(e, e);
+              } catch (NoSuchObjectException e) {
+                LOG.error(e, e);
+              }
+            }
+            if (device != null && (device.getProp() == MetaStoreConst.MDeviceProp.BACKUP)) {
               content += sfl.getLocation() + "\tRemove\t" + ftp.part.getDbName() + "\t" + ftp.part.getTableName() + "\t";
               for (int i = 0; i < ftp.part.getValuesSize(); i++) {
                 content += ftp.part.getValues().get(i);
@@ -468,7 +490,6 @@ public class DiskManager {
         backupTimeout = hiveConf.getLongVar(HiveConf.ConfVars.DM_BACKUP_TIMEOUT);
         backupQTimeout = hiveConf.getLongVar(HiveConf.ConfVars.DM_BACKUPQ_TIMEOUT);
         fileSizeThreshold = hiveConf.getLongVar(HiveConf.ConfVars.DM_BACKUP_FILESIZE_THRESHOLD);
-        backupNodeName = hiveConf.getVar(HiveConf.ConfVars.DM_BACKUP_BACKUPNODENAME);
 
         if (last_backupTs + backupTimeout <= System.currentTimeMillis()) {
           // TODO: generate manifest.desc and tableName.desc
@@ -657,18 +678,29 @@ public class DiskManager {
         int init_size = f.getLocationsSize();
         int valid_idx = 0;
         boolean no_valid_fl = true;
-        FileLocatingPolicy flp;
+        FileLocatingPolicy flp, flp_backup, flp_default;
         Set<String> excludes = new TreeSet<String>();
         Set<String> excl_dev = new TreeSet<String>();
+        Set<String> spec_dev = new TreeSet<String>();
+        Set<String> spec_node = new TreeSet<String>();
 
         if (init_size <= 0) {
           LOG.error("Not valid locations for file " + f.getFid());
           return;
         }
+        // find the backup devices
+        findBackupDevice(spec_dev, spec_node);
+        LOG.debug("Try to write to backup device firstly: N <" + spec_node.toArray().toString() +
+            ">, D <" + spec_dev.toArray().toString() + ">");
+
         // find the valid entry
         for (int i = 0; i < init_size; i++) {
           excludes.add(f.getLocations().get(i).getNode_name());
           excl_dev.add(f.getLocations().get(i).getDevid());
+          if (spec_dev.remove(f.getLocations().get(i).getDevid())) {
+            // this backup device has already used
+            spec_dev.clear();
+          }
           if (f.getLocations().get(i).getVisit_status() == MetaStoreConst.MFileLocationVisitStatus.ONLINE) {
             valid_idx = i;
             no_valid_fl = false;
@@ -679,9 +711,16 @@ public class DiskManager {
           LOG.error("Async replicate SFile " + f.getFid() + ", but no valid FROM SFileLocations!");
           return;
         }
-        flp = new FileLocatingPolicy(excludes, excl_dev, FileLocatingPolicy.EXCLUDE_NODES_DEVS, false);
 
-        for (int i = init_size; i < (init_size + nr); i++) {
+        flp = flp_default = new FileLocatingPolicy(excludes, excl_dev, FileLocatingPolicy.EXCLUDE_NODES_DEVS, false);
+        flp_backup = new FileLocatingPolicy(spec_node, spec_dev, FileLocatingPolicy.SPECIFY_NODES_DEVS, true);
+
+        for (int i = init_size; i < (init_size + nr); i++, flp = flp_default) {
+          if (i == init_size) {
+            if (spec_dev.size() > 0) {
+              flp = flp_backup;
+            }
+          }
           try {
             String node_name = findBestNode(flp);
             if (node_name == null) {
@@ -1483,8 +1522,9 @@ public class DiskManager {
 
     static public class FileLocatingPolicy {
       public static final int EXCLUDE_NODES_DEVS = 0;
-      public static final int SPECIFY_NODES = 1;
-      public static final int SPECIFY_NODES_DEVS = 2;
+      public static final int EXCLUDE_NODES_DEVS_SHARED = 1;
+      public static final int SPECIFY_NODES = 2;
+      public static final int SPECIFY_NODES_DEVS = 3;
 
       Set<String> nodes;
       Set<String> devs;
@@ -1520,11 +1560,23 @@ public class DiskManager {
       return canFind;
     }
 
+    private Set<String> findSharedDevs(List<DeviceInfo> devs) {
+      Set<String> r = new TreeSet<String>();
+
+      for (DeviceInfo di : devs) {
+        if (di.prop == MetaStoreConst.MDeviceProp.SHARED ||
+            di.prop == MetaStoreConst.MDeviceProp.BACKUP) {
+          r.add(di.dev);
+        }
+      }
+      return r;
+    }
+
     public String findBestNode(FileLocatingPolicy flp) throws IOException {
       boolean isExclude = true;
 
       if (flp == null) {
-        return findBestNode();
+        return findBestNode(false);
       }
       if (safeMode) {
         throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
@@ -1532,7 +1584,12 @@ public class DiskManager {
       switch (flp.mode) {
       case FileLocatingPolicy.EXCLUDE_NODES_DEVS:
         if (flp.nodes == null || flp.nodes.size() == 0) {
-          return findBestNode();
+          return findBestNode(false);
+        }
+        break;
+      case FileLocatingPolicy.EXCLUDE_NODES_DEVS_SHARED:
+        if (flp.nodes == null || flp.nodes.size() == 0) {
+          return findBestNode(true);
         }
         break;
       case FileLocatingPolicy.SPECIFY_NODES:
@@ -1558,7 +1615,14 @@ public class DiskManager {
             if (flp.nodes.contains(entry.getKey())) {
               ignore = true;
             }
-            if (!canFindDevices(ni, flp.devs)) {
+            Set<String> excludeDevs = new TreeSet<String>();
+            if (flp.devs != null) {
+              excludeDevs.addAll(flp.devs);
+            }
+            if (flp.mode == FileLocatingPolicy.EXCLUDE_NODES_DEVS_SHARED) {
+              excludeDevs.addAll(findSharedDevs(dis));
+            }
+            if (!canFindDevices(ni, excludeDevs)) {
               ignore = true;
             }
           } else {
@@ -1579,13 +1643,13 @@ public class DiskManager {
         }
       }
       if (largestNode == null && flp.canIgnore) {
-        return findBestNode();
+        return findBestNode(false);
       }
 
       return largestNode;
     }
 
-    public String findBestNode() throws IOException {
+    public String findBestNode(boolean ignoreShared) throws IOException {
       if (safeMode) {
         throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
       }
@@ -1602,7 +1666,9 @@ public class DiskManager {
             continue;
           }
           for (DeviceInfo di : dis) {
-            thisfree += di.free;
+            if (!(ignoreShared && (di.prop == MetaStoreConst.MDeviceProp.SHARED || di.prop == MetaStoreConst.MDeviceProp.BACKUP))) {
+              thisfree += di.free;
+            }
           }
           if (thisfree > largest) {
             largestNode = entry.getKey();
@@ -1614,37 +1680,38 @@ public class DiskManager {
       return largestNode;
     }
 
-    private boolean isBackupNode(String node_name) {
-      if (node_name.equalsIgnoreCase(backupNodeName)) {
-        return true;
-      } else {
-        return false;
+    private void findBackupDevice(Set<String> dev, Set<String> node) {
+      for (Map.Entry<String, NodeInfo> e : ndmap.entrySet()) {
+        for (DeviceInfo di : e.getValue().dis) {
+          Device d = null;
+          synchronized (rs) {
+            try {
+              d = rs.getDevice(di.dev);
+            } catch (MetaException e1) {
+              LOG.error(e1, e1);
+            } catch (NoSuchObjectException e1) {
+              LOG.error(e1, e1);
+            }
+          }
+          if (d != null && (d.getProp() == MetaStoreConst.MDeviceProp.BACKUP || d.getProp() == MetaStoreConst.MDeviceProp.BACKUP_ALONE)) {
+            dev.add(di.dev);
+            node.add(d.getNode_name());
+          }
+        }
       }
     }
 
-    private List<DeviceInfo> filterNASDevice(String node_name, List<DeviceInfo> orig) {
+    // filter backup device either
+    private List<DeviceInfo> filterSharedDevice(String node_name, List<DeviceInfo> orig) {
       List<DeviceInfo> r = new ArrayList<DeviceInfo>();
 
       for (DeviceInfo di : orig) {
-        if (!di.dev.contains("nas")) {
-          r.add(di);
-        } else if (isBackupNode(node_name)) {
+        if (di.prop == MetaStoreConst.MDeviceProp.ALONE) {
           r.add(di);
         }
       }
 
       return r;
-    }
-
-    public void identifyNASDevice(List<SFileLocation> lsfl) {
-      if (lsfl == null) {
-        return;
-      }
-      for (SFileLocation sfl : lsfl) {
-        if (sfl.getDevid().contains("nas")) {
-          sfl.setNode_name("");
-        }
-      }
     }
 
     public List<DeviceInfo> findDevices(String node) throws IOException {
@@ -1655,7 +1722,7 @@ public class DiskManager {
       if (ni == null) {
         return null;
       } else {
-        return filterNASDevice(node, ni.dis);
+        return filterSharedDevice(node, ni.dis);
       }
     }
 
@@ -1667,8 +1734,12 @@ public class DiskManager {
       if (ni == null) {
         throw new IOException("Node '" + node + "' does not exist in NDMap, are you sure node '" + node + "' belongs to this MetaStore?" + hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER) + "\n");
       }
-      List<DeviceInfo> dilist;
-      synchronized (ni) {dilist = filterNASDevice(node, ni.dis);}
+      List<DeviceInfo> dilist = ni.dis;
+      if (flp.mode == FileLocatingPolicy.EXCLUDE_NODES_DEVS_SHARED) {
+        synchronized (ni) {
+          dilist = filterSharedDevice(node, ni.dis);
+        }
+      }
       String bestDev = null;
       long free = 0;
 
@@ -1678,7 +1749,8 @@ public class DiskManager {
       for (DeviceInfo di : dilist) {
         boolean ignore = false;
 
-        if (flp.mode == FileLocatingPolicy.EXCLUDE_NODES_DEVS) {
+        if (flp.mode == FileLocatingPolicy.EXCLUDE_NODES_DEVS ||
+            flp.mode == FileLocatingPolicy.EXCLUDE_NODES_DEVS_SHARED) {
           if (flp.devs != null && flp.devs.contains(di.dev)) {
             ignore = true;
             break;
@@ -1691,6 +1763,7 @@ public class DiskManager {
         }
         if (!ignore && di.free > free) {
           bestDev = di.dev;
+          free = di.free;
         }
       }
       if (bestDev == null && flp.canIgnore) {
@@ -1770,17 +1843,36 @@ public class DiskManager {
             continue;
           }
           if (r.op == DMRequest.DMROperation.REPLICATE) {
-            FileLocatingPolicy flp;
+            FileLocatingPolicy flp, flp_default, flp_backup;
             Set<String> excludes = new TreeSet<String>();
             Set<String> excl_dev = new TreeSet<String>();
+            Set<String> spec_dev = new TreeSet<String>();
+            Set<String> spec_node = new TreeSet<String>();
 
-            // allocate new file locations
+            // find backup device
+            findBackupDevice(spec_dev, spec_node);
+            LOG.debug("Try to write to backup device firstly: N <" + spec_node.toArray().toString() +
+                ">, D <" + spec_dev.toArray().toString() + ">");
+
+            // exclude old file locations
             for (int i = 0; i < r.begin_idx; i++) {
               excludes.add(r.file.getLocations().get(i).getNode_name());
               excl_dev.add(r.file.getLocations().get(i).getDevid());
+              // remove if this backup device has already used
+              if (spec_dev.remove(r.file.getLocations().get(i).getDevid())) {
+                spec_dev.clear();
+              }
             }
-            flp = new FileLocatingPolicy(excludes, excl_dev, FileLocatingPolicy.EXCLUDE_NODES_DEVS, true);
-            for (int i = r.begin_idx; i < r.file.getRep_nr(); i++) {
+
+            flp = flp_default = new FileLocatingPolicy(excludes, excl_dev, FileLocatingPolicy.EXCLUDE_NODES_DEVS, true);
+            flp_backup = new FileLocatingPolicy(spec_node, spec_dev, FileLocatingPolicy.SPECIFY_NODES_DEVS, true);
+
+            for (int i = r.begin_idx; i < r.file.getRep_nr(); i++, flp = flp_default) {
+              if (i == r.begin_idx) {
+                if (spec_dev.size() > 0) {
+                  flp = flp_backup;
+                }
+              }
               try {
                 String node_name = findBestNode(flp);
                 if (node_name == null) {
@@ -2054,6 +2146,16 @@ public class DiskManager {
           if (stats == null || stats.length < 6) {
             LOG.debug("Invalid report line value: " + lines[i]);
             continue;
+          }
+          synchronized (rs) {
+            try {
+              Device d = rs.getDevice(di.dev);
+              di.prop = d.getProp();
+            } catch (MetaException e) {
+              LOG.error(e, e);
+            } catch (NoSuchObjectException e) {
+              LOG.error(e, e);
+            }
           }
           di.mp = stats[0];
           di.read_nr = Long.parseLong(stats[1]);

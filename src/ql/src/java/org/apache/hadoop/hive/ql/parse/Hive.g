@@ -226,6 +226,19 @@ TOK_LEFTSEMIJOIN;
 TOK_LATERAL_VIEW;
 TOK_TABALIAS;
 TOK_ANALYZE;
+//tokens for authentification and authorization by liulichao, begin 
+TOK_DBA;
+//TOK_PRIV_DELETE;	//to discuss whether it should exist.
+//TOK_PRIV_INSERT;	//to discuss whether it should exist.
+//TOK_PRIV_SHOWVIEW;
+//TOK_PRIV_CREATEVIEW;
+TOK_CREATEUSER;	//authentification_1
+TOK_DROPUSER;	//authentification_2
+TOK_SHOW_USERNAMES;	//The privilege of DBAs
+TOK_CHANGE_PWD;	//authentification_3
+TOK_AUTHENTICATION;	//authentification_4
+//TOK_SWITCHUSER;
+//tokens for authentification and authorization by liulichao, end
 TOK_CREATEROLE;
 TOK_DROPROLE;
 TOK_GRANT;
@@ -238,6 +251,8 @@ TOK_USER;
 TOK_GROUP;
 TOK_ROLE;
 TOK_GRANT_WITH_OPTION;
+TOK_CREATE_AS_DBA;	//added by liulichao
+TOK_PRIV_DBA;		//added by liulichao
 TOK_PRIV_ALL;
 TOK_PRIV_ALTER_METADATA;
 TOK_PRIV_ALTER_DATA;
@@ -421,6 +436,12 @@ ddlStatement
     | showRoleGrants
     | grantRole
     | revokeRole
+    | createUserStatement	//added by liulichao,begin
+    | dropUserStatement
+    | showUserNames
+    | changePassword
+//    | switchUserStatement
+    | authentificationStatement//added by liulichao,end
     | datawarehouseStatement
     | addNodeStatement
     | dropNodeStatement
@@ -1295,6 +1316,57 @@ revokeRole
     -> ^(TOK_REVOKE_ROLE principalSpecification Identifier+)
     ;
 
+//added by liulichao, ACL statements\
+
+createUserStatement
+@init { msgs.push("create user"); }
+@after { msgs.pop(); }
+//    : KW_CREATE kwUser userName=Identifier KW_IDENTIFIED KW_BY pwd=StringLiteral (asDBA)?
+    : KW_CREATE kwUser userName=Identifier KW_IDENTIFIED KW_BY pwd=StringLiteral (asDBA)?
+    -> ^(TOK_CREATEUSER $userName $pwd (asDBA)?)
+    ;
+
+dropUserStatement
+@init {msgs.push("drop user");}
+@after {msgs.pop();}
+    : KW_DROP kwUser Identifier (COMMA Identifier)*
+//    : KW_DROP kwUser userName=Identifier
+//    -> ^(TOK_DROPUSER $userName)
+//    : KW_DROP kwUser  Identifier
+    -> ^(TOK_DROPUSER Identifier+)
+    ;
+
+showUserNames
+@init {msgs.push("show user names");}
+@after {msgs.pop();}
+    : KW_SHOW kwUsers
+    -> ^(TOK_SHOW_USERNAMES)
+    ;
+
+changePassword
+@init {msgs.push("change user's password");}
+@after {msgs.pop();}
+    : KW_SETPASSWD (KW_FOR user=Identifier)? KW_TO pwd=StringLiteral
+    -> ^(TOK_CHANGE_PWD $user? $pwd)	//TOK_CHANGE_PWD StringLiteral $user?
+    ;
+
+/*
+switchUserStatement
+@init { msgs.push("switch user statement"); }
+@after { msgs.pop(); }
+    : KW_USE kwUser Identifier
+    -> ^(TOK_SWITCHUSER Identifier)
+    ;
+    */
+authentificationStatement
+@init { msgs.push("authentification statement"); }
+@after { msgs.pop(); }
+    : KW_CONNECT userName=Identifier  passord=StringLiteral
+    -> ^(TOK_AUTHENTICATION $userName $passord)
+    ;
+
+//added by liulichao
+
 showRoleGrants
 @init {msgs.push("show role grants");}
 @after {msgs.pop();}
@@ -1349,6 +1421,7 @@ privilegeType
     | KW_LOCK -> ^(TOK_PRIV_LOCK)
     | KW_SELECT -> ^(TOK_PRIV_SELECT)
     | KW_SHOW_DATABASE -> ^(TOK_PRIV_SHOW_DATABASE)
+    | KW_DBA->^(TOK_PRIV_DBA)	//added by liulichao
     ;
 
 principalSpecification
@@ -1370,6 +1443,14 @@ withOption
 @after {msgs.pop();}
     : KW_GRANT KW_OPTION
     -> ^(TOK_GRANT_WITH_OPTION)
+    ;
+
+//added by liulichao
+asDBA
+@init {msgs.push("as DBA");}
+@after {msgs.pop();}
+    : KW_AS KW_DBA
+    -> ^(TOK_CREATE_AS_DBA)
     ;
 
 metastoreCheck
@@ -2726,11 +2807,6 @@ descFuncNames
     ;
 
 // Keywords
-
-kwUser
-:
-{input.LT(1).getText().equalsIgnoreCase("user")}? Identifier;
-
 kwRole
 :
 {input.LT(1).getText().equalsIgnoreCase("role")}? Identifier;
@@ -2738,6 +2814,16 @@ kwRole
 kwInner
 :
 {input.LT(1).getText().equalsIgnoreCase("inner")}? Identifier;
+
+kwUsers				//added by liulichao
+:
+//{input.LT(1).getText().equalsIgnoreCase("users")}?;
+'USERS';
+
+kwUser				//added by liulichao
+:'USER';
+//{input.LT(1).getText().equalsIgnoreCase("user")}?;
+//{input.LT(1).getText().equalsIgnoreCase("user")}? Identifier;
 
 KW_TRUE : 'TRUE';
 KW_FALSE : 'FALSE';
@@ -2957,6 +3043,10 @@ KW_FOR: 'FOR';
 KW_GROUPING: 'GROUPING';
 KW_SETS: 'SETS';
 
+KW_DBA: 'DBA';	//added by liulichao,begin
+KW_SETPASSWD: 'SETPASSWD';
+KW_IDENTIFIED: 'IDENTIFIED';
+KW_CONNECT: 'CONNECT';	//added by liulichao,end
 //added by zjw
 KW_VALUES:	 'VALUES';
 KW_SUBPARTITIONED: 'SUBPARTITIONED';

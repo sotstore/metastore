@@ -51,6 +51,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -81,6 +82,8 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.api.User;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -1566,6 +1569,40 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     return client.rm_file_physical(file);
   }
 
+  //added by liulichao
+@Override
+public boolean create_user(User user) throws InvalidObjectException,
+    MetaException, TException {
+   return client.create_user(user);
+}
+
+@Override
+public boolean drop_user(String user_name) throws NoSuchObjectException,
+    MetaException, TException {
+  return client.drop_user(user_name);
+}
+
+@Override
+public boolean modify_user(User user)
+    throws NoSuchObjectException, MetaException, TException {
+  return client.modify_user(user);
+
+}
+
+@Override
+public List<String> list_users_names() throws MetaException, TException {
+  return client.list_users_names();
+}
+
+@Override
+public boolean authentication(String user_name, String passwd)
+    throws NoSuchObjectException, MetaException, TException {
+  return client.authentication(user_name, passwd);
+}
+//added by liulichao
+
+
+
   @Override
   public Node alter_node(String node_name, List<String> ipl, int status) throws MetaException,
       TException {
@@ -1881,5 +1918,19 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   @Override
   public boolean toggle_safemode() throws MetaException, TException {
     return client.toggle_safemode();
+  }
+
+  @Override
+  public Device createDevice(String devid, int prop, String node_name) throws MetaException,
+      TException {
+    assert devid != null;
+    assert node_name != null;
+    return client.create_device(devid, prop, node_name);
+  }
+
+  @Override
+  public boolean delDevice(String devid) throws MetaException, TException {
+    assert devid != null;
+    return client.del_device(devid);
   }
 }

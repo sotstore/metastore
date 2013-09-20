@@ -239,6 +239,28 @@ class Role
   ::Thrift::Struct.generate_accessors self
 end
 
+class User
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  USERNAME = 1
+  PASSWORD = 2
+  CREATETIME = 3
+  OWNERNAME = 4
+
+  FIELDS = {
+    USERNAME => {:type => ::Thrift::Types::STRING, :name => 'userName'},
+    PASSWORD => {:type => ::Thrift::Types::STRING, :name => 'password'},
+    CREATETIME => {:type => ::Thrift::Types::I64, :name => 'createTime'},
+    OWNERNAME => {:type => ::Thrift::Types::STRING, :name => 'ownerName'}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
 class Datacenter
   include ::Thrift::Struct, ::Thrift::Struct_Union
   NAME = 1
@@ -551,6 +573,26 @@ class Node
     NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'},
     IPS => {:type => ::Thrift::Types::LIST, :name => 'ips', :element => {:type => ::Thrift::Types::STRING}},
     STATUS => {:type => ::Thrift::Types::I32, :name => 'status'}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
+class Device
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  DEVID = 1
+  PROP = 2
+  NODE_NAME = 3
+
+  FIELDS = {
+    DEVID => {:type => ::Thrift::Types::STRING, :name => 'devid'},
+    PROP => {:type => ::Thrift::Types::I32, :name => 'prop'},
+    NODE_NAME => {:type => ::Thrift::Types::STRING, :name => 'node_name'}
   }
 
   def struct_fields; FIELDS; end

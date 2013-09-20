@@ -25,6 +25,8 @@ class ThriftHiveIf : virtual public  ::Apache::Hadoop::Hive::ThriftHiveMetastore
   virtual void getClusterStatus(HiveClusterStatus& _return) = 0;
   virtual void getQueryPlan( ::Apache::Hadoop::Hive::QueryPlan& _return) = 0;
   virtual void clean() = 0;
+  virtual int32_t doAuth(const std::string& user, const std::string& password) = 0;
+  virtual void execute2(const std::string& query, const std::string& user, const int32_t token) = 0;
 };
 
 class ThriftHiveIfFactory : virtual public  ::Apache::Hadoop::Hive::ThriftHiveMetastoreIfFactory {
@@ -79,6 +81,13 @@ class ThriftHiveNull : virtual public ThriftHiveIf , virtual public  ::Apache::H
     return;
   }
   void clean() {
+    return;
+  }
+  int32_t doAuth(const std::string& /* user */, const std::string& /* password */) {
+    int32_t _return = 0;
+    return _return;
+  }
+  void execute2(const std::string& /* query */, const std::string& /* user */, const int32_t /* token */) {
     return;
   }
 };
@@ -1007,6 +1016,259 @@ class ThriftHive_clean_presult {
 
 };
 
+typedef struct _ThriftHive_doAuth_args__isset {
+  _ThriftHive_doAuth_args__isset() : user(false), password(false) {}
+  bool user;
+  bool password;
+} _ThriftHive_doAuth_args__isset;
+
+class ThriftHive_doAuth_args {
+ public:
+
+  ThriftHive_doAuth_args() : user(), password() {
+  }
+
+  virtual ~ThriftHive_doAuth_args() throw() {}
+
+  std::string user;
+  std::string password;
+
+  _ThriftHive_doAuth_args__isset __isset;
+
+  void __set_user(const std::string& val) {
+    user = val;
+  }
+
+  void __set_password(const std::string& val) {
+    password = val;
+  }
+
+  bool operator == (const ThriftHive_doAuth_args & rhs) const
+  {
+    if (!(user == rhs.user))
+      return false;
+    if (!(password == rhs.password))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHive_doAuth_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHive_doAuth_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHive_doAuth_pargs {
+ public:
+
+
+  virtual ~ThriftHive_doAuth_pargs() throw() {}
+
+  const std::string* user;
+  const std::string* password;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHive_doAuth_result__isset {
+  _ThriftHive_doAuth_result__isset() : success(false), ex(false) {}
+  bool success;
+  bool ex;
+} _ThriftHive_doAuth_result__isset;
+
+class ThriftHive_doAuth_result {
+ public:
+
+  ThriftHive_doAuth_result() : success(0) {
+  }
+
+  virtual ~ThriftHive_doAuth_result() throw() {}
+
+  int32_t success;
+  HiveServerException ex;
+
+  _ThriftHive_doAuth_result__isset __isset;
+
+  void __set_success(const int32_t val) {
+    success = val;
+  }
+
+  void __set_ex(const HiveServerException& val) {
+    ex = val;
+  }
+
+  bool operator == (const ThriftHive_doAuth_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(ex == rhs.ex))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHive_doAuth_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHive_doAuth_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHive_doAuth_presult__isset {
+  _ThriftHive_doAuth_presult__isset() : success(false), ex(false) {}
+  bool success;
+  bool ex;
+} _ThriftHive_doAuth_presult__isset;
+
+class ThriftHive_doAuth_presult {
+ public:
+
+
+  virtual ~ThriftHive_doAuth_presult() throw() {}
+
+  int32_t* success;
+  HiveServerException ex;
+
+  _ThriftHive_doAuth_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHive_execute2_args__isset {
+  _ThriftHive_execute2_args__isset() : query(false), user(false), token(false) {}
+  bool query;
+  bool user;
+  bool token;
+} _ThriftHive_execute2_args__isset;
+
+class ThriftHive_execute2_args {
+ public:
+
+  ThriftHive_execute2_args() : query(), user(), token(0) {
+  }
+
+  virtual ~ThriftHive_execute2_args() throw() {}
+
+  std::string query;
+  std::string user;
+  int32_t token;
+
+  _ThriftHive_execute2_args__isset __isset;
+
+  void __set_query(const std::string& val) {
+    query = val;
+  }
+
+  void __set_user(const std::string& val) {
+    user = val;
+  }
+
+  void __set_token(const int32_t val) {
+    token = val;
+  }
+
+  bool operator == (const ThriftHive_execute2_args & rhs) const
+  {
+    if (!(query == rhs.query))
+      return false;
+    if (!(user == rhs.user))
+      return false;
+    if (!(token == rhs.token))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHive_execute2_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHive_execute2_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHive_execute2_pargs {
+ public:
+
+
+  virtual ~ThriftHive_execute2_pargs() throw() {}
+
+  const std::string* query;
+  const std::string* user;
+  const int32_t* token;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHive_execute2_result__isset {
+  _ThriftHive_execute2_result__isset() : ex(false) {}
+  bool ex;
+} _ThriftHive_execute2_result__isset;
+
+class ThriftHive_execute2_result {
+ public:
+
+  ThriftHive_execute2_result() {
+  }
+
+  virtual ~ThriftHive_execute2_result() throw() {}
+
+  HiveServerException ex;
+
+  _ThriftHive_execute2_result__isset __isset;
+
+  void __set_ex(const HiveServerException& val) {
+    ex = val;
+  }
+
+  bool operator == (const ThriftHive_execute2_result & rhs) const
+  {
+    if (!(ex == rhs.ex))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHive_execute2_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHive_execute2_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHive_execute2_presult__isset {
+  _ThriftHive_execute2_presult__isset() : ex(false) {}
+  bool ex;
+} _ThriftHive_execute2_presult__isset;
+
+class ThriftHive_execute2_presult {
+ public:
+
+
+  virtual ~ThriftHive_execute2_presult() throw() {}
+
+  HiveServerException ex;
+
+  _ThriftHive_execute2_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class ThriftHiveClient : virtual public ThriftHiveIf, public  ::Apache::Hadoop::Hive::ThriftHiveMetastoreClient {
  public:
   ThriftHiveClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -1046,6 +1308,12 @@ class ThriftHiveClient : virtual public ThriftHiveIf, public  ::Apache::Hadoop::
   void clean();
   void send_clean();
   void recv_clean();
+  int32_t doAuth(const std::string& user, const std::string& password);
+  void send_doAuth(const std::string& user, const std::string& password);
+  int32_t recv_doAuth();
+  void execute2(const std::string& query, const std::string& user, const int32_t token);
+  void send_execute2(const std::string& query, const std::string& user, const int32_t token);
+  void recv_execute2();
 };
 
 class ThriftHiveProcessor : public  ::Apache::Hadoop::Hive::ThriftHiveMetastoreProcessor {
@@ -1065,6 +1333,8 @@ class ThriftHiveProcessor : public  ::Apache::Hadoop::Hive::ThriftHiveMetastoreP
   void process_getClusterStatus(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getQueryPlan(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_clean(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_doAuth(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_execute2(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   ThriftHiveProcessor(boost::shared_ptr<ThriftHiveIf> iface) :
      ::Apache::Hadoop::Hive::ThriftHiveMetastoreProcessor(iface),
@@ -1078,6 +1348,8 @@ class ThriftHiveProcessor : public  ::Apache::Hadoop::Hive::ThriftHiveMetastoreP
     processMap_["getClusterStatus"] = &ThriftHiveProcessor::process_getClusterStatus;
     processMap_["getQueryPlan"] = &ThriftHiveProcessor::process_getQueryPlan;
     processMap_["clean"] = &ThriftHiveProcessor::process_clean;
+    processMap_["doAuth"] = &ThriftHiveProcessor::process_doAuth;
+    processMap_["execute2"] = &ThriftHiveProcessor::process_execute2;
   }
 
   virtual ~ThriftHiveProcessor() {}
@@ -1197,6 +1469,24 @@ class ThriftHiveMultiface : virtual public ThriftHiveIf, public  ::Apache::Hadoo
       ifaces_[i]->clean();
     }
     ifaces_[i]->clean();
+  }
+
+  int32_t doAuth(const std::string& user, const std::string& password) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->doAuth(user, password);
+    }
+    return ifaces_[i]->doAuth(user, password);
+  }
+
+  void execute2(const std::string& query, const std::string& user, const int32_t token) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->execute2(query, user, token);
+    }
+    ifaces_[i]->execute2(query, user, token);
   }
 
 };

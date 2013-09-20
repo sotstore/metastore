@@ -29,6 +29,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -55,6 +56,7 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.thrift.TException;
 
 /**
@@ -1001,6 +1003,54 @@ public interface IMetaStoreClient {
 
   public Node get_node(String node_name) throws MetaException, TException;
 
+//authentication and authorization with user by liulichao, begin
+  /**
+   * @param user
+   * @return true on success
+   * @throws InvalidObjectException
+   * @throws MetaException
+   * @throws TException
+   */
+  public boolean create_user(User user) throws InvalidObjectException, MetaException, TException;
+
+  /**
+   * @param user_name
+   * @return true on success
+   * @throws NoSuchObjectException
+   * @throws MetaException
+   * @throws TException
+   */
+  public boolean drop_user(String user_name) throws NoSuchObjectException, MetaException, TException;
+
+  /**
+   * @param user_name
+   * @param passwd
+   * @throws NoSuchObjectException
+   * @throws MetaException
+   * @throws TException
+   */
+  public boolean modify_user(User user) throws NoSuchObjectException, MetaException, TException;
+
+  /**
+   * @return names of all users
+   * @throws MetaException
+   * @throws TException
+   */
+  //public List<String> list_users_names() throws MetaException, TException;
+
+  /**
+   * @param user_name
+   * @param passwd
+   * @return true on success
+   * @throws NoSuchObjectException
+   * @throws MetaException
+   * @throws TException
+   */
+  public boolean authentication(String user_name, String passwd) throws NoSuchObjectException, MetaException, TException;
+
+  public List<String> list_users_names() throws MetaException, TException;
+  //authentication and authorization with user by liulichao, end
+
   public Boolean del_node(String node_name) throws MetaException, TException;
 
   public Node alter_node(String node_name, List<String> ipl, int status) throws MetaException, TException;
@@ -1093,5 +1143,9 @@ public interface IMetaStoreClient {
   public int createBusitype(Busitype bt)throws MetaException, TException;
 
   public boolean toggle_safemode() throws MetaException, TException;
+
+  public Device createDevice(String devid, int prop, String node_name) throws MetaException, TException;
+
+  public boolean delDevice(String devid) throws MetaException, TException;
 
 }

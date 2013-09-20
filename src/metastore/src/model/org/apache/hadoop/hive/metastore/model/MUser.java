@@ -20,22 +20,22 @@ package org.apache.hadoop.hive.metastore.model;
 
 import java.util.Set;
 
+
+//Implemented By : liulichao
+//Implementation Date : 2013-05-15
 public class MUser {
 
   private String userName;
 
   private MRole role;
 
+  private String passwd;
+
   private int createTime;
 
   private String ownerName;
 
-  private String passwd;
-
   private Set<MDatabase> dbs;
-
-  public MUser() {
-  }
 
   public MUser(String userName, int createTime, String ownerName) {
     super();
@@ -44,30 +44,34 @@ public class MUser {
     this.ownerName = ownerName;
   }
 
-  public MUser(String userName,MRole role, int createTime, String ownerName ,String passwd) {
+  public MUser(String userName, MRole role, int createTime, String ownerName, String passwd) {
     super();
     this.userName = userName;
     this.role = role;
     this.createTime = createTime;
-    this.passwd = ownerName;
     this.passwd = passwd;
   }
 
-  public MUser(String userName,MRole role, int createTime, String ownerName ,String passwd,Set<MDatabase> dbs) {
+  public MUser(String userName, MRole role, int createTime, String ownerName, String passwd,Set<MDatabase> dbs) {
     this(userName, role, createTime, ownerName, passwd);
     this.dbs = dbs;
   }
 
   /**
-   * @return role name
-   */
-  public String getUserName() {
-    return userName;
-  }
-
-  /**
    * @param roleName
    */
+  public MUser() {
+
+  }
+
+  public MUser(String userName, String passwd, int createTime, String ownerName) {
+    super();
+    this.userName = userName;
+    this.passwd = passwd;
+    this.createTime = createTime;
+    this.ownerName = ownerName;
+  }
+
   public void setUserName(String userName) {
     this.userName = userName;
   }
@@ -95,10 +99,12 @@ public class MUser {
     this.createTime = createTime;
   }
 
-
-
   public String getPasswd() {
     return passwd;
+  }
+
+  public String getUserName() {
+    return this.userName;
   }
 
   public void setPasswd(String passwd) {
@@ -124,6 +130,4 @@ public class MUser {
     this.dbs = dbs;
   }
 
-
 }
-

@@ -19,6 +19,7 @@
 package org.apache.hadoop.hive.ql.security.authorization;
 
 import java.util.EnumSet;
+
 import org.apache.hadoop.hive.ql.parse.HiveParser;
 
 /**
@@ -26,8 +27,9 @@ import org.apache.hadoop.hive.ql.parse.HiveParser;
  * This class contains all of the predefined privileges in Hive.
  */
 public class Privilege {
-  
+
   public enum PrivilegeType {
+    DBA,        //added by liulichao.
     ALL,
     ALTER_DATA,
     ALTER_METADATA,
@@ -43,6 +45,8 @@ public class Privilege {
 
   public static PrivilegeType getPrivTypeByToken(int token) {
     switch (token) {
+    case HiveParser.TOK_DBA:    //added by liulichao.
+      return PrivilegeType.DBA;
     case HiveParser.TOK_PRIV_ALL:
       return PrivilegeType.ALL;
     case HiveParser.TOK_PRIV_ALTER_DATA:
@@ -68,6 +72,9 @@ public class Privilege {
 
   public static PrivilegeType getPrivTypeByName(String privilegeName) {
     String canonicalizedName = privilegeName.toLowerCase();
+    if (canonicalizedName.equals("dba")) {  //added by liulichao.
+      return PrivilegeType.DBA;
+    } else
     if (canonicalizedName.equals("all")) {
       return PrivilegeType.ALL;
     } else if (canonicalizedName.equals("update")) {
@@ -92,9 +99,9 @@ public class Privilege {
   }
 
   private PrivilegeType priv;
-  
+
   private EnumSet<PrivilegeScope> supportedScopeSet;
-  
+
   private Privilege(PrivilegeType priv, EnumSet<PrivilegeScope> scopeSet) {
     super();
     this.priv = priv;
@@ -104,7 +111,7 @@ public class Privilege {
   public Privilege(PrivilegeType priv) {
     super();
     this.priv = priv;
-    
+
   }
 
   public PrivilegeType getPriv() {
@@ -114,7 +121,7 @@ public class Privilege {
   public void setPriv(PrivilegeType priv) {
     this.priv = priv;
   }
-  
+
   public boolean supportColumnLevel() {
     return supportedScopeSet != null
         && supportedScopeSet.contains(PrivilegeScope.COLUMN_LEVEL_SCOPE);
@@ -129,10 +136,12 @@ public class Privilege {
     return supportedScopeSet != null
         && supportedScopeSet.contains(PrivilegeScope.TABLE_LEVEL_SCOPE);
   }
-  
+
   @Override
   public String toString() {
     switch (this.priv) {
+    case DBA:     //added by liulichao.
+      return "DBA";
     case ALL:
       return "All";
     case ALTER_DATA:
