@@ -242,6 +242,14 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_MODIFYNODEGROUP:
       case HiveParser.TOK_DROPNODEGROUP:
       case HiveParser.TOK_SHOWNODEGROUPS:
+//      case HiveParser.TOK_CREATESCHEMA:
+      case HiveParser.TOK_DROPSCHEMA:
+      case HiveParser.TOK_ALTERSCHEMA_RENAME:
+      case HiveParser.TOK_ALTERSCHEMA_ADDCOLS:
+      case HiveParser.TOK_ALTERSCHEMA_REPLACECOLS:
+      case HiveParser.TOK_ALTERSCHEMA_RENAMECOL:
+      case HiveParser.TOK_ALTERSCHEMA_CHANGECOL_AFTER_POSITION:
+      case HiveParser.TOK_ALTERSCHEMA_PROPERTIES:
 
 
         return new DDLSemanticAnalyzer(conf);

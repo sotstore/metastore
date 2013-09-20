@@ -1065,7 +1065,7 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public boolean modifyNodeGroup(NodeGroup ng) throws InvalidObjectException, MetaException {
+  public boolean modifyNodeGroup(String ngName,NodeGroup ng) throws InvalidObjectException, MetaException {
     // TODO Auto-generated method stub
     return false;
   }
@@ -1131,6 +1131,12 @@ public class DummyRawStoreForJdoConnection implements RawStore {
       throws InvalidObjectException, NoSuchObjectException, MetaException {
     // TODO Auto-generated method stub
     return false;
+  }
+
+  @Override
+  public List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

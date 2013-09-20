@@ -132,6 +132,9 @@ public class DDLWork implements Serializable {
   private ShowEqRoomDesc showEqRoomDesc;
   private AddNodeAssignmentDesc addNode_AssignmentDesc;
   private DropNodeAssignmentDesc dropNodeAssignmentDesc;
+  private CreateSchemaLikeDesc crtSchemaLikeDesc;
+  private CreateSchemaDesc crtSchemaDesc;
+  private CreateTableLikeSchemaDesc crtTblLikeSchemaDesc;
 
 
   public DDLWork() {
@@ -736,6 +739,24 @@ public class DDLWork implements Serializable {
       DropNodeAssignmentDesc dropNodeAssignmentDesc) {
     this(inputs, outputs);
     this.dropNodeAssignmentDesc = dropNodeAssignmentDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      CreateSchemaDesc crtSchemaDesc) {
+    this(inputs, outputs);
+    this.crtSchemaDesc = crtSchemaDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      CreateSchemaLikeDesc crtSchemaLikeDesc) {
+    this(inputs, outputs);
+    this.crtSchemaLikeDesc = crtSchemaLikeDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      CreateTableLikeSchemaDesc crtTblLikeSchemaDesc) {
+    this(inputs, outputs);
+    this.crtTblLikeSchemaDesc = crtTblLikeSchemaDesc;
   }
 
   /**
@@ -1630,5 +1651,31 @@ public class DDLWork implements Serializable {
   public void setDropNodeAssignmentDesc(DropNodeAssignmentDesc dropNodeAssignmentDesc) {
     this.dropNodeAssignmentDesc = dropNodeAssignmentDesc;
   }
+
+  public CreateSchemaLikeDesc getCrtSchemaLikeDesc() {
+    return crtSchemaLikeDesc;
+  }
+
+  public void setCrtSchemaLikeDesc(CreateSchemaLikeDesc crtSchemaLikeDesc) {
+    this.crtSchemaLikeDesc = crtSchemaLikeDesc;
+  }
+
+  public CreateSchemaDesc getCrtSchemaDesc() {
+    return crtSchemaDesc;
+  }
+
+  public void setCrtSchemaDesc(CreateSchemaDesc crtSchemaDesc) {
+    this.crtSchemaDesc = crtSchemaDesc;
+  }
+
+  public CreateTableLikeSchemaDesc getCrtTblLikeSchemaDesc() {
+    return crtTblLikeSchemaDesc;
+  }
+
+  public void setCrtTblLikeSchemaDesc(CreateTableLikeSchemaDesc crtTblLikeSchemaDesc) {
+    this.crtTblLikeSchemaDesc = crtTblLikeSchemaDesc;
+  }
+
+
 
 }

@@ -5873,6 +5873,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return getMS().assiginSchematoDB(dbName, schemaName, fileSplitKeys, part_keys, ngs);
     }
 
+    @Override
+    public List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws MetaException,
+        TException {
+      return getMS().listNodeGroupByNames(ngNames) ;
+    }
+
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {

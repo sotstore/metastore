@@ -100,6 +100,7 @@ import org.apache.hadoop.hive.ql.lockmgr.HiveLockObject.HiveLockObjectData;
 import org.apache.hadoop.hive.ql.metadata.CheckResult;
 import org.apache.hadoop.hive.ql.metadata.EqRoom;
 import org.apache.hadoop.hive.ql.metadata.GeoLoc;
+import org.apache.hadoop.hive.ql.metadata.GlobalSchema;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveMetaStoreChecker;
@@ -132,8 +133,11 @@ import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
+import org.apache.hadoop.hive.ql.plan.CreateSchemaDesc;
+import org.apache.hadoop.hive.ql.plan.CreateSchemaLikeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableLikeDesc;
+import org.apache.hadoop.hive.ql.plan.CreateTableLikeSchemaDesc;
 import org.apache.hadoop.hive.ql.plan.CreateViewDesc;
 import org.apache.hadoop.hive.ql.plan.DDLWork;
 import org.apache.hadoop.hive.ql.plan.DescDatabaseDesc;
@@ -657,6 +661,21 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         return dropNodeAssignment(db, dropNodeAssignmentDesc);
       }
 
+      CreateSchemaLikeDesc crtSchemaLikeDesc = work.getCrtSchemaLikeDesc();
+      if (crtSchemaLikeDesc != null) {
+        return crtSchemaLikeDesc(db, crtSchemaLikeDesc);
+      }
+
+      CreateSchemaDesc crtSchemaDesc = work.getCrtSchemaDesc();
+      if (crtSchemaDesc != null) {
+        return crtSchemaDesc(db, crtSchemaDesc);
+      }
+
+      CreateTableLikeSchemaDesc crtTblLikeSchemaDesc = work.getCrtTblLikeSchemaDesc();
+      if (crtTblLikeSchemaDesc != null) {
+        return crtTblLikeSchemaDesc(db, crtTblLikeSchemaDesc);
+      }
+
     } catch (InvalidTableException e) {
       formatter.consoleError(console, "Table " + e.getTableName() + " does not exist",
                              formatter.MISSING);
@@ -684,6 +703,220 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       return (1);
     }
     assert false;
+    return 0;
+  }
+
+
+
+  private int crtTblLikeSchemaDesc(Hive db, CreateTableLikeSchemaDesc crtTblLikeSchemaDesc) throws HiveException {
+    GlobalSchema schema = db.newSchema(crtTblLikeSchemaDesc.getLikeTableName());
+    Table tbl;
+    if (schema.getTableType() == TableType.VIRTUAL_VIEW) {
+      String targetTableName = crtTblLikeSchemaDesc.getTableName();
+      tbl=db.newTable(targetTableName);
+
+      tbl.setTableType(TableType.MANAGED_TABLE);
+
+      if (crtTblLikeSchemaDesc.isExternal()) {
+        tbl.setProperty("EXTERNAL", "TRUE");
+        tbl.setTableType(TableType.EXTERNAL_TABLE);
+      }
+
+      tbl.setFields(schema.getCols());
+
+      if (crtTblLikeSchemaDesc.getDefaultSerName() == null) {
+        LOG.info("Default to LazySimpleSerDe for table " + crtTblLikeSchemaDesc.getTableName());
+        tbl.setSerializationLib(org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe.class.getName());
+      } else {
+        // let's validate that the serde exists
+        validateSerDe(crtTblLikeSchemaDesc.getDefaultSerName());
+        tbl.setSerializationLib(crtTblLikeSchemaDesc.getDefaultSerName());
+      }
+
+      if (crtTblLikeSchemaDesc.getDefaultSerdeProps() != null) {
+        Iterator<Entry<String, String>> iter = crtTblLikeSchemaDesc.getDefaultSerdeProps().entrySet()
+          .iterator();
+        while (iter.hasNext()) {
+          Entry<String, String> m = iter.next();
+          tbl.setSerdeParam(m.getKey(), m.getValue());
+        }
+      }
+
+
+      tbl.getTTable().getSd().setInputFormat(
+          tbl.getInputFormatClass().getName());
+      tbl.getTTable().getSd().setOutputFormat(
+          tbl.getOutputFormatClass().getName());
+    } else {
+
+      // find out database name and table name of target table
+      String targetTableName = crtTblLikeSchemaDesc.getTableName();
+      tbl = db.newTable(targetTableName);
+
+      tbl.setDbName(crtTblLikeSchemaDesc.getDbName());
+      tbl.setTableName(crtTblLikeSchemaDesc.getTableName());
+
+      tbl.setFields(schema.getCols());
+      tbl.setPartCols(crtTblLikeSchemaDesc.getPartCols());
+      tbl.setNodeGroups(db.listNodeGroups(crtTblLikeSchemaDesc.getNodeGroupNames()));
+
+      if (crtTblLikeSchemaDesc.getLocation() != null) {
+        tbl.setDataLocation(new Path(crtTblLikeSchemaDesc.getLocation()).toUri());
+      } else {
+        tbl.unsetDataLocation();
+      }
+
+      Map<String, String> params = tbl.getParameters();
+      // We should copy only those table parameters that are specified in the config.
+      String paramsStr = HiveConf.getVar(conf, HiveConf.ConfVars.DDL_CTL_PARAMETERS_WHITELIST);
+      if (paramsStr != null) {
+        List<String> paramsList = Arrays.asList(paramsStr.split(","));
+        params.keySet().retainAll(paramsList);
+      } else {
+        params.clear();
+      }
+
+      if (crtTblLikeSchemaDesc.isExternal()) {
+        tbl.setProperty("EXTERNAL", "TRUE");
+        tbl.setTableType(TableType.EXTERNAL_TABLE);
+      } else {
+        tbl.getParameters().remove("EXTERNAL");
+      }
+    }
+
+    // reset owner and creation time
+    int rc = setGenericTableAttributes(tbl);
+    if (rc != 0) {
+      return rc;
+    }
+
+    // create the table
+    db.createTable(tbl, crtTblLikeSchemaDesc.getIfNotExists());
+    work.getOutputs().add(new WriteEntity(tbl));
+
+    return 0;
+  }
+
+  /**
+   *
+   *   String schemaName,
+      String owner,
+      int createTime,
+      int lastAccessTime,
+      int retention,
+      StorageDescriptor sd,
+      Map<String,String> parameters,
+      String viewOriginalText,
+      String viewExpandedText,
+      String schemaType)
+   * @param db
+   * @param crtSchemaDesc
+   * @return
+   * @throws HiveException
+   */
+  private int crtSchemaDesc(Hive db, CreateSchemaDesc crtSchemaDesc) throws HiveException {
+    GlobalSchema schema = db.newSchema(crtSchemaDesc.getSchemaName());
+
+    if (crtSchemaDesc.getTblProps() != null) {
+      schema.getTSchema().getParameters().putAll(crtSchemaDesc.getTblProps());
+    }
+
+    if (crtSchemaDesc.getFieldDelim() != null) {
+      schema.setSerdeParam(serdeConstants.FIELD_DELIM, crtSchemaDesc.getFieldDelim());
+      schema.setSerdeParam(serdeConstants.SERIALIZATION_FORMAT, crtSchemaDesc.getFieldDelim());
+    }
+    if (crtSchemaDesc.getFieldEscape() != null) {
+      schema.setSerdeParam(serdeConstants.ESCAPE_CHAR, crtSchemaDesc.getFieldEscape());
+    }
+
+    if (crtSchemaDesc.getCollItemDelim() != null) {
+      schema.setSerdeParam(serdeConstants.COLLECTION_DELIM, crtSchemaDesc.getCollItemDelim());
+    }
+    if (crtSchemaDesc.getMapKeyDelim() != null) {
+      schema.setSerdeParam(serdeConstants.MAPKEY_DELIM, crtSchemaDesc.getMapKeyDelim());
+    }
+    if (crtSchemaDesc.getLineDelim() != null) {
+      schema.setSerdeParam(serdeConstants.LINE_DELIM, crtSchemaDesc.getLineDelim());
+    }
+
+    if (crtSchemaDesc.getSerdeProps() != null) {
+      Iterator<Entry<String, String>> iter = crtSchemaDesc.getSerdeProps().entrySet()
+        .iterator();
+      while (iter.hasNext()) {
+        Entry<String, String> m = iter.next();
+        schema.setSerdeParam(m.getKey(), m.getValue());
+      }
+    }
+
+    if (crtSchemaDesc.getCols() != null) {
+      schema.setFields(crtSchemaDesc.getCols());
+    }
+
+    if (crtSchemaDesc.getComment() != null) {
+      schema.setProperty("comment", crtSchemaDesc.getComment());
+    }
+
+
+    // If the sorted columns is a superset of bucketed columns, store this fact.
+    // It can be later used to
+    // optimize some group-by queries. Note that, the order does not matter as
+    // long as it in the first
+    // 'n' columns where 'n' is the length of the bucketed columns.
+
+    int rc = setGenericSchemaAttributes(schema);
+    if (rc != 0) {
+      return rc;
+    }
+
+    // create the table
+    boolean success = db.createSchema(schema.getTschema());
+    if(success) {
+      return 0;
+    } else {
+      return -1;
+    }
+  }
+
+  private int crtSchemaLikeDesc(Hive db, CreateSchemaLikeDesc crtSchemaLikeDesc) throws HiveException {
+    GlobalSchema  oldschema = db.getSchema(crtSchemaLikeDesc.getLikeSchemaName(),false);
+    GlobalSchema schema;
+    if (oldschema.getTableType() == TableType.VIRTUAL_VIEW) {
+      String targetTableName = crtSchemaLikeDesc.getSchemaName();
+      schema=db.newSchema(targetTableName);
+
+      schema.setTableType(TableType.MANAGED_TABLE);
+
+      schema.setFields(oldschema.getCols());
+
+    } else {
+      schema=oldschema;
+
+      // find out database name and table name of target table
+      String targetTableName = crtSchemaLikeDesc.getSchemaName();
+      schema = db.newSchema(targetTableName);
+
+
+      Map<String, String> params = schema.getParameters();
+      // We should copy only those table parameters that are specified in the config.
+      String paramsStr = HiveConf.getVar(conf, HiveConf.ConfVars.DDL_CTL_PARAMETERS_WHITELIST);
+      if (paramsStr != null) {
+        List<String> paramsList = Arrays.asList(paramsStr.split(","));
+        params.keySet().retainAll(paramsList);
+      } else {
+        params.clear();
+      }
+
+    }
+
+    // reset owner and creation time
+    int rc = setGenericSchemaAttributes(schema);
+    if (rc != 0) {
+      return rc;
+    }
+
+    // create the table
+    db.createSchema(schema.getTschema());
+
     return 0;
   }
 
@@ -4604,6 +4837,22 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     }
     // set create time
     tbl.setCreateTime((int) (System.currentTimeMillis() / 1000));
+    return 0;
+  }
+
+  private int setGenericSchemaAttributes(GlobalSchema schema) {
+    try {
+      //tbl.setOwner(conf.getUser());
+      schema.setOwner(SessionState.get().getUser());       //added by liulichao,2013-05-15
+    } catch (Exception e) {
+      formatter.consoleError(console,
+                             "Unable to get current user: " + e.getMessage(),
+                             stringifyException(e),
+                             formatter.ERROR);
+      return 1;
+    }
+    // set create time
+    schema.setCreateTime((int) (System.currentTimeMillis() / 1000));
     return 0;
   }
 

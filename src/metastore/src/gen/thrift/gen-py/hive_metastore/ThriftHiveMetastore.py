@@ -1277,6 +1277,13 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
+  def listNodeGroupByNames(self, ngNames):
+    """
+    Parameters:
+     - ngNames
+    """
+    pass
+
   def addTableNodeDist(self, db, tab, ng):
     """
     Parameters:
@@ -6965,6 +6972,38 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "listDBNodeGroups failed: unknown result");
 
+  def listNodeGroupByNames(self, ngNames):
+    """
+    Parameters:
+     - ngNames
+    """
+    self.send_listNodeGroupByNames(ngNames)
+    return self.recv_listNodeGroupByNames()
+
+  def send_listNodeGroupByNames(self, ngNames):
+    self._oprot.writeMessageBegin('listNodeGroupByNames', TMessageType.CALL, self._seqid)
+    args = listNodeGroupByNames_args()
+    args.ngNames = ngNames
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_listNodeGroupByNames(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = listNodeGroupByNames_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "listNodeGroupByNames failed: unknown result");
+
   def addTableNodeDist(self, db, tab, ng):
     """
     Parameters:
@@ -7280,6 +7319,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["deleteNodeGroup"] = Processor.process_deleteNodeGroup
     self._processMap["listNodeGroups"] = Processor.process_listNodeGroups
     self._processMap["listDBNodeGroups"] = Processor.process_listDBNodeGroups
+    self._processMap["listNodeGroupByNames"] = Processor.process_listNodeGroupByNames
     self._processMap["addTableNodeDist"] = Processor.process_addTableNodeDist
     self._processMap["deleteTableNodeDist"] = Processor.process_deleteTableNodeDist
     self._processMap["listTableNodeDists"] = Processor.process_listTableNodeDists
@@ -9772,6 +9812,20 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("listDBNodeGroups", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_listNodeGroupByNames(self, seqid, iprot, oprot):
+    args = listNodeGroupByNames_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = listNodeGroupByNames_result()
+    try:
+      result.success = self._handler.listNodeGroupByNames(args.ngNames)
+    except MetaException as o1:
+      result.o1 = o1
+    oprot.writeMessageBegin("listNodeGroupByNames", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -35218,6 +35272,155 @@ class listDBNodeGroups_result:
   def __ne__(self, other):
     return not (self == other)
 
+class listNodeGroupByNames_args:
+  """
+  Attributes:
+   - ngNames
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.LIST, 'ngNames', (TType.STRING,None), None, ), # 1
+  )
+
+  def __init__(self, ngNames=None,):
+    self.ngNames = ngNames
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.LIST:
+          self.ngNames = []
+          (_etype951, _size948) = iprot.readListBegin()
+          for _i952 in xrange(_size948):
+            _elem953 = iprot.readString();
+            self.ngNames.append(_elem953)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('listNodeGroupByNames_args')
+    if self.ngNames is not None:
+      oprot.writeFieldBegin('ngNames', TType.LIST, 1)
+      oprot.writeListBegin(TType.STRING, len(self.ngNames))
+      for iter954 in self.ngNames:
+        oprot.writeString(iter954)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class listNodeGroupByNames_result:
+  """
+  Attributes:
+   - success
+   - o1
+  """
+
+  thrift_spec = (
+    (0, TType.LIST, 'success', (TType.STRUCT,(NodeGroup, NodeGroup.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, o1=None,):
+    self.success = success
+    self.o1 = o1
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype958, _size955) = iprot.readListBegin()
+          for _i959 in xrange(_size955):
+            _elem960 = NodeGroup()
+            _elem960.read(iprot)
+            self.success.append(_elem960)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('listNodeGroupByNames_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
+      for iter961 in self.success:
+        iter961.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class addTableNodeDist_args:
   """
   Attributes:
@@ -35260,10 +35463,10 @@ class addTableNodeDist_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.ng = []
-          (_etype951, _size948) = iprot.readListBegin()
-          for _i952 in xrange(_size948):
-            _elem953 = iprot.readString();
-            self.ng.append(_elem953)
+          (_etype965, _size962) = iprot.readListBegin()
+          for _i966 in xrange(_size962):
+            _elem967 = iprot.readString();
+            self.ng.append(_elem967)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -35288,8 +35491,8 @@ class addTableNodeDist_args:
     if self.ng is not None:
       oprot.writeFieldBegin('ng', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.ng))
-      for iter954 in self.ng:
-        oprot.writeString(iter954)
+      for iter968 in self.ng:
+        oprot.writeString(iter968)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -35424,10 +35627,10 @@ class deleteTableNodeDist_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.ng = []
-          (_etype958, _size955) = iprot.readListBegin()
-          for _i959 in xrange(_size955):
-            _elem960 = iprot.readString();
-            self.ng.append(_elem960)
+          (_etype972, _size969) = iprot.readListBegin()
+          for _i973 in xrange(_size969):
+            _elem974 = iprot.readString();
+            self.ng.append(_elem974)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -35452,8 +35655,8 @@ class deleteTableNodeDist_args:
     if self.ng is not None:
       oprot.writeFieldBegin('ng', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.ng))
-      for iter961 in self.ng:
-        oprot.writeString(iter961)
+      for iter975 in self.ng:
+        oprot.writeString(iter975)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -35646,11 +35849,11 @@ class listTableNodeDists_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype965, _size962) = iprot.readListBegin()
-          for _i966 in xrange(_size962):
-            _elem967 = NodeGroup()
-            _elem967.read(iprot)
-            self.success.append(_elem967)
+          (_etype979, _size976) = iprot.readListBegin()
+          for _i980 in xrange(_size976):
+            _elem981 = NodeGroup()
+            _elem981.read(iprot)
+            self.success.append(_elem981)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -35673,8 +35876,8 @@ class listTableNodeDists_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter968 in self.success:
-        iter968.write(oprot)
+      for iter982 in self.success:
+        iter982.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.o1 is not None:
@@ -35747,33 +35950,33 @@ class assiginSchematoDB_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.fileSplitKeys = []
-          (_etype972, _size969) = iprot.readListBegin()
-          for _i973 in xrange(_size969):
-            _elem974 = FieldSchema()
-            _elem974.read(iprot)
-            self.fileSplitKeys.append(_elem974)
+          (_etype986, _size983) = iprot.readListBegin()
+          for _i987 in xrange(_size983):
+            _elem988 = FieldSchema()
+            _elem988.read(iprot)
+            self.fileSplitKeys.append(_elem988)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.LIST:
           self.part_keys = []
-          (_etype978, _size975) = iprot.readListBegin()
-          for _i979 in xrange(_size975):
-            _elem980 = FieldSchema()
-            _elem980.read(iprot)
-            self.part_keys.append(_elem980)
+          (_etype992, _size989) = iprot.readListBegin()
+          for _i993 in xrange(_size989):
+            _elem994 = FieldSchema()
+            _elem994.read(iprot)
+            self.part_keys.append(_elem994)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 5:
         if ftype == TType.LIST:
           self.ngs = []
-          (_etype984, _size981) = iprot.readListBegin()
-          for _i985 in xrange(_size981):
-            _elem986 = NodeGroup()
-            _elem986.read(iprot)
-            self.ngs.append(_elem986)
+          (_etype998, _size995) = iprot.readListBegin()
+          for _i999 in xrange(_size995):
+            _elem1000 = NodeGroup()
+            _elem1000.read(iprot)
+            self.ngs.append(_elem1000)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -35798,22 +36001,22 @@ class assiginSchematoDB_args:
     if self.fileSplitKeys is not None:
       oprot.writeFieldBegin('fileSplitKeys', TType.LIST, 3)
       oprot.writeListBegin(TType.STRUCT, len(self.fileSplitKeys))
-      for iter987 in self.fileSplitKeys:
-        iter987.write(oprot)
+      for iter1001 in self.fileSplitKeys:
+        iter1001.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.part_keys is not None:
       oprot.writeFieldBegin('part_keys', TType.LIST, 4)
       oprot.writeListBegin(TType.STRUCT, len(self.part_keys))
-      for iter988 in self.part_keys:
-        iter988.write(oprot)
+      for iter1002 in self.part_keys:
+        iter1002.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.ngs is not None:
       oprot.writeFieldBegin('ngs', TType.LIST, 5)
       oprot.writeListBegin(TType.STRUCT, len(self.ngs))
-      for iter989 in self.ngs:
-        iter989.write(oprot)
+      for iter1003 in self.ngs:
+        iter1003.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()

@@ -184,6 +184,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  bool deleteNodeGroup(NodeGroup ng)'
   print '   listNodeGroups()'
   print '   listDBNodeGroups(string dbName)'
+  print '   listNodeGroupByNames( ngNames)'
   print '  bool addTableNodeDist(string db, string tab,  ng)'
   print '  bool deleteTableNodeDist(string db, string tab,  ng)'
   print '   listTableNodeDists(string dbName, string tabName)'
@@ -1204,6 +1205,12 @@ elif cmd == 'listDBNodeGroups':
     print 'listDBNodeGroups requires 1 args'
     sys.exit(1)
   pp.pprint(client.listDBNodeGroups(args[0],))
+
+elif cmd == 'listNodeGroupByNames':
+  if len(args) != 1:
+    print 'listNodeGroupByNames requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.listNodeGroupByNames(eval(args[0]),))
 
 elif cmd == 'addTableNodeDist':
   if len(args) != 3:

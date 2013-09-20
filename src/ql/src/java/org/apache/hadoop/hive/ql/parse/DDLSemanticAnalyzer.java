@@ -582,6 +582,16 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
       analyzeShowEqRoom(ast);
       break;
+
+
+    case HiveParser.TOK_DROPSCHEMA:
+    case HiveParser.TOK_ALTERSCHEMA_RENAME:
+    case HiveParser.TOK_ALTERSCHEMA_ADDCOLS:
+    case HiveParser.TOK_ALTERSCHEMA_REPLACECOLS:
+    case HiveParser.TOK_ALTERSCHEMA_RENAMECOL:
+    case HiveParser.TOK_ALTERSCHEMA_CHANGECOL_AFTER_POSITION:
+    case HiveParser.TOK_ALTERSCHEMA_PROPERTIES:
+      break;
     default:
       throw new SemanticException("Unsupported command.");
     }

@@ -827,6 +827,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("listDBNodeGroups\n");
   }
 
+  void listNodeGroupByNames(std::vector<NodeGroup> & _return, const std::vector<std::string> & ngNames) {
+    // Your implementation goes here
+    printf("listNodeGroupByNames\n");
+  }
+
   bool addTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng) {
     // Your implementation goes here
     printf("addTableNodeDist\n");
