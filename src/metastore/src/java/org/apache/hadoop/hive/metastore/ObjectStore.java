@@ -8361,49 +8361,61 @@ public MUser getMUser(String userName) {
 
   }
 
-/*  @Override
-  public boolean addNodeAssignment(Node node, Database database) throws MetaException {
-    MNodeAssignment mna = new MNodeAssignment();
+/*
+ * draft
+ */
+  @Override
+  public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException {
     boolean success = false;
-    int now = (int)(System.currentTimeMillis()/1000);
+    boolean commited = false;
     try {
       openTransaction();
-      pm.makePersistent(mna);
-      success = commitTransaction();
-    } finally {
-      if (!success) {
-        rollbackTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MNode mnd = this.getMNode(nodeName);
+      if (mdb.getNodes() == null) {
+        Set<MNode> nodes = new HashSet<MNode>();
+        nodes.add(mnd);
+      } else {
+        System.out.println("nodeName " + nodeName + " already exists.");
       }
-    }
-    if(success){
-      return true ;
-    }else{
-      return false;
-    }
-  }
+      int now = (int)(System.currentTimeMillis()/1000);
 
-  @Override
-  public boolean modifyNodeAssignment(Node node, Database database) throws MetaException {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  @Override
-  public boolean deleteNodeAssignment(Node node, Database database) throws MetaException {
-    boolean success = false;
-    try {
-      openTransaction();
-      MNodeAssignment mna = new MNodeAssignment();
-      if (mna != null) {
-        pm.deletePersistent(mna);
-      }
-      success = commitTransaction();
+      pm.makePersistent(mnd);
+      commited = commitTransaction();
+      success = true;
     } finally {
-      if (!success) {
+      if (!commited) {
         rollbackTransaction();
       }
     }
     return success;
   }
-*/
+
+  @Override
+  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MNode mnd = this.getMNode(nodeName);
+      if (mdb.getNodes() == null) {
+        Set<MNode> nodes = new HashSet<MNode>();
+        nodes.add(mnd);
+      } else {
+        System.out.println("nodeName " + nodeName + " already exists.");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+
+      pm.deletePersistent(mnd);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
 }
