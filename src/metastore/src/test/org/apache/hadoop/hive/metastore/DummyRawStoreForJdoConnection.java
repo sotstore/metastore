@@ -1061,6 +1061,8 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   public void createSchema(GlobalSchema schema) throws InvalidObjectException, MetaException {
     // TODO Auto-generated method stub
 
+  }
+
   public boolean addNodeAssignment(String nodename, String dbname) throws MetaException,
       NoSuchObjectException {
     // TODO Auto-generated method stub
