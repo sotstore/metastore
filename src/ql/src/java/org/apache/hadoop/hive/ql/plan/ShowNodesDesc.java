@@ -22,7 +22,6 @@ public class ShowNodesDesc extends DDLDesc implements Serializable {
 
 
 
-
   public ShowNodesDesc(String resFile) {
     super();
     this.resFile = resFile;

@@ -2,7 +2,7 @@ package org.apache.hadoop.hive.ql.plan;
 
 import java.io.Serializable;
 
-public class ShowEqRoomDesc implements Serializable {
+public class ShowEqRoomDesc extends DDLDesc implements Serializable {
 
   private static final long serialVersionUID = 1L;
   String resFile;
@@ -10,7 +10,6 @@ public class ShowEqRoomDesc implements Serializable {
   private static final String schema = "eqRoomName,status,geoLocName,comment#string:string:string:string";
 
   public ShowEqRoomDesc() {
-    super();
   }
 
   public ShowEqRoomDesc(String resFile) {

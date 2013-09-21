@@ -2700,14 +2700,65 @@ public class Hive {
     return "Aha , you get it showHelp().";
 
   }
+
+  public void addGeoLoc(GeoLocDesc gd) {
+    // TODO Auto-generated method stub
+
+  }
+
+  public void dropGeoLoc(GeoLocDesc gd) {
+    // TODO Auto-generated method stub
+
+  }
+
+  public void modifyGeoLoc(GeoLocDesc gd) {
+    // TODO Auto-generated method stub
+
+  }
+
   public String showGeoLoc() {
     return "Aha , you get it showGeoLoc().";
 
   }
+
+  public void addEqRoom(EqRoomDesc gd) {
+    // TODO Auto-generated method stub
+
+  }
+
+  public void dropEqRoom(EqRoomDesc gd) {
+    // TODO Auto-generated method stub
+
+  }
+
+  public void modifyEqRoom(EqRoomDesc gd) {
+    // TODO Auto-generated method stub
+
+  }
+
   public String showEqRoom() {
     return "Aha , you get it showEqRoom().";
 
   }
 
+  public void addNodeAssignment(NodeAssignmentDesc gd) {
+    // TODO Auto-generated method stub
+
+  }
+
+  public void dropNodeAssignment(NodeAssignmentDesc gd) {
+    // TODO Auto-generated method stub
+
+  }
+
+  public void modifyNodeAssignment(NodeAssignmentDesc gd) {
+    // TODO Auto-generated method stub
+
+  }
+
+  public String showNodeAssignment() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
 };
