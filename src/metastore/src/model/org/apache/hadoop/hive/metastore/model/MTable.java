@@ -85,7 +85,7 @@ public class MTable {
     this.createTime = createTime;
     this.setLastAccessTime(lastAccessTime);
     this.retention = retention;
-    this.fileSplitKeys = fileSplitKeys;
+    this.setFileSplitKeys(fileSplitKeys);
     this.partitionKeys = partitionKeys;
     this.parameters = parameters;
     this.viewOriginalText = viewOriginalText;
@@ -276,6 +276,14 @@ public class MTable {
 
   public void setGroupDistribute(Set<MNodeGroup> groupDistribute) {
     this.groupDistribute = groupDistribute;
+  }
+
+  public List<MFieldSchema> getFileSplitKeys() {
+    return fileSplitKeys;
+  }
+
+  public void setFileSplitKeys(List<MFieldSchema> fileSplitKeys) {
+    this.fileSplitKeys = fileSplitKeys;
   }
 
 

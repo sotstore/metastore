@@ -61,6 +61,58 @@ struct FOFailReason {
 
 extern const std::map<int, const char*> _FOFailReason_VALUES_TO_NAMES;
 
+struct MSOperation {
+  enum type {
+    EXPLAIN = 1,
+    CREATEDATABASE = 2,
+    DROPDATABASE = 3,
+    DROPTABLE = 4,
+    DESCTABLE = 5,
+    ALTERTABLE_RENAME = 6,
+    ALTERTABLE_RENAMECOL = 7,
+    ALTERTABLE_ADDPARTS = 8,
+    ALTERTABLE_DROPPARTS = 9,
+    ALTERTABLE_ADDCOLS = 10,
+    ALTERTABLE_REPLACECOLS = 11,
+    ALTERTABLE_RENAMEPART = 12,
+    ALTERTABLE_PROPERTIES = 13,
+    SHOWDATABASES = 14,
+    SHOWTABLES = 15,
+    SHOWCOLUMNS = 16,
+    SHOW_TABLESTATUS = 17,
+    SHOW_TBLPROPERTIES = 18,
+    SHOW_CREATETABLE = 19,
+    SHOWINDEXES = 20,
+    SHOWPARTITIONS = 21,
+    CREATEVIEW = 22,
+    DROPVIEW = 23,
+    CREATEINDEX = 24,
+    DROPINDEX = 25,
+    ALTERINDEX_REBUILD = 26,
+    ALTERVIEW_PROPERTIES = 27,
+    CREATEUSER = 28,
+    DROPUSER = 29,
+    CHANGE_PWD = 30,
+    AUTHENTICATION = 31,
+    SHOW_USERNAMES = 32,
+    CREATEROLE = 33,
+    DROPROLE = 34,
+    GRANT_PRIVILEGE = 35,
+    REVOKE_PRIVILEGE = 36,
+    SHOW_GRANT = 37,
+    GRANT_ROLE = 38,
+    REVOKE_ROLE = 39,
+    SHOW_ROLE_GRANT = 40,
+    CREATETABLE = 41,
+    QUERY = 42,
+    ALTERINDEX_PROPS = 43,
+    ALTERDATABASE = 44,
+    DESCDATABASE = 45
+  };
+};
+
+extern const std::map<int, const char*> _MSOperation_VALUES_TO_NAMES;
+
 typedef struct _Version__isset {
   _Version__isset() : version(false), comments(false) {}
   bool version;
@@ -1441,7 +1493,7 @@ class Partition {
 void swap(Partition &a, Partition &b);
 
 typedef struct _Table__isset {
-  _Table__isset() : tableName(false), dbName(false), owner(false), createTime(false), lastAccessTime(false), retention(false), sd(false), partitionKeys(false), parameters(false), viewOriginalText(false), viewExpandedText(false), tableType(false), privileges(false), partitions(false) {}
+  _Table__isset() : tableName(false), dbName(false), owner(false), createTime(false), lastAccessTime(false), retention(false), sd(false), partitionKeys(false), parameters(false), viewOriginalText(false), viewExpandedText(false), tableType(false), privileges(false), partitions(false), fileSplitKeys(false) {}
   bool tableName;
   bool dbName;
   bool owner;
@@ -1456,13 +1508,14 @@ typedef struct _Table__isset {
   bool tableType;
   bool privileges;
   bool partitions;
+  bool fileSplitKeys;
 } _Table__isset;
 
 class Table {
  public:
 
-  static const char* ascii_fingerprint; // = "F28A70F6571CDAEFDA4B1A57B0E0D5D5";
-  static const uint8_t binary_fingerprint[16]; // = {0xF2,0x8A,0x70,0xF6,0x57,0x1C,0xDA,0xEF,0xDA,0x4B,0x1A,0x57,0xB0,0xE0,0xD5,0xD5};
+  static const char* ascii_fingerprint; // = "D879D8883102970422B08F782AD5AA94";
+  static const uint8_t binary_fingerprint[16]; // = {0xD8,0x79,0xD8,0x88,0x31,0x02,0x97,0x04,0x22,0xB0,0x8F,0x78,0x2A,0xD5,0xAA,0x94};
 
   Table() : tableName(), dbName(), owner(), createTime(0), lastAccessTime(0), retention(0), viewOriginalText(), viewExpandedText(), tableType() {
   }
@@ -1483,6 +1536,7 @@ class Table {
   std::string tableType;
   PrincipalPrivilegeSet privileges;
   std::vector<Partition>  partitions;
+  std::vector<FieldSchema>  fileSplitKeys;
 
   _Table__isset __isset;
 
@@ -1544,6 +1598,10 @@ class Table {
     __isset.partitions = true;
   }
 
+  void __set_fileSplitKeys(const std::vector<FieldSchema> & val) {
+    fileSplitKeys = val;
+  }
+
   bool operator == (const Table & rhs) const
   {
     if (!(tableName == rhs.tableName))
@@ -1578,6 +1636,8 @@ class Table {
       return false;
     else if (__isset.partitions && !(partitions == rhs.partitions))
       return false;
+    if (!(fileSplitKeys == rhs.fileSplitKeys))
+      return false;
     return true;
   }
   bool operator != (const Table &rhs) const {
@@ -1603,8 +1663,8 @@ typedef struct _BusiTypeColumn__isset {
 class BusiTypeColumn {
  public:
 
-  static const char* ascii_fingerprint; // = "C5DCADADA0300E1255D699BA497FD949";
-  static const uint8_t binary_fingerprint[16]; // = {0xC5,0xDC,0xAD,0xAD,0xA0,0x30,0x0E,0x12,0x55,0xD6,0x99,0xBA,0x49,0x7F,0xD9,0x49};
+  static const char* ascii_fingerprint; // = "71E754D5C46F6D0E6A98712D56F07B46";
+  static const uint8_t binary_fingerprint[16]; // = {0x71,0xE7,0x54,0xD5,0xC4,0x6F,0x6D,0x0E,0x6A,0x98,0x71,0x2D,0x56,0xF0,0x7B,0x46};
 
   BusiTypeColumn() : busiType(), column() {
   }

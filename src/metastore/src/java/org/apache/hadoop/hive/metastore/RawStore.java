@@ -505,7 +505,7 @@ public interface RawStore extends Configurable {
 
   public abstract boolean removeUser(String userName) throws MetaException, NoSuchObjectException;
 
-  public List<String> listUsersNames();
+  public List<String> listUsersNames() throws MetaException;
 
   public abstract boolean authentication(String userName, String passwd) throws MetaException, NoSuchObjectException;
   //authentication and authorization with user by liulichao, end
@@ -592,5 +592,7 @@ public interface RawStore extends Configurable {
   public abstract boolean deleteGeoLocation(GeoLocation gl) throws MetaException;
 
   public abstract List<GeoLocation> listGeoLocation() throws MetaException;
+
+  public List<String> listUsersNames(String dbName) throws MetaException;
 
 }

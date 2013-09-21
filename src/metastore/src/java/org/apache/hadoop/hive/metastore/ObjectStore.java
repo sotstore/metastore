@@ -2517,7 +2517,7 @@ public class ObjectStore implements RawStore, Configurable {
         .getRetention(), convertToStorageDescriptor(mtbl.getSd()),
         convertToFieldSchemas(mtbl.getPartitionKeys()), mtbl.getParameters(),
         mtbl.getViewOriginalText(), mtbl.getViewExpandedText(),
-        tableType);
+        tableType, convertToFieldSchemas(mtbl.getFileSplitKeys()));
   }
 
   private MNode convertToMNode(Node node) {
@@ -2617,6 +2617,7 @@ public class ObjectStore implements RawStore, Configurable {
     return new MTable(tbl.getTableName().toLowerCase(), mdb,
         convertToMStorageDescriptor(tbl.getSd()), tbl.getOwner(), tbl
             .getCreateTime(), tbl.getLastAccessTime(), tbl.getRetention(),
+        convertToMFieldSchemas(tbl.getFileSplitKeys()),
         convertToMFieldSchemas(tbl.getPartitionKeys()), tbl.getParameters(),
         tbl.getViewOriginalText(), tbl.getViewExpandedText(),
         tableType);
@@ -4710,7 +4711,36 @@ public boolean modifyUser(User user) throws MetaException,
 }
 
 @Override
-public List<String> listUsersNames() {
+public List<String> listUsersNames(String dbName) throws MetaException {
+   List<String> userNames  = new ArrayList<String>();
+   boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MUser.class);
+      Collection names = (Collection) query.execute();
+      Iterator iter = names.iterator();
+      while (iter.hasNext()) {
+        MUser mu = (MUser)iter.next();
+        if (mu.getDbs() != null) {
+          for (MDatabase md : mu.getDbs()) {
+            if (md.getName().equals(dbName)) {
+              userNames.add(mu.getUserName());
+              break;
+            }
+          }
+        }
+      }
+      success = commitTransaction();
+      return userNames;
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+}
+
+@Override
+public List<String> listUsersNames() throws MetaException {
     boolean success = false;
     try {
       openTransaction();

@@ -532,9 +532,19 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("list_users_names\n");
   }
 
+  void list_users(std::vector<std::string> & _return, const Database& db) {
+    // Your implementation goes here
+    printf("list_users\n");
+  }
+
   bool authentication(const std::string& user_name, const std::string& passwd) {
     // Your implementation goes here
     printf("authentication\n");
+  }
+
+  bool user_authority_check(const User& user, const Table& tbl, const std::vector<MSOperation::type> & ops) {
+    // Your implementation goes here
+    printf("user_authority_check\n");
   }
 
   bool create_role(const Role& role) {

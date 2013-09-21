@@ -1220,14 +1220,14 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
           case 9: // LOCATIONS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list278 = iprot.readListBegin();
-                struct.locations = new ArrayList<SFileLocation>(_list278.size);
-                for (int _i279 = 0; _i279 < _list278.size; ++_i279)
+                org.apache.thrift.protocol.TList _list286 = iprot.readListBegin();
+                struct.locations = new ArrayList<SFileLocation>(_list286.size);
+                for (int _i287 = 0; _i287 < _list286.size; ++_i287)
                 {
-                  SFileLocation _elem280; // required
-                  _elem280 = new SFileLocation();
-                  _elem280.read(iprot);
-                  struct.locations.add(_elem280);
+                  SFileLocation _elem288; // required
+                  _elem288 = new SFileLocation();
+                  _elem288.read(iprot);
+                  struct.locations.add(_elem288);
                 }
                 iprot.readListEnd();
               }
@@ -1247,13 +1247,13 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
           case 11: // VALUES
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list281 = iprot.readListBegin();
-                struct.values = new ArrayList<String>(_list281.size);
-                for (int _i282 = 0; _i282 < _list281.size; ++_i282)
+                org.apache.thrift.protocol.TList _list289 = iprot.readListBegin();
+                struct.values = new ArrayList<String>(_list289.size);
+                for (int _i290 = 0; _i290 < _list289.size; ++_i290)
                 {
-                  String _elem283; // required
-                  _elem283 = iprot.readString();
-                  struct.values.add(_elem283);
+                  String _elem291; // required
+                  _elem291 = iprot.readString();
+                  struct.values.add(_elem291);
                 }
                 iprot.readListEnd();
               }
@@ -1309,9 +1309,9 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
         oprot.writeFieldBegin(LOCATIONS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.locations.size()));
-          for (SFileLocation _iter284 : struct.locations)
+          for (SFileLocation _iter292 : struct.locations)
           {
-            _iter284.write(oprot);
+            _iter292.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -1324,9 +1324,9 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
         oprot.writeFieldBegin(VALUES_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.values.size()));
-          for (String _iter285 : struct.values)
+          for (String _iter293 : struct.values)
           {
-            oprot.writeString(_iter285);
+            oprot.writeString(_iter293);
           }
           oprot.writeListEnd();
         }
@@ -1411,9 +1411,9 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
       if (struct.isSetLocations()) {
         {
           oprot.writeI32(struct.locations.size());
-          for (SFileLocation _iter286 : struct.locations)
+          for (SFileLocation _iter294 : struct.locations)
           {
-            _iter286.write(oprot);
+            _iter294.write(oprot);
           }
         }
       }
@@ -1423,9 +1423,9 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
       if (struct.isSetValues()) {
         {
           oprot.writeI32(struct.values.size());
-          for (String _iter287 : struct.values)
+          for (String _iter295 : struct.values)
           {
-            oprot.writeString(_iter287);
+            oprot.writeString(_iter295);
           }
         }
       }
@@ -1469,14 +1469,14 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
       }
       if (incoming.get(8)) {
         {
-          org.apache.thrift.protocol.TList _list288 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.locations = new ArrayList<SFileLocation>(_list288.size);
-          for (int _i289 = 0; _i289 < _list288.size; ++_i289)
+          org.apache.thrift.protocol.TList _list296 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.locations = new ArrayList<SFileLocation>(_list296.size);
+          for (int _i297 = 0; _i297 < _list296.size; ++_i297)
           {
-            SFileLocation _elem290; // required
-            _elem290 = new SFileLocation();
-            _elem290.read(iprot);
-            struct.locations.add(_elem290);
+            SFileLocation _elem298; // required
+            _elem298 = new SFileLocation();
+            _elem298.read(iprot);
+            struct.locations.add(_elem298);
           }
         }
         struct.setLocationsIsSet(true);
@@ -1487,13 +1487,13 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
       }
       if (incoming.get(10)) {
         {
-          org.apache.thrift.protocol.TList _list291 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.values = new ArrayList<String>(_list291.size);
-          for (int _i292 = 0; _i292 < _list291.size; ++_i292)
+          org.apache.thrift.protocol.TList _list299 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.values = new ArrayList<String>(_list299.size);
+          for (int _i300 = 0; _i300 < _list299.size; ++_i300)
           {
-            String _elem293; // required
-            _elem293 = iprot.readString();
-            struct.values.add(_elem293);
+            String _elem301; // required
+            _elem301 = iprot.readString();
+            struct.values.add(_elem301);
           }
         }
         struct.setValuesIsSet(true);

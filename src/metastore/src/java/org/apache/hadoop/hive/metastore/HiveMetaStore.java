@@ -89,6 +89,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
+import org.apache.hadoop.hive.metastore.api.MSOperation;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
@@ -146,6 +147,10 @@ import org.apache.hadoop.hive.metastore.tools.PartitionFactory;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionDefinition;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionType;
+import org.apache.hadoop.hive.ql.metadata.AuthorizationException;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.ql.plan.HiveOperation;
+import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider;
 import org.apache.hadoop.hive.serde2.Deserializer;
 import org.apache.hadoop.hive.serde2.SerDeException;
 import org.apache.hadoop.hive.serde2.SerDeUtils;
@@ -175,6 +180,10 @@ import com.facebook.fb303.fb_status;
 public class HiveMetaStore extends ThriftHiveMetastore {
   public static final Log LOG = LogFactory.getLog(
       HiveMetaStore.class);
+
+  private static Map<MSOperation, HiveOperation> ms2hive = new HashMap<MSOperation, HiveOperation>();
+
+  private static HiveAuthorizationProvider authorizer;
 
   /**
    * default port on which to start the Hive server
@@ -5252,17 +5261,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
   }
 
   @Override
-  public List<String> list_users_names() {
+  public List<String> list_users_names() throws MetaException, TException {
       incrementCounter("list_users_names");
-
-    List<String> ret = null;
-      try {
-      ret = getMS().listUsersNames();
-    } catch (MetaException e) {
-      e.printStackTrace();
-    }
-
-      return ret;
+      return getMS().listUsersNames();
   }
 
   @Override
@@ -5867,6 +5868,36 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return getMS().modifyDevice(dev, node);
     }
 
+    @Override
+    public List<String> list_users(Database db) throws MetaException, TException {
+      return getMS().listUsersNames(db.getName());
+    }
+
+    @Override
+    public boolean user_authority_check(User user, Table tbl, List<MSOperation> ops) throws MetaException, TException {
+      org.apache.hadoop.hive.ql.metadata.Table qlTable = new org.apache.hadoop.hive.ql.metadata.Table(tbl);
+      List<HiveOperation> trueOps = new ArrayList<HiveOperation>();
+
+      for (MSOperation mso : ops) {
+        trueOps.add(ms2hive.get(mso));
+      }
+      // FIXME: for this moment, if ZERO ops provided, we grant all access. (for test use only)
+      if (trueOps.size() == 0) {
+        return true;
+      }
+      // TODO: add a new hive_authorization_manager to check
+      for (HiveOperation hop : trueOps) {
+        try {
+          authorizer.authorize(qlTable, hop.getInputRequiredPrivileges(), hop.getOutputRequiredPrivileges());
+        } catch (AuthorizationException e) {
+          return false;
+        } catch (HiveException e) {
+          return false;
+        }
+      }
+      return true;
+    }
+
 /*    @Override
     public boolean addNodeAssignment(Node node, Database database) throws MetaException, TException {
       getMS().addNodeAssignment(node,database);
@@ -6098,6 +6129,10 @@ public class HiveMetaStore extends ThriftHiveMetastore {
   public static void startMetaStore(int port, HadoopThriftAuthBridge bridge,
       HiveConf conf) throws Throwable {
     try {
+      // TODO: init authorizator here
+      // init MSOperation to HiveOperation map
+      init_ms_to_hive_map();
+
       // init connection to top-level datacenter if it is not top-level dc
       connect_to_top_dc(conf);
 
@@ -6173,5 +6208,55 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       HMSHandler.LOG.error(StringUtils.stringifyException(x));
       throw x;
     }
+  }
+
+
+
+  private static void init_ms_to_hive_map() {
+    ms2hive.put(MSOperation.ALTERDATABASE, HiveOperation.ALTERDATABASE);
+    ms2hive.put(MSOperation.ALTERINDEX_PROPS, HiveOperation.ALTERINDEX_PROPS);
+    ms2hive.put(MSOperation.ALTERINDEX_REBUILD, HiveOperation.ALTERINDEX_REBUILD);
+    ms2hive.put(MSOperation.ALTERTABLE_ADDCOLS, HiveOperation.ALTERTABLE_ADDCOLS);
+    ms2hive.put(MSOperation.ALTERTABLE_ADDPARTS, HiveOperation.ALTERTABLE_ADDPARTS);
+    ms2hive.put(MSOperation.ALTERTABLE_DROPPARTS, HiveOperation.ALTERTABLE_DROPPARTS);
+    ms2hive.put(MSOperation.ALTERTABLE_PROPERTIES, HiveOperation.ALTERTABLE_PROPERTIES);
+    ms2hive.put(MSOperation.ALTERTABLE_RENAME, HiveOperation.ALTERTABLE_RENAME);
+    ms2hive.put(MSOperation.ALTERTABLE_RENAMECOL, HiveOperation.ALTERTABLE_RENAMECOL);
+    ms2hive.put(MSOperation.ALTERTABLE_RENAMEPART, HiveOperation.ALTERTABLE_RENAMEPART);
+    ms2hive.put(MSOperation.ALTERTABLE_REPLACECOLS, HiveOperation.ALTERTABLE_REPLACECOLS);
+    ms2hive.put(MSOperation.ALTERVIEW_PROPERTIES, HiveOperation.ALTERVIEW_PROPERTIES);
+    ms2hive.put(MSOperation.AUTHENTICATION, HiveOperation.AUTHENTICATION);
+    ms2hive.put(MSOperation.CHANGE_PWD, HiveOperation.CHANGE_PWD);
+    ms2hive.put(MSOperation.CREATEDATABASE, HiveOperation.CREATEDATABASE);
+    ms2hive.put(MSOperation.CREATEINDEX, HiveOperation.CREATEINDEX);
+    ms2hive.put(MSOperation.CREATEROLE, HiveOperation.CREATEROLE);
+    ms2hive.put(MSOperation.CREATETABLE, HiveOperation.CREATETABLE);
+    ms2hive.put(MSOperation.CREATEUSER, HiveOperation.CREATEUSER);
+    ms2hive.put(MSOperation.CREATEVIEW, HiveOperation.CREATEVIEW);
+    ms2hive.put(MSOperation.DESCDATABASE, HiveOperation.DESCDATABASE);
+    ms2hive.put(MSOperation.DESCTABLE, HiveOperation.DESCTABLE);
+    ms2hive.put(MSOperation.DROPDATABASE, HiveOperation.DROPDATABASE);
+    ms2hive.put(MSOperation.DROPINDEX, HiveOperation.DROPINDEX);
+    ms2hive.put(MSOperation.DROPROLE, HiveOperation.DROPROLE);
+    ms2hive.put(MSOperation.DROPTABLE, HiveOperation.DROPTABLE);
+    ms2hive.put(MSOperation.DROPUSER, HiveOperation.DROPUSER);
+    ms2hive.put(MSOperation.DROPVIEW, HiveOperation.DROPVIEW);
+    ms2hive.put(MSOperation.EXPLAIN, HiveOperation.EXPLAIN);
+    ms2hive.put(MSOperation.GRANT_PRIVILEGE, HiveOperation.GRANT_PRIVILEGE);
+    ms2hive.put(MSOperation.GRANT_ROLE, HiveOperation.GRANT_ROLE);
+    ms2hive.put(MSOperation.QUERY, HiveOperation.QUERY);
+    ms2hive.put(MSOperation.REVOKE_PRIVILEGE, HiveOperation.REVOKE_PRIVILEGE);
+    ms2hive.put(MSOperation.REVOKE_ROLE, HiveOperation.REVOKE_ROLE);
+    ms2hive.put(MSOperation.SHOW_CREATETABLE, HiveOperation.SHOW_CREATETABLE);
+    ms2hive.put(MSOperation.SHOW_GRANT, HiveOperation.SHOW_GRANT);
+    ms2hive.put(MSOperation.SHOW_ROLE_GRANT, HiveOperation.SHOW_ROLE_GRANT);
+    ms2hive.put(MSOperation.SHOW_TABLESTATUS, HiveOperation.SHOW_TABLESTATUS);
+    ms2hive.put(MSOperation.SHOW_TBLPROPERTIES, HiveOperation.SHOW_TBLPROPERTIES);
+    ms2hive.put(MSOperation.SHOW_USERNAMES, HiveOperation.SHOW_USERNAMES);
+    ms2hive.put(MSOperation.SHOWCOLUMNS, HiveOperation.SHOWCOLUMNS);
+    ms2hive.put(MSOperation.SHOWDATABASES, HiveOperation.SHOWDATABASES);
+    ms2hive.put(MSOperation.SHOWINDEXES, HiveOperation.SHOWINDEXES);
+    ms2hive.put(MSOperation.SHOWPARTITIONS, HiveOperation.SHOWPARTITIONS);
+    ms2hive.put(MSOperation.SHOWTABLES, HiveOperation.SHOWTABLES);
   }
 }

@@ -994,7 +994,7 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public List<String> listUsersNames() {
+  public List<String> listUsersNames() throws MetaException {
     // TODO Auto-generated method stub
     return null;
   }
@@ -1028,6 +1028,25 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   public boolean modifyUser(User user) throws MetaException, NoSuchObjectException {
     // TODO Auto-generated method stub
     return false;
+  }
+
+  @Override
+  public Device modifyDevice(Device dev, Node node) throws MetaException, NoSuchObjectException,
+      InvalidObjectException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void offlineDevice(String devid) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public List<String> listUsersNames(String dbName) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

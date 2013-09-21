@@ -116,6 +116,54 @@ struct PrincipalPrivilegeSet {
   3: map<string, list<PrivilegeGrantInfo>> rolePrivileges, //role name -> privilege grant info
 }
 
+enum MSOperation {
+	EXPLAIN = 1,
+	CREATEDATABASE = 2,
+	DROPDATABASE = 3,
+	DROPTABLE = 4,
+	DESCTABLE = 5,
+	ALTERTABLE_RENAME = 6,
+	ALTERTABLE_RENAMECOL = 7,
+	ALTERTABLE_ADDPARTS = 8,
+	ALTERTABLE_DROPPARTS = 9,
+	ALTERTABLE_ADDCOLS = 10,
+	ALTERTABLE_REPLACECOLS = 11,
+	ALTERTABLE_RENAMEPART = 12,
+	ALTERTABLE_PROPERTIES = 13,
+	SHOWDATABASES = 14,
+	SHOWTABLES = 15,
+	SHOWCOLUMNS = 16,
+	SHOW_TABLESTATUS = 17,
+	SHOW_TBLPROPERTIES = 18,
+	SHOW_CREATETABLE = 19,
+	SHOWINDEXES = 20,
+	SHOWPARTITIONS = 21,
+	CREATEVIEW = 22,
+	DROPVIEW = 23,
+	CREATEINDEX = 24,
+	DROPINDEX = 25,
+	ALTERINDEX_REBUILD = 26,
+	ALTERVIEW_PROPERTIES = 27,
+	CREATEUSER = 28,
+	DROPUSER = 29,
+	CHANGE_PWD = 30,
+	AUTHENTICATION = 31,
+	SHOW_USERNAMES = 32,
+	CREATEROLE = 33,
+	DROPROLE = 34,
+	GRANT_PRIVILEGE = 35,
+	REVOKE_PRIVILEGE = 36,
+	SHOW_GRANT = 37,
+	GRANT_ROLE = 38,
+	REVOKE_ROLE = 39,
+	SHOW_ROLE_GRANT = 40,
+	CREATETABLE = 41,
+	QUERY = 42,
+	ALTERINDEX_PROPS = 43,
+	ALTERDATABASE = 44,
+	DESCDATABASE = 45,
+}
+
 struct Role {
   1: string roleName,
   2: i32 createTime,
@@ -231,6 +279,7 @@ struct Table {
   12: string tableType,                 // table type enum, e.g. EXTERNAL_TABLE
   13: optional PrincipalPrivilegeSet privileges,
   14: optional list<Partition> partitions,
+  15: list<FieldSchema> fileSplitKeys,		// file split keys
 }
 
 
@@ -772,7 +821,9 @@ service ThriftHiveMetastore extends fb303.FacebookService
   bool drop_user(1:string user_name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
   bool modify_user(1:User user) throws(1:NoSuchObjectException o1, 2:MetaException o2)
   list<string> list_users_names() throws(1:MetaException o1)
+  list<string> list_users(1:Database db) throws (1:MetaException o1)
   bool authentication(1:string user_name, 2:string passwd) throws(1:NoSuchObjectException o1, 2:MetaException o2) //authenticate the userName and passwd.
+  bool user_authority_check(1:User user, 2:Table tbl, 3:list<MSOperation> ops) throws (1:MetaException o1)
 
 //  list<string> get_user_grants(1:string user_name) throws(1:MetaException o1, 2:NoSuchObjectException o2) //if there is no user_name, then show all users' grants.
 

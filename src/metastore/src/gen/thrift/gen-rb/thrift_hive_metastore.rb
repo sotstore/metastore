@@ -1726,6 +1726,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'list_users_names failed: unknown result')
     end
 
+    def list_users(db)
+      send_list_users(db)
+      return recv_list_users()
+    end
+
+    def send_list_users(db)
+      send_message('list_users', List_users_args, :db => db)
+    end
+
+    def recv_list_users()
+      result = receive_message(List_users_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'list_users failed: unknown result')
+    end
+
     def authentication(user_name, passwd)
       send_authentication(user_name, passwd)
       return recv_authentication()
@@ -1741,6 +1757,22 @@ module ThriftHiveMetastore
       raise result.o1 unless result.o1.nil?
       raise result.o2 unless result.o2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'authentication failed: unknown result')
+    end
+
+    def user_authority_check(user, tbl, ops)
+      send_user_authority_check(user, tbl, ops)
+      return recv_user_authority_check()
+    end
+
+    def send_user_authority_check(user, tbl, ops)
+      send_message('user_authority_check', User_authority_check_args, :user => user, :tbl => tbl, :ops => ops)
+    end
+
+    def recv_user_authority_check()
+      result = receive_message(User_authority_check_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'user_authority_check failed: unknown result')
     end
 
     def create_role(role)
@@ -3704,6 +3736,17 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'list_users_names', seqid)
     end
 
+    def process_list_users(seqid, iprot, oprot)
+      args = read_args(iprot, List_users_args)
+      result = List_users_result.new()
+      begin
+        result.success = @handler.list_users(args.db)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'list_users', seqid)
+    end
+
     def process_authentication(seqid, iprot, oprot)
       args = read_args(iprot, Authentication_args)
       result = Authentication_result.new()
@@ -3715,6 +3758,17 @@ module ThriftHiveMetastore
         result.o2 = o2
       end
       write_result(result, oprot, 'authentication', seqid)
+    end
+
+    def process_user_authority_check(seqid, iprot, oprot)
+      args = read_args(iprot, User_authority_check_args)
+      result = User_authority_check_result.new()
+      begin
+        result.success = @handler.user_authority_check(args.user, args.tbl, args.ops)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'user_authority_check', seqid)
     end
 
     def process_create_role(seqid, iprot, oprot)
@@ -8066,6 +8120,40 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
+  class List_users_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DB = 1
+
+    FIELDS = {
+      DB => {:type => ::Thrift::Types::STRUCT, :name => 'db', :class => ::Database}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class List_users_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRING}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class Authentication_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     USER_NAME = 1
@@ -8094,6 +8182,44 @@ module ThriftHiveMetastore
       SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::NoSuchObjectException},
       O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class User_authority_check_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    USER = 1
+    TBL = 2
+    OPS = 3
+
+    FIELDS = {
+      USER => {:type => ::Thrift::Types::STRUCT, :name => 'user', :class => ::User},
+      TBL => {:type => ::Thrift::Types::STRUCT, :name => 'tbl', :class => ::Table},
+      OPS => {:type => ::Thrift::Types::LIST, :name => 'ops', :element => {:type => ::Thrift::Types::I32, :enum_class => ::MSOperation}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class User_authority_check_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end
