@@ -2919,6 +2919,7 @@ public class Hive {
 
   public boolean createSchema(GlobalSchema schema) throws HiveException {
     try {
+      LOG.info("before createSchema");
     return getMSC().createSchema(schema);
     } catch (Exception e) {
       throw new HiveException(e);

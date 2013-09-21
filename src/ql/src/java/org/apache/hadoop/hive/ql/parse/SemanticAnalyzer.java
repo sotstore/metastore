@@ -185,6 +185,7 @@ import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoUtils;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.mapred.InputFormat;
+import org.mortbay.log.Log;
 
 /**
  * Implementation of the semantic analyzer.
@@ -8515,7 +8516,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     this.ast = ast;
     viewsExpanded = new ArrayList<String>();
 
-    LOG.info("Starting Semantic Analysis");
+    zlog.info("Starting Semantic Analysis");
+
 
     // analyze create table command
     if (ast.getToken().getType() == HiveParser.TOK_CREATETABLE) {
@@ -9124,7 +9126,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         break;
       case HiveParser.TOK_LIKETABLE:
         if (child.getChildCount() > 0) {
-          likeTableName = getUnescapedName((ASTNode)child.getChild(0));
+          likeTableName = getUnescapedName((ASTNode)child.getChild(0).getChild(0));
           if (likeTableName != null) {
             if (command_type == CTAS) {
               throw new SemanticException(ErrorMsg.CTAS_CTLT_COEXISTENCE
@@ -9140,7 +9142,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         break;
       case HiveParser.TOK_LIKESCHEMA:
         if (child.getChildCount() > 0) {
-          likeSchemaName = getUnescapedName((ASTNode)child.getChild(0));
+          likeSchemaName = getUnescapedName((ASTNode)child.getChild(0).getChild(0));
           toDBNameString = getUnescapedName((ASTNode)child.getChild(1));
           if (likeSchemaName != null) {
             if (command_type == CTAS) {
@@ -9322,7 +9324,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     case CTLS: // create table like <tbl_name>
       CreateTableLikeSchemaDesc crtTblLikeSchemaDesc = new CreateTableLikeSchemaDesc(toDBNameString,tableName, isExt,partCols,
           storageFormat.inputFormat, storageFormat.outputFormat, location,
-          shared.serde, shared.serdeProps, ifNotExists, likeTableName);
+          shared.serde, shared.serdeProps, ifNotExists, likeSchemaName);
       if(nodeGroupNames != null){
         crtTblLikeSchemaDesc.setNodeGroupNames(nodeGroupNames);
       }
@@ -9377,7 +9379,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
    */
   private ASTNode analyzeCreateSchema(ASTNode ast, QB qb)
       throws SemanticException {
-    String schemaName = getUnescapedName((ASTNode)ast.getChild(0));
+    String schemaName = getUnescapedName((ASTNode)ast.getChild(0).getChild(0));
     String likeSchemaName = null;
     List<FieldSchema> cols = new ArrayList<FieldSchema>();
     String comment = null;
@@ -9416,7 +9418,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         break;
       case HiveParser.TOK_LIKESCHEMA:
         if (child.getChildCount() > 0) {
-          likeSchemaName = getUnescapedName((ASTNode)child.getChild(0));
+          likeSchemaName = getUnescapedName((ASTNode)child.getChild(0).getChild(0));
           if (likeSchemaName != null) {
             if (cols.size() != 0) {
               throw new SemanticException(ErrorMsg.CSLS_COLLST_COEXISTENCE
@@ -9448,6 +9450,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       try {
         GlobalSchema schema = db.getSchemaByName(schemaName);
         if (schema != null ) { // Schema exists
+          Log.warn("Schema "+ schemaName +"exist!");
           return null;
         }
       } catch (HiveException e) {
@@ -9462,13 +9465,14 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     case CREATE_SCHEMA: // REGULAR CREATE Schema DDL
       schemaProps = addDefaultProperties(schemaProps);
 
+      Log.warn("in create Schema "+ schemaName +"!");
       crtSchemaDesc = new CreateSchemaDesc(schemaName,  cols, rowFormatParams.fieldDelim, rowFormatParams.fieldEscape,
           rowFormatParams.collItemDelim, rowFormatParams.mapKeyDelim, rowFormatParams.lineDelim, comment,
           shared.serdeProps, schemaProps, ifNotExists);
       crtSchemaDesc.validate();
       // outputs is empty, which means this create Schema happens in the current
       // database.
-
+      Log.warn("in 2create Schema "+ schemaName +"!");
       //FIXME check this
 //      SessionState.get().setCommandType(HiveOperation.CREATETABLE);
       rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),

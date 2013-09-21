@@ -134,9 +134,9 @@ import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
+import org.apache.hadoop.hive.ql.plan.CreateNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.CreateSchemaDesc;
 import org.apache.hadoop.hive.ql.plan.CreateSchemaLikeDesc;
-import org.apache.hadoop.hive.ql.plan.CreateNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableLikeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableLikeSchemaDesc;
@@ -676,6 +676,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       if (crtSchemaDesc != null) {
         return crtSchemaDesc(db, crtSchemaDesc);
       }
+      org.mortbay.log.Log.info("crtSchemaDesc is null");
 
       CreateTableLikeSchemaDesc crtTblLikeSchemaDesc = work.getCrtTblLikeSchemaDesc();
       if (crtTblLikeSchemaDesc != null) {
@@ -885,13 +886,16 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     // long as it in the first
     // 'n' columns where 'n' is the length of the bucketed columns.
 
+    LOG.info("before generic");
     int rc = setGenericSchemaAttributes(schema);
     if (rc != 0) {
       return rc;
     }
+    LOG.info("before createSchema");
 
     // create the table
     boolean success = db.createSchema(schema.getTschema());
+    LOG.info("after createSchema");
     if(success) {
       return 0;
     } else {
@@ -4867,6 +4871,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       //tbl.setOwner(conf.getUser());
       schema.setOwner(SessionState.get().getUser());       //added by liulichao,2013-05-15
     } catch (Exception e) {
+      LOG.error("Unable to get current user:");
       formatter.consoleError(console,
                              "Unable to get current user: " + e.getMessage(),
                              stringifyException(e),
