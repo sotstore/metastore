@@ -283,19 +283,18 @@ struct Partition {
 }
 
 // Schema information
-struct Schema {
+struct GlobalSchema {
   1: string schemaName,                // name of the table
-  2: string dbName,                   // database name ('default')
-  3: string owner,                    // owner of this table
-  4: i32    createTime,               // creation time of the table
-  5: i32    lastAccessTime,           // last access time (usually this will be filled from HDFS and shouldn't be relied on)
-  6: i32    retention,                // retention time
-  7: StorageDescriptor sd,            // storage descriptor of the table
-  8: map<string, string> parameters,   // to store comments or any other user level parameters
-  9: string viewOriginalText,         // original view text, null for non-view
-  10: string viewExpandedText,         // expanded view text, null for non-view
-  11: string schemaType,                 // table type enum, e.g. EXTERNAL_TABLE
-  12: optional PrincipalPrivilegeSet privileges
+  2: string owner,                    // owner of this table
+  3: i32    createTime,               // creation time of the table
+  4: i32    lastAccessTime,           // last access time (usually this will be filled from HDFS and shouldn't be relied on)
+  5: i32    retention,                // retention time
+  6: StorageDescriptor sd,            // storage descriptor of the table
+  7: map<string, string> parameters,   // to store comments or any other user level parameters
+  8: string viewOriginalText,         // original view text, null for non-view
+  9: string viewExpandedText,         // expanded view text, null for non-view
+  10: string schemaType,                 // table type enum, e.g. EXTERNAL_TABLE
+  11: optional PrincipalPrivilegeSet privileges
 }
 
 // table information
@@ -951,11 +950,11 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   string getMP(1:string node_name, 2:string devid) throws (1:MetaException o1) 
   
-  bool createSchema(1:Schema schema) throws (1:MetaException o1)
-  bool modifySchema(1:Schema schema) throws (1:MetaException o1)
+  bool createSchema(1:GlobalSchema schema) throws (1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
+  bool modifySchema(1:GlobalSchema schema) throws (1:MetaException o1)
   bool deleteSchema(1:string schemaName) throws (1:MetaException o1)
-  list<Schema> listSchemas() throws (1:MetaException o1)
-  Schema getSchemaByName(1:string schemaName) throws (1:MetaException o1)
+  list<GlobalSchema> listSchemas() throws (1:MetaException o1)
+  GlobalSchema getSchemaByName(1:string schemaName) throws (1:MetaException o1)
   
   list<NodeGroup> getTableNodeGroups(1:string dbName,2:string tabName) throws (1:MetaException o1)
   list<SFile> getTableNodeFiles(1:string dbName,2:string tabName,3:string nodeName)  throws (1:MetaException o1)
@@ -963,7 +962,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   list<SFile> listTableFiles(1:string dbName,2:string tabName,3:i16 max_num)  throws (1:MetaException o1)
   list<SFile> filterTableFiles(1:string dbName,2:string tabName,3:string exp)  throws (1:MetaException o1)
   
-  bool addNodeGroup(1:NodeGroup ng) throws (1:MetaException o1)
+  bool addNodeGroup(1:NodeGroup ng) throws (1:AlreadyExistsException o1,2:MetaException o2)
   bool modifyNodeGroup (1:NodeGroup ng) throws (1:MetaException o1)
   bool deleteNodeGroup (1:NodeGroup ng) throws (1:MetaException o1)
   list<NodeGroup> listNodeGroups() throws (1:MetaException o1)

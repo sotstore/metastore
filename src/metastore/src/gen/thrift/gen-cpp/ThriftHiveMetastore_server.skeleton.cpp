@@ -747,12 +747,12 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("getMP\n");
   }
 
-  bool createSchema(const Schema& schema) {
+  bool createSchema(const GlobalSchema& schema) {
     // Your implementation goes here
     printf("createSchema\n");
   }
 
-  bool modifySchema(const Schema& schema) {
+  bool modifySchema(const GlobalSchema& schema) {
     // Your implementation goes here
     printf("modifySchema\n");
   }
@@ -762,12 +762,12 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("deleteSchema\n");
   }
 
-  void listSchemas(std::vector<Schema> & _return) {
+  void listSchemas(std::vector<GlobalSchema> & _return) {
     // Your implementation goes here
     printf("listSchemas\n");
   }
 
-  void getSchemaByName(Schema& _return, const std::string& schemaName) {
+  void getSchemaByName(GlobalSchema& _return, const std::string& schemaName) {
     // Your implementation goes here
     printf("getSchemaByName\n");
   }

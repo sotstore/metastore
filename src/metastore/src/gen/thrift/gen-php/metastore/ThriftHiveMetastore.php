@@ -161,8 +161,8 @@ interface ThriftHiveMetastoreIf extends \FacebookServiceIf {
   public function migrate2_stage1($dbName, $tableName, $partNames, $to_dc);
   public function migrate2_stage2($dbName, $tableName, $partNames, $to_dc, $to_db, $to_nas_devid);
   public function getMP($node_name, $devid);
-  public function createSchema(\metastore\Schema $schema);
-  public function modifySchema(\metastore\Schema $schema);
+  public function createSchema(\metastore\GlobalSchema $schema);
+  public function modifySchema(\metastore\GlobalSchema $schema);
   public function deleteSchema($schemaName);
   public function listSchemas();
   public function getSchemaByName($schemaName);
@@ -8448,13 +8448,13 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
     throw new \Exception("getMP failed: unknown result");
   }
 
-  public function createSchema(\metastore\Schema $schema)
+  public function createSchema(\metastore\GlobalSchema $schema)
   {
     $this->send_createSchema($schema);
     return $this->recv_createSchema();
   }
 
-  public function send_createSchema(\metastore\Schema $schema)
+  public function send_createSchema(\metastore\GlobalSchema $schema)
   {
     $args = new \metastore\ThriftHiveMetastore_createSchema_args();
     $args->schema = $schema;
@@ -8499,16 +8499,22 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
     if ($result->o1 !== null) {
       throw $result->o1;
     }
+    if ($result->o2 !== null) {
+      throw $result->o2;
+    }
+    if ($result->o3 !== null) {
+      throw $result->o3;
+    }
     throw new \Exception("createSchema failed: unknown result");
   }
 
-  public function modifySchema(\metastore\Schema $schema)
+  public function modifySchema(\metastore\GlobalSchema $schema)
   {
     $this->send_modifySchema($schema);
     return $this->recv_modifySchema();
   }
 
-  public function send_modifySchema(\metastore\Schema $schema)
+  public function send_modifySchema(\metastore\GlobalSchema $schema)
   {
     $args = new \metastore\ThriftHiveMetastore_modifySchema_args();
     $args->schema = $schema;
@@ -8990,6 +8996,9 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
     }
     if ($result->o1 !== null) {
       throw $result->o1;
+    }
+    if ($result->o2 !== null) {
+      throw $result->o2;
     }
     throw new \Exception("addNodeGroup failed: unknown result");
   }
@@ -41521,7 +41530,7 @@ class ThriftHiveMetastore_createSchema_args {
         1 => array(
           'var' => 'schema',
           'type' => TType::STRUCT,
-          'class' => '\metastore\Schema',
+          'class' => '\metastore\GlobalSchema',
           ),
         );
     }
@@ -41553,7 +41562,7 @@ class ThriftHiveMetastore_createSchema_args {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->schema = new \metastore\Schema();
+            $this->schema = new \metastore\GlobalSchema();
             $xfer += $this->schema->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -41592,6 +41601,8 @@ class ThriftHiveMetastore_createSchema_result {
 
   public $success = null;
   public $o1 = null;
+  public $o2 = null;
+  public $o3 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -41603,6 +41614,16 @@ class ThriftHiveMetastore_createSchema_result {
         1 => array(
           'var' => 'o1',
           'type' => TType::STRUCT,
+          'class' => '\metastore\AlreadyExistsException',
+          ),
+        2 => array(
+          'var' => 'o2',
+          'type' => TType::STRUCT,
+          'class' => '\metastore\InvalidObjectException',
+          ),
+        3 => array(
+          'var' => 'o3',
+          'type' => TType::STRUCT,
           'class' => '\metastore\MetaException',
           ),
         );
@@ -41613,6 +41634,12 @@ class ThriftHiveMetastore_createSchema_result {
       }
       if (isset($vals['o1'])) {
         $this->o1 = $vals['o1'];
+      }
+      if (isset($vals['o2'])) {
+        $this->o2 = $vals['o2'];
+      }
+      if (isset($vals['o3'])) {
+        $this->o3 = $vals['o3'];
       }
     }
   }
@@ -41645,8 +41672,24 @@ class ThriftHiveMetastore_createSchema_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->o1 = new \metastore\MetaException();
+            $this->o1 = new \metastore\AlreadyExistsException();
             $xfer += $this->o1->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->o2 = new \metastore\InvalidObjectException();
+            $xfer += $this->o2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->o3 = new \metastore\MetaException();
+            $xfer += $this->o3->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -41674,6 +41717,16 @@ class ThriftHiveMetastore_createSchema_result {
       $xfer += $this->o1->write($output);
       $xfer += $output->writeFieldEnd();
     }
+    if ($this->o2 !== null) {
+      $xfer += $output->writeFieldBegin('o2', TType::STRUCT, 2);
+      $xfer += $this->o2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->o3 !== null) {
+      $xfer += $output->writeFieldBegin('o3', TType::STRUCT, 3);
+      $xfer += $this->o3->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
     $xfer += $output->writeFieldStop();
     $xfer += $output->writeStructEnd();
     return $xfer;
@@ -41692,7 +41745,7 @@ class ThriftHiveMetastore_modifySchema_args {
         1 => array(
           'var' => 'schema',
           'type' => TType::STRUCT,
-          'class' => '\metastore\Schema',
+          'class' => '\metastore\GlobalSchema',
           ),
         );
     }
@@ -41724,7 +41777,7 @@ class ThriftHiveMetastore_modifySchema_args {
       {
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->schema = new \metastore\Schema();
+            $this->schema = new \metastore\GlobalSchema();
             $xfer += $this->schema->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -42083,7 +42136,7 @@ class ThriftHiveMetastore_listSchemas_result {
           'etype' => TType::STRUCT,
           'elem' => array(
             'type' => TType::STRUCT,
-            'class' => '\metastore\Schema',
+            'class' => '\metastore\GlobalSchema',
             ),
           ),
         1 => array(
@@ -42131,7 +42184,7 @@ class ThriftHiveMetastore_listSchemas_result {
             for ($_i936 = 0; $_i936 < $_size932; ++$_i936)
             {
               $elem937 = null;
-              $elem937 = new \metastore\Schema();
+              $elem937 = new \metastore\GlobalSchema();
               $xfer += $elem937->read($input);
               $this->success []= $elem937;
             }
@@ -42274,7 +42327,7 @@ class ThriftHiveMetastore_getSchemaByName_result {
         0 => array(
           'var' => 'success',
           'type' => TType::STRUCT,
-          'class' => '\metastore\Schema',
+          'class' => '\metastore\GlobalSchema',
           ),
         1 => array(
           'var' => 'o1',
@@ -42314,7 +42367,7 @@ class ThriftHiveMetastore_getSchemaByName_result {
       {
         case 0:
           if ($ftype == TType::STRUCT) {
-            $this->success = new \metastore\Schema();
+            $this->success = new \metastore\GlobalSchema();
             $xfer += $this->success->read($input);
           } else {
             $xfer += $input->skip($ftype);
@@ -43359,6 +43412,7 @@ class ThriftHiveMetastore_addNodeGroup_result {
 
   public $success = null;
   public $o1 = null;
+  public $o2 = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -43370,6 +43424,11 @@ class ThriftHiveMetastore_addNodeGroup_result {
         1 => array(
           'var' => 'o1',
           'type' => TType::STRUCT,
+          'class' => '\metastore\AlreadyExistsException',
+          ),
+        2 => array(
+          'var' => 'o2',
+          'type' => TType::STRUCT,
           'class' => '\metastore\MetaException',
           ),
         );
@@ -43380,6 +43439,9 @@ class ThriftHiveMetastore_addNodeGroup_result {
       }
       if (isset($vals['o1'])) {
         $this->o1 = $vals['o1'];
+      }
+      if (isset($vals['o2'])) {
+        $this->o2 = $vals['o2'];
       }
     }
   }
@@ -43412,8 +43474,16 @@ class ThriftHiveMetastore_addNodeGroup_result {
           break;
         case 1:
           if ($ftype == TType::STRUCT) {
-            $this->o1 = new \metastore\MetaException();
+            $this->o1 = new \metastore\AlreadyExistsException();
             $xfer += $this->o1->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->o2 = new \metastore\MetaException();
+            $xfer += $this->o2->read($input);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -43439,6 +43509,11 @@ class ThriftHiveMetastore_addNodeGroup_result {
     if ($this->o1 !== null) {
       $xfer += $output->writeFieldBegin('o1', TType::STRUCT, 1);
       $xfer += $this->o1->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->o2 !== null) {
+      $xfer += $output->writeFieldBegin('o2', TType::STRUCT, 2);
+      $xfer += $this->o2->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();

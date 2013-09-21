@@ -161,11 +161,11 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void migrate2_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) = 0;
   virtual bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_db, const std::string& to_nas_devid) = 0;
   virtual void getMP(std::string& _return, const std::string& node_name, const std::string& devid) = 0;
-  virtual bool createSchema(const Schema& schema) = 0;
-  virtual bool modifySchema(const Schema& schema) = 0;
+  virtual bool createSchema(const GlobalSchema& schema) = 0;
+  virtual bool modifySchema(const GlobalSchema& schema) = 0;
   virtual bool deleteSchema(const std::string& schemaName) = 0;
-  virtual void listSchemas(std::vector<Schema> & _return) = 0;
-  virtual void getSchemaByName(Schema& _return, const std::string& schemaName) = 0;
+  virtual void listSchemas(std::vector<GlobalSchema> & _return) = 0;
+  virtual void getSchemaByName(GlobalSchema& _return, const std::string& schemaName) = 0;
   virtual void getTableNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName) = 0;
   virtual void getTableNodeFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& nodeName) = 0;
   virtual void listTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const int16_t max_num) = 0;
@@ -697,11 +697,11 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void getMP(std::string& /* _return */, const std::string& /* node_name */, const std::string& /* devid */) {
     return;
   }
-  bool createSchema(const Schema& /* schema */) {
+  bool createSchema(const GlobalSchema& /* schema */) {
     bool _return = false;
     return _return;
   }
-  bool modifySchema(const Schema& /* schema */) {
+  bool modifySchema(const GlobalSchema& /* schema */) {
     bool _return = false;
     return _return;
   }
@@ -709,10 +709,10 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     bool _return = false;
     return _return;
   }
-  void listSchemas(std::vector<Schema> & /* _return */) {
+  void listSchemas(std::vector<GlobalSchema> & /* _return */) {
     return;
   }
-  void getSchemaByName(Schema& /* _return */, const std::string& /* schemaName */) {
+  void getSchemaByName(GlobalSchema& /* _return */, const std::string& /* schemaName */) {
     return;
   }
   void getTableNodeGroups(std::vector<NodeGroup> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */) {
@@ -20200,11 +20200,11 @@ class ThriftHiveMetastore_createSchema_args {
 
   virtual ~ThriftHiveMetastore_createSchema_args() throw() {}
 
-  Schema schema;
+  GlobalSchema schema;
 
   _ThriftHiveMetastore_createSchema_args__isset __isset;
 
-  void __set_schema(const Schema& val) {
+  void __set_schema(const GlobalSchema& val) {
     schema = val;
   }
 
@@ -20232,16 +20232,18 @@ class ThriftHiveMetastore_createSchema_pargs {
 
   virtual ~ThriftHiveMetastore_createSchema_pargs() throw() {}
 
-  const Schema* schema;
+  const GlobalSchema* schema;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
 typedef struct _ThriftHiveMetastore_createSchema_result__isset {
-  _ThriftHiveMetastore_createSchema_result__isset() : success(false), o1(false) {}
+  _ThriftHiveMetastore_createSchema_result__isset() : success(false), o1(false), o2(false), o3(false) {}
   bool success;
   bool o1;
+  bool o2;
+  bool o3;
 } _ThriftHiveMetastore_createSchema_result__isset;
 
 class ThriftHiveMetastore_createSchema_result {
@@ -20253,7 +20255,9 @@ class ThriftHiveMetastore_createSchema_result {
   virtual ~ThriftHiveMetastore_createSchema_result() throw() {}
 
   bool success;
-  MetaException o1;
+  AlreadyExistsException o1;
+  InvalidObjectException o2;
+  MetaException o3;
 
   _ThriftHiveMetastore_createSchema_result__isset __isset;
 
@@ -20261,8 +20265,16 @@ class ThriftHiveMetastore_createSchema_result {
     success = val;
   }
 
-  void __set_o1(const MetaException& val) {
+  void __set_o1(const AlreadyExistsException& val) {
     o1 = val;
+  }
+
+  void __set_o2(const InvalidObjectException& val) {
+    o2 = val;
+  }
+
+  void __set_o3(const MetaException& val) {
+    o3 = val;
   }
 
   bool operator == (const ThriftHiveMetastore_createSchema_result & rhs) const
@@ -20270,6 +20282,10 @@ class ThriftHiveMetastore_createSchema_result {
     if (!(success == rhs.success))
       return false;
     if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    if (!(o3 == rhs.o3))
       return false;
     return true;
   }
@@ -20285,9 +20301,11 @@ class ThriftHiveMetastore_createSchema_result {
 };
 
 typedef struct _ThriftHiveMetastore_createSchema_presult__isset {
-  _ThriftHiveMetastore_createSchema_presult__isset() : success(false), o1(false) {}
+  _ThriftHiveMetastore_createSchema_presult__isset() : success(false), o1(false), o2(false), o3(false) {}
   bool success;
   bool o1;
+  bool o2;
+  bool o3;
 } _ThriftHiveMetastore_createSchema_presult__isset;
 
 class ThriftHiveMetastore_createSchema_presult {
@@ -20297,7 +20315,9 @@ class ThriftHiveMetastore_createSchema_presult {
   virtual ~ThriftHiveMetastore_createSchema_presult() throw() {}
 
   bool* success;
-  MetaException o1;
+  AlreadyExistsException o1;
+  InvalidObjectException o2;
+  MetaException o3;
 
   _ThriftHiveMetastore_createSchema_presult__isset __isset;
 
@@ -20318,11 +20338,11 @@ class ThriftHiveMetastore_modifySchema_args {
 
   virtual ~ThriftHiveMetastore_modifySchema_args() throw() {}
 
-  Schema schema;
+  GlobalSchema schema;
 
   _ThriftHiveMetastore_modifySchema_args__isset __isset;
 
-  void __set_schema(const Schema& val) {
+  void __set_schema(const GlobalSchema& val) {
     schema = val;
   }
 
@@ -20350,7 +20370,7 @@ class ThriftHiveMetastore_modifySchema_pargs {
 
   virtual ~ThriftHiveMetastore_modifySchema_pargs() throw() {}
 
-  const Schema* schema;
+  const GlobalSchema* schema;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -20592,12 +20612,12 @@ class ThriftHiveMetastore_listSchemas_result {
 
   virtual ~ThriftHiveMetastore_listSchemas_result() throw() {}
 
-  std::vector<Schema>  success;
+  std::vector<GlobalSchema>  success;
   MetaException o1;
 
   _ThriftHiveMetastore_listSchemas_result__isset __isset;
 
-  void __set_success(const std::vector<Schema> & val) {
+  void __set_success(const std::vector<GlobalSchema> & val) {
     success = val;
   }
 
@@ -20636,7 +20656,7 @@ class ThriftHiveMetastore_listSchemas_presult {
 
   virtual ~ThriftHiveMetastore_listSchemas_presult() throw() {}
 
-  std::vector<Schema> * success;
+  std::vector<GlobalSchema> * success;
   MetaException o1;
 
   _ThriftHiveMetastore_listSchemas_presult__isset __isset;
@@ -20710,12 +20730,12 @@ class ThriftHiveMetastore_getSchemaByName_result {
 
   virtual ~ThriftHiveMetastore_getSchemaByName_result() throw() {}
 
-  Schema success;
+  GlobalSchema success;
   MetaException o1;
 
   _ThriftHiveMetastore_getSchemaByName_result__isset __isset;
 
-  void __set_success(const Schema& val) {
+  void __set_success(const GlobalSchema& val) {
     success = val;
   }
 
@@ -20754,7 +20774,7 @@ class ThriftHiveMetastore_getSchemaByName_presult {
 
   virtual ~ThriftHiveMetastore_getSchemaByName_presult() throw() {}
 
-  Schema* success;
+  GlobalSchema* success;
   MetaException o1;
 
   _ThriftHiveMetastore_getSchemaByName_presult__isset __isset;
@@ -21350,9 +21370,10 @@ class ThriftHiveMetastore_addNodeGroup_pargs {
 };
 
 typedef struct _ThriftHiveMetastore_addNodeGroup_result__isset {
-  _ThriftHiveMetastore_addNodeGroup_result__isset() : success(false), o1(false) {}
+  _ThriftHiveMetastore_addNodeGroup_result__isset() : success(false), o1(false), o2(false) {}
   bool success;
   bool o1;
+  bool o2;
 } _ThriftHiveMetastore_addNodeGroup_result__isset;
 
 class ThriftHiveMetastore_addNodeGroup_result {
@@ -21364,7 +21385,8 @@ class ThriftHiveMetastore_addNodeGroup_result {
   virtual ~ThriftHiveMetastore_addNodeGroup_result() throw() {}
 
   bool success;
-  MetaException o1;
+  AlreadyExistsException o1;
+  MetaException o2;
 
   _ThriftHiveMetastore_addNodeGroup_result__isset __isset;
 
@@ -21372,8 +21394,12 @@ class ThriftHiveMetastore_addNodeGroup_result {
     success = val;
   }
 
-  void __set_o1(const MetaException& val) {
+  void __set_o1(const AlreadyExistsException& val) {
     o1 = val;
+  }
+
+  void __set_o2(const MetaException& val) {
+    o2 = val;
   }
 
   bool operator == (const ThriftHiveMetastore_addNodeGroup_result & rhs) const
@@ -21381,6 +21407,8 @@ class ThriftHiveMetastore_addNodeGroup_result {
     if (!(success == rhs.success))
       return false;
     if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
       return false;
     return true;
   }
@@ -21396,9 +21424,10 @@ class ThriftHiveMetastore_addNodeGroup_result {
 };
 
 typedef struct _ThriftHiveMetastore_addNodeGroup_presult__isset {
-  _ThriftHiveMetastore_addNodeGroup_presult__isset() : success(false), o1(false) {}
+  _ThriftHiveMetastore_addNodeGroup_presult__isset() : success(false), o1(false), o2(false) {}
   bool success;
   bool o1;
+  bool o2;
 } _ThriftHiveMetastore_addNodeGroup_presult__isset;
 
 class ThriftHiveMetastore_addNodeGroup_presult {
@@ -21408,7 +21437,8 @@ class ThriftHiveMetastore_addNodeGroup_presult {
   virtual ~ThriftHiveMetastore_addNodeGroup_presult() throw() {}
 
   bool* success;
-  MetaException o1;
+  AlreadyExistsException o1;
+  MetaException o2;
 
   _ThriftHiveMetastore_addNodeGroup_presult__isset __isset;
 
@@ -22720,21 +22750,21 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void getMP(std::string& _return, const std::string& node_name, const std::string& devid);
   void send_getMP(const std::string& node_name, const std::string& devid);
   void recv_getMP(std::string& _return);
-  bool createSchema(const Schema& schema);
-  void send_createSchema(const Schema& schema);
+  bool createSchema(const GlobalSchema& schema);
+  void send_createSchema(const GlobalSchema& schema);
   bool recv_createSchema();
-  bool modifySchema(const Schema& schema);
-  void send_modifySchema(const Schema& schema);
+  bool modifySchema(const GlobalSchema& schema);
+  void send_modifySchema(const GlobalSchema& schema);
   bool recv_modifySchema();
   bool deleteSchema(const std::string& schemaName);
   void send_deleteSchema(const std::string& schemaName);
   bool recv_deleteSchema();
-  void listSchemas(std::vector<Schema> & _return);
+  void listSchemas(std::vector<GlobalSchema> & _return);
   void send_listSchemas();
-  void recv_listSchemas(std::vector<Schema> & _return);
-  void getSchemaByName(Schema& _return, const std::string& schemaName);
+  void recv_listSchemas(std::vector<GlobalSchema> & _return);
+  void getSchemaByName(GlobalSchema& _return, const std::string& schemaName);
   void send_getSchemaByName(const std::string& schemaName);
-  void recv_getSchemaByName(Schema& _return);
+  void recv_getSchemaByName(GlobalSchema& _return);
   void getTableNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName);
   void send_getTableNodeGroups(const std::string& dbName, const std::string& tabName);
   void recv_getTableNodeGroups(std::vector<NodeGroup> & _return);
@@ -24518,7 +24548,7 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return;
   }
 
-  bool createSchema(const Schema& schema) {
+  bool createSchema(const GlobalSchema& schema) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
@@ -24527,7 +24557,7 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return ifaces_[i]->createSchema(schema);
   }
 
-  bool modifySchema(const Schema& schema) {
+  bool modifySchema(const GlobalSchema& schema) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
@@ -24545,7 +24575,7 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return ifaces_[i]->deleteSchema(schemaName);
   }
 
-  void listSchemas(std::vector<Schema> & _return) {
+  void listSchemas(std::vector<GlobalSchema> & _return) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
@@ -24555,7 +24585,7 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return;
   }
 
-  void getSchemaByName(Schema& _return, const std::string& schemaName) {
+  void getSchemaByName(GlobalSchema& _return, const std::string& schemaName) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
