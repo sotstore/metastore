@@ -8234,49 +8234,35 @@ public MUser getMUser(String userName) {
     return gls;
   }
 
-/*  @Override
-  public boolean addNodeAssignment(Node node, Database database) throws MetaException {
-    MNodeAssignment mna = new MNodeAssignment();
+/*
+ * demo
+ */
+  @Override
+  public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException {
+    MNode mnd;
+    MDatabase mdb;
+
     boolean success = false;
-    int now = (int)(System.currentTimeMillis()/1000);
+    boolean commited = false;
     try {
       openTransaction();
-      pm.makePersistent(mna);
-      success = commitTransaction();
-    } finally {
-      if (!success) {
-        rollbackTransaction();
+      MDatabase mDatabase = this.getMDatabase(dbName);
+      MNode mNode = this.getMNode(nodeName);
+      if (dbName != null) {
+        System.out.println("nodeName " + dbName + " already exists.");
       }
-    }
-    if(success){
-      return true ;
-    }else{
-      return false;
-    }
-  }
-
-  @Override
-  public boolean modifyNodeAssignment(Node node, Database database) throws MetaException {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  @Override
-  public boolean deleteNodeAssignment(Node node, Database database) throws MetaException {
-    boolean success = false;
-    try {
-      openTransaction();
-      MNodeAssignment mna = new MNodeAssignment();
-      if (mna != null) {
-        pm.deletePersistent(mna);
-      }
-      success = commitTransaction();
+      int now = (int)(System.currentTimeMillis()/1000);
+      pm.makePersistent(mNode);
+      commited = commitTransaction();
+      success = true;
     } finally {
-      if (!success) {
+      if (!commited) {
         rollbackTransaction();
       }
     }
     return success;
+
   }
-*/
+
+
 }

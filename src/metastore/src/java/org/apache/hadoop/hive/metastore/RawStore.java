@@ -589,4 +589,13 @@ public interface RawStore extends Configurable {
 
   public abstract List<GeoLocation> listGeoLocation() throws MetaException;
 
+//  boolean addNodeAssignment(Node node, Database database) throws MetaException;
+
+//  boolean modifyNodeAssignment(Node node, Database database) throws MetaException;
+
+//  boolean deleteNodeAssignment(Node node, Database database) throws MetaException;
+
+  boolean addNodeAssignment(String nodename, String dbname) throws MetaException, NoSuchObjectException;
+
+
 }
