@@ -76,6 +76,7 @@ import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.plan.AddEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.AddGeoLocDesc;
+import org.apache.hadoop.hive.ql.plan.AddNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.AddNodeDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
@@ -101,6 +102,7 @@ import org.apache.hadoop.hive.ql.plan.DropDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.DropEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.DropGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
+import org.apache.hadoop.hive.ql.plan.DropNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
@@ -114,6 +116,7 @@ import org.apache.hadoop.hive.ql.plan.LoadTableDesc;
 import org.apache.hadoop.hive.ql.plan.LockTableDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyGeoLocDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyNodeDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartIndexAddFileDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartIndexDropFileDesc;
@@ -146,6 +149,7 @@ import org.apache.hadoop.hive.ql.plan.ShowGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
+import org.apache.hadoop.hive.ql.plan.ShowNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
@@ -576,9 +580,56 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
       analyzeShowEqRoom(ast);
       break;
+    case HiveParser.TOK_ADDNODE_ASSIGNMENT:
+      analyzeAddNodeAssignment(ast);
+      break;
+    case HiveParser.TOK_DROPNODE_ASSIGNMENT:
+      analyzeDropNodeAssignment(ast);
+      break;
+    case HiveParser.TOK_MODIFYNODE_ASSIGNMENT:
+      analyzeModifyNodeAssignment(ast);
+      break;
+    case HiveParser.TOK_SHOWNODE_ASSIGNMENT:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowNodeAssignment(ast);
+      break;
     default:
       throw new SemanticException("Unsupported command.");
     }
+  }
+
+private void analyzeShowNodeAssignment(ASTNode ast) {
+
+  ShowNodeAssignmentDesc showNodeAssignmentDesc = new ShowNodeAssignmentDesc(ctx.getResFile().toString());
+  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+      showNodeAssignmentDesc), conf));
+  setFetchTask(createFetchTask(showNodeAssignmentDesc.getSchema()));
+  }
+
+private void analyzeModifyNodeAssignment(ASTNode ast) {
+  String nodeName = unescapeSQLString((ast.getChild(0).getText()));
+  String dbName = unescapeSQLString(ast.getChild(1).getText());
+  ModifyNodeAssignmentDesc modifyNodeAssignmentDesc = new ModifyNodeAssignmentDesc(nodeName,dbName);
+  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+      modifyNodeAssignmentDesc), conf));
+
+  }
+
+private void analyzeDropNodeAssignment(ASTNode ast) {
+  String nodeName = unescapeSQLString((ast.getChild(0).getText()));
+  String dbName = unescapeSQLString((ast.getChild(1).getText()));
+  DropNodeAssignmentDesc dropNodeAssignmentDesc = new DropNodeAssignmentDesc(nodeName,dbName);
+  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+      dropNodeAssignmentDesc), conf));
+
+  }
+
+private void analyzeAddNodeAssignment(ASTNode ast) {
+  String nodeName = unescapeSQLString(ast.getChild(0).getText());
+  String dbName = unescapeSQLString(ast.getChild(1).getText());
+  AddNodeAssignmentDesc addNodeAssignmentDesc = new AddNodeAssignmentDesc(nodeName,dbName);
+  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+      addNodeAssignmentDesc), conf));
   }
 
 //added by liulichao
