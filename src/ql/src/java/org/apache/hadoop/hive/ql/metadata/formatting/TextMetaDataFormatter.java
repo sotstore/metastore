@@ -641,5 +641,11 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
 
     }
 
+    @Override
+    public void showNodeAssignment(DataOutputStream outStream, String result) throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
 
 }

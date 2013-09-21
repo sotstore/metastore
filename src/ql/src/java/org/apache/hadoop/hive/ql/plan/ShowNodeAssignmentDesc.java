@@ -1,22 +1,17 @@
 package org.apache.hadoop.hive.ql.plan;
 
 import java.io.Serializable;
-
-public class ShowGeoLocDesc extends DDLDesc implements Serializable {
-
+public class ShowNodeAssignmentDesc extends DDLDesc implements Serializable  {
   private static final long serialVersionUID = 1L;
-
   String resFile;
 
-  private static final String schema = "geoLocName,nation,province,city,dist#string:string:string:string:string";
+  private static final String schema = "nodeName,dbName#string:string";
 
-
-  public ShowGeoLocDesc() {
-    super();
+  public ShowNodeAssignmentDesc() {
   }
 
 
-  public ShowGeoLocDesc(String resFile) {
+  public ShowNodeAssignmentDesc(String resFile) {
     super();
     this.resFile = resFile;
   }
@@ -35,5 +30,4 @@ public class ShowGeoLocDesc extends DDLDesc implements Serializable {
   public void setResFile(String resFile) {
     this.resFile = resFile;
   }
-
 }

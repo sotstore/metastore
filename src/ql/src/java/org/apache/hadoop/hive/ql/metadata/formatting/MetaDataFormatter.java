@@ -169,5 +169,7 @@ public interface MetaDataFormatter {
     public void showGeoLoc(DataOutputStream outStream, String result) throws HiveException;
 
     public void showEqRoom(DataOutputStream outStream, String result) throws HiveException;
+
+    public void showNodeAssignment(DataOutputStream outStream, String result) throws HiveException;
 }
 
