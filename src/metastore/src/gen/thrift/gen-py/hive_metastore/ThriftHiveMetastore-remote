@@ -168,6 +168,23 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '   migrate2_stage1(string dbName, string tableName,  partNames, string to_dc)'
   print '  bool migrate2_stage2(string dbName, string tableName,  partNames, string to_dc, string to_db, string to_nas_devid)'
   print '  string getMP(string node_name, string devid)'
+  print '  bool createSchema(Schema schema)'
+  print '  bool modifySchema(Schema schema)'
+  print '  bool deleteSchema(string schemaName)'
+  print '   listSchemas()'
+  print '  Schema getSchemaByName(string schemaName)'
+  print '   getTableNodeGroups(string dbName, string tabName)'
+  print '   getTableNodeFiles(string dbName, string tabName, string nodeName)'
+  print '   listTableFiles(string dbName, string tabName, i16 max_num)'
+  print '   filterTableFiles(string dbName, string tabName, string exp)'
+  print '  bool addNodeGroup(NodeGroup ng)'
+  print '  bool modifyNodeGroup(NodeGroup ng)'
+  print '  bool deleteNodeGroup(NodeGroup ng)'
+  print '   listNodeGroups()'
+  print '   listDBNodeGroups(string dbName)'
+  print '  bool addTableNodeDist(string db, string tab,  ng)'
+  print '  bool deleteTableNodeDist(string db, string tab,  ng)'
+  print '   listTableNodeDists(string dbName, string tabName)'
   print ''
   sys.exit(0)
 
@@ -1088,6 +1105,108 @@ elif cmd == 'getMP':
     print 'getMP requires 2 args'
     sys.exit(1)
   pp.pprint(client.getMP(args[0],args[1],))
+
+elif cmd == 'createSchema':
+  if len(args) != 1:
+    print 'createSchema requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.createSchema(eval(args[0]),))
+
+elif cmd == 'modifySchema':
+  if len(args) != 1:
+    print 'modifySchema requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.modifySchema(eval(args[0]),))
+
+elif cmd == 'deleteSchema':
+  if len(args) != 1:
+    print 'deleteSchema requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.deleteSchema(args[0],))
+
+elif cmd == 'listSchemas':
+  if len(args) != 0:
+    print 'listSchemas requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.listSchemas())
+
+elif cmd == 'getSchemaByName':
+  if len(args) != 1:
+    print 'getSchemaByName requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.getSchemaByName(args[0],))
+
+elif cmd == 'getTableNodeGroups':
+  if len(args) != 2:
+    print 'getTableNodeGroups requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.getTableNodeGroups(args[0],args[1],))
+
+elif cmd == 'getTableNodeFiles':
+  if len(args) != 3:
+    print 'getTableNodeFiles requires 3 args'
+    sys.exit(1)
+  pp.pprint(client.getTableNodeFiles(args[0],args[1],args[2],))
+
+elif cmd == 'listTableFiles':
+  if len(args) != 3:
+    print 'listTableFiles requires 3 args'
+    sys.exit(1)
+  pp.pprint(client.listTableFiles(args[0],args[1],eval(args[2]),))
+
+elif cmd == 'filterTableFiles':
+  if len(args) != 3:
+    print 'filterTableFiles requires 3 args'
+    sys.exit(1)
+  pp.pprint(client.filterTableFiles(args[0],args[1],args[2],))
+
+elif cmd == 'addNodeGroup':
+  if len(args) != 1:
+    print 'addNodeGroup requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.addNodeGroup(eval(args[0]),))
+
+elif cmd == 'modifyNodeGroup':
+  if len(args) != 1:
+    print 'modifyNodeGroup requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.modifyNodeGroup(eval(args[0]),))
+
+elif cmd == 'deleteNodeGroup':
+  if len(args) != 1:
+    print 'deleteNodeGroup requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.deleteNodeGroup(eval(args[0]),))
+
+elif cmd == 'listNodeGroups':
+  if len(args) != 0:
+    print 'listNodeGroups requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.listNodeGroups())
+
+elif cmd == 'listDBNodeGroups':
+  if len(args) != 1:
+    print 'listDBNodeGroups requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.listDBNodeGroups(args[0],))
+
+elif cmd == 'addTableNodeDist':
+  if len(args) != 3:
+    print 'addTableNodeDist requires 3 args'
+    sys.exit(1)
+  pp.pprint(client.addTableNodeDist(args[0],args[1],eval(args[2]),))
+
+elif cmd == 'deleteTableNodeDist':
+  if len(args) != 3:
+    print 'deleteTableNodeDist requires 3 args'
+    sys.exit(1)
+  pp.pprint(client.deleteTableNodeDist(args[0],args[1],eval(args[2]),))
+
+elif cmd == 'listTableNodeDists':
+  if len(args) != 2:
+    print 'listTableNodeDists requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.listTableNodeDists(args[0],args[1],))
 
 else:
   print 'Unrecognized method %s' % cmd

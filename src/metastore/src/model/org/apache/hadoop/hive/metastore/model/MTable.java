@@ -26,6 +26,7 @@ public class MTable {
 
   private String tableName;
   private MDatabase database;
+  private MSchema schema;
   private MStorageDescriptor sd;
   private String owner;
   private int createTime;
@@ -56,12 +57,13 @@ public class MTable {
    * @param viewExpandedText
    * @param tableType
    */
-  public MTable(String tableName, MDatabase database, MStorageDescriptor sd, String owner,
+  public MTable(String tableName, MDatabase database, MSchema schema,MStorageDescriptor sd, String owner,
       int createTime, int lastAccessTime, int retention, List<MFieldSchema> partitionKeys,
       Map<String, String> parameters,
       String viewOriginalText, String viewExpandedText, String tableType) {
     this.tableName = tableName;
     this.database = database;
+    this.schema = schema;
     this.sd = sd;
     this.owner = owner;
     this.createTime = createTime;
@@ -74,12 +76,13 @@ public class MTable {
     this.tableType = tableType;
   }
 
-  public MTable(String tableName, MDatabase database, MStorageDescriptor sd, String owner,
+  public MTable(String tableName, MDatabase database, MSchema schema,MStorageDescriptor sd, String owner,
       int createTime, int lastAccessTime, int retention, List<MFieldSchema> fileSplitKeys,
       List<MFieldSchema> partitionKeys, Map<String, String> parameters,
       String viewOriginalText, String viewExpandedText, String tableType) {
     this.tableName = tableName;
     this.database = database;
+    this.schema = schema;
     this.sd = sd;
     this.owner = owner;
     this.createTime = createTime;
@@ -93,11 +96,11 @@ public class MTable {
     this.tableType = tableType;
   }
 
-  public MTable(String tableName, MDatabase database, MStorageDescriptor sd, String owner,
+  public MTable(String tableName, MDatabase database, MSchema schema,MStorageDescriptor sd, String owner,
       int createTime, int lastAccessTime, int retention, List<MFieldSchema> fileSplitKeys,
       List<MFieldSchema> partitionKeys,Map<String, String> parameters,
       String viewOriginalText, String viewExpandedText, String tableType,Set<MNodeGroup> groupDistribute) {
-    this(tableName, database, sd, owner, createTime, lastAccessTime, retention,fileSplitKeys,
+    this(tableName, database,  schema,sd, owner, createTime, lastAccessTime, retention,fileSplitKeys,
         partitionKeys, parameters, viewOriginalText, viewExpandedText, tableType);
     this.groupDistribute = groupDistribute;
   }
@@ -278,6 +281,14 @@ public class MTable {
     this.groupDistribute = groupDistribute;
   }
 
+  public MSchema getSchema() {
+    return schema;
+  }
+
+  public void setSchema(MSchema schema) {
+    this.schema = schema;
+  }
+
   public List<MFieldSchema> getFileSplitKeys() {
     return fileSplitKeys;
   }
@@ -285,6 +296,5 @@ public class MTable {
   public void setFileSplitKeys(List<MFieldSchema> fileSplitKeys) {
     this.fileSplitKeys = fileSplitKeys;
   }
-
 
 }

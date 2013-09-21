@@ -178,6 +178,23 @@ struct User {
   4: string ownerName
 }
 
+
+
+struct Node {
+  1: string node_name,
+  2: list<string> ips,
+  3: i32    status,
+}
+
+
+struct NodeGroup{
+  1: string node_group_name,
+  2: string comment,
+  3: i32 status,
+  4: set<Node> nodes,
+}
+
+
 // namespace for dbs
 struct Datacenter {
   1: string name,
@@ -185,6 +202,8 @@ struct Datacenter {
   3: string locationUri,
   4: map<string, string> parameters, // properties associated with the database
   5: optional PrincipalPrivilegeSet privileges
+  6: optional list<Node> nodes,
+  7: optional list<NodeGroup> nodeGroups,
 }
 
 // namespace for tables
@@ -263,23 +282,41 @@ struct Partition {
   12: optional PrincipalPrivilegeSet privileges
 }
 
-// table information
-struct Table {
-  1: string tableName,                // name of the table
+// Schema information
+struct Schema {
+  1: string schemaName,                // name of the table
   2: string dbName,                   // database name ('default')
   3: string owner,                    // owner of this table
   4: i32    createTime,               // creation time of the table
   5: i32    lastAccessTime,           // last access time (usually this will be filled from HDFS and shouldn't be relied on)
   6: i32    retention,                // retention time
   7: StorageDescriptor sd,            // storage descriptor of the table
-  8: list<FieldSchema> partitionKeys, // partition keys of the table. only primitive types are supported
-  9: map<string, string> parameters,   // to store comments or any other user level parameters
-  10: string viewOriginalText,         // original view text, null for non-view
-  11: string viewExpandedText,         // expanded view text, null for non-view
-  12: string tableType,                 // table type enum, e.g. EXTERNAL_TABLE
-  13: optional PrincipalPrivilegeSet privileges,
-  14: optional list<Partition> partitions,
-  15: list<FieldSchema> fileSplitKeys,		// file split keys
+  8: map<string, string> parameters,   // to store comments or any other user level parameters
+  9: string viewOriginalText,         // original view text, null for non-view
+  10: string viewExpandedText,         // expanded view text, null for non-view
+  11: string schemaType,                 // table type enum, e.g. EXTERNAL_TABLE
+  12: optional PrincipalPrivilegeSet privileges
+}
+
+// table information
+struct Table {
+  1: string tableName,                // name of the table
+  2: string dbName,                   // database name ('default')
+  3: string schemaName,				  // schemaName name 
+  4: string owner,                    // owner of this table
+  5: i32    createTime,               // creation time of the table
+  6: i32    lastAccessTime,           // last access time (usually this will be filled from HDFS and shouldn't be relied on)
+  7: i32    retention,                // retention time
+  8: StorageDescriptor sd,            // storage descriptor of the table
+  9: list<FieldSchema> partitionKeys, // partition keys of the table. only primitive types are supported
+  10: map<string, string> parameters,   // to store comments or any other user level parameters
+  11: string viewOriginalText,         // original view text, null for non-view
+  12: string viewExpandedText,         // expanded view text, null for non-view
+  13: string tableType,                 // table type enum, e.g. EXTERNAL_TABLE
+  14: optional list<NodeGroup> nodeGroups,
+  15: optional PrincipalPrivilegeSet privileges,
+  16: optional list<Partition> partitions
+  17: list<FieldSchema> fileSplitKeys,	// file split keys
 }
 
 
@@ -296,11 +333,6 @@ struct BusiTypeDatacenter {
   3: string db_name      //db_name
 }
 
-struct Node {
-  1: string node_name,
-  2: list<string> ips,
-  3: i32    status,
-}
 
 struct Device {
   1: string devid,
@@ -918,6 +950,30 @@ service ThriftHiveMetastore extends fb303.FacebookService
   bool migrate2_stage2(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc, 5:string to_db, 6:string to_nas_devid) throws (1:MetaException o1)
   
   string getMP(1:string node_name, 2:string devid) throws (1:MetaException o1) 
+  
+  bool createSchema(1:Schema schema) throws (1:MetaException o1)
+  bool modifySchema(1:Schema schema) throws (1:MetaException o1)
+  bool deleteSchema(1:string schemaName) throws (1:MetaException o1)
+  list<Schema> listSchemas() throws (1:MetaException o1)
+  Schema getSchemaByName(1:string schemaName) throws (1:MetaException o1)
+  
+  list<NodeGroup> getTableNodeGroups(1:string dbName,2:string tabName) throws (1:MetaException o1)
+  list<SFile> getTableNodeFiles(1:string dbName,2:string tabName,3:string nodeName)  throws (1:MetaException o1)
+  
+  list<SFile> listTableFiles(1:string dbName,2:string tabName,3:i16 max_num)  throws (1:MetaException o1)
+  list<SFile> filterTableFiles(1:string dbName,2:string tabName,3:string exp)  throws (1:MetaException o1)
+  
+  bool addNodeGroup(1:NodeGroup ng) throws (1:MetaException o1)
+  bool modifyNodeGroup (1:NodeGroup ng) throws (1:MetaException o1)
+  bool deleteNodeGroup (1:NodeGroup ng) throws (1:MetaException o1)
+  list<NodeGroup> listNodeGroups() throws (1:MetaException o1)
+  list<NodeGroup> listDBNodeGroups(1:string dbName) throws (1:MetaException o1)
+  
+  bool addTableNodeDist(1:string db,2:string tab,3:list<string> ng)  throws (1:MetaException o1)
+  bool deleteTableNodeDist(1:string db,2:string tab,3:list<string> ng) throws (1:MetaException o1)
+  list<NodeGroup> listTableNodeDists (1:string dbName,2:string tabName) throws (1:MetaException o1)
+  
+  
 }
 
 // * Note about the DDL_TIME: When creating or altering a table or a partition,

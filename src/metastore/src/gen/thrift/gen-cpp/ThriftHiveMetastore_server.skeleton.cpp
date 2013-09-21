@@ -747,6 +747,91 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("getMP\n");
   }
 
+  bool createSchema(const Schema& schema) {
+    // Your implementation goes here
+    printf("createSchema\n");
+  }
+
+  bool modifySchema(const Schema& schema) {
+    // Your implementation goes here
+    printf("modifySchema\n");
+  }
+
+  bool deleteSchema(const std::string& schemaName) {
+    // Your implementation goes here
+    printf("deleteSchema\n");
+  }
+
+  void listSchemas(std::vector<Schema> & _return) {
+    // Your implementation goes here
+    printf("listSchemas\n");
+  }
+
+  void getSchemaByName(Schema& _return, const std::string& schemaName) {
+    // Your implementation goes here
+    printf("getSchemaByName\n");
+  }
+
+  void getTableNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName) {
+    // Your implementation goes here
+    printf("getTableNodeGroups\n");
+  }
+
+  void getTableNodeFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& nodeName) {
+    // Your implementation goes here
+    printf("getTableNodeFiles\n");
+  }
+
+  void listTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const int16_t max_num) {
+    // Your implementation goes here
+    printf("listTableFiles\n");
+  }
+
+  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& exp) {
+    // Your implementation goes here
+    printf("filterTableFiles\n");
+  }
+
+  bool addNodeGroup(const NodeGroup& ng) {
+    // Your implementation goes here
+    printf("addNodeGroup\n");
+  }
+
+  bool modifyNodeGroup(const NodeGroup& ng) {
+    // Your implementation goes here
+    printf("modifyNodeGroup\n");
+  }
+
+  bool deleteNodeGroup(const NodeGroup& ng) {
+    // Your implementation goes here
+    printf("deleteNodeGroup\n");
+  }
+
+  void listNodeGroups(std::vector<NodeGroup> & _return) {
+    // Your implementation goes here
+    printf("listNodeGroups\n");
+  }
+
+  void listDBNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName) {
+    // Your implementation goes here
+    printf("listDBNodeGroups\n");
+  }
+
+  bool addTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng) {
+    // Your implementation goes here
+    printf("addTableNodeDist\n");
+  }
+
+  bool deleteTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng) {
+    // Your implementation goes here
+    printf("deleteTableNodeDist\n");
+  }
+
+  void listTableNodeDists(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName) {
+    // Your implementation goes here
+    printf("listTableNodeDists\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

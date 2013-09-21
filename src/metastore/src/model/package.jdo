@@ -236,6 +236,9 @@
       <field name="database">
         <column name="DB_ID"/>
       </field>
+      <field name="schema">
+        <column name="SCHEMA_ID"/>
+      </field>
       <field name="partitionKeys" table="PARTITION_KEYS" >
         <collection element-type="MFieldSchema"/>
         <join>
