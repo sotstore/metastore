@@ -1414,7 +1414,7 @@
       </field>
             
       <field name="geolocation">
-        <column name="GEO_LOC_ID" length="128" jdbc-type="VARCHAR"/>
+        <column name="GEO_LOC_ID" jdbc-type="VARCHAR"/>
       </field>
           
     </class>

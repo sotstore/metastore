@@ -8235,24 +8235,25 @@ public MUser getMUser(String userName) {
   }
 
 /*
- * demo
+ * draft
  */
   @Override
   public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException {
-    MNode mnd;
-    MDatabase mdb;
-
     boolean success = false;
     boolean commited = false;
     try {
       openTransaction();
-      MDatabase mDatabase = this.getMDatabase(dbName);
-      MNode mNode = this.getMNode(nodeName);
-      if (dbName != null) {
-        System.out.println("nodeName " + dbName + " already exists.");
+      MDatabase mdb = this.getMDatabase(dbName);
+      MNode mnd = this.getMNode(nodeName);
+      if (mdb.getNodes() == null) {
+        Set<MNode> nodes = new HashSet<MNode>();
+        nodes.add(mnd);
+      } else {
+        System.out.println("nodeName " + nodeName + " already exists.");
       }
       int now = (int)(System.currentTimeMillis()/1000);
-      pm.makePersistent(mNode);
+
+      pm.makePersistent(mnd);
       commited = commitTransaction();
       success = true;
     } finally {
@@ -8261,8 +8262,33 @@ public MUser getMUser(String userName) {
       }
     }
     return success;
-
   }
 
+  @Override
+  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MNode mnd = this.getMNode(nodeName);
+      if (mdb.getNodes() == null) {
+        Set<MNode> nodes = new HashSet<MNode>();
+        nodes.add(mnd);
+      } else {
+        System.out.println("nodeName " + nodeName + " already exists.");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+
+      pm.deletePersistent(mnd);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
 
 }

@@ -1037,6 +1037,13 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     return false;
   }
 
+  @Override
+  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
 }
 
 
