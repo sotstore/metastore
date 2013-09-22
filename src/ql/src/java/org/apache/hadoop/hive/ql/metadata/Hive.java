@@ -2701,9 +2701,17 @@ public class Hive {
 
   }
 
-  public void addGeoLoc(GeoLocDesc gd) {
-    // TODO Auto-generated method stub
-
+  public void addGeoLoc(GeoLocDesc gd) throws HiveException, NoSuchObjectException {
+//      GeoLocation geoLocation = new GeoLocation();
+//      geoLocation.setNation(gd.getNation());
+//
+//      try {
+//        getMSC().addGeoLocation(geoLocation);
+//      } catch (NoSuchObjectException e) {
+//        throw e;
+//      } catch (Exception e) {
+//        throw new HiveException(e);
+//      }
   }
 
   public void dropGeoLoc(GeoLocDesc gd) {
@@ -2742,9 +2750,10 @@ public class Hive {
   }
 
   public void addNodeAssignment(NodeAssignmentDesc gd) {
-    // TODO Auto-generated method stub
 
-  }
+   }
+
+
 
   public void dropNodeAssignment(NodeAssignmentDesc gd) {
     // TODO Auto-generated method stub
