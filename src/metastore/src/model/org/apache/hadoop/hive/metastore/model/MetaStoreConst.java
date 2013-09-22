@@ -1,4 +1,4 @@
-package org.apache.hadoop.hive.metastore;
+package org.apache.hadoop.hive.metastore.model;
 
 public class MetaStoreConst {
   public class MFileStoreStatus {

@@ -18,15 +18,20 @@
 
 package org.apache.hadoop.hive.ql.security.authorization;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler.MSSessionState;
 import org.apache.hadoop.hive.metastore.MetaStorePreEventListener;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
+import org.apache.hadoop.hive.metastore.api.MSOperation;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.events.PreAddPartitionEvent;
@@ -38,6 +43,7 @@ import org.apache.hadoop.hive.metastore.events.PreDropDatabaseEvent;
 import org.apache.hadoop.hive.metastore.events.PreDropPartitionEvent;
 import org.apache.hadoop.hive.metastore.events.PreDropTableEvent;
 import org.apache.hadoop.hive.metastore.events.PreEventContext;
+import org.apache.hadoop.hive.metastore.events.PreUserAuthorityCheckEvent;
 import org.apache.hadoop.hive.ql.metadata.AuthorizationException;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveUtils;
@@ -62,6 +68,57 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
   private static HiveConf conf;
   private static HiveMetastoreAuthorizationProvider authorizer;
   private static HiveMetastoreAuthenticationProvider authenticator;
+  private static Map<MSOperation, HiveOperation> ms2hive = new HashMap<MSOperation, HiveOperation>();
+
+  // FIXME: we can't put our authorizer to HiveMetaStore.java, thus, we put it here!
+  private static void init_ms_to_hive_map() {
+    ms2hive.clear();
+    ms2hive.put(MSOperation.ALTERDATABASE, HiveOperation.ALTERDATABASE);
+    ms2hive.put(MSOperation.ALTERINDEX_PROPS, HiveOperation.ALTERINDEX_PROPS);
+    ms2hive.put(MSOperation.ALTERINDEX_REBUILD, HiveOperation.ALTERINDEX_REBUILD);
+    ms2hive.put(MSOperation.ALTERTABLE_ADDCOLS, HiveOperation.ALTERTABLE_ADDCOLS);
+    ms2hive.put(MSOperation.ALTERTABLE_ADDPARTS, HiveOperation.ALTERTABLE_ADDPARTS);
+    ms2hive.put(MSOperation.ALTERTABLE_DROPPARTS, HiveOperation.ALTERTABLE_DROPPARTS);
+    ms2hive.put(MSOperation.ALTERTABLE_PROPERTIES, HiveOperation.ALTERTABLE_PROPERTIES);
+    ms2hive.put(MSOperation.ALTERTABLE_RENAME, HiveOperation.ALTERTABLE_RENAME);
+    ms2hive.put(MSOperation.ALTERTABLE_RENAMECOL, HiveOperation.ALTERTABLE_RENAMECOL);
+    ms2hive.put(MSOperation.ALTERTABLE_RENAMEPART, HiveOperation.ALTERTABLE_RENAMEPART);
+    ms2hive.put(MSOperation.ALTERTABLE_REPLACECOLS, HiveOperation.ALTERTABLE_REPLACECOLS);
+    ms2hive.put(MSOperation.ALTERVIEW_PROPERTIES, HiveOperation.ALTERVIEW_PROPERTIES);
+    ms2hive.put(MSOperation.AUTHENTICATION, HiveOperation.AUTHENTICATION);
+    ms2hive.put(MSOperation.CHANGE_PWD, HiveOperation.CHANGE_PWD);
+    ms2hive.put(MSOperation.CREATEDATABASE, HiveOperation.CREATEDATABASE);
+    ms2hive.put(MSOperation.CREATEINDEX, HiveOperation.CREATEINDEX);
+    ms2hive.put(MSOperation.CREATEROLE, HiveOperation.CREATEROLE);
+    ms2hive.put(MSOperation.CREATETABLE, HiveOperation.CREATETABLE);
+    ms2hive.put(MSOperation.CREATEUSER, HiveOperation.CREATEUSER);
+    ms2hive.put(MSOperation.CREATEVIEW, HiveOperation.CREATEVIEW);
+    ms2hive.put(MSOperation.DESCDATABASE, HiveOperation.DESCDATABASE);
+    ms2hive.put(MSOperation.DESCTABLE, HiveOperation.DESCTABLE);
+    ms2hive.put(MSOperation.DROPDATABASE, HiveOperation.DROPDATABASE);
+    ms2hive.put(MSOperation.DROPINDEX, HiveOperation.DROPINDEX);
+    ms2hive.put(MSOperation.DROPROLE, HiveOperation.DROPROLE);
+    ms2hive.put(MSOperation.DROPTABLE, HiveOperation.DROPTABLE);
+    ms2hive.put(MSOperation.DROPUSER, HiveOperation.DROPUSER);
+    ms2hive.put(MSOperation.DROPVIEW, HiveOperation.DROPVIEW);
+    ms2hive.put(MSOperation.EXPLAIN, HiveOperation.EXPLAIN);
+    ms2hive.put(MSOperation.GRANT_PRIVILEGE, HiveOperation.GRANT_PRIVILEGE);
+    ms2hive.put(MSOperation.GRANT_ROLE, HiveOperation.GRANT_ROLE);
+    ms2hive.put(MSOperation.QUERY, HiveOperation.QUERY);
+    ms2hive.put(MSOperation.REVOKE_PRIVILEGE, HiveOperation.REVOKE_PRIVILEGE);
+    ms2hive.put(MSOperation.REVOKE_ROLE, HiveOperation.REVOKE_ROLE);
+    ms2hive.put(MSOperation.SHOW_CREATETABLE, HiveOperation.SHOW_CREATETABLE);
+    ms2hive.put(MSOperation.SHOW_GRANT, HiveOperation.SHOW_GRANT);
+    ms2hive.put(MSOperation.SHOW_ROLE_GRANT, HiveOperation.SHOW_ROLE_GRANT);
+    ms2hive.put(MSOperation.SHOW_TABLESTATUS, HiveOperation.SHOW_TABLESTATUS);
+    ms2hive.put(MSOperation.SHOW_TBLPROPERTIES, HiveOperation.SHOW_TBLPROPERTIES);
+    ms2hive.put(MSOperation.SHOW_USERNAMES, HiveOperation.SHOW_USERNAMES);
+    ms2hive.put(MSOperation.SHOWCOLUMNS, HiveOperation.SHOWCOLUMNS);
+    ms2hive.put(MSOperation.SHOWDATABASES, HiveOperation.SHOWDATABASES);
+    ms2hive.put(MSOperation.SHOWINDEXES, HiveOperation.SHOWINDEXES);
+    ms2hive.put(MSOperation.SHOWPARTITIONS, HiveOperation.SHOWPARTITIONS);
+    ms2hive.put(MSOperation.SHOWTABLES, HiveOperation.SHOWTABLES);
+  }
 
   public AuthorizationPreEventListener(Configuration config) throws HiveException {
     super(config);
@@ -70,6 +127,7 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
         config, HiveConf.ConfVars.HIVE_METASTORE_AUTHENTICATOR_MANAGER);
     authorizer = (HiveMetastoreAuthorizationProvider) HiveUtils.getAuthorizeProviderManager(
         config, HiveConf.ConfVars.HIVE_METASTORE_AUTHORIZATION_MANAGER, authenticator);
+    init_ms_to_hive_map();
   }
 
   @Override
@@ -107,10 +165,25 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
     case LOAD_PARTITION_DONE:
       // noop for now
       break;
+    case USER_AUTHORITY_CHECK:
+      authorizeUserAuthorityCheck((PreUserAuthorityCheckEvent)context);
+      break;
     default:
       break;
     }
+  }
 
+  private void authorizeUserAuthorityCheck(PreUserAuthorityCheckEvent uac) throws InvalidOperationException, MetaException {
+    MSSessionState msss = new MSSessionState();
+    LOG.debug("Begin check authority for table" + uac.getTable().getTableName() + " on user " + msss.getUserName());
+    try {
+      authorizer.authorize(new Table(uac.getTable()), ms2hive.get(uac.getMso()).getInputRequiredPrivileges(),
+          ms2hive.get(uac.getMso()).getOutputRequiredPrivileges());
+    } catch (AuthorizationException e) {
+      throw invalidOperationException(e);
+    } catch (HiveException e) {
+      throw metaException(e);
+    }
   }
 
   private void authorizeCreateDatabase(PreCreateDatabaseEvent context)
