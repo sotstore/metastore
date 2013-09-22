@@ -4697,7 +4697,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   private int addGeoLoc(Hive db, AddGeoLocDesc addGeoLocDesc) throws HiveException {
 
     GeoLocDesc gd = new GeoLocDesc(addGeoLocDesc.getGeoLocName(),addGeoLocDesc.getNation(),addGeoLocDesc.getProvince(),addGeoLocDesc.getCity(),addGeoLocDesc.getDist());
-    this.db.addGeoLoc(gd);
+    try {
+      this.db.addGeoLoc(gd);
+    } catch (NoSuchObjectException e) {
+      e.printStackTrace();
+    }
     return 0;
 
   }
