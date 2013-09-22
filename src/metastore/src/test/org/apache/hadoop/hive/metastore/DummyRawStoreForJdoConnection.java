@@ -1060,6 +1060,7 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   @Override
   public void createSchema(GlobalSchema schema) throws InvalidObjectException, MetaException {
     // TODO Auto-generated method stub
+  }
 
   }
 
