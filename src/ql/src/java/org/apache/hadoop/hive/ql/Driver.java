@@ -1113,9 +1113,9 @@ public class Driver implements CommandProcessor {
       DriverContext driverCxt = new DriverContext(runnable, ctx);
       ctx.setHDFSCleanup(true);
 
-      SessionState.get().setLastMapRedStatsList(new ArrayList<MapRedStats>());
-      SessionState.get().setStackTraces(new HashMap<String, List<List<String>>>());
-      SessionState.get().setLocalMapRedErrors(new HashMap<String, List<String>>());
+//      SessionState.get().setLastMapRedStatsList(new ArrayList<MapRedStats>());
+//      SessionState.get().setStackTraces(new HashMap<String, List<List<String>>>());
+//      SessionState.get().setLocalMapRedErrors(new HashMap<String, List<String>>());
 
       // Add root Tasks to runnable
       for (Task<? extends Serializable> tsk : plan.getRootTasks()) {

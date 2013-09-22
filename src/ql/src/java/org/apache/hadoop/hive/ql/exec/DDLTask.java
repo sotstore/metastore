@@ -5214,6 +5214,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     List<GlobalSchema> globalSchemas = db.showGlobalSchema();
     DataOutputStream outStream = null;
     try {
+      LOG.info("---zjw--- in descSchema is null."+globalSchemas);
       Path resFile = new Path(showSchemaDesc.getResFile());
       FileSystem fs = resFile.getFileSystem(conf);
       outStream = fs.create(resFile);
@@ -5243,13 +5244,17 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       FileSystem fs = resFile.getFileSystem(conf);
       outStream = fs.create(resFile);
 
+      LOG.info("---zjw--- in descSchema is before.");
       org.apache.hadoop.hive.metastore.api.GlobalSchema gs= db.getSchemaByName(descSchemaDesc.getSchemaName());
 
       if (gs == null) {
+          LOG.info("---zjw--- in descSchema is null.");
           formatter.error(outStream,
                           "No such schema: " + descSchemaDesc.getSchemaName(),
                           formatter.MISSING);
       } else {
+          LOG.info("---zjw---in descSchema not null.");
+
           Map<String, String> params = null;
             params = gs.getParameters();
 

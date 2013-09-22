@@ -8733,7 +8733,10 @@ public MUser getMUser(String userName) {
       Query query = pm.newQuery(MSchema.class);
       List<MSchema> mschemas = (List<MSchema>) query.execute();
       pm.retrieveAll(mschemas);
-
+      for(MSchema ms : mschemas){
+        pm.retrieve(ms.getSd());
+        pm.retrieve(ms.getSd().getCD());
+      }
       success = commitTransaction();
       schemas = convertToSchemas(mschemas);
     } finally {

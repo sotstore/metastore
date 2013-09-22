@@ -3324,13 +3324,18 @@ public class Hive {
         new ArrayList<org.apache.hadoop.hive.ql.metadata.GlobalSchema>();
     try {
       List<GlobalSchema> gls = getMSC().listSchemas();
-      for(GlobalSchema g : gls){
+      if(gls != null){
+        LOG.info("---zjw-- in showGlobalSchema:"+gls.size());
+      }else{
+        LOG.info("---zjw-- in showGlobalSchema is null");
+      }
+      for(GlobalSchema serverg : gls){
         org.apache.hadoop.hive.ql.metadata.GlobalSchema gsa =
-            new org.apache.hadoop.hive.ql.metadata.GlobalSchema();
-        gsa.setSchemaName(g.getSchemaName());
+            new org.apache.hadoop.hive.ql.metadata.GlobalSchema(serverg);
         gl.add(gsa);
       }
     } catch (Exception e) {
+      LOG.error(e,e);
       throw new HiveException(e);
     }
     return gl;

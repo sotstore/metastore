@@ -762,15 +762,27 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
     public void showSchemaDescription(DataOutputStream outStream, String schemaName,
         List<FieldSchema> cols, Map<String, String> params) throws HiveException {
       try {
-        outStream.writeBytes(schemaName);
-        outStream.write(separator);
-//        if (completeName != null) {
-//          outStream.writeBytes(completeName);
+//        outStream.writeBytes(schemaName);
+//        outStream.write(separator);
+////        if (completeName != null) {
+////          outStream.writeBytes(completeName);
+////        }
+//        if (params != null && !params.isEmpty()) {
+//            outStream.writeBytes(params.toString());
 //        }
-        if (params != null && !params.isEmpty()) {
-            outStream.writeBytes(params.toString());
+//        outStream.write(terminator);
+        for(FieldSchema col : cols){
+          outStream.writeBytes(col.getName());
+          outStream.write(separator);
+          outStream.writeBytes(col.getType());
+          outStream.write(separator);
+          if(col.getComment() != null){
+            outStream.writeBytes(col.getComment());
+          }else{
+            outStream.writeBytes("");
+          }
+          outStream.write(terminator);
         }
-        outStream.write(terminator);
     } catch (IOException e) {
         throw new HiveException(e);
     }
