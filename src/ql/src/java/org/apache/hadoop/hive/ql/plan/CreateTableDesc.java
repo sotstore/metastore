@@ -57,6 +57,7 @@ public class CreateTableDesc extends DDLDesc implements Serializable {
   boolean isExternal;
   ArrayList<FieldSchema> cols;
   ArrayList<FieldSchema> partCols;
+  List<FieldSchema> fileSplitCols;
   /**
    * added by zjw for partition
    */
@@ -562,6 +563,15 @@ public class CreateTableDesc extends DDLDesc implements Serializable {
   public void setNodeGroupNames(List<String> nodeGroupNames) {
     this.nodeGroupNames = nodeGroupNames;
   }
+
+  public List<FieldSchema> getFileSplitCols() {
+    return fileSplitCols;
+  }
+
+  public void setFileSplitCols(List<FieldSchema> fileSplitCols) {
+    this.fileSplitCols = fileSplitCols;
+  }
+
 
 
 }

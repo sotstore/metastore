@@ -9074,6 +9074,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     String toDBNameString = null;
     List<FieldSchema> cols = new ArrayList<FieldSchema>();
     List<FieldSchema> partCols = new ArrayList<FieldSchema>();
+
+    List<FieldSchema> splitCols = new ArrayList<FieldSchema>();
     List<String> bucketCols = new ArrayList<String>();
     List<Order> sortCols = new ArrayList<Order>();
     int numBuckets = -1;
@@ -9195,15 +9197,23 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         int g=1;
         break;
         /**
+         * TOK_SPLITED_BY;
+          TOK_SUBSPLITED_BY;
+          TOK_SPLITED_EXPER;
+          TOK_SUBSPLIT_EXPER;
+          TOK_SPLIT;
+          TOK_SPLIT_EXPER;
+          TOK_SUBSPLIT;
          * FIXME add filesplit definition
          */
-//      case HiveParser.tok_fi:
-//        pd.setTableName(tableName);
-//        partCols = analyzePartitionClause((ASTNode) child, pd);
-//
-//        List<org.apache.hadoop.hive.metastore.api.Partition> ps = pd.toPartitionList();
-//        int g=1;
-//        break;
+      case HiveParser.TOK_SPLITED_BY:
+        pd.setTableName(tableName);
+        splitCols = analyzePartitionClause((ASTNode) child, pd);
+
+        List<org.apache.hadoop.hive.metastore.api.Partition> fileSplit_fakeParts
+          = pd.toPartitionList();
+        int h=1;
+        break;
       case HiveParser.TOK_TABLEBUCKETS:
         bucketCols = getColumnNames((ASTNode) child.getChild(0));
         if (child.getChildCount() == 2) {
@@ -9297,6 +9307,9 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       //added by zjw
       crtTblDesc.setPartitions(pd.toPartitionList());
 
+      if(!splitCols.isEmpty()){
+        crtTblDesc.setFileSplitCols(splitCols);
+      }
       //FIXME 需要新增nodegroup的子句
       if(nodeGroupNames != null){
         crtTblDesc.setNodeGroupNames(nodeGroupNames);
@@ -9314,6 +9327,12 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       CreateTableLikeDesc crtTblLikeDesc = new CreateTableLikeDesc(tableName, isExt,
           storageFormat.inputFormat, storageFormat.outputFormat, location,
           shared.serde, shared.serdeProps, ifNotExists, likeTableName);
+      if(!splitCols.isEmpty()){
+        crtTblLikeDesc.setFileSplitCols(splitCols);
+      }
+      if(!partCols.isEmpty()){
+        crtTblLikeDesc.setFileSplitCols(partCols);
+      }
       if(nodeGroupNames != null){
         crtTblLikeDesc.setNodeGroupNames(nodeGroupNames);
       }
@@ -9325,6 +9344,10 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       CreateTableLikeSchemaDesc crtTblLikeSchemaDesc = new CreateTableLikeSchemaDesc(toDBNameString,tableName, isExt,partCols,
           storageFormat.inputFormat, storageFormat.outputFormat, location,
           shared.serde, shared.serdeProps, ifNotExists, likeSchemaName);
+
+      if(!splitCols.isEmpty()){
+        crtTblLikeSchemaDesc.setFileSplitCols(splitCols);
+      }
       if(nodeGroupNames != null){
         crtTblLikeSchemaDesc.setNodeGroupNames(nodeGroupNames);
       }

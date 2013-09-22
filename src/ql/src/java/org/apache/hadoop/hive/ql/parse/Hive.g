@@ -292,7 +292,6 @@ TOK_SKEWED_LOCATION_MAP;
 TOK_STOREDASDIRS;
 TOK_SPLITED_BY;
 TOK_SUBSPLITED_BY;
-TOK_SPLITED_EXPER;
 TOK_SUBSPLIT_EXPER;
 TOK_SPLIT;
 TOK_SPLIT_EXPER;
@@ -939,7 +938,7 @@ createTableStatement
          
         KW_CREATE (ext=KW_EXTERNAL)? KW_TABLE ifNotExists? name=tableName
       (  like=KW_LIKE (KW_TABLE likeTabName=tableName |KW_SCHEMA likeName=schemaName KW_TO dbName=Identifier)
-         tableComment?   tablePartition?  tableDistribution?
+         tableComment?  fileSplit? tablePartition?  tableDistribution?
        | (LPAREN columnNameTypeList RPAREN)?
          tableComment?
          fileSplit?

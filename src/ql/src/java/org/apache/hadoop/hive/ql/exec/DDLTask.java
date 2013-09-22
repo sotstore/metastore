@@ -756,6 +756,14 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
           && !crtTblLikeSchemaDesc.getNodeGroupNames().isEmpty()) {
         tbl.setNodeGroups(db.listNodeGroups(crtTblLikeSchemaDesc.getNodeGroupNames()));
       }
+      if(crtTblLikeSchemaDesc.getFileSplitCols() != null
+          && !crtTblLikeSchemaDesc.getFileSplitCols().isEmpty()) {
+        tbl.setFileSplitKeys(crtTblLikeSchemaDesc.getFileSplitCols());
+      }
+      if(crtTblLikeSchemaDesc.getPartCols() != null
+          && !crtTblLikeSchemaDesc.getPartCols().isEmpty()) {
+        tbl.setPartCols(crtTblLikeSchemaDesc.getPartCols());
+      }
 
       if (crtTblLikeSchemaDesc.getLocation() != null) {
         tbl.setDataLocation(new Path(crtTblLikeSchemaDesc.getLocation()).toUri());

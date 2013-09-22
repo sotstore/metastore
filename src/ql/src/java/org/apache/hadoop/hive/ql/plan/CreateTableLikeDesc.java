@@ -22,6 +22,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
+
 /**
  * CreateTableLikeDesc.
  *
@@ -39,6 +41,8 @@ public class CreateTableLikeDesc extends DDLDesc implements Serializable {
   boolean ifNotExists;
   String likeTableName;
   List<String> nodeGroupNames;
+  private List<FieldSchema> fileSplitCols;
+  private List<FieldSchema> partCols;
 
   public CreateTableLikeDesc() {
   }
@@ -159,6 +163,22 @@ public class CreateTableLikeDesc extends DDLDesc implements Serializable {
 
   public void setNodeGroupNames(List<String> nodeGroupNames) {
     this.nodeGroupNames = nodeGroupNames;
+  }
+
+  public List<FieldSchema> getFileSplitCols() {
+    return fileSplitCols;
+  }
+
+  public void setFileSplitCols(List<FieldSchema> fileSplitCols) {
+    this.fileSplitCols = fileSplitCols;
+  }
+
+  public List<FieldSchema> getPartCols() {
+    return partCols;
+  }
+
+  public void setPartCols(List<FieldSchema> partCols) {
+    this.partCols = partCols;
   }
 
 

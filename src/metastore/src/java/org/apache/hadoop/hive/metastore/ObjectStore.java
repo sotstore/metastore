@@ -2673,6 +2673,10 @@ public class ObjectStore implements RawStore, Configurable {
         tbl.getViewOriginalText(), tbl.getViewExpandedText(),
         tableType);
 
+    if(tbl.getFileSplitKeys() != null && !tbl.getFileSplitKeys().isEmpty()){
+      mtbl.setFileSplitKeys(convertToMFieldSchemas(tbl.getFileSplitKeys()));
+    }
+
     if(tbl.getNodeGroups() != null && !tbl.getNodeGroups().isEmpty()){
       HashSet<MNodeGroup> mngs = new HashSet<MNodeGroup>();
       for( NodeGroup ngGroup : tbl.getNodeGroups()){
