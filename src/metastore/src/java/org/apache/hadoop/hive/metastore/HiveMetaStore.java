@@ -6057,48 +6057,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       // TODO Auto-generated method stub
       return null;
     }
-
-
-
-
-/*    @Override
-    public boolean addNodeAssignment(Node node, Database database) throws MetaException, TException {
-      getMS().addNodeAssignment(node,database);
-      return true;
-    }
-
-    @Override
-    public boolean modifyNodeAssignment(Node node, Database database) throws MetaException,
-        TException {
-      boolean success = false;
-      Exception ex = null;
-      try {
-        getMS().modifyNodeAssignment(node,database);
-        success = true;
-      } catch (Exception e) {
-        ex = e;
-        if (e instanceof MetaException) {
-          throw (MetaException) e;
-        } else if (e instanceof InvalidOperationException) {
-          throw (InvalidOperationException) e;
-        } else {
-          MetaException me = new MetaException(e.toString());
-          me.initCause(e);
-          throw me;
-        }
-      } finally {
-        endFunction("modifyGeoLocation", success, ex);
-      }
-      return success;
-    }
-
-    @Override
-    public boolean deleteNodeAssignment(Node node, Database database) throws MetaException,
-        TException {
-      getMS().deleteNodeAssignment(node,database);
-      return true;
-    }*/
-
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {

@@ -30,8 +30,10 @@ import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
+import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
+import org.apache.hadoop.hive.metastore.api.GeoLocation;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -1158,4 +1160,28 @@ public interface IMetaStoreClient {
   public boolean offlineDevice(String devid) throws MetaException, TException;
 
   public Device changeDeviceLocation(Device dev, Node node) throws MetaException, TException;
+
+/*
+ * cry
+ */
+
+  public boolean addEquipRoom(EquipRoom er) throws MetaException, TException;
+
+  public boolean modifyEquipRoom(EquipRoom er) throws MetaException, TException;
+
+  public boolean deleteEquipRoom(EquipRoom er) throws MetaException, TException;
+
+  public List<EquipRoom> listEquipRoom() throws MetaException, TException;
+
+  public boolean addGeoLocation(GeoLocation gl) throws MetaException, TException;
+
+  public boolean modifyGeoLocation(GeoLocation gl) throws MetaException, TException;
+
+  public boolean deleteGeoLocation(GeoLocation gl) throws MetaException, TException;
+
+  public List<GeoLocation> listGeoLocation() throws MetaException, TException;
+
+  public boolean addNodeAssignment(String nodename, String dbname) throws MetaException, NoSuchObjectException, TException;
+
+  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException, TException;
 }

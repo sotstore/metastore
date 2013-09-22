@@ -52,8 +52,10 @@ import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
+import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
+import org.apache.hadoop.hive.metastore.api.GeoLocation;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -1974,4 +1976,64 @@ public boolean authentication(String user_name, String passwd)
     assert dev != null;
     return client.modify_device(dev, node);
   }
+
+/**
+ * @author cry
+ */
+
+  @Override
+  public boolean addEquipRoom(EquipRoom er) throws MetaException, TException {
+    return client.addEquipRoom(er);
+  }
+
+  @Override
+  public boolean modifyEquipRoom(EquipRoom er) throws MetaException, TException {
+    return client.modifyEquipRoom(er);
+  }
+
+  @Override
+  public boolean deleteEquipRoom(EquipRoom er) throws MetaException, TException {
+    return client.deleteEquipRoom(er);
+  }
+
+  @Override
+  public List<EquipRoom> listEquipRoom() throws MetaException, TException {
+    return client.listEquipRoom();
+  }
+
+  @Override
+  public boolean addGeoLocation(GeoLocation gl) throws MetaException, TException {
+    return client.addGeoLocation(gl);
+  }
+
+  @Override
+  public boolean modifyGeoLocation(GeoLocation gl) throws MetaException, TException {
+    return client.modifyGeoLocation(gl);
+  }
+
+  @Override
+  public boolean deleteGeoLocation(GeoLocation gl) throws MetaException, TException {
+    return client.deleteGeoLocation(gl);
+  }
+
+  @Override
+  public List<GeoLocation> listGeoLocation() throws MetaException, TException {
+    return client.listGeoLocation();
+  }
+
+  @Override
+  public boolean addNodeAssignment(String nodename, String dbname) throws MetaException,
+      NoSuchObjectException, TException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException,
+      NoSuchObjectException, TException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+
 }
