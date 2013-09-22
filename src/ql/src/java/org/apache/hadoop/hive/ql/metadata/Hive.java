@@ -3307,4 +3307,33 @@ public class Hive {
     return uas;
   }
 
+
+  public void dropSchema(org.apache.hadoop.hive.ql.metadata.GlobalSchema schema) throws HiveException {
+
+    try {
+      GlobalSchema gls = getMSC().getSchemaByName(schema.getSchemaName());
+      getMSC().deleteSchema(gls.getSchemaName());
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+
+  }
+
+  public List<org.apache.hadoop.hive.ql.metadata.GlobalSchema> showGlobalSchema() throws HiveException {
+    List<org.apache.hadoop.hive.ql.metadata.GlobalSchema> gl =
+        new ArrayList<org.apache.hadoop.hive.ql.metadata.GlobalSchema>();
+    try {
+      List<GlobalSchema> gls = getMSC().listSchemas();
+      for(GlobalSchema g : gls){
+        org.apache.hadoop.hive.ql.metadata.GlobalSchema gsa =
+            new org.apache.hadoop.hive.ql.metadata.GlobalSchema();
+        gsa.setSchemaName(g.getSchemaName());
+        gl.add(gsa);
+      }
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+    return gl;
+  }
+
 };

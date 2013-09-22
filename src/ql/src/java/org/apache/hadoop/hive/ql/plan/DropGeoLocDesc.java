@@ -16,8 +16,7 @@ public class DropGeoLocDesc extends DDLDesc implements Serializable {
   boolean ifExists;
 
   public DropGeoLocDesc(String geoLocName) {
-    super();
-    this.geoLocName = geoLocName;
+    this(geoLocName,true);
   }
 
   public DropGeoLocDesc(String geoLocName, boolean ifExists) {
