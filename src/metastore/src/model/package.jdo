@@ -1385,6 +1385,10 @@
         <column name="GEO_LOC_ID"/>
       </datastore-identity>
       
+      <field name="geoLocName">
+        <column name="GEOLOCNAME" length="128" jdbc-type="VARCHAR"/>
+      </field>
+      
       <field name="nation">
         <column name="NATION" length="128" jdbc-type="VARCHAR"/>
       </field>
@@ -1418,6 +1422,10 @@
       
       <field name="status">
         <column name="STATUS"/>
+      </field>
+      
+      <field name="geoLocName">
+        <column name="GEOLOCNAME" length="128" jdbc-type="VARCHAR"/>
       </field>
       
       <field name="comment">

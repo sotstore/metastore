@@ -207,6 +207,16 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("listGeoLocation\n");
   }
 
+  bool addNodeAssignment(const std::string& nodeName, const std::string& dbName) {
+    // Your implementation goes here
+    printf("addNodeAssignment\n");
+  }
+
+  bool deleteNodeAssignment(const std::string& nodeName, const std::string& dbName) {
+    // Your implementation goes here
+    printf("deleteNodeAssignment\n");
+  }
+
   void create_database(const Database& database) {
     // Your implementation goes here
     printf("create_database\n");

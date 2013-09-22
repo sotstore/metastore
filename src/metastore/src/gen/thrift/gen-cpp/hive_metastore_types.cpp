@@ -5884,8 +5884,8 @@ void swap(EnvironmentContext &a, EnvironmentContext &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* GeoLocation::ascii_fingerprint = "C93D890311F28844166CF6E571EB3AC2";
-const uint8_t GeoLocation::binary_fingerprint[16] = {0xC9,0x3D,0x89,0x03,0x11,0xF2,0x88,0x44,0x16,0x6C,0xF6,0xE5,0x71,0xEB,0x3A,0xC2};
+const char* GeoLocation::ascii_fingerprint = "BFF0E21728CB005F9AA5774A41542B8D";
+const uint8_t GeoLocation::binary_fingerprint[16] = {0xBF,0xF0,0xE2,0x17,0x28,0xCB,0x00,0x5F,0x9A,0xA5,0x77,0x4A,0x41,0x54,0x2B,0x8D};
 
 uint32_t GeoLocation::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -5898,6 +5898,7 @@ uint32_t GeoLocation::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   using ::apache::thrift::protocol::TProtocolException;
 
+  bool isset_geoLocName = false;
   bool isset_nation = false;
   bool isset_province = false;
   bool isset_city = false;
@@ -5913,13 +5914,21 @@ uint32_t GeoLocation::read(::apache::thrift::protocol::TProtocol* iprot) {
     {
       case 1:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->geoLocName);
+          isset_geoLocName = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->nation);
           isset_nation = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 2:
+      case 3:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->province);
           isset_province = true;
@@ -5927,7 +5936,7 @@ uint32_t GeoLocation::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 3:
+      case 4:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->city);
           isset_city = true;
@@ -5935,7 +5944,7 @@ uint32_t GeoLocation::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 4:
+      case 5:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->dist);
           isset_dist = true;
@@ -5952,6 +5961,8 @@ uint32_t GeoLocation::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   xfer += iprot->readStructEnd();
 
+  if (!isset_geoLocName)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
   if (!isset_nation)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   if (!isset_province)
@@ -5967,19 +5978,23 @@ uint32_t GeoLocation::write(::apache::thrift::protocol::TProtocol* oprot) const 
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("GeoLocation");
 
-  xfer += oprot->writeFieldBegin("nation", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeFieldBegin("geoLocName", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString(this->geoLocName);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("nation", ::apache::thrift::protocol::T_STRING, 2);
   xfer += oprot->writeString(this->nation);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("province", ::apache::thrift::protocol::T_STRING, 2);
+  xfer += oprot->writeFieldBegin("province", ::apache::thrift::protocol::T_STRING, 3);
   xfer += oprot->writeString(this->province);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("city", ::apache::thrift::protocol::T_STRING, 3);
+  xfer += oprot->writeFieldBegin("city", ::apache::thrift::protocol::T_STRING, 4);
   xfer += oprot->writeString(this->city);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("dist", ::apache::thrift::protocol::T_STRING, 4);
+  xfer += oprot->writeFieldBegin("dist", ::apache::thrift::protocol::T_STRING, 5);
   xfer += oprot->writeString(this->dist);
   xfer += oprot->writeFieldEnd();
 
@@ -5990,14 +6005,15 @@ uint32_t GeoLocation::write(::apache::thrift::protocol::TProtocol* oprot) const 
 
 void swap(GeoLocation &a, GeoLocation &b) {
   using ::std::swap;
+  swap(a.geoLocName, b.geoLocName);
   swap(a.nation, b.nation);
   swap(a.province, b.province);
   swap(a.city, b.city);
   swap(a.dist, b.dist);
 }
 
-const char* EquipRoom::ascii_fingerprint = "9F3F812E35FF7B7A1BE08C78703AEC42";
-const uint8_t EquipRoom::binary_fingerprint[16] = {0x9F,0x3F,0x81,0x2E,0x35,0xFF,0x7B,0x7A,0x1B,0xE0,0x8C,0x78,0x70,0x3A,0xEC,0x42};
+const char* EquipRoom::ascii_fingerprint = "AC568A1B70241C2009731F96A951899A";
+const uint8_t EquipRoom::binary_fingerprint[16] = {0xAC,0x56,0x8A,0x1B,0x70,0x24,0x1C,0x20,0x09,0x73,0x1F,0x96,0xA9,0x51,0x89,0x9A};
 
 uint32_t EquipRoom::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -6012,7 +6028,7 @@ uint32_t EquipRoom::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   bool isset_eqRoomName = false;
   bool isset_status = false;
-  bool isset_comment = false;
+  bool isset_geoLocName = false;
 
   while (true)
   {
@@ -6040,13 +6056,21 @@ uint32_t EquipRoom::read(::apache::thrift::protocol::TProtocol* iprot) {
         break;
       case 3:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->comment);
-          isset_comment = true;
+          xfer += iprot->readString(this->geoLocName);
+          isset_geoLocName = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
       case 4:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->comment);
+          this->__isset.comment = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 5:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->geolocation.read(iprot);
           this->__isset.geolocation = true;
@@ -6067,7 +6091,7 @@ uint32_t EquipRoom::read(::apache::thrift::protocol::TProtocol* iprot) {
     throw TProtocolException(TProtocolException::INVALID_DATA);
   if (!isset_status)
     throw TProtocolException(TProtocolException::INVALID_DATA);
-  if (!isset_comment)
+  if (!isset_geoLocName)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
 }
@@ -6084,12 +6108,17 @@ uint32_t EquipRoom::write(::apache::thrift::protocol::TProtocol* oprot) const {
   xfer += oprot->writeI32(this->status);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("comment", ::apache::thrift::protocol::T_STRING, 3);
-  xfer += oprot->writeString(this->comment);
+  xfer += oprot->writeFieldBegin("geoLocName", ::apache::thrift::protocol::T_STRING, 3);
+  xfer += oprot->writeString(this->geoLocName);
   xfer += oprot->writeFieldEnd();
 
+  if (this->__isset.comment) {
+    xfer += oprot->writeFieldBegin("comment", ::apache::thrift::protocol::T_STRING, 4);
+    xfer += oprot->writeString(this->comment);
+    xfer += oprot->writeFieldEnd();
+  }
   if (this->__isset.geolocation) {
-    xfer += oprot->writeFieldBegin("geolocation", ::apache::thrift::protocol::T_STRUCT, 4);
+    xfer += oprot->writeFieldBegin("geolocation", ::apache::thrift::protocol::T_STRUCT, 5);
     xfer += this->geolocation.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
@@ -6102,6 +6131,7 @@ void swap(EquipRoom &a, EquipRoom &b) {
   using ::std::swap;
   swap(a.eqRoomName, b.eqRoomName);
   swap(a.status, b.status);
+  swap(a.geoLocName, b.geoLocName);
   swap(a.comment, b.comment);
   swap(a.geolocation, b.geolocation);
   swap(a.__isset, b.__isset);
