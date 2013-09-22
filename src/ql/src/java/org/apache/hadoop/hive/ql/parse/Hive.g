@@ -440,8 +440,8 @@ ddlStatement
     | analyzeStatement
     | lockStatement
     | unlockStatement
-    | createRoleStatement
-    | dropRoleStatement
+//    | createRoleStatement
+//    | dropRoleStatement
     | grantPrivileges
     | revokePrivileges
     | showGrants
@@ -470,11 +470,15 @@ ddlStatement
     | addNodeAssignmentStatement
     | dropNodeAssignmentStatement
     | alterNodeAssignmentStatement
-    | showNodeAssignmentStatement
+    | showNodeAssignment
+    
+    | createRoleStatement
+    | dropRoleStatement
     ;
+//
 
-showNodeAssignmentStatement
-@init { msgs.push("show NodeAssignmentStatement"); }
+showNodeAssignment
+@init { msgs.push("show NodeAssignment"); }
 @after { msgs.pop(); }
     :  KW_SHOW KW_NODE_ASSIGNMENT
      -> ^(TOK_SHOWNODE_ASSIGNMENT)
@@ -496,7 +500,7 @@ dropNodeAssignmentStatement
 addNodeAssignmentStatement
 @init { msgs.push("add NodeAssignmentStatement"); }
 @after { msgs.pop(); }
-    : KW_ADD KW_NODE_ASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA NAME= StringLiteral RPAREN 
+    : KW_CREATE KW_NODE_ASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA NAME= StringLiteral RPAREN 
     -> ^(TOK_ADDNODE_ASSIGNMENT $NODE_NAME $NAME)
         ;
 showEqRoom
@@ -520,7 +524,7 @@ dropEqRoomStatement
 addEqRoomStatement
 @init { msgs.push("add EqRoomStatement"); }
 @after { msgs.pop(); }
-    : KW_ADD KW_EQ_ROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier COMMA GEO_LOC_NAME=StringLiteral COMMA COMMENT=StringLiteral RPAREN 
+    : KW_CREATE KW_EQ_ROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier COMMA GEO_LOC_NAME=StringLiteral COMMA COMMENT=StringLiteral RPAREN 
     -> ^(TOK_ADDEQ_ROOM $EQ_ROOM_NAME $STATUS $GEO_LOC_NAME $COMMENT)
         ;
 showGeoLoc
@@ -544,7 +548,7 @@ dropGeoLocStatement
 addGeoLocStatement
 @init { msgs.push("add GeoLocStatement"); }
 @after { msgs.pop(); }
-    : KW_ADD KW_GEO_LOC LPAREN  GEO_LOC_NAME=StringLiteral COMMA NATION=StringLiteral COMMA PROVINCE=StringLiteral COMMA CITY= StringLiteral COMMA DIST=StringLiteral RPAREN 
+    : KW_CREATE KW_GEO_LOC LPAREN  GEO_LOC_NAME=StringLiteral COMMA NATION=StringLiteral COMMA PROVINCE=StringLiteral COMMA CITY= StringLiteral COMMA DIST=StringLiteral RPAREN 
     -> ^(TOK_ADDGEO_LOC $GEO_LOC_NAME $NATION $PROVINCE $CITY $DIST)
         ;
 ifExists
@@ -669,7 +673,7 @@ busitypeComment
 addNodeStatement
 @init { msgs.push("add node statement"); }
 @after { msgs.pop(); }
-    : KW_ADD KW_NODE LPAREN name=Identifier COMMA status=Identifier COMMA ip=Identifier RPAREN 
+    : KW_CREATE KW_NODE LPAREN name=Identifier COMMA status=Identifier COMMA ip=Identifier RPAREN 
         (KW_WITH KW_NODEPROPERTIES nodeprops=nodeProperties)?
     -> ^(TOK_ADDNODE $name $status $ip $nodeprops?)
         ;
@@ -2908,6 +2912,7 @@ descFuncNames
 kwRole
 :
 {input.LT(1).getText().equalsIgnoreCase("role")}? Identifier;
+//'ROLE';
 
 kwInner
 :
@@ -3048,6 +3053,7 @@ KW_OF: 'OF';
 KW_PERCENT: 'PERCENT';
 KW_CAST: 'CAST';
 KW_ADD: 'ADD';
+KW_NEW:'NEW';
 KW_REPLACE: 'REPLACE';
 KW_RLIKE: 'RLIKE';
 KW_REGEXP: 'REGEXP';
@@ -3170,9 +3176,9 @@ KW_BUSITYPE:'BUSITYPE';
 KW_NODES:'NODES';
 KW_FILES:'FILES';
 KW_FILELOCATIONS:'FILELOCATIONS';
-KW_GEO_LOC:'GEO_LOC';
-KW_EQ_ROOM:'EQ_ROOM';
-KW_NODE_ASSIGNMENT:'NODE_ASSIGNMENT';
+KW_GEO_LOC:'GEOLOC';
+KW_EQ_ROOM:'EQROOM';
+KW_NODE_ASSIGNMENT:'NODEASSIGNMENT';
 // Operators
 // NOTE: if you add a new function/operator, add it to sysFuncNames so that describe function _FUNC_ will work.
 

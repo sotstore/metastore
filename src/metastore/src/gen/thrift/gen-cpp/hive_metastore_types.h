@@ -3192,18 +3192,23 @@ void swap(EnvironmentContext &a, EnvironmentContext &b);
 class GeoLocation {
  public:
 
-  static const char* ascii_fingerprint; // = "C93D890311F28844166CF6E571EB3AC2";
-  static const uint8_t binary_fingerprint[16]; // = {0xC9,0x3D,0x89,0x03,0x11,0xF2,0x88,0x44,0x16,0x6C,0xF6,0xE5,0x71,0xEB,0x3A,0xC2};
+  static const char* ascii_fingerprint; // = "BFF0E21728CB005F9AA5774A41542B8D";
+  static const uint8_t binary_fingerprint[16]; // = {0xBF,0xF0,0xE2,0x17,0x28,0xCB,0x00,0x5F,0x9A,0xA5,0x77,0x4A,0x41,0x54,0x2B,0x8D};
 
-  GeoLocation() : nation(), province(), city(), dist() {
+  GeoLocation() : geoLocName(), nation(), province(), city(), dist() {
   }
 
   virtual ~GeoLocation() throw() {}
 
+  std::string geoLocName;
   std::string nation;
   std::string province;
   std::string city;
   std::string dist;
+
+  void __set_geoLocName(const std::string& val) {
+    geoLocName = val;
+  }
 
   void __set_nation(const std::string& val) {
     nation = val;
@@ -3223,6 +3228,8 @@ class GeoLocation {
 
   bool operator == (const GeoLocation & rhs) const
   {
+    if (!(geoLocName == rhs.geoLocName))
+      return false;
     if (!(nation == rhs.nation))
       return false;
     if (!(province == rhs.province))
@@ -3247,23 +3254,25 @@ class GeoLocation {
 void swap(GeoLocation &a, GeoLocation &b);
 
 typedef struct _EquipRoom__isset {
-  _EquipRoom__isset() : geolocation(false) {}
+  _EquipRoom__isset() : comment(false), geolocation(false) {}
+  bool comment;
   bool geolocation;
 } _EquipRoom__isset;
 
 class EquipRoom {
  public:
 
-  static const char* ascii_fingerprint; // = "9F3F812E35FF7B7A1BE08C78703AEC42";
-  static const uint8_t binary_fingerprint[16]; // = {0x9F,0x3F,0x81,0x2E,0x35,0xFF,0x7B,0x7A,0x1B,0xE0,0x8C,0x78,0x70,0x3A,0xEC,0x42};
+  static const char* ascii_fingerprint; // = "AC568A1B70241C2009731F96A951899A";
+  static const uint8_t binary_fingerprint[16]; // = {0xAC,0x56,0x8A,0x1B,0x70,0x24,0x1C,0x20,0x09,0x73,0x1F,0x96,0xA9,0x51,0x89,0x9A};
 
-  EquipRoom() : eqRoomName(), status(0), comment() {
+  EquipRoom() : eqRoomName(), status(0), geoLocName(), comment() {
   }
 
   virtual ~EquipRoom() throw() {}
 
   std::string eqRoomName;
   int32_t status;
+  std::string geoLocName;
   std::string comment;
   GeoLocation geolocation;
 
@@ -3277,8 +3286,13 @@ class EquipRoom {
     status = val;
   }
 
+  void __set_geoLocName(const std::string& val) {
+    geoLocName = val;
+  }
+
   void __set_comment(const std::string& val) {
     comment = val;
+    __isset.comment = true;
   }
 
   void __set_geolocation(const GeoLocation& val) {
@@ -3292,7 +3306,11 @@ class EquipRoom {
       return false;
     if (!(status == rhs.status))
       return false;
-    if (!(comment == rhs.comment))
+    if (!(geoLocName == rhs.geoLocName))
+      return false;
+    if (__isset.comment != rhs.__isset.comment)
+      return false;
+    else if (__isset.comment && !(comment == rhs.comment))
       return false;
     if (__isset.geolocation != rhs.__isset.geolocation)
       return false;
