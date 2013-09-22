@@ -796,6 +796,15 @@ public class Table implements Serializable {
     return tTable.getPartitionKeys();
   }
 
+  public void setSchemaName(String schemaName) {
+    tTable.setSchemaName(schemaName);
+  }
+
+  public String getSchemaName() {
+    return tTable.getSchemaName();
+  }
+
+
   /**
    * @return the original view text, or null if this table is not a view
    */

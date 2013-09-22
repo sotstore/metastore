@@ -121,84 +121,6 @@ import org.apache.hadoop.hive.ql.parse.AlterTablePartMergeFilesDesc;
 import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
 import org.apache.hadoop.hive.ql.plan.*;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
-import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
-import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
-import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
-import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
-import org.apache.hadoop.hive.ql.plan.CreateNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.CreateSchemaDesc;
-import org.apache.hadoop.hive.ql.plan.CreateSchemaLikeDesc;
-import org.apache.hadoop.hive.ql.plan.CreateTableDesc;
-import org.apache.hadoop.hive.ql.plan.CreateTableLikeDesc;
-import org.apache.hadoop.hive.ql.plan.CreateTableLikeSchemaDesc;
-import org.apache.hadoop.hive.ql.plan.CreateViewDesc;
-import org.apache.hadoop.hive.ql.plan.DDLWork;
-import org.apache.hadoop.hive.ql.plan.DescDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.DescFunctionDesc;
-import org.apache.hadoop.hive.ql.plan.DescTableDesc;
-import org.apache.hadoop.hive.ql.plan.DropDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.DropDatacenterDesc;
-import org.apache.hadoop.hive.ql.plan.DropEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.DropGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
-import org.apache.hadoop.hive.ql.plan.DropSubpartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.DropSubpartitionDesc;
-import org.apache.hadoop.hive.ql.plan.DropTableDesc;
-import org.apache.hadoop.hive.ql.plan.GrantDesc;
-import org.apache.hadoop.hive.ql.plan.GrantRevokeRoleDDL;
-import org.apache.hadoop.hive.ql.plan.LockTableDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyNodeDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartIndexAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartIndexDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartitionAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartitionDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartitionAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartitionDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.MsckDesc;
-import org.apache.hadoop.hive.ql.plan.PartitionSpec;
-import org.apache.hadoop.hive.ql.plan.PrincipalDesc;
-import org.apache.hadoop.hive.ql.plan.PrivilegeDesc;
-import org.apache.hadoop.hive.ql.plan.PrivilegeObjectDesc;
-import org.apache.hadoop.hive.ql.plan.RenamePartitionDesc;
-import org.apache.hadoop.hive.ql.plan.RevokeDesc;
-import org.apache.hadoop.hive.ql.plan.RoleDDLDesc;
-import org.apache.hadoop.hive.ql.plan.ShowBusitypesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowColumnsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowCreateTableDesc;
-import org.apache.hadoop.hive.ql.plan.ShowDatabasesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowDatacentersDesc;
-import org.apache.hadoop.hive.ql.plan.ShowEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.ShowFileLocationsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowFilesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowFunctionsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
-import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodeAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
-import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowSubpartitionDesc;
-import org.apache.hadoop.hive.ql.plan.ShowTableStatusDesc;
-import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
-import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.SwitchDatacenterDesc;
-import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
-import org.apache.hadoop.hive.ql.plan.UserDDLDesc;
 import org.apache.hadoop.hive.ql.plan.api.StageType;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
 import org.apache.hadoop.hive.ql.session.SessionState;
@@ -809,6 +731,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       String targetTableName = crtTblLikeSchemaDesc.getTableName();
       tbl = db.newTable(targetTableName);
 
+      tbl.setSchemaName(schema.getSchemaName());
       tbl.setDbName(crtTblLikeSchemaDesc.getDbName());
       tbl.setTableName(crtTblLikeSchemaDesc.getTableName());
 
@@ -3814,6 +3737,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       if (colPath.equals(tableName)) {
         cols = (part == null || tbl.getTableType() == TableType.VIRTUAL_VIEW) ?
             tbl.getCols() : part.getCols();
+        LOG.info("---zjw tbl.getCols() " + tbl.getTableName());
 
 //        if (!descTbl.isFormatted()) {
 //          if (tableName.equals(colPath)) {
@@ -3821,7 +3745,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 //          }
 //        }
       } else {
+        LOG.info("---zjw describeTable:getFieldsFromDeserializer " + tbl.getTableName());
         cols = Hive.getFieldsFromDeserializer(colPath, tbl.getDeserializer());
+      }
+      for(FieldSchema col :cols){
+        LOG.info("---zjw --col:"+col.getName() +"--"+col.getType());
       }
 
       formatter.describeTable(outStream, colPath, tableName, tbl, part, cols,
@@ -5140,6 +5068,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
                         formatter.ERROR);
       return 1;
     } catch (Exception e) {
+      LOG.error(e,e);
       throw new HiveException(e.toString());
     } finally {
       IOUtils.closeStream((FSDataOutputStream) outStream);

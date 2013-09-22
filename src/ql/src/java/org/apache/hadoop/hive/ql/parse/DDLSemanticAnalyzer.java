@@ -783,7 +783,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
         nodeGroupProps = DDLSemanticAnalyzer.getProps((ASTNode) childNode.getChild(0));
         break;
       case HiveParser.TOK_STRINGLITERALLIST:
-        nodes = DDLSemanticAnalyzer.getNodes((ASTNode) childNode.getChild(0));
+        nodes = DDLSemanticAnalyzer.getNodes((ASTNode) childNode);
         break;
       default:
         throw new SemanticException("Unrecognized token in CREATE NODEGROUP statement");

@@ -1467,6 +1467,12 @@ public class ObjectStore implements RawStore, Configurable {
       if(!make_table){
         pm.makePersistent(mtbl);
       }
+      if(mtbl.getGroupDistribute() != null && !mtbl.getGroupDistribute().isEmpty()){
+        for(MNodeGroup mng : mtbl.getGroupDistribute()){
+          mng.getAttachedtables().add(mtbl);
+        }
+        pm.makePersistentAll(mtbl.getGroupDistribute());
+      }
 
       if(tbl.getPartitions() != null && !tbl.getPartitions().isEmpty()){//存储分区
         LOG.info("--zjw--getPartitions is not null,size:"+tbl.getPartitionsSize());
@@ -2200,6 +2206,9 @@ public class ObjectStore implements RawStore, Configurable {
   private MNode getMNode(String node_name) {
     MNode mn = null;
     boolean commited = false;
+
+    LOG.info("---zjw--in getMnode,nodename:["+node_name+"]");
+
     try {
       openTransaction();
       if (!node_name.contains(".")) {
@@ -2435,6 +2444,17 @@ public class ObjectStore implements RawStore, Configurable {
     return nodes;
   }
 
+  private Set<MNode> getMNodeSet(Set<Node> mnSet)  {
+    if (mnSet == null) {
+      return null;
+    }
+    Set<MNode> nodes = new HashSet<MNode>();
+    for(Node mn : mnSet){
+      nodes.add(getMNode(mn.getNode_name()));
+    }
+    return nodes;
+  }
+
   private Device convertToDevice(MDevice md) throws MetaException {
     if (md == null) {
       return null;
@@ -2642,14 +2662,30 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
 
-    // A new table is always created with a new column descriptor
-    return new MTable(tbl.getTableName().toLowerCase(), mdb,mSchema,
+    MTable mtbl =new MTable(tbl.getTableName().toLowerCase(), mdb,mSchema,
         convertToMStorageDescriptor(tbl.getSd()), tbl.getOwner(), tbl
             .getCreateTime(), tbl.getLastAccessTime(), tbl.getRetention(),
         convertToMFieldSchemas(tbl.getFileSplitKeys()),
         convertToMFieldSchemas(tbl.getPartitionKeys()), tbl.getParameters(),
         tbl.getViewOriginalText(), tbl.getViewExpandedText(),
         tableType);
+
+    if(tbl.getNodeGroups() != null && !tbl.getNodeGroups().isEmpty()){
+      HashSet<MNodeGroup> mngs = new HashSet<MNodeGroup>();
+      for( NodeGroup ngGroup : tbl.getNodeGroups()){
+        MNodeGroup mng;
+        try {
+          mng = getMNodeGroup(ngGroup.getNode_group_name());
+        } catch (NoSuchObjectException e) {
+          throw new InvalidObjectException("Node group ["+ngGroup.getNode_group_name()+"] is not valid.");
+        }
+        mngs.add(mng);
+      }
+      mtbl.setGroupDistribute(mngs);
+    }
+
+    // A new table is always created with a new column descriptor
+    return mtbl;
   }
 
   private MSchema convertToMSchema(GlobalSchema schema) throws InvalidObjectException,
@@ -8747,11 +8783,14 @@ public MUser getMUser(String userName) {
 
     boolean success = false;
     boolean commited = false;
+
+    LOG.info("---zjw--in addNodeGroup");
     try {
       openTransaction();
       MNodeGroup mng = convertToMNodeGroup(ng);
 
       pm.makePersistent(mng);
+      pm.makePersistentAll(mng.getNodes());
       commited = commitTransaction();
       success = true;
     } finally {
@@ -8767,19 +8806,20 @@ public MUser getMUser(String userName) {
     boolean success = false;
     boolean commited = false;
     try {
-      List<String> ngNames = new ArrayList<String>();
-      ngNames.add(ngName);
-      List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
-      if (mngs == null) {
-        throw new MetaException("NodeGroup " + ngName+" does not exist.");
-      }else if(mngs.size() != 1){
-        throw new MetaException("Duplicated NodeGroup " + ngName+" exist.");
-      }
 
+      MNodeGroup mng = null;
+      try {
+        mng = getMNodeGroup(ngName);
+      } catch (NoSuchObjectException e) {
+        throw new MetaException("NodeGroup :" + ngName+" does not exist.");
+      }
+      if (mng == null) {
+        throw new MetaException("NodeGroup " + ngName+" does not exist.");
+      }
       openTransaction();
       MNodeGroup new_mng = convertToMNodeGroup(ng);
 
-      MNodeGroup mng = mngs.get(0);
+
       mng.setMNodeGroup(new_mng);
 
       pm.makePersistent(mng);
@@ -8798,15 +8838,19 @@ public MUser getMUser(String userName) {
     boolean success = false;
     boolean commited = false;
     try {
-      List<String> ngNames = new ArrayList<String>();
-      ngNames.add(ng.getNode_group_name());
-      List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
-      if (mngs == null) {
+
+      MNodeGroup mng = null;
+      try {
+        mng = getMNodeGroup(ng.getNode_group_name());
+      } catch (NoSuchObjectException e) {
+        throw new MetaException("NodeGroup [" + ng.getNode_group_name()+"] does not exist.");
+      }
+      if (mng == null) {
         throw new MetaException("NodeGroup " + ng.getNode_group_name()+" does not exist.");
       }
       openTransaction();
 
-      pm.deletePersistentAll(mngs);// watch here
+      pm.deletePersistentAll(mng);// watch here
       commited = commitTransaction();
       success = true;
     } finally {
@@ -8869,18 +8913,29 @@ public MUser getMUser(String userName) {
       }
       int now = (int)(System.currentTimeMillis()/1000);
 
-      List<MNodeGroup> mngs = this.getMNodeGroupByNames(ng);//new ArrayList<MNodeGroup>();
-      for(MNodeGroup mng : mngs){
-          if(!mtbl.getGroupDistribute().contains(mng)){//always in lowercase,else ask zhuqihan
+//      List<MNodeGroup> mngs = this.getMNodeGroupByNames(ng);//new ArrayList<MNodeGroup>();
+      List<NodeGroup> ngs = this.getNodeGroupByNames(ng);//new ArrayList<MNodeGroup>();
+      MNodeGroup mng =  null;
+      HashMap<String , MNodeGroup> str2Mng = new HashMap<String, MNodeGroup>();
+      for(MNodeGroup mNodeGroup :mtbl.getGroupDistribute()){
+        str2Mng.put(mNodeGroup.getNode_group_name(), mNodeGroup);
+      }
+
+      for(NodeGroup nodeGroup : ngs){
+          if(!str2Mng.keySet().contains(nodeGroup.getNode_group_name().toLowerCase())){//always in lowercase,else ask zhuqihan
+            try {
+              mng = getMNodeGroup(nodeGroup.getNode_group_name());
+            } catch (NoSuchObjectException e) {
+              LOG.error(e,e);
+              throw new MetaException(e.getMessage());
+            }
             mtbl.getGroupDistribute().add(mng);//many-to-many delete
             mng.getAttachedtables().add(mtbl);
-          }else{
-            mngs.remove(mng);
           }
        }
 
       pm.makePersistent(mtbl);
-      pm.makePersistentAll(mngs);// watch here
+      pm.makePersistentAll(ngs);// watch here
       commited = commitTransaction();
       success = true;
     } finally {
@@ -8891,13 +8946,43 @@ public MUser getMUser(String userName) {
     return success;
   }
 
-  private List<MNodeGroup> getMNodeGroupByNames(List<String> ngs)throws MetaException {
+  @SuppressWarnings("nls")
+  private MNodeGroup getMNodeGroup(String nodegroupName) throws NoSuchObjectException {
+    MNodeGroup mng = null;
+    boolean commited = false;
+    if(nodegroupName == null ) {
+      return null;
+    }
+    LOG.info("getMnodeGroup groupName:["+nodegroupName+"]");
+    try {
+      openTransaction();
+      nodegroupName = nodegroupName.toLowerCase().trim();
+      Query query = pm.newQuery(MNodeGroup.class, "node_group_name == nodegroupName");
+      query.declareParameters("java.lang.String nodegroupName");
+      query.setUnique(true);
+      mng = (MNodeGroup) query.execute(nodegroupName);
+      pm.retrieve(mng);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    if (mng == null) {
+      throw new NoSuchObjectException("There is no schema named " + nodegroupName);
+    }
+    return mng;
+  }
+
+  private List<NodeGroup> getNodeGroupByNames(List<String> ngs)throws MetaException {
     boolean success = false;
 
     if(ngs == null || ngs.isEmpty()){
       return null;
     }
-    List<MNodeGroup> results = new ArrayList<MNodeGroup>();
+
+    LOG.debug(" JDOQL filter is " + ngs.toString());
+    List<NodeGroup> results = new ArrayList<NodeGroup>();
 
     try {
       openTransaction();
@@ -8925,7 +9010,8 @@ public MUser getMUser(String userName) {
       query.declareParameters(parameterDeclaration);
       query.setOrdering("node_group_name ascending");
 
-      results = (List<MNodeGroup>) query.executeWithMap(params);
+      List<MNodeGroup> mngs = (List<MNodeGroup>) query.executeWithMap(params);
+      results = convertToNodeGroups(mngs);
 
       query.closeAll();
       success = commitTransaction();
@@ -8943,6 +9029,11 @@ public MUser getMUser(String userName) {
     if(mngs != null) {
       ngs = new ArrayList<NodeGroup>();
       for(MNodeGroup mng : mngs){
+        if(mng.getNodes() != null) {
+          LOG.info("---zjw nodes :"+mng.getNodes().size());
+        } else {
+          LOG.info("---zjw nodes is null");
+        }
         NodeGroup ng = new NodeGroup(mng.getNode_group_name(),
             mng.getComment(),mng.getStatus(),convertToNodeSet(mng.getNodes()));
         ngs.add(ng);
@@ -8965,8 +9056,23 @@ public MUser getMUser(String userName) {
   }
 
   private MNodeGroup convertToMNodeGroup(NodeGroup ng) {
-    return  new MNodeGroup(ng.getNode_group_name(),
-        ng.getComment(),ng.getStatus(),convertToMNodeSet(ng.getNodes()));
+    if(ng.getNodes() != null && !ng.getNodes().isEmpty()){
+      for(Node node : ng.getNodes()){
+        LOG.info("---zjw--" + node.getNode_name());
+      }
+    }else{
+      LOG.info("---zjw--nodes is null");
+    }
+
+    MNodeGroup mng = new MNodeGroup(ng.getNode_group_name(),
+        ng.getComment(),ng.getStatus(),getMNodeSet(ng.getNodes()));
+    for(MNode mNode : mng.getNodes()){
+      if(mNode.getNodeGroups() == null){
+        mNode.setNodeGroups(new HashSet<MNodeGroup>());
+      }
+      mNode.getNodeGroups().add(mng);
+    }
+    return mng;
   }
 
   @Override
@@ -9014,11 +9120,7 @@ public MUser getMUser(String userName) {
 
   @Override
   public List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws MetaException {
-    List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
-    if(mngs == null ||mngs.isEmpty()){
-      return null;
-    }
-    return convertToNodeGroups(mngs);
+    return  getNodeGroupByNames(ngNames);
   }
 
 /**

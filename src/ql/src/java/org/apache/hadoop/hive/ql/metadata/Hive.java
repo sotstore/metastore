@@ -3035,6 +3035,9 @@ public class Hive {
       HashSet<Node> nodes = new HashSet<Node>();
       for(String nodeName : ngs.getNodes()){
         Node node = getMSC().get_node(nodeName);
+        if(node == null){
+          throw new HiveException("Not valid node:["+nodeName+"]");
+        }
         nodes.add(node);
       }
       NodeGroup ng = new NodeGroup(ngs.getNode_group_name(), ngs.getComment(), status, nodes);
@@ -3049,6 +3052,9 @@ public class Hive {
     ngNames.add(ngs.getNode_group_name());
     try {
       List<NodeGroup> ng = getMSC().listNodeGroups(ngNames);
+      if(ng == null || ng.isEmpty()){
+        throw new HiveException("No NgName :["+ngs.getNode_group_name()+"]");
+      }
       getMSC().deleteNodeGroup(ng.get(0));
     } catch (Exception e) {
       throw new HiveException(e);
@@ -3139,6 +3145,11 @@ public class Hive {
         nodeGroups.setComment(nodeGroup.getComment());
         nodeGroups.setStatus(NodeGroupStatus.getNodeGroupStatus(nodeGroup.getStatus()).name());
         HashSet<String> ngName= new HashSet<String>();
+        if(nodeGroup.getNodes() == null || nodeGroup.getNodes().isEmpty()){
+          LOG.info("---zjw --nodes is null");
+        }else{
+          LOG.info("---zjw --nodes size:" + nodeGroup.getNodesSize());
+        }
         for(Node nd : nodeGroup.getNodes()){
           String name = nd.getNode_name();
           ngName.add(name);

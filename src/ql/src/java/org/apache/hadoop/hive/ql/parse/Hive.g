@@ -933,7 +933,7 @@ createTableStatement
          
         KW_CREATE (ext=KW_EXTERNAL)? KW_TABLE ifNotExists? name=tableName
       (  like=KW_LIKE (KW_TABLE likeTabName=tableName |KW_SCHEMA likeName=schemaName KW_TO dbName=Identifier)
-         tableLocation?
+         tableComment?   tablePartition?  tableDistribution?
        | (LPAREN columnNameTypeList RPAREN)?
          tableComment?
          tablePartition?
@@ -943,6 +943,7 @@ createTableStatement
          tableFileFormat?
          tableLocation?
          tablePropertiesPrefixed?
+         tableDistribution?
          (KW_AS selectStatement)?
       )
     -> ^(TOK_CREATETABLE $name $ext? ifNotExists?
@@ -957,6 +958,7 @@ createTableStatement
          tableFileFormat?
          tableLocation?
          tablePropertiesPrefixed?
+         tableDistribution?
          selectStatement?
         )
     ;
