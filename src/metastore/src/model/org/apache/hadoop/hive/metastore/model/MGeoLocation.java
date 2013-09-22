@@ -18,13 +18,15 @@ public class MGeoLocation {
    * @param city
    * @param dist
    */
-  public MGeoLocation(String nation, String province, String city, String dist) {
+  public MGeoLocation(String geoLocName, String nation, String province, String city, String dist) {
     super();
+    this.geoLocName = geoLocName;
     this.nation = nation;
     this.province = province;
     this.city = city;
     this.dist = dist;
   }
+
 
   /**
    * @return
