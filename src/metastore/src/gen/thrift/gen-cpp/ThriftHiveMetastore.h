@@ -53,6 +53,8 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual bool modifyGeoLocation(const GeoLocation& gl) = 0;
   virtual bool deleteGeoLocation(const GeoLocation& gl) = 0;
   virtual void listGeoLocation(std::vector<GeoLocation> & _return) = 0;
+  virtual bool addNodeAssignment(const std::string& nodeName, const std::string& dbName) = 0;
+  virtual bool deleteNodeAssignment(const std::string& nodeName, const std::string& dbName) = 0;
   virtual void create_database(const Database& database) = 0;
   virtual void get_database(Database& _return, const std::string& name) = 0;
   virtual void drop_database(const std::string& name, const bool deleteData, const bool cascade) = 0;
@@ -338,6 +340,14 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   }
   void listGeoLocation(std::vector<GeoLocation> & /* _return */) {
     return;
+  }
+  bool addNodeAssignment(const std::string& /* nodeName */, const std::string& /* dbName */) {
+    bool _return = false;
+    return _return;
+  }
+  bool deleteNodeAssignment(const std::string& /* nodeName */, const std::string& /* dbName */) {
+    bool _return = false;
+    return _return;
   }
   void create_database(const Database& /* database */) {
     return;
@@ -5341,6 +5351,280 @@ class ThriftHiveMetastore_listGeoLocation_presult {
   MetaException o1;
 
   _ThriftHiveMetastore_listGeoLocation_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_addNodeAssignment_args__isset {
+  _ThriftHiveMetastore_addNodeAssignment_args__isset() : nodeName(false), dbName(false) {}
+  bool nodeName;
+  bool dbName;
+} _ThriftHiveMetastore_addNodeAssignment_args__isset;
+
+class ThriftHiveMetastore_addNodeAssignment_args {
+ public:
+
+  ThriftHiveMetastore_addNodeAssignment_args() : nodeName(), dbName() {
+  }
+
+  virtual ~ThriftHiveMetastore_addNodeAssignment_args() throw() {}
+
+  std::string nodeName;
+  std::string dbName;
+
+  _ThriftHiveMetastore_addNodeAssignment_args__isset __isset;
+
+  void __set_nodeName(const std::string& val) {
+    nodeName = val;
+  }
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_addNodeAssignment_args & rhs) const
+  {
+    if (!(nodeName == rhs.nodeName))
+      return false;
+    if (!(dbName == rhs.dbName))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_addNodeAssignment_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_addNodeAssignment_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_addNodeAssignment_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_addNodeAssignment_pargs() throw() {}
+
+  const std::string* nodeName;
+  const std::string* dbName;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_addNodeAssignment_result__isset {
+  _ThriftHiveMetastore_addNodeAssignment_result__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_addNodeAssignment_result__isset;
+
+class ThriftHiveMetastore_addNodeAssignment_result {
+ public:
+
+  ThriftHiveMetastore_addNodeAssignment_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_addNodeAssignment_result() throw() {}
+
+  bool success;
+  MetaException o1;
+  NoSuchObjectException o2;
+
+  _ThriftHiveMetastore_addNodeAssignment_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const NoSuchObjectException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_addNodeAssignment_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_addNodeAssignment_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_addNodeAssignment_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_addNodeAssignment_presult__isset {
+  _ThriftHiveMetastore_addNodeAssignment_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_addNodeAssignment_presult__isset;
+
+class ThriftHiveMetastore_addNodeAssignment_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_addNodeAssignment_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+  NoSuchObjectException o2;
+
+  _ThriftHiveMetastore_addNodeAssignment_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteNodeAssignment_args__isset {
+  _ThriftHiveMetastore_deleteNodeAssignment_args__isset() : nodeName(false), dbName(false) {}
+  bool nodeName;
+  bool dbName;
+} _ThriftHiveMetastore_deleteNodeAssignment_args__isset;
+
+class ThriftHiveMetastore_deleteNodeAssignment_args {
+ public:
+
+  ThriftHiveMetastore_deleteNodeAssignment_args() : nodeName(), dbName() {
+  }
+
+  virtual ~ThriftHiveMetastore_deleteNodeAssignment_args() throw() {}
+
+  std::string nodeName;
+  std::string dbName;
+
+  _ThriftHiveMetastore_deleteNodeAssignment_args__isset __isset;
+
+  void __set_nodeName(const std::string& val) {
+    nodeName = val;
+  }
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_deleteNodeAssignment_args & rhs) const
+  {
+    if (!(nodeName == rhs.nodeName))
+      return false;
+    if (!(dbName == rhs.dbName))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_deleteNodeAssignment_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_deleteNodeAssignment_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_deleteNodeAssignment_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_deleteNodeAssignment_pargs() throw() {}
+
+  const std::string* nodeName;
+  const std::string* dbName;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteNodeAssignment_result__isset {
+  _ThriftHiveMetastore_deleteNodeAssignment_result__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_deleteNodeAssignment_result__isset;
+
+class ThriftHiveMetastore_deleteNodeAssignment_result {
+ public:
+
+  ThriftHiveMetastore_deleteNodeAssignment_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_deleteNodeAssignment_result() throw() {}
+
+  bool success;
+  MetaException o1;
+  NoSuchObjectException o2;
+
+  _ThriftHiveMetastore_deleteNodeAssignment_result__isset __isset;
+
+  void __set_success(const bool val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const NoSuchObjectException& val) {
+    o2 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_deleteNodeAssignment_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_deleteNodeAssignment_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_deleteNodeAssignment_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_deleteNodeAssignment_presult__isset {
+  _ThriftHiveMetastore_deleteNodeAssignment_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success;
+  bool o1;
+  bool o2;
+} _ThriftHiveMetastore_deleteNodeAssignment_presult__isset;
+
+class ThriftHiveMetastore_deleteNodeAssignment_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_deleteNodeAssignment_presult() throw() {}
+
+  bool* success;
+  MetaException o1;
+  NoSuchObjectException o2;
+
+  _ThriftHiveMetastore_deleteNodeAssignment_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -22426,6 +22710,12 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void listGeoLocation(std::vector<GeoLocation> & _return);
   void send_listGeoLocation();
   void recv_listGeoLocation(std::vector<GeoLocation> & _return);
+  bool addNodeAssignment(const std::string& nodeName, const std::string& dbName);
+  void send_addNodeAssignment(const std::string& nodeName, const std::string& dbName);
+  bool recv_addNodeAssignment();
+  bool deleteNodeAssignment(const std::string& nodeName, const std::string& dbName);
+  void send_deleteNodeAssignment(const std::string& nodeName, const std::string& dbName);
+  bool recv_deleteNodeAssignment();
   void create_database(const Database& database);
   void send_create_database(const Database& database);
   void recv_create_database();
@@ -22848,6 +23138,8 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_modifyGeoLocation(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_deleteGeoLocation(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_listGeoLocation(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_addNodeAssignment(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_deleteNodeAssignment(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_create_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_drop_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -23014,6 +23306,8 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["modifyGeoLocation"] = &ThriftHiveMetastoreProcessor::process_modifyGeoLocation;
     processMap_["deleteGeoLocation"] = &ThriftHiveMetastoreProcessor::process_deleteGeoLocation;
     processMap_["listGeoLocation"] = &ThriftHiveMetastoreProcessor::process_listGeoLocation;
+    processMap_["addNodeAssignment"] = &ThriftHiveMetastoreProcessor::process_addNodeAssignment;
+    processMap_["deleteNodeAssignment"] = &ThriftHiveMetastoreProcessor::process_deleteNodeAssignment;
     processMap_["create_database"] = &ThriftHiveMetastoreProcessor::process_create_database;
     processMap_["get_database"] = &ThriftHiveMetastoreProcessor::process_get_database;
     processMap_["drop_database"] = &ThriftHiveMetastoreProcessor::process_drop_database;
@@ -23515,6 +23809,24 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     }
     ifaces_[i]->listGeoLocation(_return);
     return;
+  }
+
+  bool addNodeAssignment(const std::string& nodeName, const std::string& dbName) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->addNodeAssignment(nodeName, dbName);
+    }
+    return ifaces_[i]->addNodeAssignment(nodeName, dbName);
+  }
+
+  bool deleteNodeAssignment(const std::string& nodeName, const std::string& dbName) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->deleteNodeAssignment(nodeName, dbName);
+    }
+    return ifaces_[i]->deleteNodeAssignment(nodeName, dbName);
   }
 
   void create_database(const Database& database) {

@@ -1136,12 +1136,14 @@ end
 
 class GeoLocation
   include ::Thrift::Struct, ::Thrift::Struct_Union
-  NATION = 1
-  PROVINCE = 2
-  CITY = 3
-  DIST = 4
+  GEOLOCNAME = 1
+  NATION = 2
+  PROVINCE = 3
+  CITY = 4
+  DIST = 5
 
   FIELDS = {
+    GEOLOCNAME => {:type => ::Thrift::Types::STRING, :name => 'geoLocName'},
     NATION => {:type => ::Thrift::Types::STRING, :name => 'nation'},
     PROVINCE => {:type => ::Thrift::Types::STRING, :name => 'province'},
     CITY => {:type => ::Thrift::Types::STRING, :name => 'city'},
@@ -1151,6 +1153,7 @@ class GeoLocation
   def struct_fields; FIELDS; end
 
   def validate
+    raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field geoLocName is unset!') unless @geoLocName
     raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field nation is unset!') unless @nation
     raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field province is unset!') unless @province
     raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field city is unset!') unless @city
@@ -1164,13 +1167,15 @@ class EquipRoom
   include ::Thrift::Struct, ::Thrift::Struct_Union
   EQROOMNAME = 1
   STATUS = 2
-  COMMENT = 3
-  GEOLOCATION = 4
+  GEOLOCNAME = 3
+  COMMENT = 4
+  GEOLOCATION = 5
 
   FIELDS = {
     EQROOMNAME => {:type => ::Thrift::Types::STRING, :name => 'eqRoomName'},
     STATUS => {:type => ::Thrift::Types::I32, :name => 'status'},
-    COMMENT => {:type => ::Thrift::Types::STRING, :name => 'comment'},
+    GEOLOCNAME => {:type => ::Thrift::Types::STRING, :name => 'geoLocName'},
+    COMMENT => {:type => ::Thrift::Types::STRING, :name => 'comment', :optional => true},
     GEOLOCATION => {:type => ::Thrift::Types::STRUCT, :name => 'geolocation', :class => ::GeoLocation, :optional => true}
   }
 
@@ -1179,7 +1184,7 @@ class EquipRoom
   def validate
     raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field eqRoomName is unset!') unless @eqRoomName
     raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field status is unset!') unless @status
-    raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field comment is unset!') unless @comment
+    raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field geoLocName is unset!') unless @geoLocName
   end
 
   ::Thrift::Struct.generate_accessors self

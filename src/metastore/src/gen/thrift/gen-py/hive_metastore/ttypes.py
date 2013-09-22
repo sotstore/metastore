@@ -5147,6 +5147,7 @@ class EnvironmentContext:
 class GeoLocation:
   """
   Attributes:
+   - geoLocName
    - nation
    - province
    - city
@@ -5155,13 +5156,15 @@ class GeoLocation:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRING, 'nation', None, None, ), # 1
-    (2, TType.STRING, 'province', None, None, ), # 2
-    (3, TType.STRING, 'city', None, None, ), # 3
-    (4, TType.STRING, 'dist', None, None, ), # 4
+    (1, TType.STRING, 'geoLocName', None, None, ), # 1
+    (2, TType.STRING, 'nation', None, None, ), # 2
+    (3, TType.STRING, 'province', None, None, ), # 3
+    (4, TType.STRING, 'city', None, None, ), # 4
+    (5, TType.STRING, 'dist', None, None, ), # 5
   )
 
-  def __init__(self, nation=None, province=None, city=None, dist=None,):
+  def __init__(self, geoLocName=None, nation=None, province=None, city=None, dist=None,):
+    self.geoLocName = geoLocName
     self.nation = nation
     self.province = province
     self.city = city
@@ -5178,20 +5181,25 @@ class GeoLocation:
         break
       if fid == 1:
         if ftype == TType.STRING:
-          self.nation = iprot.readString();
+          self.geoLocName = iprot.readString();
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRING:
-          self.province = iprot.readString();
+          self.nation = iprot.readString();
         else:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRING:
-          self.city = iprot.readString();
+          self.province = iprot.readString();
         else:
           iprot.skip(ftype)
       elif fid == 4:
+        if ftype == TType.STRING:
+          self.city = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
         if ftype == TType.STRING:
           self.dist = iprot.readString();
         else:
@@ -5206,26 +5214,32 @@ class GeoLocation:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
     oprot.writeStructBegin('GeoLocation')
+    if self.geoLocName is not None:
+      oprot.writeFieldBegin('geoLocName', TType.STRING, 1)
+      oprot.writeString(self.geoLocName)
+      oprot.writeFieldEnd()
     if self.nation is not None:
-      oprot.writeFieldBegin('nation', TType.STRING, 1)
+      oprot.writeFieldBegin('nation', TType.STRING, 2)
       oprot.writeString(self.nation)
       oprot.writeFieldEnd()
     if self.province is not None:
-      oprot.writeFieldBegin('province', TType.STRING, 2)
+      oprot.writeFieldBegin('province', TType.STRING, 3)
       oprot.writeString(self.province)
       oprot.writeFieldEnd()
     if self.city is not None:
-      oprot.writeFieldBegin('city', TType.STRING, 3)
+      oprot.writeFieldBegin('city', TType.STRING, 4)
       oprot.writeString(self.city)
       oprot.writeFieldEnd()
     if self.dist is not None:
-      oprot.writeFieldBegin('dist', TType.STRING, 4)
+      oprot.writeFieldBegin('dist', TType.STRING, 5)
       oprot.writeString(self.dist)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
   def validate(self):
+    if self.geoLocName is None:
+      raise TProtocol.TProtocolException(message='Required field geoLocName is unset!')
     if self.nation is None:
       raise TProtocol.TProtocolException(message='Required field nation is unset!')
     if self.province is None:
@@ -5253,6 +5267,7 @@ class EquipRoom:
   Attributes:
    - eqRoomName
    - status
+   - geoLocName
    - comment
    - geolocation
   """
@@ -5261,13 +5276,15 @@ class EquipRoom:
     None, # 0
     (1, TType.STRING, 'eqRoomName', None, None, ), # 1
     (2, TType.I32, 'status', None, None, ), # 2
-    (3, TType.STRING, 'comment', None, None, ), # 3
-    (4, TType.STRUCT, 'geolocation', (GeoLocation, GeoLocation.thrift_spec), None, ), # 4
+    (3, TType.STRING, 'geoLocName', None, None, ), # 3
+    (4, TType.STRING, 'comment', None, None, ), # 4
+    (5, TType.STRUCT, 'geolocation', (GeoLocation, GeoLocation.thrift_spec), None, ), # 5
   )
 
-  def __init__(self, eqRoomName=None, status=None, comment=None, geolocation=None,):
+  def __init__(self, eqRoomName=None, status=None, geoLocName=None, comment=None, geolocation=None,):
     self.eqRoomName = eqRoomName
     self.status = status
+    self.geoLocName = geoLocName
     self.comment = comment
     self.geolocation = geolocation
 
@@ -5292,10 +5309,15 @@ class EquipRoom:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRING:
-          self.comment = iprot.readString();
+          self.geoLocName = iprot.readString();
         else:
           iprot.skip(ftype)
       elif fid == 4:
+        if ftype == TType.STRING:
+          self.comment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
         if ftype == TType.STRUCT:
           self.geolocation = GeoLocation()
           self.geolocation.read(iprot)
@@ -5319,12 +5341,16 @@ class EquipRoom:
       oprot.writeFieldBegin('status', TType.I32, 2)
       oprot.writeI32(self.status)
       oprot.writeFieldEnd()
+    if self.geoLocName is not None:
+      oprot.writeFieldBegin('geoLocName', TType.STRING, 3)
+      oprot.writeString(self.geoLocName)
+      oprot.writeFieldEnd()
     if self.comment is not None:
-      oprot.writeFieldBegin('comment', TType.STRING, 3)
+      oprot.writeFieldBegin('comment', TType.STRING, 4)
       oprot.writeString(self.comment)
       oprot.writeFieldEnd()
     if self.geolocation is not None:
-      oprot.writeFieldBegin('geolocation', TType.STRUCT, 4)
+      oprot.writeFieldBegin('geolocation', TType.STRUCT, 5)
       self.geolocation.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -5335,8 +5361,8 @@ class EquipRoom:
       raise TProtocol.TProtocolException(message='Required field eqRoomName is unset!')
     if self.status is None:
       raise TProtocol.TProtocolException(message='Required field status is unset!')
-    if self.comment is None:
-      raise TProtocol.TProtocolException(message='Required field comment is unset!')
+    if self.geoLocName is None:
+      raise TProtocol.TProtocolException(message='Required field geoLocName is unset!')
     return
 
 

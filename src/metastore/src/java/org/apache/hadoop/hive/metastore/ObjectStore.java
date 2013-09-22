@@ -8183,14 +8183,12 @@ public MUser getMUser(String userName) {
   public boolean modifyEquipRoom(EquipRoom er) throws MetaException {
     boolean success = false;
     boolean committed = false;
-    //......
     if (er != null) {
       er.setEqRoomName(er.getEqRoomName());
       er.setStatus(er.getStatus());
+      er.setGeoLocName(er.getGeoLocName());
       er.setComment(er.getComment());
-
       er.setGeolocation(er.getGeolocation());
-
     } else {
       return success;
     }
@@ -8236,7 +8234,7 @@ public MUser getMUser(String userName) {
       pm.retrieveAll(mers);
       for (Iterator i = mers.iterator(); i.hasNext();) {
         MEquipRoom mer = (MEquipRoom)i.next();
-        EquipRoom er = new EquipRoom(mer.getEqRoomName(),mer.getStatus(),mer.getComment());
+        EquipRoom er = new EquipRoom(mer.getEqRoomName(),mer.getStatus(),mer.getGeoLocName());
         if(mer.getGeolocation() !=  null){
           er.setGeolocation(er.getGeolocation());
         }
@@ -8328,7 +8326,7 @@ public MUser getMUser(String userName) {
       pm.retrieveAll(mgls);
       for (Iterator i = mgls.iterator(); i.hasNext();) {
         MGeoLocation mgl = (MGeoLocation)i.next();
-        GeoLocation gl = new GeoLocation(mgl.getNation(),mgl.getProvince(),mgl.getCity(),mgl.getDist());
+        GeoLocation gl = new GeoLocation(mgl.getGeoLocName(),mgl.getNation(),mgl.getProvince(),mgl.getCity(),mgl.getDist());
         gls.add(gl);
       }
       success = commitTransaction();

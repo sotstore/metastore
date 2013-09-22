@@ -5866,6 +5866,18 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
+    public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException,
+        NoSuchObjectException, TException {
+      return getMS().addNodeAssignment(nodeName, dbName);
+    }
+
+    @Override
+    public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException,
+        NoSuchObjectException, TException {
+      return getMS().deleteNodeAssignment(nodeName, dbName);
+    }
+
+    @Override
     public Device get_device(String devid) throws MetaException, NoSuchObjectException, TException {
       return getMS().getDevice(devid);
     }
@@ -6057,6 +6069,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       // TODO Auto-generated method stub
       return null;
     }
+
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {
