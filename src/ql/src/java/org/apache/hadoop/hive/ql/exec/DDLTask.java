@@ -687,7 +687,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
 
   private int crtTblLikeSchemaDesc(Hive db, CreateTableLikeSchemaDesc crtTblLikeSchemaDesc) throws HiveException {
-    GlobalSchema schema = db.newSchema(crtTblLikeSchemaDesc.getLikeTableName());
+    GlobalSchema schema = db.getSchema(crtTblLikeSchemaDesc.getLikeTableName(),false);
     Table tbl;
     if (schema.getTableType() == TableType.VIRTUAL_VIEW) {
       String targetTableName = crtTblLikeSchemaDesc.getTableName();

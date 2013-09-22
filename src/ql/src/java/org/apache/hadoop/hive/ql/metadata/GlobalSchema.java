@@ -436,7 +436,12 @@ public class GlobalSchema implements Serializable {
   public List<FieldSchema> getCols() {
     boolean getColsFromSerDe = SerDeUtils.shouldGetColsFromSerDe(
       getSerializationLib());
+
+    //added by zjw
+    getColsFromSerDe = false;
+
     if (!getColsFromSerDe) {
+      LOG.info(tschema.getSd().getCols().size());
       return tschema.getSd().getCols();
     } else {
       try {
