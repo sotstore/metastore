@@ -66,6 +66,16 @@ const char* _kFOFailReasonNames[] = {
 };
 const std::map<int, const char*> _FOFailReason_VALUES_TO_NAMES(::apache::thrift::TEnumIterator(7, _kFOFailReasonValues, _kFOFailReasonNames), ::apache::thrift::TEnumIterator(-1, NULL, NULL));
 
+int _kFindNodePolicyValues[] = {
+  FindNodePolicy::ALL_NGS,
+  FindNodePolicy::SINGLE_NG
+};
+const char* _kFindNodePolicyNames[] = {
+  "ALL_NGS",
+  "SINGLE_NG"
+};
+const std::map<int, const char*> _FindNodePolicy_VALUES_TO_NAMES(::apache::thrift::TEnumIterator(2, _kFindNodePolicyValues, _kFindNodePolicyNames), ::apache::thrift::TEnumIterator(-1, NULL, NULL));
+
 int _kMSOperationValues[] = {
   MSOperation::EXPLAIN,
   MSOperation::CREATEDATABASE,

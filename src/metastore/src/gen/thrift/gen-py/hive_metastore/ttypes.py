@@ -98,6 +98,20 @@ class FOFailReason:
     "INVALID_STATE": 13,
   }
 
+class FindNodePolicy:
+  ALL_NGS = 1
+  SINGLE_NG = 2
+
+  _VALUES_TO_NAMES = {
+    1: "ALL_NGS",
+    2: "SINGLE_NG",
+  }
+
+  _NAMES_TO_VALUES = {
+    "ALL_NGS": 1,
+    "SINGLE_NG": 2,
+  }
+
 class MSOperation:
   EXPLAIN = 1
   CREATEDATABASE = 2

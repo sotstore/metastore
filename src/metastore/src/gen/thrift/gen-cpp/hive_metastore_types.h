@@ -61,6 +61,15 @@ struct FOFailReason {
 
 extern const std::map<int, const char*> _FOFailReason_VALUES_TO_NAMES;
 
+struct FindNodePolicy {
+  enum type {
+    ALL_NGS = 1,
+    SINGLE_NG = 2
+  };
+};
+
+extern const std::map<int, const char*> _FindNodePolicy_VALUES_TO_NAMES;
+
 struct MSOperation {
   enum type {
     EXPLAIN = 1,

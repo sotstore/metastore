@@ -44,6 +44,13 @@ module FOFailReason
   VALID_VALUES = Set.new([INVALID_NODE, INVALID_TABLE, INVALID_FILE, NOSPACE, NOTEXIST, SAFEMODE, INVALID_STATE]).freeze
 end
 
+module FindNodePolicy
+  ALL_NGS = 1
+  SINGLE_NG = 2
+  VALUE_MAP = {1 => "ALL_NGS", 2 => "SINGLE_NG"}
+  VALID_VALUES = Set.new([ALL_NGS, SINGLE_NG]).freeze
+end
+
 module MSOperation
   EXPLAIN = 1
   CREATEDATABASE = 2

@@ -116,6 +116,11 @@ struct PrincipalPrivilegeSet {
   3: map<string, list<PrivilegeGrantInfo>> rolePrivileges, //role name -> privilege grant info
 }
 
+enum FindNodePolicy {
+	ALL_NGS = 1,
+	SINGLE_NG = 2,
+}
+
 enum MSOperation {
 	EXPLAIN = 1,
 	CREATEDATABASE = 2,
@@ -937,6 +942,8 @@ service ThriftHiveMetastore extends fb303.FacebookService
   Node alter_node(1:string node_name, 2:list<string> ipl, 3:i32 status) throws (1:MetaException o1)
   
   list<Node> find_best_nodes(1:i32 nr) throws (1:MetaException o1)
+  
+  list<Node> find_best_nodes_in_groups(1:string dbName, 2:string tableName, 3:i32 nr, 4:FindNodePolicy policy) throws (1:MetaException o1)
 
   list<Node> get_all_nodes() throws(1:MetaException o1)
   

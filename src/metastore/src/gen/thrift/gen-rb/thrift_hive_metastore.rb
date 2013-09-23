@@ -2327,6 +2327,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'find_best_nodes failed: unknown result')
     end
 
+    def find_best_nodes_in_groups(dbName, tableName, nr, policy)
+      send_find_best_nodes_in_groups(dbName, tableName, nr, policy)
+      return recv_find_best_nodes_in_groups()
+    end
+
+    def send_find_best_nodes_in_groups(dbName, tableName, nr, policy)
+      send_message('find_best_nodes_in_groups', Find_best_nodes_in_groups_args, :dbName => dbName, :tableName => tableName, :nr => nr, :policy => policy)
+    end
+
+    def recv_find_best_nodes_in_groups()
+      result = receive_message(Find_best_nodes_in_groups_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'find_best_nodes_in_groups failed: unknown result')
+    end
+
     def get_all_nodes()
       send_get_all_nodes()
       return recv_get_all_nodes()
@@ -4470,6 +4486,17 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'find_best_nodes', seqid)
+    end
+
+    def process_find_best_nodes_in_groups(seqid, iprot, oprot)
+      args = read_args(iprot, Find_best_nodes_in_groups_args)
+      result = Find_best_nodes_in_groups_result.new()
+      begin
+        result.success = @handler.find_best_nodes_in_groups(args.dbName, args.tableName, args.nr, args.policy)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'find_best_nodes_in_groups', seqid)
     end
 
     def process_get_all_nodes(seqid, iprot, oprot)
@@ -9982,6 +10009,49 @@ module ThriftHiveMetastore
   end
 
   class Find_best_nodes_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Node}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Find_best_nodes_in_groups_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    TABLENAME = 2
+    NR = 3
+    POLICY = 4
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+      TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
+      NR => {:type => ::Thrift::Types::I32, :name => 'nr'},
+      POLICY => {:type => ::Thrift::Types::I32, :name => 'policy', :enum_class => ::FindNodePolicy}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+      unless @policy.nil? || ::FindNodePolicy::VALID_VALUES.include?(@policy)
+        raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Invalid value of field policy!')
+      end
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Find_best_nodes_in_groups_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1

@@ -162,6 +162,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  Device modify_device(Device dev, Node node)'
   print '  Node alter_node(string node_name,  ipl, i32 status)'
   print '   find_best_nodes(i32 nr)'
+  print '   find_best_nodes_in_groups(string dbName, string tableName, i32 nr, FindNodePolicy policy)'
   print '   get_all_nodes()'
   print '  string getDMStatus()'
   print '   migrate_in(Table tbl,  parts, string from_dc)'
@@ -1071,6 +1072,12 @@ elif cmd == 'find_best_nodes':
     print 'find_best_nodes requires 1 args'
     sys.exit(1)
   pp.pprint(client.find_best_nodes(eval(args[0]),))
+
+elif cmd == 'find_best_nodes_in_groups':
+  if len(args) != 4:
+    print 'find_best_nodes_in_groups requires 4 args'
+    sys.exit(1)
+  pp.pprint(client.find_best_nodes_in_groups(args[0],args[1],eval(args[2]),eval(args[3]),))
 
 elif cmd == 'get_all_nodes':
   if len(args) != 0:

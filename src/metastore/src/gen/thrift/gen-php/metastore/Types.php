@@ -68,6 +68,15 @@ final class FOFailReason {
   );
 }
 
+final class FindNodePolicy {
+  const ALL_NGS = 1;
+  const SINGLE_NG = 2;
+  static public $__names = array(
+    1 => 'ALL_NGS',
+    2 => 'SINGLE_NG',
+  );
+}
+
 final class MSOperation {
   const EXPLAIN = 1;
   const CREATEDATABASE = 2;

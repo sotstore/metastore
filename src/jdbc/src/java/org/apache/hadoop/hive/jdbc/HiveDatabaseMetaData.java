@@ -50,11 +50,14 @@ public class HiveDatabaseMetaData implements java.sql.DatabaseMetaData {
   //  The maximum column length = MFieldSchema.FNAME in metastore/src/model/package.jdo
   private static final int maxColumnNameLength = 128;
 
+  private final String user;
+
   /**
    *
    */
-  public HiveDatabaseMetaData(HiveInterface client) {
+  public HiveDatabaseMetaData(HiveInterface client, String user) {
     this.client = client;
+    this.user = user;
   }
 
   public boolean allProceduresAreCallable() throws SQLException {
@@ -697,7 +700,7 @@ public class HiveDatabaseMetaData implements java.sql.DatabaseMetaData {
   }
 
   public String getUserName() throws SQLException {
-    throw new SQLException("Method not supported");
+    return user;
   }
 
   public ResultSet getVersionColumns(String catalog, String schema, String table)
@@ -1082,7 +1085,7 @@ public class HiveDatabaseMetaData implements java.sql.DatabaseMetaData {
   }
 
   public static void main(String[] args) throws SQLException {
-    HiveDatabaseMetaData meta = new HiveDatabaseMetaData(null);
+    HiveDatabaseMetaData meta = new HiveDatabaseMetaData(null, null);
     System.out.println("DriverName: " + meta.getDriverName());
     System.out.println("DriverVersion: " + meta.getDriverVersion());
   }

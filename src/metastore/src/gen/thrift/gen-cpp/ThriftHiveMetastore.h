@@ -155,6 +155,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void modify_device(Device& _return, const Device& dev, const Node& node) = 0;
   virtual void alter_node(Node& _return, const std::string& node_name, const std::vector<std::string> & ipl, const int32_t status) = 0;
   virtual void find_best_nodes(std::vector<Node> & _return, const int32_t nr) = 0;
+  virtual void find_best_nodes_in_groups(std::vector<Node> & _return, const std::string& dbName, const std::string& tableName, const int32_t nr, const FindNodePolicy::type policy) = 0;
   virtual void get_all_nodes(std::vector<Node> & _return) = 0;
   virtual void getDMStatus(std::string& _return) = 0;
   virtual void migrate_in(std::map<int64_t, SFile> & _return, const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc) = 0;
@@ -678,6 +679,9 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return;
   }
   void find_best_nodes(std::vector<Node> & /* _return */, const int32_t /* nr */) {
+    return;
+  }
+  void find_best_nodes_in_groups(std::vector<Node> & /* _return */, const std::string& /* dbName */, const std::string& /* tableName */, const int32_t /* nr */, const FindNodePolicy::type /* policy */) {
     return;
   }
   void get_all_nodes(std::vector<Node> & /* _return */) {
@@ -19384,6 +19388,151 @@ class ThriftHiveMetastore_find_best_nodes_presult {
 
 };
 
+typedef struct _ThriftHiveMetastore_find_best_nodes_in_groups_args__isset {
+  _ThriftHiveMetastore_find_best_nodes_in_groups_args__isset() : dbName(false), tableName(false), nr(false), policy(false) {}
+  bool dbName;
+  bool tableName;
+  bool nr;
+  bool policy;
+} _ThriftHiveMetastore_find_best_nodes_in_groups_args__isset;
+
+class ThriftHiveMetastore_find_best_nodes_in_groups_args {
+ public:
+
+  ThriftHiveMetastore_find_best_nodes_in_groups_args() : dbName(), tableName(), nr(0), policy((FindNodePolicy::type)0) {
+  }
+
+  virtual ~ThriftHiveMetastore_find_best_nodes_in_groups_args() throw() {}
+
+  std::string dbName;
+  std::string tableName;
+  int32_t nr;
+  FindNodePolicy::type policy;
+
+  _ThriftHiveMetastore_find_best_nodes_in_groups_args__isset __isset;
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_tableName(const std::string& val) {
+    tableName = val;
+  }
+
+  void __set_nr(const int32_t val) {
+    nr = val;
+  }
+
+  void __set_policy(const FindNodePolicy::type val) {
+    policy = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_find_best_nodes_in_groups_args & rhs) const
+  {
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(tableName == rhs.tableName))
+      return false;
+    if (!(nr == rhs.nr))
+      return false;
+    if (!(policy == rhs.policy))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_find_best_nodes_in_groups_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_find_best_nodes_in_groups_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_find_best_nodes_in_groups_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_find_best_nodes_in_groups_pargs() throw() {}
+
+  const std::string* dbName;
+  const std::string* tableName;
+  const int32_t* nr;
+  const FindNodePolicy::type* policy;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_find_best_nodes_in_groups_result__isset {
+  _ThriftHiveMetastore_find_best_nodes_in_groups_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_find_best_nodes_in_groups_result__isset;
+
+class ThriftHiveMetastore_find_best_nodes_in_groups_result {
+ public:
+
+  ThriftHiveMetastore_find_best_nodes_in_groups_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_find_best_nodes_in_groups_result() throw() {}
+
+  std::vector<Node>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_find_best_nodes_in_groups_result__isset __isset;
+
+  void __set_success(const std::vector<Node> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_find_best_nodes_in_groups_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_find_best_nodes_in_groups_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_find_best_nodes_in_groups_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_find_best_nodes_in_groups_presult__isset {
+  _ThriftHiveMetastore_find_best_nodes_in_groups_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_find_best_nodes_in_groups_presult__isset;
+
+class ThriftHiveMetastore_find_best_nodes_in_groups_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_find_best_nodes_in_groups_presult() throw() {}
+
+  std::vector<Node> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_find_best_nodes_in_groups_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 
 class ThriftHiveMetastore_get_all_nodes_args {
  public:
@@ -23016,6 +23165,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void find_best_nodes(std::vector<Node> & _return, const int32_t nr);
   void send_find_best_nodes(const int32_t nr);
   void recv_find_best_nodes(std::vector<Node> & _return);
+  void find_best_nodes_in_groups(std::vector<Node> & _return, const std::string& dbName, const std::string& tableName, const int32_t nr, const FindNodePolicy::type policy);
+  void send_find_best_nodes_in_groups(const std::string& dbName, const std::string& tableName, const int32_t nr, const FindNodePolicy::type policy);
+  void recv_find_best_nodes_in_groups(std::vector<Node> & _return);
   void get_all_nodes(std::vector<Node> & _return);
   void send_get_all_nodes();
   void recv_get_all_nodes(std::vector<Node> & _return);
@@ -23240,6 +23392,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_modify_device(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_alter_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_find_best_nodes(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_find_best_nodes_in_groups(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_all_nodes(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getDMStatus(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_migrate_in(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -23408,6 +23561,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["modify_device"] = &ThriftHiveMetastoreProcessor::process_modify_device;
     processMap_["alter_node"] = &ThriftHiveMetastoreProcessor::process_alter_node;
     processMap_["find_best_nodes"] = &ThriftHiveMetastoreProcessor::process_find_best_nodes;
+    processMap_["find_best_nodes_in_groups"] = &ThriftHiveMetastoreProcessor::process_find_best_nodes_in_groups;
     processMap_["get_all_nodes"] = &ThriftHiveMetastoreProcessor::process_get_all_nodes;
     processMap_["getDMStatus"] = &ThriftHiveMetastoreProcessor::process_getDMStatus;
     processMap_["migrate_in"] = &ThriftHiveMetastoreProcessor::process_migrate_in;
@@ -24780,6 +24934,16 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->find_best_nodes(_return, nr);
     }
     ifaces_[i]->find_best_nodes(_return, nr);
+    return;
+  }
+
+  void find_best_nodes_in_groups(std::vector<Node> & _return, const std::string& dbName, const std::string& tableName, const int32_t nr, const FindNodePolicy::type policy) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->find_best_nodes_in_groups(_return, dbName, tableName, nr, policy);
+    }
+    ifaces_[i]->find_best_nodes_in_groups(_return, dbName, tableName, nr, policy);
     return;
   }
 

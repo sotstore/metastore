@@ -717,6 +717,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("find_best_nodes\n");
   }
 
+  void find_best_nodes_in_groups(std::vector<Node> & _return, const std::string& dbName, const std::string& tableName, const int32_t nr, const FindNodePolicy::type policy) {
+    // Your implementation goes here
+    printf("find_best_nodes_in_groups\n");
+  }
+
   void get_all_nodes(std::vector<Node> & _return) {
     // Your implementation goes here
     printf("get_all_nodes\n");

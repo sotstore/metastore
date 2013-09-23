@@ -59,6 +59,7 @@ public class HiveConnection implements java.sql.Connection {
   private boolean isClosed = true;
   private SQLWarning warningChain = null;
   private String defaultDb = "default";
+  private String user = null;
 
   private static final String URI_PREFIX = "jdbc:hive://";
 
@@ -115,17 +116,28 @@ public class HiveConnection implements java.sql.Connection {
       client = new HiveClient(protocol);
       try {
         transport.open();
+        // do auth here
+        if (!info.getProperty("user").equals("") && !info.getProperty("password").equals("")) {
+          if (client.doAuth(info.getProperty("user"), info.getProperty("password")) < 0) {
+            throw new SQLException("Invalid user name or password!");
+          }
+        }
+        user = info.getProperty("user");
       } catch (TTransportException e) {
         throw new SQLException("Could not establish connection to "
             + uri + ": " + e.getMessage(), "08S01");
+      } catch (HiveServerException e) {
+        throw new SQLException(e.getMessage());
+      } catch (TException e) {
+        throw new SQLException(e.getMessage());
       }
-      try {
+      /*try {
         client.execute("use " + defaultDb);
       } catch (HiveServerException e) {
         throw new SQLException("Can not execute query: " + e.getMessage());
       } catch (TException e) {
         throw new SQLException("Can not execute query: " + e.getMessage());
-      }
+      }*/
     }
     isClosed = false;
     configureConnection();
@@ -347,7 +359,7 @@ public class HiveConnection implements java.sql.Connection {
    */
 
   public DatabaseMetaData getMetaData() throws SQLException {
-    return new HiveDatabaseMetaData(client);
+    return new HiveDatabaseMetaData(client, user);
   }
 
   /*

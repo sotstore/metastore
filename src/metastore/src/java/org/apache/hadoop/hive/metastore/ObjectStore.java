@@ -794,8 +794,9 @@ public class ObjectStore implements RawStore, Configurable {
     boolean commited = false;
     long beginTs = System.currentTimeMillis();
 
+    //FIXME: try to use non-transaction
     try {
-      openTransaction();
+      //openTransaction();
       SFileLocation fl;
 
       // iterate all partitions to find valid files.
@@ -846,10 +847,10 @@ public class ObjectStore implements RawStore, Configurable {
           }
         }
       }
-      commited = commitTransaction();
+      //commited = commitTransaction();
     } finally {
       if (!commited) {
-        rollbackTransaction();
+        //rollbackTransaction();
       }
     }
   }
@@ -2499,7 +2500,15 @@ public class ObjectStore implements RawStore, Configurable {
     if (mf == null) {
       return null;
     }
-    return new SFile(mf.getFid(), mf.getTable().getDatabase().getName(), mf.getTable().getTableName(), mf.getStore_status(), mf.getRep_nr(),
+    String dbName = null;
+    String tableName = null;
+    if (mf.getTable() != null) {
+      tableName = mf.getTable().getTableName();
+      if (mf.getTable().getDatabase() != null) {
+        dbName = mf.getTable().getDatabase().getName();
+      }
+    }
+    return new SFile(mf.getFid(), dbName, tableName, mf.getStore_status(), mf.getRep_nr(),
         mf.getDigest(), mf.getRecord_nr(), mf.getAll_record_nr(), null, mf.getLength(), mf.getValues());
   }
 
@@ -2572,7 +2581,7 @@ public class ObjectStore implements RawStore, Configurable {
     return new MDatacenter(dc.getName(), dc.getLocationUri(), dc.getDescription(), dc.getParameters());
   }
 
-  private MFile convertToMFile(SFile file) {
+  private MFile convertToMFile(SFile file) throws InvalidObjectException {
     MTable mt = null;
 
     if (file == null) {
@@ -2580,6 +2589,9 @@ public class ObjectStore implements RawStore, Configurable {
     }
     if (file.getDbName() != null && file.getTableName() != null) {
       mt = getMTable(file.getDbName(), file.getTableName());
+      if (mt == null) {
+        throw new InvalidObjectException("Invalid db or table name.");
+      }
     }
 
     return new MFile(file.getFid(), mt, file.getStore_status(), file.getRep_nr(),
