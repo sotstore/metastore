@@ -5806,7 +5806,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public boolean addEquipRoom(EquipRoom er) throws MetaException, TException {
       LOG.info(er);
       getMS().addEquipRoom(er);
-      return false;
+      return true;
     }
 
     @Override
