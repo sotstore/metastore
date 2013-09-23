@@ -2702,7 +2702,7 @@ public class Hive {
 
   }
 
-  public void addGeoLoc(GeoLocDesc gd) throws HiveException, NoSuchObjectException {
+  public void addGeoLoc(GeoLoc gd) throws HiveException, NoSuchObjectException {
       GeoLocation geoLocation = new GeoLocation();
       geoLocation.setGeoLocName(gd.getGeoLocName());
       geoLocation.setNation(gd.getNation());
@@ -2719,18 +2719,51 @@ public class Hive {
       }
   }
 
-  public void dropGeoLoc(GeoLocDesc gd) {
-    // TODO Auto-generated method stub
+  public void dropGeoLoc(GeoLoc gd) throws HiveException, NoSuchObjectException {
+
+    GeoLocation geoLocation = new GeoLocation();
+    //GeoLocation geoLocation =getMSC().getGeoLocationByName(gd.geoLocName);
+    try {
+      getMSC().deleteGeoLocation(geoLocation);
+    } catch (NoSuchObjectException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
 
   }
 
-  public void modifyGeoLoc(GeoLocDesc gd) {
-    // TODO Auto-generated method stub
+  public void modifyGeoLoc(GeoLoc gd) throws HiveException, NoSuchObjectException {
+    GeoLocation geoLocation = new GeoLocation();
+    geoLocation.setGeoLocName(gd.getGeoLocName());
+    geoLocation.setNation(gd.getNation());
+    geoLocation.setProvince(gd.getProvince());
+    geoLocation.setCity(gd.getCity());
+    geoLocation.setDist(gd.getDist());
+
+    try {
+      getMSC().modifyGeoLocation(geoLocation);
+    } catch (NoSuchObjectException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
 
   }
 
-  public String showGeoLoc() {
-    return "Aha , you get it showGeoLoc().";
+  public List<GeoLoc> showGeoLoc() throws HiveException {
+    List<GeoLoc> gls = new ArrayList<GeoLoc>();
+    try{
+
+      List<GeoLocation> geoLocations = getMSC().listGeoLocation();
+      for(GeoLocation glc : geoLocations){
+        GeoLoc gl = new GeoLoc(glc.getGeoLocName(),glc.getNation(),glc.getProvince(),glc.getCity(),glc.getDist());
+        gls.add(gl);
+      }
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+    return gls;
 
   }
 
