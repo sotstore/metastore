@@ -5944,8 +5944,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             + " is not a valid object name");
       }
 
-      Path tblPath = null;
-      boolean success = false, madeDir = false;
+      boolean success = false;
       RawStore ms = getMS();
       try {
 

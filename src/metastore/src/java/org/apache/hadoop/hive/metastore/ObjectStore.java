@@ -2664,6 +2664,35 @@ public class ObjectStore implements RawStore, Configurable {
         tableType);
   }
 
+  private MSchema convertToMSchema(GlobalSchema schema) throws InvalidObjectException,
+  MetaException {
+    if (schema == null) {
+      return null;
+    }
+
+    // If the table has property EXTERNAL set, update table type
+    // accordingly
+    String schemaType = schema.getSchemaType();
+    boolean isExternal = "TRUE".equals(schema.getParameters().get("EXTERNAL"));
+    if (TableType.MANAGED_TABLE.toString().equals(schemaType)) {
+      if (isExternal) {
+        schemaType = TableType.EXTERNAL_TABLE.toString();
+      }
+    }
+    if (TableType.EXTERNAL_TABLE.toString().equals(schemaType)) {
+      if (!isExternal) {
+        schemaType = TableType.MANAGED_TABLE.toString();
+      }
+    }
+
+    // A new table is always created with a new column descriptor
+    return new MSchema(schema.getSchemaName().toLowerCase(),
+        convertToMStorageDescriptor(schema.getSd()), schema.getCreateTime(),
+            schema.getLastAccessTime(), schema.getRetention(), schema.getParameters(),
+        schema.getViewOriginalText(), schema.getViewExpandedText(),
+        schemaType);
+  }
+
   private List<MFieldSchema> convertToMFieldSchemas(List<FieldSchema> keys) {
     List<MFieldSchema> mkeys = null;
     if (keys != null) {
@@ -8368,7 +8397,61 @@ public MUser getMUser(String userName) {
 
   @Override
   public void createSchema(GlobalSchema schema) throws InvalidObjectException, MetaException {
-    // TODO Auto-generated method stub
+
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      MSchema mSchema = convertToMSchema(schema);
+      boolean make_table = false;
+      if(mSchema.getSd().getCD().getCols() != null){//增加业务类型查询支持
+        List<MBusiTypeColumn> bcs = new ArrayList<MBusiTypeColumn>();
+
+        //@FIXME
+//        createBusiTypeCol(mSchema, bcs);
+
+        if(!bcs.isEmpty()){
+
+          LOG.info("--zjw--getPartitions is not null,size:"+bcs.size());
+          pm.makePersistentAll(bcs);
+        }else{
+          pm.makePersistent(mSchema);
+          make_table =true;
+          LOG.info("--zjw-- view:"+schema.getViewExpandedText()+"--"+schema.getViewOriginalText());
+        }
+      }
+      if(!make_table){
+        pm.makePersistent(mSchema);
+      }
+
+
+
+      LOG.info("createSchema w/ ID=" + JDOHelper.getObjectId(mSchema));
+      PrincipalPrivilegeSet principalPrivs = schema.getPrivileges();
+      List<Object> toPersistPrivObjs = new ArrayList<Object>();
+      if (principalPrivs != null) {
+        int now = (int)(System.currentTimeMillis()/1000);
+
+        //@FIXME
+//        Map<String, List<PrivilegeGrantInfo>> userPrivs = principalPrivs.getUserPrivileges();
+//        putPersistentPrivObjects(mSchema, toPersistPrivObjs, now, userPrivs, PrincipalType.USER);
+//
+//        Map<String, List<PrivilegeGrantInfo>> groupPrivs = principalPrivs.getGroupPrivileges();
+//        putPersistentPrivObjects(mSchema, toPersistPrivObjs, now, groupPrivs, PrincipalType.GROUP);
+//
+//        Map<String, List<PrivilegeGrantInfo>> rolePrivs = principalPrivs.getRolePrivileges();
+//        putPersistentPrivObjects(mSchema, toPersistPrivObjs, now, rolePrivs, PrincipalType.ROLE);
+      }
+      pm.makePersistentAll(toPersistPrivObjs);
+
+      commited = commitTransaction();
+
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+
 
   }
 
