@@ -3262,16 +3262,17 @@ typedef struct _EquipRoom__isset {
 class EquipRoom {
  public:
 
-  static const char* ascii_fingerprint; // = "A51DC72287DA72911ECE4E8E6AFB90DA";
-  static const uint8_t binary_fingerprint[16]; // = {0xA5,0x1D,0xC7,0x22,0x87,0xDA,0x72,0x91,0x1E,0xCE,0x4E,0x8E,0x6A,0xFB,0x90,0xDA};
+  static const char* ascii_fingerprint; // = "AC568A1B70241C2009731F96A951899A";
+  static const uint8_t binary_fingerprint[16]; // = {0xAC,0x56,0x8A,0x1B,0x70,0x24,0x1C,0x20,0x09,0x73,0x1F,0x96,0xA9,0x51,0x89,0x9A};
 
-  EquipRoom() : eqRoomName(), status(0), comment() {
+  EquipRoom() : eqRoomName(), status(0), geoLocName(), comment() {
   }
 
   virtual ~EquipRoom() throw() {}
 
   std::string eqRoomName;
   int32_t status;
+  std::string geoLocName;
   std::string comment;
   GeoLocation geolocation;
 
@@ -3283,6 +3284,10 @@ class EquipRoom {
 
   void __set_status(const int32_t val) {
     status = val;
+  }
+
+  void __set_geoLocName(const std::string& val) {
+    geoLocName = val;
   }
 
   void __set_comment(const std::string& val) {
@@ -3300,6 +3305,8 @@ class EquipRoom {
     if (!(eqRoomName == rhs.eqRoomName))
       return false;
     if (!(status == rhs.status))
+      return false;
+    if (!(geoLocName == rhs.geoLocName))
       return false;
     if (__isset.comment != rhs.__isset.comment)
       return false;

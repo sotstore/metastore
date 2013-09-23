@@ -1062,7 +1062,6 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
 
   }
-
   public boolean addNodeAssignment(String nodename, String dbname) throws MetaException,
       NoSuchObjectException {
     // TODO Auto-generated method stub
