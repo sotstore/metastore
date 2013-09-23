@@ -8275,8 +8275,8 @@ public MUser getMUser(String userName) {
 
     boolean success = false;
     boolean committed = false;
-    //......
     if (gl != null) {
+      gl.setGeoLocName(gl.getGeoLocName());
       gl.setNation(gl.getNation());
       gl.setProvince(gl.getProvince());
       gl.setCity(gl.getCity());
@@ -8406,11 +8406,6 @@ public MUser getMUser(String userName) {
       nodes.add(mnd);
       mnd.getDbs().add(mdb);
       int now = (int)(System.currentTimeMillis()/1000);
-//      for(MNode mnds : mdb.getNodes()){
-//
-//        }
-//      }
-
       pm.deletePersistent(mnd);
       pm.deletePersistent(mdb);
       commited = commitTransaction();
