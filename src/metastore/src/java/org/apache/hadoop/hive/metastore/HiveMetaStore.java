@@ -79,6 +79,7 @@ import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.FOFailReason;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
+import org.apache.hadoop.hive.metastore.api.FindNodePolicy;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
 import org.apache.hadoop.hive.metastore.api.GlobalSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -6075,6 +6076,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public List<GlobalSchema> listSchemas() throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public List<Node> find_best_nodes_in_groups(String arg0, String arg1, int arg2,
+        FindNodePolicy arg3) throws MetaException, TException {
       // TODO Auto-generated method stub
       return null;
     }
