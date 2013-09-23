@@ -56,6 +56,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  bool modifyEquipRoom(EquipRoom er)'
   print '  bool deleteEquipRoom(EquipRoom er)'
   print '   listEquipRoom()'
+  print '  GeoLocation getGeoLocationByName(string geoLocName)'
   print '  bool addGeoLocation(GeoLocation gl)'
   print '  bool modifyGeoLocation(GeoLocation gl)'
   print '  bool deleteGeoLocation(GeoLocation gl)'
@@ -435,6 +436,12 @@ elif cmd == 'listEquipRoom':
     print 'listEquipRoom requires 0 args'
     sys.exit(1)
   pp.pprint(client.listEquipRoom())
+
+elif cmd == 'getGeoLocationByName':
+  if len(args) != 1:
+    print 'getGeoLocationByName requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.getGeoLocationByName(args[0],))
 
 elif cmd == 'addGeoLocation':
   if len(args) != 1:

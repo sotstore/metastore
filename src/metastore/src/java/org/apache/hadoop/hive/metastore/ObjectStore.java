@@ -8187,7 +8187,6 @@ public MUser getMUser(String userName) {
     if (er != null) {
       er.setEqRoomName(er.getEqRoomName());
       er.setStatus(er.getStatus());
-      er.setGeoLocName(er.getGeoLocName());
       er.setComment(er.getComment());
       er.setGeolocation(er.getGeolocation());
     } else {
@@ -8235,7 +8234,7 @@ public MUser getMUser(String userName) {
       pm.retrieveAll(mers);
       for (Iterator i = mers.iterator(); i.hasNext();) {
         MEquipRoom mer = (MEquipRoom)i.next();
-        EquipRoom er = new EquipRoom(mer.getEqRoomName(),mer.getStatus(),mer.getGeoLocName());
+        EquipRoom er = new EquipRoom(mer.getEqRoomName(),mer.getStatus());
         if(mer.getGeolocation() !=  null){
           er.setGeolocation(er.getGeolocation());
         }
@@ -8361,7 +8360,7 @@ public MUser getMUser(String userName) {
   }
 
 /*
- * draft
+ * cry
  */
   @Override
   public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException {
@@ -8371,15 +8370,16 @@ public MUser getMUser(String userName) {
       openTransaction();
       MDatabase mdb = this.getMDatabase(dbName);
       MNode mnd = this.getMNode(nodeName);
+      Set<MNode> nodes = mdb.getNodes();
       if (mdb.getNodes() == null) {
-        Set<MNode> nodes = new HashSet<MNode>();
-        nodes.add(mnd);
-      } else {
-        System.out.println("nodeName " + nodeName + " already exists.");
+        throw new MetaException("this"+nodeName+"does not exist");
       }
+      nodes = new HashSet<MNode>();
+      nodes.add(mnd);
+      mnd.getDbs().add(mdb);
       int now = (int)(System.currentTimeMillis()/1000);
-
       pm.makePersistent(mnd);
+      pm.makePersistent(mdb);
       commited = commitTransaction();
       success = true;
     } finally {
@@ -8398,15 +8398,21 @@ public MUser getMUser(String userName) {
       openTransaction();
       MDatabase mdb = this.getMDatabase(dbName);
       MNode mnd = this.getMNode(nodeName);
+      Set<MNode> nodes = mdb.getNodes();
       if (mdb.getNodes() == null) {
-        Set<MNode> nodes = new HashSet<MNode>();
-        nodes.add(mnd);
-      } else {
-        System.out.println("nodeName " + nodeName + " already exists.");
+        throw new MetaException("this"+nodeName+"does not exist");
       }
+      nodes = new HashSet<MNode>();
+      nodes.add(mnd);
+      mnd.getDbs().add(mdb);
       int now = (int)(System.currentTimeMillis()/1000);
+//      for(MNode mnds : mdb.getNodes()){
+//
+//        }
+//      }
 
       pm.deletePersistent(mnd);
+      pm.deletePersistent(mdb);
       commited = commitTransaction();
       success = true;
     } finally {
@@ -8415,6 +8421,13 @@ public MUser getMUser(String userName) {
       }
     }
     return success;
+  }
+
+  @Override
+  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException {
+    GeoLocation gl = null;
+    gl =  this.getGeoLocationByName(geoLocName);
+    return gl;
   }
 
 }

@@ -5267,7 +5267,6 @@ class EquipRoom:
   Attributes:
    - eqRoomName
    - status
-   - geoLocName
    - comment
    - geolocation
   """
@@ -5276,15 +5275,13 @@ class EquipRoom:
     None, # 0
     (1, TType.STRING, 'eqRoomName', None, None, ), # 1
     (2, TType.I32, 'status', None, None, ), # 2
-    (3, TType.STRING, 'geoLocName', None, None, ), # 3
-    (4, TType.STRING, 'comment', None, None, ), # 4
-    (5, TType.STRUCT, 'geolocation', (GeoLocation, GeoLocation.thrift_spec), None, ), # 5
+    (3, TType.STRING, 'comment', None, None, ), # 3
+    (4, TType.STRUCT, 'geolocation', (GeoLocation, GeoLocation.thrift_spec), None, ), # 4
   )
 
-  def __init__(self, eqRoomName=None, status=None, geoLocName=None, comment=None, geolocation=None,):
+  def __init__(self, eqRoomName=None, status=None, comment=None, geolocation=None,):
     self.eqRoomName = eqRoomName
     self.status = status
-    self.geoLocName = geoLocName
     self.comment = comment
     self.geolocation = geolocation
 
@@ -5309,15 +5306,10 @@ class EquipRoom:
           iprot.skip(ftype)
       elif fid == 3:
         if ftype == TType.STRING:
-          self.geoLocName = iprot.readString();
-        else:
-          iprot.skip(ftype)
-      elif fid == 4:
-        if ftype == TType.STRING:
           self.comment = iprot.readString();
         else:
           iprot.skip(ftype)
-      elif fid == 5:
+      elif fid == 4:
         if ftype == TType.STRUCT:
           self.geolocation = GeoLocation()
           self.geolocation.read(iprot)
@@ -5341,16 +5333,12 @@ class EquipRoom:
       oprot.writeFieldBegin('status', TType.I32, 2)
       oprot.writeI32(self.status)
       oprot.writeFieldEnd()
-    if self.geoLocName is not None:
-      oprot.writeFieldBegin('geoLocName', TType.STRING, 3)
-      oprot.writeString(self.geoLocName)
-      oprot.writeFieldEnd()
     if self.comment is not None:
-      oprot.writeFieldBegin('comment', TType.STRING, 4)
+      oprot.writeFieldBegin('comment', TType.STRING, 3)
       oprot.writeString(self.comment)
       oprot.writeFieldEnd()
     if self.geolocation is not None:
-      oprot.writeFieldBegin('geolocation', TType.STRUCT, 5)
+      oprot.writeFieldBegin('geolocation', TType.STRUCT, 4)
       self.geolocation.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -5361,8 +5349,6 @@ class EquipRoom:
       raise TProtocol.TProtocolException(message='Required field eqRoomName is unset!')
     if self.status is None:
       raise TProtocol.TProtocolException(message='Required field status is unset!')
-    if self.geoLocName is None:
-      raise TProtocol.TProtocolException(message='Required field geoLocName is unset!')
     return
 
 

@@ -605,4 +605,6 @@ public interface RawStore extends Configurable {
 
   public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException;
 
+  public abstract GeoLocation getGeoLocationByName(String geoLocName) throws MetaException;
+
 }

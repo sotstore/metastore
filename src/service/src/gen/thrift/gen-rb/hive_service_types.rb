@@ -5,7 +5,6 @@
 #
 
 require 'thrift'
-require 'fb303_types'
 require 'hive_metastore_types'
 require 'queryplan_types'
 

@@ -545,6 +545,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listEquipRoom failed: unknown result')
     end
 
+    def getGeoLocationByName(geoLocName)
+      send_getGeoLocationByName(geoLocName)
+      return recv_getGeoLocationByName()
+    end
+
+    def send_getGeoLocationByName(geoLocName)
+      send_message('getGeoLocationByName', GetGeoLocationByName_args, :geoLocName => geoLocName)
+    end
+
+    def recv_getGeoLocationByName()
+      result = receive_message(GetGeoLocationByName_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getGeoLocationByName failed: unknown result')
+    end
+
     def addGeoLocation(gl)
       send_addGeoLocation(gl)
       return recv_addGeoLocation()
@@ -3102,6 +3118,17 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'listEquipRoom', seqid)
+    end
+
+    def process_getGeoLocationByName(seqid, iprot, oprot)
+      args = read_args(iprot, GetGeoLocationByName_args)
+      result = GetGeoLocationByName_result.new()
+      begin
+        result.success = @handler.getGeoLocationByName(args.geoLocName)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'getGeoLocationByName', seqid)
     end
 
     def process_addGeoLocation(seqid, iprot, oprot)
@@ -5932,6 +5959,40 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::EquipRoom}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetGeoLocationByName_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    GEOLOCNAME = 1
+
+    FIELDS = {
+      GEOLOCNAME => {:type => ::Thrift::Types::STRING, :name => 'geoLocName'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetGeoLocationByName_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::GeoLocation},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
