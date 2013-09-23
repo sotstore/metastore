@@ -8187,6 +8187,7 @@ public MUser getMUser(String userName) {
     if (er != null) {
       er.setEqRoomName(er.getEqRoomName());
       er.setStatus(er.getStatus());
+      er.setGeoLocName(er.getGeoLocName());
       er.setComment(er.getComment());
       er.setGeolocation(er.getGeolocation());
     } else {
@@ -8234,7 +8235,7 @@ public MUser getMUser(String userName) {
       pm.retrieveAll(mers);
       for (Iterator i = mers.iterator(); i.hasNext();) {
         MEquipRoom mer = (MEquipRoom)i.next();
-        EquipRoom er = new EquipRoom(mer.getEqRoomName(),mer.getStatus());
+        EquipRoom er = new EquipRoom(mer.getEqRoomName(),mer.getStatus(),mer.getGeoLocName());
         if(mer.getGeolocation() !=  null){
           er.setGeolocation(er.getGeolocation());
         }

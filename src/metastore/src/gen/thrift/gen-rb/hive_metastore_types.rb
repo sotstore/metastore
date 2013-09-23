@@ -1167,12 +1167,14 @@ class EquipRoom
   include ::Thrift::Struct, ::Thrift::Struct_Union
   EQROOMNAME = 1
   STATUS = 2
-  COMMENT = 3
-  GEOLOCATION = 4
+  GEOLOCNAME = 3
+  COMMENT = 4
+  GEOLOCATION = 5
 
   FIELDS = {
     EQROOMNAME => {:type => ::Thrift::Types::STRING, :name => 'eqRoomName'},
     STATUS => {:type => ::Thrift::Types::I32, :name => 'status'},
+    GEOLOCNAME => {:type => ::Thrift::Types::STRING, :name => 'geoLocName'},
     COMMENT => {:type => ::Thrift::Types::STRING, :name => 'comment', :optional => true},
     GEOLOCATION => {:type => ::Thrift::Types::STRUCT, :name => 'geolocation', :class => ::GeoLocation, :optional => true}
   }
@@ -1182,6 +1184,7 @@ class EquipRoom
   def validate
     raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field eqRoomName is unset!') unless @eqRoomName
     raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field status is unset!') unless @status
+    raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field geoLocName is unset!') unless @geoLocName
   end
 
   ::Thrift::Struct.generate_accessors self

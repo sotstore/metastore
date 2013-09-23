@@ -475,8 +475,9 @@ struct GeoLocation {
 struct EquipRoom {
 1: required string eqRoomName,
 2: required i32 status,
-3: optional string comment,
-4: optional GeoLocation geolocation
+3: required string geoLocName,
+4: optional string comment,
+5: optional GeoLocation geolocation
 }
 //end up with cry
 
