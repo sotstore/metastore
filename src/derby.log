@@ -1,0 +1,6 @@
+----------------------------------------------------------------
+2013-09-22 13:34:43.208 GMT:
+ Booting Derby version The Apache Software Foundation - Apache Derby - 10.4.2.0 - (689064): instance a816c00e-0141-45e1-1b51-000002acf998
+on database directory /home/caoruyi/workspace/metastore/src/metastore_db  
+
+Database Class Loader started - derby.database.classpath=''
