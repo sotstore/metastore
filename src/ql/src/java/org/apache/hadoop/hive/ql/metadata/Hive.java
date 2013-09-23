@@ -62,6 +62,7 @@ import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.GeoLocation;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
@@ -2702,16 +2703,20 @@ public class Hive {
   }
 
   public void addGeoLoc(GeoLocDesc gd) throws HiveException, NoSuchObjectException {
-//      GeoLocation geoLocation = new GeoLocation();
-//      geoLocation.setNation(gd.getNation());
-//
-//      try {
-//        getMSC().addGeoLocation(geoLocation);
-//      } catch (NoSuchObjectException e) {
-//        throw e;
-//      } catch (Exception e) {
-//        throw new HiveException(e);
-//      }
+      GeoLocation geoLocation = new GeoLocation();
+      geoLocation.setGeoLocName(gd.getGeoLocName());
+      geoLocation.setNation(gd.getNation());
+      geoLocation.setProvince(gd.getProvince());
+      geoLocation.setCity(gd.getCity());
+      geoLocation.setDist(gd.getDist());
+
+      try {
+        getMSC().addGeoLocation(geoLocation);
+      } catch (NoSuchObjectException e) {
+        throw e;
+      } catch (Exception e) {
+        throw new HiveException(e);
+      }
   }
 
   public void dropGeoLoc(GeoLocDesc gd) {
