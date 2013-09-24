@@ -5888,6 +5888,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
+    public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException,
+        TException {
+      return getMS().getGeoLocationByName(geoLocName);
+    }
+
+    @Override
     public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException,
         NoSuchObjectException, TException {
       return getMS().addNodeAssignment(nodeName, dbName);

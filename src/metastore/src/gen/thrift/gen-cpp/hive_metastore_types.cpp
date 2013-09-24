@@ -6022,8 +6022,8 @@ void swap(GeoLocation &a, GeoLocation &b) {
   swap(a.dist, b.dist);
 }
 
-const char* EquipRoom::ascii_fingerprint = "AC568A1B70241C2009731F96A951899A";
-const uint8_t EquipRoom::binary_fingerprint[16] = {0xAC,0x56,0x8A,0x1B,0x70,0x24,0x1C,0x20,0x09,0x73,0x1F,0x96,0xA9,0x51,0x89,0x9A};
+const char* EquipRoom::ascii_fingerprint = "A51DC72287DA72911ECE4E8E6AFB90DA";
+const uint8_t EquipRoom::binary_fingerprint[16] = {0xA5,0x1D,0xC7,0x22,0x87,0xDA,0x72,0x91,0x1E,0xCE,0x4E,0x8E,0x6A,0xFB,0x90,0xDA};
 
 uint32_t EquipRoom::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -6038,7 +6038,6 @@ uint32_t EquipRoom::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   bool isset_eqRoomName = false;
   bool isset_status = false;
-  bool isset_geoLocName = false;
 
   while (true)
   {
@@ -6066,21 +6065,13 @@ uint32_t EquipRoom::read(::apache::thrift::protocol::TProtocol* iprot) {
         break;
       case 3:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->geoLocName);
-          isset_geoLocName = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 4:
-        if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->comment);
           this->__isset.comment = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 5:
+      case 4:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->geolocation.read(iprot);
           this->__isset.geolocation = true;
@@ -6101,8 +6092,6 @@ uint32_t EquipRoom::read(::apache::thrift::protocol::TProtocol* iprot) {
     throw TProtocolException(TProtocolException::INVALID_DATA);
   if (!isset_status)
     throw TProtocolException(TProtocolException::INVALID_DATA);
-  if (!isset_geoLocName)
-    throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
 }
 
@@ -6118,17 +6107,13 @@ uint32_t EquipRoom::write(::apache::thrift::protocol::TProtocol* oprot) const {
   xfer += oprot->writeI32(this->status);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("geoLocName", ::apache::thrift::protocol::T_STRING, 3);
-  xfer += oprot->writeString(this->geoLocName);
-  xfer += oprot->writeFieldEnd();
-
   if (this->__isset.comment) {
-    xfer += oprot->writeFieldBegin("comment", ::apache::thrift::protocol::T_STRING, 4);
+    xfer += oprot->writeFieldBegin("comment", ::apache::thrift::protocol::T_STRING, 3);
     xfer += oprot->writeString(this->comment);
     xfer += oprot->writeFieldEnd();
   }
   if (this->__isset.geolocation) {
-    xfer += oprot->writeFieldBegin("geolocation", ::apache::thrift::protocol::T_STRUCT, 5);
+    xfer += oprot->writeFieldBegin("geolocation", ::apache::thrift::protocol::T_STRUCT, 4);
     xfer += this->geolocation.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
@@ -6141,7 +6126,6 @@ void swap(EquipRoom &a, EquipRoom &b) {
   using ::std::swap;
   swap(a.eqRoomName, b.eqRoomName);
   swap(a.status, b.status);
-  swap(a.geoLocName, b.geoLocName);
   swap(a.comment, b.comment);
   swap(a.geolocation, b.geolocation);
   swap(a.__isset, b.__isset);

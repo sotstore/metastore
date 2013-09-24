@@ -1424,10 +1424,6 @@
         <column name="STATUS"/>
       </field>
       
-      <field name="geoLocName">
-        <column name="GEOLOCNAME" length="128" jdbc-type="VARCHAR"/>
-      </field>
-      
       <field name="comment">
         <column name="COMMENT" length="4000" jdbc-type="VARCHAR"/>
       </field>

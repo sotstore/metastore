@@ -1181,7 +1181,10 @@ public interface IMetaStoreClient {
 
   public List<GeoLocation> listGeoLocation() throws MetaException, TException;
 
+  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException, TException;
+
   public boolean addNodeAssignment(String nodename, String dbname) throws MetaException, NoSuchObjectException, TException;
 
   public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException, TException;
+
 }

@@ -187,6 +187,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("listEquipRoom\n");
   }
 
+  void getGeoLocationByName(GeoLocation& _return, const std::string& geoLocName) {
+    // Your implementation goes here
+    printf("getGeoLocationByName\n");
+  }
+
   bool addGeoLocation(const GeoLocation& gl) {
     // Your implementation goes here
     printf("addGeoLocation\n");

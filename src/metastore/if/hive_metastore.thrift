@@ -480,9 +480,8 @@ struct GeoLocation {
 struct EquipRoom {
 1: required string eqRoomName,
 2: required i32 status,
-3: required string geoLocName,
-4: optional string comment,
-5: optional GeoLocation geolocation
+3: optional string comment,
+4: optional GeoLocation geolocation
 }
 //end up with cry
 
@@ -596,10 +595,13 @@ service ThriftHiveMetastore extends fb303.FacebookService
 //end of zjw
 
 //strat off with cry
+
   bool addEquipRoom(1:EquipRoom er) throws(1:MetaException o1)
   bool modifyEquipRoom(1:EquipRoom er) throws(1:MetaException o1)
   bool deleteEquipRoom(1:EquipRoom er) throws(1:MetaException o1)
   list<EquipRoom> listEquipRoom() throws(1:MetaException o1)
+  
+  GeoLocation getGeoLocationByName(1:string geoLocName) throws (1:MetaException o1)
 
   bool addGeoLocation(1:GeoLocation gl) throws(1:MetaException o1)
   bool modifyGeoLocation(1:GeoLocation gl) throws(1:MetaException o1)
@@ -608,6 +610,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   bool addNodeAssignment(1:string nodeName, 2:string dbName) throws(1:MetaException o1, 2:NoSuchObjectException o2)
   bool deleteNodeAssignment(1:string nodeName, 2:string dbName) throws(1:MetaException o1, 2:NoSuchObjectException o2)
+
 //end up with cry
 
   void create_database(1:Database database) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)

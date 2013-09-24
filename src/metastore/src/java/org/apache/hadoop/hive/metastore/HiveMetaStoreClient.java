@@ -2022,18 +2022,22 @@ public boolean authentication(String user_name, String passwd)
   }
 
   @Override
+  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException, TException {
+    return client.getGeoLocationByName("geoLocName");
+  }
+
+  @Override
   public boolean addNodeAssignment(String nodename, String dbname) throws MetaException,
       NoSuchObjectException, TException {
-    // TODO Auto-generated method stub
-    return false;
+    return client.addNodeAssignment("nodeName", "dbName");
   }
 
   @Override
   public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException,
       NoSuchObjectException, TException {
-    // TODO Auto-generated method stub
-    return false;
+    return client.deleteNodeAssignment("nodeName", "dbName");
   }
+
 
 
 }

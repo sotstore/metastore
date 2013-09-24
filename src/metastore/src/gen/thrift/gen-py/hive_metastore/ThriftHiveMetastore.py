@@ -259,6 +259,13 @@ class Iface(fb303.FacebookService.Iface):
   def listEquipRoom(self, ):
     pass
 
+  def getGeoLocationByName(self, geoLocName):
+    """
+    Parameters:
+     - geoLocName
+    """
+    pass
+
   def addGeoLocation(self, gl):
     """
     Parameters:
@@ -2416,6 +2423,38 @@ class Client(fb303.FacebookService.Client, Iface):
     if result.o1 is not None:
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "listEquipRoom failed: unknown result");
+
+  def getGeoLocationByName(self, geoLocName):
+    """
+    Parameters:
+     - geoLocName
+    """
+    self.send_getGeoLocationByName(geoLocName)
+    return self.recv_getGeoLocationByName()
+
+  def send_getGeoLocationByName(self, geoLocName):
+    self._oprot.writeMessageBegin('getGeoLocationByName', TMessageType.CALL, self._seqid)
+    args = getGeoLocationByName_args()
+    args.geoLocName = geoLocName
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_getGeoLocationByName(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = getGeoLocationByName_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "getGeoLocationByName failed: unknown result");
 
   def addGeoLocation(self, gl):
     """
@@ -7143,6 +7182,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["modifyEquipRoom"] = Processor.process_modifyEquipRoom
     self._processMap["deleteEquipRoom"] = Processor.process_deleteEquipRoom
     self._processMap["listEquipRoom"] = Processor.process_listEquipRoom
+    self._processMap["getGeoLocationByName"] = Processor.process_getGeoLocationByName
     self._processMap["addGeoLocation"] = Processor.process_addGeoLocation
     self._processMap["modifyGeoLocation"] = Processor.process_modifyGeoLocation
     self._processMap["deleteGeoLocation"] = Processor.process_deleteGeoLocation
@@ -7761,6 +7801,20 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("listEquipRoom", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_getGeoLocationByName(self, seqid, iprot, oprot):
+    args = getGeoLocationByName_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = getGeoLocationByName_result()
+    try:
+      result.success = self._handler.getGeoLocationByName(args.geoLocName)
+    except MetaException as o1:
+      result.o1 = o1
+    oprot.writeMessageBegin("getGeoLocationByName", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -14693,6 +14747,139 @@ class listEquipRoom_result:
       for iter484 in self.success:
         iter484.write(oprot)
       oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getGeoLocationByName_args:
+  """
+  Attributes:
+   - geoLocName
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'geoLocName', None, None, ), # 1
+  )
+
+  def __init__(self, geoLocName=None,):
+    self.geoLocName = geoLocName
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.geoLocName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getGeoLocationByName_args')
+    if self.geoLocName is not None:
+      oprot.writeFieldBegin('geoLocName', TType.STRING, 1)
+      oprot.writeString(self.geoLocName)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getGeoLocationByName_result:
+  """
+  Attributes:
+   - success
+   - o1
+  """
+
+  thrift_spec = (
+    (0, TType.STRUCT, 'success', (GeoLocation, GeoLocation.thrift_spec), None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, o1=None,):
+    self.success = success
+    self.o1 = o1
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.STRUCT:
+          self.success = GeoLocation()
+          self.success.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getGeoLocationByName_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.STRUCT, 0)
+      self.success.write(oprot)
       oprot.writeFieldEnd()
     if self.o1 is not None:
       oprot.writeFieldBegin('o1', TType.STRUCT, 1)
