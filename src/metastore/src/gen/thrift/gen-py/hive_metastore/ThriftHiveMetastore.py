@@ -1254,12 +1254,12 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
-  def filterTableFiles(self, dbName, tabName, exp):
+  def filterTableFiles(self, dbName, tabName, values):
     """
     Parameters:
      - dbName
      - tabName
-     - exp
+     - values
     """
     pass
 
@@ -6846,22 +6846,22 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "listTableFiles failed: unknown result");
 
-  def filterTableFiles(self, dbName, tabName, exp):
+  def filterTableFiles(self, dbName, tabName, values):
     """
     Parameters:
      - dbName
      - tabName
-     - exp
+     - values
     """
-    self.send_filterTableFiles(dbName, tabName, exp)
+    self.send_filterTableFiles(dbName, tabName, values)
     return self.recv_filterTableFiles()
 
-  def send_filterTableFiles(self, dbName, tabName, exp):
+  def send_filterTableFiles(self, dbName, tabName, values):
     self._oprot.writeMessageBegin('filterTableFiles', TMessageType.CALL, self._seqid)
     args = filterTableFiles_args()
     args.dbName = dbName
     args.tabName = tabName
-    args.exp = exp
+    args.values = values
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
@@ -9753,7 +9753,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     iprot.readMessageEnd()
     result = filterTableFiles_result()
     try:
-      result.success = self._handler.filterTableFiles(args.dbName, args.tabName, args.exp)
+      result.success = self._handler.filterTableFiles(args.dbName, args.tabName, args.values)
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("filterTableFiles", TMessageType.REPLY, seqid)
@@ -34729,20 +34729,20 @@ class filterTableFiles_args:
   Attributes:
    - dbName
    - tabName
-   - exp
+   - values
   """
 
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'dbName', None, None, ), # 1
     (2, TType.STRING, 'tabName', None, None, ), # 2
-    (3, TType.STRING, 'exp', None, None, ), # 3
+    (3, TType.LIST, 'values', (TType.STRING,None), None, ), # 3
   )
 
-  def __init__(self, dbName=None, tabName=None, exp=None,):
+  def __init__(self, dbName=None, tabName=None, values=None,):
     self.dbName = dbName
     self.tabName = tabName
-    self.exp = exp
+    self.values = values
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -34764,8 +34764,13 @@ class filterTableFiles_args:
         else:
           iprot.skip(ftype)
       elif fid == 3:
-        if ftype == TType.STRING:
-          self.exp = iprot.readString();
+        if ftype == TType.LIST:
+          self.values = []
+          (_etype969, _size966) = iprot.readListBegin()
+          for _i970 in xrange(_size966):
+            _elem971 = iprot.readString();
+            self.values.append(_elem971)
+          iprot.readListEnd()
         else:
           iprot.skip(ftype)
       else:
@@ -34786,9 +34791,12 @@ class filterTableFiles_args:
       oprot.writeFieldBegin('tabName', TType.STRING, 2)
       oprot.writeString(self.tabName)
       oprot.writeFieldEnd()
-    if self.exp is not None:
-      oprot.writeFieldBegin('exp', TType.STRING, 3)
-      oprot.writeString(self.exp)
+    if self.values is not None:
+      oprot.writeFieldBegin('values', TType.LIST, 3)
+      oprot.writeListBegin(TType.STRING, len(self.values))
+      for iter972 in self.values:
+        oprot.writeString(iter972)
+      oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -34836,11 +34844,11 @@ class filterTableFiles_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype969, _size966) = iprot.readListBegin()
-          for _i970 in xrange(_size966):
-            _elem971 = SFile()
-            _elem971.read(iprot)
-            self.success.append(_elem971)
+          (_etype976, _size973) = iprot.readListBegin()
+          for _i977 in xrange(_size973):
+            _elem978 = SFile()
+            _elem978.read(iprot)
+            self.success.append(_elem978)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -34863,8 +34871,8 @@ class filterTableFiles_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter972 in self.success:
-        iter972.write(oprot)
+      for iter979 in self.success:
+        iter979.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.o1 is not None:
@@ -35371,11 +35379,11 @@ class listNodeGroups_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype976, _size973) = iprot.readListBegin()
-          for _i977 in xrange(_size973):
-            _elem978 = NodeGroup()
-            _elem978.read(iprot)
-            self.success.append(_elem978)
+          (_etype983, _size980) = iprot.readListBegin()
+          for _i984 in xrange(_size980):
+            _elem985 = NodeGroup()
+            _elem985.read(iprot)
+            self.success.append(_elem985)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -35398,8 +35406,8 @@ class listNodeGroups_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter979 in self.success:
-        iter979.write(oprot)
+      for iter986 in self.success:
+        iter986.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.o1 is not None:
@@ -35512,11 +35520,11 @@ class listDBNodeGroups_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype983, _size980) = iprot.readListBegin()
-          for _i984 in xrange(_size980):
-            _elem985 = NodeGroup()
-            _elem985.read(iprot)
-            self.success.append(_elem985)
+          (_etype990, _size987) = iprot.readListBegin()
+          for _i991 in xrange(_size987):
+            _elem992 = NodeGroup()
+            _elem992.read(iprot)
+            self.success.append(_elem992)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -35539,8 +35547,8 @@ class listDBNodeGroups_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter986 in self.success:
-        iter986.write(oprot)
+      for iter993 in self.success:
+        iter993.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.o1 is not None:
@@ -35607,10 +35615,10 @@ class addTableNodeDist_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.ng = []
-          (_etype990, _size987) = iprot.readListBegin()
-          for _i991 in xrange(_size987):
-            _elem992 = iprot.readString();
-            self.ng.append(_elem992)
+          (_etype997, _size994) = iprot.readListBegin()
+          for _i998 in xrange(_size994):
+            _elem999 = iprot.readString();
+            self.ng.append(_elem999)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -35635,8 +35643,8 @@ class addTableNodeDist_args:
     if self.ng is not None:
       oprot.writeFieldBegin('ng', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.ng))
-      for iter993 in self.ng:
-        oprot.writeString(iter993)
+      for iter1000 in self.ng:
+        oprot.writeString(iter1000)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -35771,10 +35779,10 @@ class deleteTableNodeDist_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.ng = []
-          (_etype997, _size994) = iprot.readListBegin()
-          for _i998 in xrange(_size994):
-            _elem999 = iprot.readString();
-            self.ng.append(_elem999)
+          (_etype1004, _size1001) = iprot.readListBegin()
+          for _i1005 in xrange(_size1001):
+            _elem1006 = iprot.readString();
+            self.ng.append(_elem1006)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -35799,8 +35807,8 @@ class deleteTableNodeDist_args:
     if self.ng is not None:
       oprot.writeFieldBegin('ng', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.ng))
-      for iter1000 in self.ng:
-        oprot.writeString(iter1000)
+      for iter1007 in self.ng:
+        oprot.writeString(iter1007)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -35993,11 +36001,11 @@ class listTableNodeDists_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype1004, _size1001) = iprot.readListBegin()
-          for _i1005 in xrange(_size1001):
-            _elem1006 = NodeGroup()
-            _elem1006.read(iprot)
-            self.success.append(_elem1006)
+          (_etype1011, _size1008) = iprot.readListBegin()
+          for _i1012 in xrange(_size1008):
+            _elem1013 = NodeGroup()
+            _elem1013.read(iprot)
+            self.success.append(_elem1013)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -36020,8 +36028,8 @@ class listTableNodeDists_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter1007 in self.success:
-        iter1007.write(oprot)
+      for iter1014 in self.success:
+        iter1014.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.o1 is not None:

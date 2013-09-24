@@ -790,6 +790,61 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
+  @Override
+  public List<SFile> filterTableFiles(String dbName, String tableName, List<String> values) throws MetaException {
+    List<SFile> rls = new ArrayList<SFile>();
+    int splitLen = values.size();
+
+    if (splitLen < 1 || splitLen > 2) {
+      return rls;
+    }
+
+    try {
+      Query q = pm.newQuery(MFile.class, "this.table.tableName == tableName && this.table.database.name == dbName");
+      if (splitLen == 1) {
+        q.setFilter("this.values.get(0) == values.get(0)");
+      } else {
+        q.setFilter("this.values.get(0) == values.get(0) && this.values.get(1) == values.get(1)");
+      }
+      q.declareParameters("java.lang.String tableName, java.lang.String dbName, java.util.List values");
+      Collection files = (Collection)q.execute(dbName, tableName, values);
+      Iterator iter = files.iterator();
+      while (iter.hasNext()) {
+        MFile mf = (MFile)iter.next();
+        if (mf == null) {
+          continue;
+        }
+        rls.add(convertToSFile(mf));
+      }
+    } finally {
+    }
+
+    return rls;
+  }
+
+  @Override
+  public List<SFile> listTableFiles(String dbName, String tableName, short max_num) throws MetaException {
+    List<SFile> rls = new ArrayList<SFile>();
+
+    try {
+      Query q = pm.newQuery(MFile.class, "this.table.tableName == tableName && this.table.database.name == dbName");
+      q.setRange(0, max_num);
+      q.declareParameters("java.lang.String tableName, java.lang.String dbName");
+      Collection files = (Collection)q.execute(dbName, tableName);
+      Iterator iter = files.iterator();
+      while (iter.hasNext()) {
+        MFile mf = (MFile)iter.next();
+        if (mf == null) {
+          continue;
+        }
+        rls.add(convertToSFile(mf));
+      }
+    } finally {
+    }
+
+    return rls;
+  }
+
   public void findVoidFiles(List<SFile> voidFiles) throws MetaException {
     boolean commited = false;
     long beginTs = System.currentTimeMillis();
@@ -1340,10 +1395,18 @@ public class ObjectStore implements RawStore, Configurable {
       if (mn == null) {
         throw new InvalidObjectException("Invalid Node name '" + node.getNode_name() + "'!");
       }
-      md = new MDevice(mn, di.dev.trim(), di.prop);
+      if (di.mp == null) {
+        md = new MDevice(mn, di.dev.trim(), di.prop);
+      } else {
+        md = new MDevice(mn, di.dev.trim(), di.prop, MetaStoreConst.MDeviceStatus.ONLINE);
+      }
       doCreate = true;
     } else {
       // update it now?
+      if (di.mp != null && md.getStatus() == MetaStoreConst.MDeviceStatus.SUSPECT) {
+        // if the Device is in SUSPECT state, update it to ONLINE
+        md.setStatus(MetaStoreConst.MDeviceStatus.ONLINE);
+      }
       if (!md.getNode().getNode_name().equals(node.getNode_name()) &&
           md.getProp() == MetaStoreConst.MDeviceProp.ALONE) {
         LOG.info("Saved " + md.getNode().getNode_name() + ", this " + node.getNode_name());

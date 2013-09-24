@@ -807,7 +807,7 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("listTableFiles\n");
   }
 
-  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& exp) {
+  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<std::string> & values) {
     // Your implementation goes here
     printf("filterTableFiles\n");
   }

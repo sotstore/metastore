@@ -595,7 +595,7 @@ public interface RawStore extends Configurable {
 
   public abstract List<GeoLocation> listGeoLocation() throws MetaException;
 
-  public List<String> listUsersNames(String dbName) throws MetaException;
+  public abstract List<String> listUsersNames(String dbName) throws MetaException;
 
   public abstract Schema getSchema(String schema_name)throws MetaException;
 
@@ -606,5 +606,10 @@ public interface RawStore extends Configurable {
   public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException;
 
   public abstract GeoLocation getGeoLocationByName(String geoLocName) throws MetaException;
+
+  public abstract List<SFile> listTableFiles(String dbName, String tableName, short max_num) throws MetaException;
+
+  public abstract List<SFile> filterTableFiles(String dbName, String tableName, List<String> values)
+      throws MetaException;
 
 }

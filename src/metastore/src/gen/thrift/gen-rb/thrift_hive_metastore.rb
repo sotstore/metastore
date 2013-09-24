@@ -2617,13 +2617,13 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listTableFiles failed: unknown result')
     end
 
-    def filterTableFiles(dbName, tabName, exp)
-      send_filterTableFiles(dbName, tabName, exp)
+    def filterTableFiles(dbName, tabName, values)
+      send_filterTableFiles(dbName, tabName, values)
       return recv_filterTableFiles()
     end
 
-    def send_filterTableFiles(dbName, tabName, exp)
-      send_message('filterTableFiles', FilterTableFiles_args, :dbName => dbName, :tabName => tabName, :exp => exp)
+    def send_filterTableFiles(dbName, tabName, values)
+      send_message('filterTableFiles', FilterTableFiles_args, :dbName => dbName, :tabName => tabName, :values => values)
     end
 
     def recv_filterTableFiles()
@@ -4710,7 +4710,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, FilterTableFiles_args)
       result = FilterTableFiles_result.new()
       begin
-        result.success = @handler.filterTableFiles(args.dbName, args.tabName, args.exp)
+        result.success = @handler.filterTableFiles(args.dbName, args.tabName, args.values)
       rescue ::MetaException => o1
         result.o1 = o1
       end
@@ -10727,12 +10727,12 @@ module ThriftHiveMetastore
     include ::Thrift::Struct, ::Thrift::Struct_Union
     DBNAME = 1
     TABNAME = 2
-    EXP = 3
+    VALUES = 3
 
     FIELDS = {
       DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
       TABNAME => {:type => ::Thrift::Types::STRING, :name => 'tabName'},
-      EXP => {:type => ::Thrift::Types::STRING, :name => 'exp'}
+      VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRING}}
     }
 
     def struct_fields; FIELDS; end

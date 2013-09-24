@@ -1075,6 +1075,26 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     return false;
   }
 
+  @Override
+  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<SFile> listTableFiles(String dbName, String tableName, short max_num)
+      throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<SFile> filterTableFiles(String dbName, String tableName, List<String> values)
+      throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 }
 
 

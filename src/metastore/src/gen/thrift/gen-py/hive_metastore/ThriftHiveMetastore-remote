@@ -180,7 +180,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '   getTableNodeGroups(string dbName, string tabName)'
   print '   getTableNodeFiles(string dbName, string tabName, string nodeName)'
   print '   listTableFiles(string dbName, string tabName, i16 max_num)'
-  print '   filterTableFiles(string dbName, string tabName, string exp)'
+  print '   filterTableFiles(string dbName, string tabName,  values)'
   print '  bool addNodeGroup(NodeGroup ng)'
   print '  bool modifyNodeGroup(NodeGroup ng)'
   print '  bool deleteNodeGroup(NodeGroup ng)'
@@ -1186,7 +1186,7 @@ elif cmd == 'filterTableFiles':
   if len(args) != 3:
     print 'filterTableFiles requires 3 args'
     sys.exit(1)
-  pp.pprint(client.filterTableFiles(args[0],args[1],args[2],))
+  pp.pprint(client.filterTableFiles(args[0],args[1],eval(args[2]),))
 
 elif cmd == 'addNodeGroup':
   if len(args) != 1:

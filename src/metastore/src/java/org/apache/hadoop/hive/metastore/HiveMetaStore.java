@@ -6004,29 +6004,26 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public List<NodeGroup> getTableNodeGroups(String dbName, String tabName) throws MetaException,
         TException {
-      // TODO Auto-generated method stub
-      return null;
+      Table tbl = get_table(dbName, tabName);
+      return tbl.getNodeGroups();
     }
 
     @Override
     public List<SFile> getTableNodeFiles(String dbName, String tabName, String nodeName)
         throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      throw new MetaException("Not implemented yet!");
     }
 
     @Override
     public List<SFile> listTableFiles(String dbName, String tabName, short max_num)
         throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getMS().listTableFiles(dbName, tabName, max_num);
     }
 
     @Override
-    public List<SFile> filterTableFiles(String dbName, String tabName, String exp)
+    public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values)
         throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getMS().filterTableFiles(dbName, tabName, values);
     }
 
     @Override

@@ -251,7 +251,7 @@ public class DiskManager {
 
     public static class DeviceInfo implements Comparable<DeviceInfo> {
       public String dev; // dev name
-      public String mp; // mount point
+      public String mp = null; // mount point
       public int prop;
       public long read_nr;
       public long write_nr;
