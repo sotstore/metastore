@@ -2721,14 +2721,13 @@ public class Hive {
 
   public void dropGeoLoc(GeoLoc gd) throws HiveException, NoSuchObjectException {
 
-    GeoLocation geoLocation = new GeoLocation();
-    //GeoLocation geoLocation =getMSC().getGeoLocationByName(gd.geoLocName);
     try {
+      GeoLocation geoLocation = getMSC().getGeoLocationByName(gd.getGeoLocName());
       getMSC().deleteGeoLocation(geoLocation);
-    } catch (NoSuchObjectException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new HiveException(e);
+    } catch (MetaException e) {
+      e.printStackTrace();
+    } catch (TException e) {
+      e.printStackTrace();
     }
 
   }

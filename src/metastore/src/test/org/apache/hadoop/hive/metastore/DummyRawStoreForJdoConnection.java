@@ -1075,6 +1075,12 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     return false;
   }
 
+  @Override
+  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 }
 
 
