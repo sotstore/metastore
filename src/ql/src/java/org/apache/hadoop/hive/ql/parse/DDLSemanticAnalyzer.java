@@ -777,11 +777,11 @@ private void analyzeCreateUser(ASTNode ast) {
   }
 
   private void analyzeModifyGeoLoc(ASTNode ast) {
-    String geoLocName = unescapeSQLString((ast.getChild(0).getText()));
-    String nation = unescapeSQLString(ast.getChild(1).getText());
-    String province = unescapeSQLString(ast.getChild(2).getText());
-    String city = unescapeSQLString(ast.getChild(3).getText());
-    String dist = unescapeSQLString(ast.getChild(4).getText());
+    String geoLocName = unescapeSQLString((ast.getChild(0).getText())).toLowerCase();
+    String nation = unescapeSQLString(ast.getChild(1).getText()).toLowerCase();
+    String province = unescapeSQLString(ast.getChild(2).getText()).toLowerCase();
+    String city = unescapeSQLString(ast.getChild(3).getText()).toLowerCase();
+    String dist = unescapeSQLString(ast.getChild(4).getText()).toLowerCase();
     ModifyGeoLocDesc modifyGeoLocDesc = new ModifyGeoLocDesc(geoLocName,nation,province,city,dist);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         modifyGeoLocDesc), conf));

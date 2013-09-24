@@ -42,6 +42,7 @@ import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
+import org.apache.hadoop.hive.ql.metadata.GeoLoc;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.Partition;
@@ -538,16 +539,27 @@ public class JsonMetaDataFormatter implements MetaDataFormatter {
       // TODO Auto-generated method stub
 
     }
-    public void showHelp(DataOutputStream outStream, String result) throws HiveException{
-
-	}
-
-    public void showGeoLoc(DataOutputStream outStream, String result) throws HiveException{}
-
-    public void showEqRoom(DataOutputStream outStream, String result) throws HiveException{}
 
     @Override
     public void showNodeAssignment(DataOutputStream outStream, String result) throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void showGeoLoc(DataOutputStream outStream, List<GeoLoc> geoloc) throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void showEqRoom(DataOutputStream outStream, String result) throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void showHelp(DataOutputStream outStream, String result) throws HiveException {
       // TODO Auto-generated method stub
 
     }

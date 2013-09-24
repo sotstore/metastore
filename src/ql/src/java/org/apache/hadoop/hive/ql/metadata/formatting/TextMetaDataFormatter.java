@@ -42,6 +42,7 @@ import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.exec.Utilities;
+import org.apache.hadoop.hive.ql.metadata.GeoLoc;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.Partition;
@@ -614,8 +615,6 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
       } catch (IOException e) {
         throw new HiveException(e);
       }
-
-
     }
 
     @Override
@@ -630,8 +629,23 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
     }
 
     @Override
-    public void showGeoLoc(DataOutputStream outStream, String result) throws HiveException {
-      // TODO Auto-generated method stub
+    public void showGeoLoc(DataOutputStream outStream, List<GeoLoc> geoloc) throws HiveException {
+      try {
+        for (GeoLoc gl : geoloc) {
+          outStream.writeBytes(""+gl.getGeoLocName());
+          outStream.write(separator);
+          outStream.writeBytes(gl.getNation());
+          outStream.write(separator);
+          outStream.writeBytes(gl.getProvince());
+          outStream.write(separator);
+          outStream.writeBytes(gl.getCity());
+          outStream.write(separator);
+          outStream.writeBytes(gl.getDist());
+          outStream.write(separator);
+        }
+      } catch (IOException e) {
+        throw new HiveException(e);
+      }
 
     }
 

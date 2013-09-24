@@ -100,7 +100,7 @@ import org.apache.hadoop.hive.ql.lockmgr.HiveLockObject;
 import org.apache.hadoop.hive.ql.lockmgr.HiveLockObject.HiveLockObjectData;
 import org.apache.hadoop.hive.ql.metadata.CheckResult;
 import org.apache.hadoop.hive.ql.metadata.EqRoomDesc;
-import org.apache.hadoop.hive.ql.metadata.GeoLocDesc;
+import org.apache.hadoop.hive.ql.metadata.GeoLoc;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveMetaStoreChecker;
@@ -4696,7 +4696,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
   private int addGeoLoc(Hive db, AddGeoLocDesc addGeoLocDesc) throws HiveException {
 
-    GeoLocDesc gd = new GeoLocDesc(addGeoLocDesc.getGeoLocName(),addGeoLocDesc.getNation(),addGeoLocDesc.getProvince(),addGeoLocDesc.getCity(),addGeoLocDesc.getDist());
+    GeoLoc gd = new GeoLoc(addGeoLocDesc.getGeoLocName(),addGeoLocDesc.getNation(),addGeoLocDesc.getProvince(),addGeoLocDesc.getCity(),addGeoLocDesc.getDist());
     try {
       this.db.addGeoLoc(gd);
     } catch (NoSuchObjectException e) {
@@ -4708,37 +4708,45 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
   private int dropGeoLoc(Hive db, DropGeoLocDesc dropGeoLocDesc) throws HiveException {
 
-    GeoLocDesc gd = new GeoLocDesc(dropGeoLocDesc.getGeoLocName());
-    this.db.dropGeoLoc(gd);
+    GeoLoc gd = new GeoLoc(dropGeoLocDesc.getGeoLocName());
+    try {
+      this.db.dropGeoLoc(gd);
+    } catch (NoSuchObjectException e) {
+      e.printStackTrace();
+    }
     return 0;
 
   }
 
   private int modifyGeoLoc(Hive db, ModifyGeoLocDesc modifyGeoLocDesc) throws HiveException {
-    GeoLocDesc gd = new GeoLocDesc(modifyGeoLocDesc.getGeoLocName(),modifyGeoLocDesc.getNation(),modifyGeoLocDesc.getProvince(),modifyGeoLocDesc.getCity(),modifyGeoLocDesc.getDist());
-    this.db.modifyGeoLoc(gd);
+    GeoLoc gd = new GeoLoc(modifyGeoLocDesc.getGeoLocName(),modifyGeoLocDesc.getNation(),modifyGeoLocDesc.getProvince(),modifyGeoLocDesc.getCity(),modifyGeoLocDesc.getDist());
+    try {
+      this.db.modifyGeoLoc(gd);
+    } catch (NoSuchObjectException e) {
+      e.printStackTrace();
+    }
     return 0;
 
   }
 
   private int showGeoLoc(Hive db, ShowGeoLocDesc showGeoLocDesc) throws HiveException {
-    String result = db.showGeoLoc();
+    List<GeoLoc> geoloc = db.showGeoLoc();
     DataOutputStream outStream = null;
     try {
       Path resFile = new Path(showGeoLocDesc.getResFile());
       FileSystem fs = resFile.getFileSystem(conf);
       outStream = fs.create(resFile);
 
-      formatter.showGeoLoc(outStream, result);
+      formatter.showGeoLoc(outStream, geoloc);
 
       ((FSDataOutputStream) outStream).close();
       outStream = null;
     } catch (FileNotFoundException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+        formatter.logWarn(outStream, "show GeoLoc: " + stringifyException(e),
                           MetaDataFormatter.ERROR);
         return 1;
       } catch (IOException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+        formatter.logWarn(outStream, "show GeoLoc: " + stringifyException(e),
                           MetaDataFormatter.ERROR);
         return 1;
     } catch (Exception e) {
