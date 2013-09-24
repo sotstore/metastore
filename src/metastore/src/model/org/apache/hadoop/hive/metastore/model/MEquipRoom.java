@@ -1,11 +1,13 @@
 package org.apache.hadoop.hive.metastore.model;
 
+import org.apache.hadoop.hive.metastore.api.GeoLocation;
+
 
 public class MEquipRoom {
   private String eqRoomName;
   private int status;
   private String comment;
-  private MGeoLocation geolocation;
+  private GeoLocation geolocation;
 
   /**
    * @author cry
@@ -19,7 +21,7 @@ public class MEquipRoom {
    * @param comment
    * @param geolocation
    */
-  public MEquipRoom(String eqRoomName, int status, String geoLocName, String comment, MGeoLocation geolocation) {
+  public MEquipRoom(String eqRoomName, int status, String geoLocName, String comment, GeoLocation geolocation) {
     super();
     this.eqRoomName = eqRoomName;
     this.status = MetaStoreConst.MEquipRoomStatus.SUSPECT;
@@ -45,10 +47,10 @@ public class MEquipRoom {
   public void setStatus(int status) {
     this.status = status;
   }
-  public MGeoLocation getGeolocation() {
+  public GeoLocation getGeolocation() {
     return geolocation;
   }
-  public void setGeolocation(MGeoLocation geolocation) {
+  public void setGeolocation(GeoLocation geolocation) {
     this.geolocation = geolocation;
   }
 

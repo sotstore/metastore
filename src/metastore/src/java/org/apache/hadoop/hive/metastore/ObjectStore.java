@@ -8203,6 +8203,10 @@ public MUser getMUser(String userName) {
   @Override
   public boolean addEquipRoom(EquipRoom er) throws MetaException {
     MEquipRoom mer = new MEquipRoom();
+    mer.setEqRoomName(er.getEqRoomName());
+    mer.setStatus(er.getStatus());
+    mer.setComment(er.getComment());
+    mer.setGeolocation(er.getGeolocation());
     boolean success = false;
     int now = (int)(System.currentTimeMillis()/1000);
     try {
@@ -8293,6 +8297,11 @@ public MUser getMUser(String userName) {
   @Override
   public boolean addGeoLocation(GeoLocation gl) throws MetaException {
     MGeoLocation mgl = new MGeoLocation();
+    mgl.setGeoLocName(gl.getGeoLocName());
+    mgl.setNation(gl.getNation());
+    mgl.setProvince(gl.getProvince());
+    mgl.setCity(gl.getCity());
+    mgl.setDist(gl.getDist());
     boolean success = false;
     int now = (int)(System.currentTimeMillis()/1000);
     try {
@@ -8344,6 +8353,11 @@ public MUser getMUser(String userName) {
     try {
       openTransaction();
       MGeoLocation mgl = new MGeoLocation();
+      mgl.setGeoLocName(gl.getGeoLocName());
+      mgl.setNation(gl.getNation());
+      mgl.setProvince(gl.getProvince());
+      mgl.setCity(gl.getCity());
+      mgl.setDist(gl.getDist());
       if (mgl != null) {
         pm.deletePersistent(mgl);
       }
