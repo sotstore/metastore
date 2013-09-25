@@ -8206,7 +8206,6 @@ public MUser getMUser(String userName) {
     mer.setEqRoomName(er.getEqRoomName());
     mer.setStatus(er.getStatus());
     mer.setComment(er.getComment());
-    mer.setGeolocation(er.getGeolocation());
     boolean success = false;
     int now = (int)(System.currentTimeMillis()/1000);
     try {
@@ -8529,9 +8528,27 @@ public MUser getMUser(String userName) {
 
   @Override
   public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException {
+    List<GeoLocation> gls = new ArrayList<GeoLocation>();
     GeoLocation gl = null;
-    gl =  this.getGeoLocationByName(geoLocName);
+    boolean committed = false;
+    try {
+      openTransaction();//创建并开始一个事务
+      Query query = pm.newQuery(MGeoLocation.class);//设置这个query作用的范围，即查询的是那个表或记录集
+      query.setFilter("MGeoLocation.name == \"geoLocName\"");
+      query.declareParameters("java.lang.String geoLocName");
+//      gl =  (GeoLocation) query.execute(geoLocName);
+      Collection result=(Collection)query.execute(geoLocName);
+      for(Iterator itr=result.iterator();itr.hasNext();){
+        gl=(GeoLocation)itr.next();
+      }
+      committed = commitTransaction();
+    } finally {
+      if (!committed) {
+        rollbackTransaction();
+      }
+    }
     return gl;
+
   }
 
 }
