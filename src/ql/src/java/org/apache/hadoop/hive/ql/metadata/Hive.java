@@ -2859,4 +2859,28 @@ public class Hive {
     }
   }
 
+  public List<NodeAssignment> showNodeAssignment() throws HiveException {
+    List<NodeAssignment> nats = new ArrayList<NodeAssignment>();
+    /*try{
+      List<NodeAssignment> nodeAssignments = getMSC().listEquipRoom();
+      for(EquipRoom eqr : equipRooms){
+        GeoLoc geoLoc = new GeoLoc(eqr.getGeolocation().getGeoLocName(),eqr.getGeolocation().getNation(),
+            eqr.getGeolocation().getProvince(),eqr.getGeolocation().getCity(),eqr.getGeolocation().getDist());
+        String eqStatus = "";
+        if(eqr.getStatus() == 0){
+          eqStatus = "ONLINE";
+        }else if(eqr.getStatus() == 1){
+          eqStatus = "OFFLINE";
+        }else if(eqr.getStatus() == 2){
+          eqStatus = "SUSPECT";
+        }
+        EqRoom er = new EqRoom(eqr.getEqRoomName(),eqStatus,eqr.getComment(),geoLoc);
+        ers.add(er);
+      }
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }*/
+    return nats;
+  }
+
 };

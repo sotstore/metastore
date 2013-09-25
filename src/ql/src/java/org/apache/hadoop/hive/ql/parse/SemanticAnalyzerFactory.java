@@ -241,6 +241,7 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_SHOWEQROOM:
       case HiveParser.TOK_CREATENODEASSIGNMENT:
       case HiveParser.TOK_DROPNODEASSIGNMENT:
+      case HiveParser.TOK_SHOWNODEASSIGNMENT:
 
 
         return new DDLSemanticAnalyzer(conf);

@@ -132,6 +132,7 @@ public class DDLWork implements Serializable {
   private ShowEqRoomDesc showEqRoomDesc;
   private AddNodeAssignmentDesc addNode_AssignmentDesc;
   private DropNodeAssignmentDesc dropNodeAssignmentDesc;
+  private ShowNodeAssignmentDesc showNodeAssignmentDesc;
 
 
   public DDLWork() {
@@ -736,6 +737,12 @@ public class DDLWork implements Serializable {
       DropNodeAssignmentDesc dropNodeAssignmentDesc) {
     this(inputs, outputs);
     this.dropNodeAssignmentDesc = dropNodeAssignmentDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowNodeAssignmentDesc showNodeAssignmentDesc) {
+    this(inputs, outputs);
+    this.showNodeAssignmentDesc = showNodeAssignmentDesc;
   }
 
   /**
@@ -1629,6 +1636,14 @@ public class DDLWork implements Serializable {
 
   public void setDropNodeAssignmentDesc(DropNodeAssignmentDesc dropNodeAssignmentDesc) {
     this.dropNodeAssignmentDesc = dropNodeAssignmentDesc;
+  }
+
+  public ShowNodeAssignmentDesc getShowNodeAssignmentDesc() {
+    return showNodeAssignmentDesc;
+  }
+
+  public void setShowNodeAssignmentDesc(ShowNodeAssignmentDesc showNodeAssignmentDesc) {
+    this.showNodeAssignmentDesc = showNodeAssignmentDesc;
   }
 
 }

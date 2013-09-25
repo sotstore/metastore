@@ -187,6 +187,7 @@ import org.apache.hadoop.hive.ql.plan.ShowGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
+import org.apache.hadoop.hive.ql.plan.ShowNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
@@ -656,6 +657,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       DropNodeAssignmentDesc dropNodeAssignmentDesc = work.getDropNodeAssignmentDesc();
       if (dropNodeAssignmentDesc != null) {
         return dropNodeAssignment(db, dropNodeAssignmentDesc);
+      }
+
+      ShowNodeAssignmentDesc showNodeAssignmentDesc = work.getShowNodeAssignmentDesc();
+      if (showNodeAssignmentDesc != null) {
+        return showNodeAssignment(db, showNodeAssignmentDesc);
       }
 
     } catch (InvalidTableException e) {
@@ -4746,19 +4752,43 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   }
 
   private int addNodeAssignment(Hive db, AddNodeAssignmentDesc addNodeAssignmentDesc) throws HiveException {
-
     NodeAssignment gd = new NodeAssignment(addNodeAssignmentDesc.getNodeName(),addNodeAssignmentDesc.getDbName());
     this.db.addNodeAssignment(gd);
     return 0;
-
   }
 
   private int dropNodeAssignment(Hive db, DropNodeAssignmentDesc dropNodeAssignmentDesc) throws HiveException {
-
     NodeAssignment gd = new NodeAssignment(dropNodeAssignmentDesc.getNodeName(),dropNodeAssignmentDesc.getDbName());
     this.db.dropNodeAssignment(gd);
     return 0;
+  }
 
+  private int showNodeAssignment(Hive db, ShowNodeAssignmentDesc showNodeAssignmentDesc) throws HiveException {
+    List<NodeAssignment> nodeAssignment = db.showNodeAssignment();
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showNodeAssignmentDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      formatter.showNodeAssignment(outStream, nodeAssignment);
+
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
   }
 
 

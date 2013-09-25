@@ -148,6 +148,7 @@ import org.apache.hadoop.hive.ql.plan.ShowGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
+import org.apache.hadoop.hive.ql.plan.ShowNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
@@ -584,11 +585,20 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     case HiveParser.TOK_DROPNODEASSIGNMENT:
       analyzeDropNodeAssignment(ast);
       break;
+    case HiveParser.TOK_SHOWNODEASSIGNMENT:
+      analyzeShowNodeAssignment(ast);
+      break;
     default:
       throw new SemanticException("Unsupported command.");
     }
   }
 
+private void analyzeShowNodeAssignment(ASTNode ast) {
+  ShowNodeAssignmentDesc showNodeAssignmentDesc = new ShowNodeAssignmentDesc(ctx.getResFile().toString());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showNodeAssignmentDesc), conf));
+  setFetchTask(createFetchTask(showNodeAssignmentDesc.getSchema()));
+}
 
 private void analyzeDropNodeAssignment(ASTNode ast) {
   String nodeName = unescapeSQLString((ast.getChild(0).getText()));
