@@ -447,14 +447,14 @@ public class ColumnStatistics implements org.apache.thrift.TBase<ColumnStatistic
           case 2: // STATS_OBJ
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list354 = iprot.readListBegin();
-                struct.statsObj = new ArrayList<ColumnStatisticsObj>(_list354.size);
-                for (int _i355 = 0; _i355 < _list354.size; ++_i355)
+                org.apache.thrift.protocol.TList _list328 = iprot.readListBegin();
+                struct.statsObj = new ArrayList<ColumnStatisticsObj>(_list328.size);
+                for (int _i329 = 0; _i329 < _list328.size; ++_i329)
                 {
-                  ColumnStatisticsObj _elem356; // required
-                  _elem356 = new ColumnStatisticsObj();
-                  _elem356.read(iprot);
-                  struct.statsObj.add(_elem356);
+                  ColumnStatisticsObj _elem330; // required
+                  _elem330 = new ColumnStatisticsObj();
+                  _elem330.read(iprot);
+                  struct.statsObj.add(_elem330);
                 }
                 iprot.readListEnd();
               }
@@ -485,9 +485,9 @@ public class ColumnStatistics implements org.apache.thrift.TBase<ColumnStatistic
         oprot.writeFieldBegin(STATS_OBJ_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.statsObj.size()));
-          for (ColumnStatisticsObj _iter357 : struct.statsObj)
+          for (ColumnStatisticsObj _iter331 : struct.statsObj)
           {
-            _iter357.write(oprot);
+            _iter331.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -513,9 +513,9 @@ public class ColumnStatistics implements org.apache.thrift.TBase<ColumnStatistic
       struct.statsDesc.write(oprot);
       {
         oprot.writeI32(struct.statsObj.size());
-        for (ColumnStatisticsObj _iter358 : struct.statsObj)
+        for (ColumnStatisticsObj _iter332 : struct.statsObj)
         {
-          _iter358.write(oprot);
+          _iter332.write(oprot);
         }
       }
     }
@@ -527,14 +527,14 @@ public class ColumnStatistics implements org.apache.thrift.TBase<ColumnStatistic
       struct.statsDesc.read(iprot);
       struct.setStatsDescIsSet(true);
       {
-        org.apache.thrift.protocol.TList _list359 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-        struct.statsObj = new ArrayList<ColumnStatisticsObj>(_list359.size);
-        for (int _i360 = 0; _i360 < _list359.size; ++_i360)
+        org.apache.thrift.protocol.TList _list333 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+        struct.statsObj = new ArrayList<ColumnStatisticsObj>(_list333.size);
+        for (int _i334 = 0; _i334 < _list333.size; ++_i334)
         {
-          ColumnStatisticsObj _elem361; // required
-          _elem361 = new ColumnStatisticsObj();
-          _elem361.read(iprot);
-          struct.statsObj.add(_elem361);
+          ColumnStatisticsObj _elem335; // required
+          _elem335 = new ColumnStatisticsObj();
+          _elem335.read(iprot);
+          struct.statsObj.add(_elem335);
         }
       }
       struct.setStatsObjIsSet(true);

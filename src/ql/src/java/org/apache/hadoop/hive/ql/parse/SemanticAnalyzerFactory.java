@@ -200,9 +200,6 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_CHANGE_PWD:     //added by liulichao
       case HiveParser.TOK_AUTHENTICATION: //added by liulichao
       case HiveParser.TOK_SHOW_USERNAMES: //added by liulichao
-      case HiveParser.TOK_CREATEDATACENTER:
-      case HiveParser.TOK_DROPDATACENTER:
-      case HiveParser.TOK_DATACENTERCOMMENT:
       case HiveParser.TOK_ADDNODE:
       case HiveParser.TOK_DROPNODE:
       case HiveParser.TOK_MODIFYNODE:
@@ -225,7 +222,6 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_ALTER_DW:
       case HiveParser.TOK_SHOWSUBPARTITIONS:
       case HiveParser.TOK_SHOWPARTITIONKEYS:
-      case HiveParser.TOK_SHOWDATACENTERS:
       case HiveParser.TOK_SHOWBUSITYPES:
       case HiveParser.TOK_CREATEBUSITYPE:
       case HiveParser.TOK_SHOWNODES:

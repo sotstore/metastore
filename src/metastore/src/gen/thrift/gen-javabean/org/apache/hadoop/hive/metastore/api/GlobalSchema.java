@@ -1209,15 +1209,15 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
           case 7: // PARAMETERS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map276 = iprot.readMapBegin();
-                struct.parameters = new HashMap<String,String>(2*_map276.size);
-                for (int _i277 = 0; _i277 < _map276.size; ++_i277)
+                org.apache.thrift.protocol.TMap _map250 = iprot.readMapBegin();
+                struct.parameters = new HashMap<String,String>(2*_map250.size);
+                for (int _i251 = 0; _i251 < _map250.size; ++_i251)
                 {
-                  String _key278; // required
-                  String _val279; // required
-                  _key278 = iprot.readString();
-                  _val279 = iprot.readString();
-                  struct.parameters.put(_key278, _val279);
+                  String _key252; // required
+                  String _val253; // required
+                  _key252 = iprot.readString();
+                  _val253 = iprot.readString();
+                  struct.parameters.put(_key252, _val253);
                 }
                 iprot.readMapEnd();
               }
@@ -1300,10 +1300,10 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
         oprot.writeFieldBegin(PARAMETERS_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.parameters.size()));
-          for (Map.Entry<String, String> _iter280 : struct.parameters.entrySet())
+          for (Map.Entry<String, String> _iter254 : struct.parameters.entrySet())
           {
-            oprot.writeString(_iter280.getKey());
-            oprot.writeString(_iter280.getValue());
+            oprot.writeString(_iter254.getKey());
+            oprot.writeString(_iter254.getValue());
           }
           oprot.writeMapEnd();
         }
@@ -1404,10 +1404,10 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
       if (struct.isSetParameters()) {
         {
           oprot.writeI32(struct.parameters.size());
-          for (Map.Entry<String, String> _iter281 : struct.parameters.entrySet())
+          for (Map.Entry<String, String> _iter255 : struct.parameters.entrySet())
           {
-            oprot.writeString(_iter281.getKey());
-            oprot.writeString(_iter281.getValue());
+            oprot.writeString(_iter255.getKey());
+            oprot.writeString(_iter255.getValue());
           }
         }
       }
@@ -1456,15 +1456,15 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
       }
       if (incoming.get(6)) {
         {
-          org.apache.thrift.protocol.TMap _map282 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.parameters = new HashMap<String,String>(2*_map282.size);
-          for (int _i283 = 0; _i283 < _map282.size; ++_i283)
+          org.apache.thrift.protocol.TMap _map256 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.parameters = new HashMap<String,String>(2*_map256.size);
+          for (int _i257 = 0; _i257 < _map256.size; ++_i257)
           {
-            String _key284; // required
-            String _val285; // required
-            _key284 = iprot.readString();
-            _val285 = iprot.readString();
-            struct.parameters.put(_key284, _val285);
+            String _key258; // required
+            String _val259; // required
+            _key258 = iprot.readString();
+            _val259 = iprot.readString();
+            struct.parameters.put(_key258, _val259);
           }
         }
         struct.setParametersIsSet(true);

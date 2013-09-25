@@ -19,7 +19,6 @@
 package org.apache.hadoop.hive.metastore;
 
 import static org.apache.commons.lang.StringUtils.join;
-import static org.apache.hadoop.hive.metastore.MetaStoreUtils.DEFAULT_DATABASE_COMMENT;
 import static org.apache.hadoop.hive.metastore.MetaStoreUtils.DEFAULT_DATABASE_NAME;
 import static org.apache.hadoop.hive.metastore.MetaStoreUtils.validateName;
 
@@ -61,8 +60,6 @@ import org.apache.hadoop.hive.metastore.DiskManager.BackupEntry;
 import org.apache.hadoop.hive.metastore.DiskManager.DMRequest;
 import org.apache.hadoop.hive.metastore.DiskManager.DeviceInfo;
 import org.apache.hadoop.hive.metastore.DiskManager.FileLocatingPolicy;
-import org.apache.hadoop.hive.metastore.DiskManager.MigrateEntry;
-import org.apache.hadoop.hive.metastore.DiskManager.SFLTriple;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.BusiTypeColumn;
 import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
@@ -72,7 +69,6 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
@@ -466,70 +462,75 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     private void createDefaultDB_core(RawStore ms) throws MetaException, InvalidObjectException {
-      Datacenter ldc = null, mdc = null;
+      Database ldb = null, mdb = null;
 
-      if (hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER) == null) {
-        throw new MetaException("Please set 'hive.datacenter.local' as the local DC name");
+      if (hiveConf.getVar(HiveConf.ConfVars.LOCAL_ATTRIBUTION) == null) {
+        throw new MetaException("Please set 'hive.attribution.local' as the local ATTRIBUTION name");
       }
       try {
-        ldc = ms.getDatacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
+        ldb = ms.getDatabase(hiveConf.getVar(HiveConf.ConfVars.LOCAL_ATTRIBUTION));
       } catch (NoSuchObjectException e) {
-        ldc = new Datacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER), null, HMSHandler.msUri == null ? "DEFAULT_URI" : HMSHandler.msUri, null);
-        ms.createDatacenter(ldc);
+        ldb = new Database(hiveConf.getVar(HiveConf.ConfVars.LOCAL_ATTRIBUTION), null,
+            wh.getDefaultDatabasePath(hiveConf.getVar(HiveConf.ConfVars.LOCAL_ATTRIBUTION)).toString(), null);
+        ldb.putToParameters("service.metastore.uri", HMSHandler.msUri == null ? "DEFAULT_INVALID_URI" : HMSHandler.msUri);
+
+        ms.createDatabase(ldb);
       }
-      if (!hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER) && HMSHandler.topdcli != null) {
+      if (!hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_ATTRIBUTION) && HMSHandler.topdcli != null) {
         try {
-          LOG.info(HMSHandler.topdcli + ", " + hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
-          mdc = HMSHandler.topdcli.get_center(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
+          LOG.info(HMSHandler.topdcli + ", " + hiveConf.getVar(HiveConf.ConfVars.LOCAL_ATTRIBUTION));
+          mdb = HMSHandler.topdcli.get_attribution(hiveConf.getVar(HiveConf.ConfVars.LOCAL_ATTRIBUTION));
         } catch (NoSuchObjectException e) {
-          mdc = new Datacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER), null, HMSHandler.msUri == null ? "DEFAULT_URI" : HMSHandler.msUri, null);
+          mdb = new Database(hiveConf.getVar(HiveConf.ConfVars.LOCAL_ATTRIBUTION), null,
+              wh.getDefaultDatabasePath(hiveConf.getVar(HiveConf.ConfVars.LOCAL_ATTRIBUTION)).toString(), null);
+          mdb.putToParameters("service.metastore.uri", HMSHandler.msUri == null ? "DEFAULT_INVALID_URI" : HMSHandler.msUri);
+
           try {
-            HMSHandler.topdcli.create_datacenter(mdc);
+            HMSHandler.topdcli.createDatabase(mdb);
           } catch (AlreadyExistsException e1) {
             LOG.error(e, e);
           } catch (TException e1) {
             LOG.error(e, e);
-            throw new MetaException("Try to create dc to top-level datacenter failed!");
+            throw new MetaException("Try to create dc to top-level attribution failed!");
           }
         } catch (TException e) {
           LOG.error(e, e);
-          throw new MetaException("Try to get dc from top-level datacenter failed!");
+          throw new MetaException("Try to get dc from top-level attribution failed!");
         }
       }
 
-      if (HMSHandler.msUri != null && !ldc.getLocationUri().equals(HMSHandler.msUri)) {
+      String savedUri = null;
+      if (ldb.getParametersSize() > 0) {
+        savedUri = ldb.getParameters().get("service.metastore.uri");
+      }
+      if (HMSHandler.msUri != null && savedUri != null && !savedUri.equals(HMSHandler.msUri)) {
         // update the msUri now
-        ldc.setLocationUri(HMSHandler.msUri);
+        ldb.putToParameters("service.metastore.uri", HMSHandler.msUri);
         try {
-          ms.updateDatacenter(ldc);
+          ms.alterDatabase(ldb.getName(), ldb);
         } catch (NoSuchObjectException e) {
           LOG.error(e, e);
-          throw new MetaException("Try to update datacenter's locationUri failed!");
+          throw new MetaException("Try to update database's service.metastore.uri failed!");
         }
       }
-      if (mdc != null && HMSHandler.msUri != null && !mdc.getLocationUri().equals(HMSHandler.msUri) && HMSHandler.topdcli != null) {
+      savedUri = null;
+      if (mdb != null && mdb.getParametersSize() > 0) {
+        savedUri = mdb.getParameters().get("service.metastore.uri");
+      }
+      if (savedUri != null && !savedUri.equals(HMSHandler.msUri) && HMSHandler.topdcli != null) {
         // update the msUri now
-        mdc.setLocationUri(HMSHandler.msUri);
+        mdb.putToParameters("service.metastore.uri", HMSHandler.msUri);
         try {
-          HMSHandler.topdcli.update_center(mdc);
+          HMSHandler.topdcli.alterDatabase(mdb.getName(), mdb);
         } catch (NoSuchObjectException e) {
           LOG.error(e, e);
-          throw new MetaException("Try to update datacenter's locationUri failed!");
+          throw new MetaException("Try to update database's service.metastore.uri failed!");
         } catch (TException e) {
           LOG.error(e, e);
-          throw new MetaException("Try to update datacenter's locationUri failed!");
+          throw new MetaException("Try to update database's service.metastore.uri failed!");
         }
       }
-      ms.setThisDC(ldc.getName());
 
-      try {
-        ms.getDatabase(DEFAULT_DATABASE_NAME);
-      } catch (NoSuchObjectException e) {
-        Database db = new Database(DEFAULT_DATABASE_NAME, DEFAULT_DATABASE_COMMENT,
-                wh.getDefaultDatabasePath(DEFAULT_DATABASE_NAME).toString(), null);
-        db.setDatacenter(ldc);
-        ms.createDatabase(db);
-      }
       HMSHandler.createDefaultDB = true;
     }
 
@@ -1202,8 +1203,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             if( cmet.length() - pos >= type.length()
                 && type.equals(cmet.substring(pos,type.length()).toLowerCase())){
               try {
-                BusiTypeDatacenter busiTypeDatacenter = new BusiTypeDatacenter(type,ms.getDatabase(tbl.getDbName()).getDatacenter(),tbl.getDbName());
-                if(!isTopDc()){
+                BusiTypeDatacenter busiTypeDatacenter = new BusiTypeDatacenter(type,ms.getDatabase(tbl.getDbName()));
+                if(!isTopAttribution()){
                   if(topdcli != null){
                     topdcli.append_busi_type_datacenter(busiTypeDatacenter);
                   }else{
@@ -4597,45 +4598,52 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public void create_datacenter(Datacenter datacenter) throws AlreadyExistsException,
+    public void create_attribution(Database database) throws AlreadyExistsException,
         InvalidObjectException, MetaException, TException {
-      getMS().createDatacenter(datacenter);
-    }
-
-    @Override
-    public Datacenter get_center(String name) throws NoSuchObjectException, MetaException,
-        TException {
-      if (hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER)) {
-        return getMS().getDatacenter(name);
-      } else {
-        if (HMSHandler.topdcli == null) {
-          connect_to_top_dc(hiveConf);
-        }
-        return HMSHandler.topdcli.get_center(name);
+      try {
+        getMS().getDatabase(database.getName());
+        throw new AlreadyExistsException("Attribution " + database.getName() + " already exists!");
+      } catch (NoSuchObjectException e) {
+        getMS().createDatabase(database);
       }
     }
 
     @Override
-    public void drop_center(String name, boolean deleteData, boolean cascade)
-        throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
-      // TODO Auto-generated method stub
-      throw new MetaException("Not implemented yet!");
+    public Database get_attribution(String name) throws NoSuchObjectException, MetaException,
+        TException {
+      if (hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_ATTRIBUTION)) {
+        return getMS().getDatabase(name);
+      } else {
+        if (HMSHandler.topdcli == null) {
+          connect_to_top_attribution(hiveConf);
+        }
+        return HMSHandler.topdcli.get_attribution(name);
+      }
     }
 
     @Override
-    public List<Datacenter> get_all_centers() throws MetaException, TException {
+    public void drop_attribution(String name, boolean deleteData, boolean cascade)
+        throws NoSuchObjectException, InvalidOperationException, MetaException, TException {
+      this.drop_database(name, deleteData, cascade);
+    }
+
+    @Override
+    public List<Database> get_all_attributions() throws MetaException, TException {
+      List<String> dbs = null;
+      List<Database> dblist = new ArrayList<Database>();
+
       // try to get all centers from top-level metastore
-      if (hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER)) {
-        return getMS().getAllDatacenters();
+      if (hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_ATTRIBUTION)) {
+        dbs = getMS().getAllDatabases();
       } else {
         if (HMSHandler.topdcli == null) {
-          connect_to_top_dc(hiveConf);
+          connect_to_top_attribution(hiveConf);
         }
         try {
           if (HMSHandler.topdcli != null) {
-            return HMSHandler.topdcli.get_all_centers();
+            return HMSHandler.topdcli.get_all_attributions();
           } else {
-            throw new MetaException("Invalid top DC client handler.");
+            throw new MetaException("Invalid top ATTRIBUTION client handler.");
           }
         } catch (TException e) {
           LOG.error(e, e);
@@ -4643,15 +4651,25 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           throw e;
         }
       }
+      if (dbs != null) {
+        for (String dbName : dbs) {
+          Database db = getMS().getDatabase(dbName);
+          if (db != null) {
+            dblist.add(db);
+          }
+        }
+      }
+
+      return dblist;
     }
 
     @Override
-    public Datacenter get_local_center() throws MetaException, TException {
-      String local_dc = hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER);
-      if (local_dc == null) {
-        throw new MetaException("Please set hive.datacenter.local=NAME in config file.");
+    public Database get_local_attribution() throws MetaException, TException {
+      String local_attribution = hiveConf.getVar(HiveConf.ConfVars.LOCAL_ATTRIBUTION);
+      if (local_attribution == null) {
+        throw new MetaException("Please set hive.attribution.local=NAME in config file.");
       }
-      return getMS().getDatacenter(local_dc);
+      return getMS().getDatabase(local_attribution);
     }
 
     @Override
@@ -4886,11 +4904,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return getMS().getAllBusiTypeCols();
     }
 
-    public void update_center(Datacenter datacenter) throws NoSuchObjectException,
-        InvalidOperationException, MetaException, TException {
-      getMS().updateDatacenter(datacenter);
-    }
-
     private Partition deepCopy(Partition partition) {
       Partition copy = null;
       if (partition != null) {
@@ -4908,249 +4921,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
       }
       return copy;
-    }
-
-    @Override
-    public Map<Long, SFile> migrate_in(Table tbl, List<Partition> parts, String from_dc)
-        throws MetaException, TException {
-      LOG.info("server parts2 " + parts.get(0).getSubpartitions().get(0).getPartitionName() + ", " + parts.get(0).getSubpartitions().get(0).getFiles());
-      Map<Long, SFile> rmap = new HashMap<Long, SFile>();
-
-      // try to create the database, if it doesn't exist
-      Datacenter ldc = null;
-
-      if (hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER) == null) {
-        throw new MetaException("Please set 'hive.datacenter.local' as the local DC name");
-      }
-      try {
-        ldc = getMS().getDatacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
-      } catch (NoSuchObjectException e) {
-        ldc = new Datacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER), null, HMSHandler.msUri == null ? "DEFAULT_URI" : HMSHandler.msUri, null);
-        getMS().createDatacenter(ldc);
-      }
-
-      try {
-        getMS().getDatabase(tbl.getDbName());
-      } catch (NoSuchObjectException e) {
-        Database db = new Database(tbl.getDbName(), DEFAULT_DATABASE_COMMENT,
-                wh.getDefaultDatabasePath(tbl.getDbName()).toString(), null);
-        db.setDatacenter(ldc);
-        getMS().createDatabase(db);
-      }
-      // try to create the table, if it doesn't exist
-      try {
-        create_table(tbl);
-      } catch (AlreadyExistsException e) {
-        // it is ok, ignore it.
-      }
-      LOG.info("Create table " + tbl.getTableName() + " done.");
-
-      // try to create the partition, if it doesn't exist
-      List<Partition> toAdd = new ArrayList<Partition>();
-      List<Partition> toUpdate = new ArrayList<Partition>();
-      List<Partition> copy_parts = deepCopyPartitions(parts);
-      for (Partition part : copy_parts) {
-        LOG.info("Handle partition1 " + part.getPartitionName() + ", subparts NR " + part.getSubpartitionsSize());
-        try {
-          getMS().getPartition(part.getDbName(), part
-              .getTableName(), part.getPartitionName());
-        } catch (NoSuchObjectException e) {
-          // this means there is no existing partition, it is ok
-          toAdd.add(part);
-          continue;
-        }
-        toUpdate.add(part);
-      }
-      add_partitions(toAdd);
-      LOG.info("Add partitions done.");
-
-      // try to create the file
-      for (Partition part : parts) {
-        LOG.info("Handle partition2 " + part.getPartitionName() + ", subparts NR " + part.getSubpartitionsSize());
-        if (part.getSubpartitionsSize() > 0) {
-          for (Subpartition subpart : part.getSubpartitions()) {
-            LOG.info("subparts " + subpart.getPartitionName() + ", " + subpart.getFiles());
-            // handle files
-            Subpartition localsubpart = getMS().getSubpartition(subpart.getDbName(), subpart.getTableName(), subpart.getPartitionName());
-            List<SFile> files = new ArrayList<SFile>();
-
-            if (localsubpart == null) {
-              throw new MetaException("Invalid local subpart: " + subpart.getPartitionName());
-            }
-
-            if (subpart.getFilesSize() > 0) {
-              for (long fid : subpart.getFiles()) {
-                // create a new target file
-                SFile f = create_file(null, 3, tbl.getDbName(), tbl.getTableName(), part.getValues());
-                files.add(f);
-                rmap.put(fid, f);
-              }
-            }
-            add_subpartition_files(localsubpart, files);
-          }
-        } else {
-          // handle files
-          if (part.getFilesSize() > 0) {
-            Partition localpart = getMS().getPartition(part.getDbName(), part.getTableName(), part.getPartitionName());
-            List<SFile> files = new ArrayList<SFile>();
-
-            if (localpart == null) {
-              throw new MetaException("Invalid local part: " + part.getPartitionName());
-            }
-            LOG.info("parts " + part.getPartitionName() + ", " + part.getFiles().toString());
-
-            for (long fid : part.getFiles()) {
-              // create a new target file
-              SFile f = create_file(null, 3, tbl.getDbName(), tbl.getTableName(), part.getValues());
-              files.add(f);
-              rmap.put(fid, f);
-            }
-            add_partition_files(localpart, files);
-          }
-        }
-      }
-
-      LOG.info("OK, we will migrate DC " + from_dc + " DB " + tbl.getDbName() + " Table " +
-          tbl.getTableName() + "'s " + parts.size() + " Partition(s) w/ " + rmap.size() +
-          " files to local DC.");
-
-      return rmap;
-    }
-
-    @Override
-    public boolean migrate_out(String dbName, String tableName, List<String> partNames, String to_dc)
-        throws MetaException, TException {
-      // prepare datacenter connection
-      if (HMSHandler.topdcli == null) {
-        connect_to_top_dc(hiveConf);
-        if (HMSHandler.topdcli == null) {
-          throw new MetaException("Top-level DC metastore is null, please check!");
-        }
-      }
-      if (hiveConf.getVar(ConfVars.LOCAL_DATACENTER) == null) {
-        throw new MetaException("Please set 'hive.datacenter.local' as local datacenter NAME.");
-      }
-      Datacenter rdc = HMSHandler.topdcli.get_center(to_dc);
-      Datacenter ldc = get_center(hiveConf.getVar(ConfVars.LOCAL_DATACENTER));
-
-      IMetaStoreClient rcli = new HiveMetaStoreClient(rdc.getLocationUri(),
-            HiveConf.getIntVar(hiveConf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
-            hiveConf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
-            null);
-
-      // prepare tbl, parts
-      Table tbl = get_table(dbName, tableName);
-      Map<String, String> kvs = new HashMap<String, String>();
-      if (tbl.getParametersSize() > 0) {
-        LOG.info(tbl.getParameters().toString());
-        kvs.putAll(tbl.getParameters());
-        kvs.put("store.remote", "both");
-        if (kvs.get("store.remote.dcs") == null) {
-          kvs.put("store.remote.dcs", to_dc + "," + hiveConf.getVar(ConfVars.LOCAL_DATACENTER));
-        } else {
-          String olddcs = kvs.get("store.remote.dcs");
-          String[] dcsarray = olddcs.split(",");
-          boolean ign = false;
-          for (int i = 0; i < dcsarray.length; i++) {
-            if (dcsarray[i].equals(to_dc)) {
-              ign = true;
-              break;
-            }
-          }
-          if (!ign) {
-            olddcs += "," + to_dc;
-          }
-          kvs.put("store.remote.dcs", olddcs);
-        }
-        tbl.setParameters(kvs);
-      } else {
-        tbl.setParameters(kvs);
-      }
-      LOG.info("parts: " + partNames.toString());
-      List<Partition> parts = get_partitions_by_names(dbName, tableName, partNames);
-      if (parts.size() == 0) {
-        LOG.info("Zero partition list, do not migrate!");
-        rcli.close();
-        return false;
-      }
-      for (Partition p : parts) {
-        LOG.info("p " + p.getPartitionName() + " subparts " + p.getSubpartitionsSize());
-        for (Subpartition sp : p.getSubpartitions()) {
-          LOG.info("sp " + sp.getPartitionName() + " files " + sp.getFiles().toString());
-        }
-      }
-
-      // call remote metastore's migrate_in to prepare metadata
-      Map<Long, SFile> rmap = rcli.migrate_in(tbl, parts, ldc.getName());
-
-      // iterate the value set to generate a devmap
-      Map<String, String> devmap = new HashMap<String, String>();
-      for (Map.Entry<Long, SFile> e : rmap.entrySet()) {
-        SFileLocation sfl = e.getValue().getLocations().get(0);
-        String mp = rcli.getMP(sfl.getNode_name(), sfl.getDevid());
-        devmap.put(sfl.getDevid(), mp);
-      }
-
-      rcli.close();
-
-      // construct a replicate request to source node
-      if (rmap.size() > 0) {
-        for (Map.Entry<Long, SFile> e : rmap.entrySet()) {
-          SFileLocation sfl = e.getValue().getLocations().get(0);
-          LOG.info("------migrate----fid " + e.getKey() + "----to---->" + sfl.getNode_name() + ":" +
-              sfl.getDevid() + ":" + sfl.getLocation());
-          SFile source = get_file_by_id(e.getKey());
-          DMRequest dmr = new DMRequest(source, e.getValue(), devmap, to_dc);
-          synchronized (dm.repQ) {
-            dm.repQ.add(dmr);
-            dm.repQ.notify();
-          }
-        }
-      }
-
-      // create triple-id map
-      Map<String, Long> timap = new HashMap<String, Long>();
-      for (Map.Entry<Long, SFile> e : rmap.entrySet()) {
-          SFileLocation sfl = e.getValue().getLocations().get(0);
-          timap.put(new SFLTriple(sfl.getNode_name(), sfl.getDevid(), sfl.getLocation()).toString(), e.getKey());
-      }
-
-      // add the entries to migrate set
-      MigrateEntry thisme = null;
-      Map<Long, MigrateEntry> id2me = new HashMap<Long, MigrateEntry>();
-      for (Partition part : parts) {
-        if (part.getSubpartitionsSize() > 0) {
-          for (Subpartition subpart : part.getSubpartitions()) {
-            if (subpart.getFilesSize() > 0) {
-              thisme = new MigrateEntry(to_dc, subpart, subpart.getFiles(), timap);
-              for (Long fid : subpart.getFiles()) {
-                id2me.put(fid, thisme);
-              }
-            }
-          }
-        } else if (part.getFilesSize() > 0) {
-          thisme = new MigrateEntry(to_dc, part, part.getFiles(), timap);
-          for (Long fid : part.getFiles()) {
-            id2me.put(fid, thisme);
-          }
-        }
-      }
-
-      // add to global rrmap: triple to migrateentry
-      if (thisme != null) {
-        for (Map.Entry<Long, SFile> e : rmap.entrySet()) {
-          SFileLocation sfl = e.getValue().getLocations().get(0);
-          synchronized (dm.rrmap) {
-            Long fid = timap.get(new SFLTriple(sfl.getNode_name(), sfl.getDevid(), sfl.getLocation()).toString());
-            dm.rrmap.put(new SFLTriple(sfl.getNode_name(), sfl.getDevid(), sfl.getLocation()).toString(), id2me.get(fid));
-          }
-        }
-      }
-
-      alter_table(dbName, tableName, tbl);
-      LOG.info("Update table properties to reflect the migration.");
-
-      return true;
     }
 
     // Migrate2 use NAS-WAN-NAS fashion migration,
@@ -5214,15 +4984,15 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return dm.getMP(node_name, devid);
     }
 
-    private boolean isTopDc(){
-      return hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_DATACENTER);
+    private boolean isTopAttribution(){
+      return hiveConf.getBoolVar(HiveConf.ConfVars.IS_TOP_ATTRIBUTION);
     }
 
     @Override
     public List<BusiTypeDatacenter> get_all_busi_type_datacenters() throws MetaException,
         TException {
 
-      if(isTopDc()){
+      if(isTopAttribution()){
         return this.getMS().get_all_busi_type_datacenters();
       }else{
         if(topdcli != null){
@@ -5238,7 +5008,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
         throws InvalidObjectException, MetaException, TException {
-      if(isTopDc()){
+      if(isTopAttribution()){
         getMS().append_busi_type_datacenter(busiTypeDatacenter);
       }else{
         if(topdcli != null){
@@ -5340,36 +5110,34 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     // Migrate2 use NAS-WAN-NAS fashion migration
     // In stage2, we create the metadata structures in remote dc, and update remote/local file relations
     public boolean migrate2_stage2(String dbName, String tableName, List<String> partNames,
-        String to_dc, String to_db, String to_nas_devid) throws MetaException, TException {
-      // prepare datacenter connection
+        String from_db, String to_db, String to_nas_devid) throws MetaException, TException {
+      // prepare attribution connection
       if (HMSHandler.topdcli == null) {
-        connect_to_top_dc(hiveConf);
+        connect_to_top_attribution(hiveConf);
         if (HMSHandler.topdcli == null) {
-          throw new MetaException("Top-level DC metastore is null, please check!");
+          throw new MetaException("Top-level attribution metastore is null, please check!");
         }
       }
-      if (hiveConf.getVar(ConfVars.LOCAL_DATACENTER) == null) {
-        throw new MetaException("Please set 'hive.datacenter.local' as local datacenter NAME.");
+      if (hiveConf.getVar(ConfVars.LOCAL_ATTRIBUTION) == null) {
+        throw new MetaException("Please set 'hive.attribution.local' as local datacenter NAME.");
       }
-      Datacenter rdc = HMSHandler.topdcli.get_center(to_dc);
-      Datacenter ldc = get_center(hiveConf.getVar(ConfVars.LOCAL_DATACENTER));
+      Database rdb = HMSHandler.topdcli.get_attribution(to_db);
+      Database ldb;
+      if (from_db == null) {
+        ldb = get_attribution(hiveConf.getVar(ConfVars.LOCAL_ATTRIBUTION));
+      } else {
+        ldb = get_attribution(from_db);
+      }
 
-      IMetaStoreClient rcli = new HiveMetaStoreClient(rdc.getLocationUri(),
+      IMetaStoreClient rcli = new HiveMetaStoreClient(rdb.getParameters().get("service.metastore.uri"),
             HiveConf.getIntVar(hiveConf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
             hiveConf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
             null);
 
       // prepare tbl
       Table tbl = get_table(dbName, tableName);
-      // use current DC name as the remote db name?
-      String rdb;
-      if (to_db == null || to_db.equals("")) {
-        rdb = "rdb_" + hiveConf.getVar(ConfVars.LOCAL_DATACENTER);
-      } else {
-        rdb = to_db;
-      }
       // change tbl's dbname to rdb
-      tbl.setDbName(rdb);
+      tbl.setDbName(rdb.getName());
 
       // set tbl properties
       Map<String, String> kvs = new HashMap<String, String>();
@@ -5393,23 +5161,22 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           }
         }
 
-        if (kvs.get("store.remote.dcs") == null) {
-          kvs.put("store.remote.dcs", to_dc + "." + rdb +
-              "," + hiveConf.getVar(ConfVars.LOCAL_DATACENTER) + "." + dbName);
+        if (kvs.get("store.remote.dbs") == null) {
+          kvs.put("store.remote.dbs", to_db + "," + ldb.getName());
         } else {
-          String olddcs = kvs.get("store.remote.dcs");
+          String olddcs = kvs.get("store.remote.dbs");
           String[] dcsarray = olddcs.split(",");
           boolean ign = false;
           for (int i = 0; i < dcsarray.length; i++) {
-            if (dcsarray[i].equals(to_dc + "." + rdb)) {
+            if (dcsarray[i].equals(to_db)) {
               ign = true;
               break;
             }
           }
           if (!ign) {
-            olddcs += "," + to_dc + "." + rdb;
+            olddcs += "," + to_db;
           }
-          kvs.put("store.remote.dcs", olddcs);
+          kvs.put("store.remote.dbs", olddcs);
         }
         tbl.setParameters(kvs);
       } else {
@@ -5421,7 +5188,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       List<Index> idxs = get_indexes(dbName, tableName, maxIndexNum);
       if (idxs != null && idxs.size() > 0) {
         for (Index i : idxs) {
-          i.setDbName(rdb);
+          i.setDbName(to_db);
           LOG.info("IDX -> " + i.getIndexName() + ", " + i.getParameters().toString());
         }
       }
@@ -5479,7 +5246,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       }
 
       // call remote metastore's migrate2_in to construct metadata
-      if (rcli.migrate2_in(tbl, parts, idxs, ldc.getName(), to_nas_devid, targetFileMap)) {
+      if (rcli.migrate2_in(tbl, parts, idxs, ldb.getName(), to_nas_devid, targetFileMap)) {
         // wow, it is success, change tbl's dbname to dbName
         tbl.setDbName(dbName);
         // set tbl properties
@@ -5493,23 +5260,22 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           } else {
             kvs.put("store.identify", "slave");
           }
-          if (kvs.get("store.remote.dcs") == null) {
-            kvs.put("store.remote.dcs", to_dc + "." + rdb +
-                "," + hiveConf.getVar(ConfVars.LOCAL_DATACENTER) + "." + dbName);
+          if (kvs.get("store.remote.dbs") == null) {
+            kvs.put("store.remote.dbs", to_db + "," + ldb.getName());
           } else {
-            String olddcs = kvs.get("store.remote.dcs");
+            String olddcs = kvs.get("store.remote.dbs");
             String[] dcsarray = olddcs.split(",");
             boolean ign = false;
             for (int i = 0; i < dcsarray.length; i++) {
-              if (dcsarray[i].equals(to_dc + "." + rdb)) {
+              if (dcsarray[i].equals(to_db)) {
                 ign = true;
                 break;
               }
             }
             if (!ign) {
-              olddcs += "," + to_dc + "." + rdb;
+              olddcs += "," + to_db;
             }
-            kvs.put("store.remote.dcs", olddcs);
+            kvs.put("store.remote.dbs", olddcs);
           }
           tbl.setParameters(kvs);
         } else {
@@ -5521,14 +5287,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         HashMap<String,Object> old_params= new HashMap<String,Object>();
         List<String> tmp = new ArrayList<String>();
         tmp.add("store.remote");
-        tmp.add("store.remote.dcs");
+        tmp.add("store.remote.dbs");
 
         old_params.put("tbl_param_keys", tmp);
         old_params.put("db_name", tbl.getDbName());
         old_params.put("table_name", tbl.getTableName());
         MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_TABLE_PARAM,-1l,-1l, null,-1l,old_params));
       } else {
-        LOG.info("Migrate2 through NAS-WAN-NAS failed at remote Datacenter " + to_dc);
+        LOG.info("Migrate2 through NAS-WAN-NAS failed at remote Attribuition " + to_db);
         return false;
       }
       rcli.close();
@@ -5580,31 +5346,34 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public boolean migrate2_in(Table tbl, List<Partition> parts, List<Index> idxs, String from_dc,
+    public boolean migrate2_in(Table tbl, List<Partition> parts, List<Index> idxs, String from_db,
         String to_nas_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException {
       LOG.info("server parts2 " + parts.get(0).getSubpartitions().get(0).getPartitionName() + ", " + parts.get(0).getSubpartitions().get(0).getFiles());
 
       // try to create the database, if it doesn't exist
-      Datacenter ldc = null;
-
-      if (hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER) == null) {
-        throw new MetaException("Please set 'hive.datacenter.local' as the local DC name");
-      }
-      try {
-        ldc = getMS().getDatacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER));
-      } catch (NoSuchObjectException e) {
-        ldc = new Datacenter(hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER), null, HMSHandler.msUri == null ? "DEFAULT_URI" : HMSHandler.msUri, null);
-        getMS().createDatacenter(ldc);
-      }
-
       try {
         getMS().getDatabase(tbl.getDbName());
       } catch (NoSuchObjectException e) {
-        Database db = new Database(tbl.getDbName(), DEFAULT_DATABASE_COMMENT,
-                wh.getDefaultDatabasePath(tbl.getDbName()).toString(), null);
-        db.setDatacenter(ldc);
-        getMS().createDatabase(db);
-        LOG.info("Create database " + tbl.getDbName() + " done.");
+        // get the db from top attribution
+        Database db = null;
+
+        if (isTopAttribution()) {
+          throw new MetaException("Top Attribution '" + HiveConf.ConfVars.TOP_ATTRIBUTION + "' rejects any data migrations.");
+        } else {
+          if (HMSHandler.topdcli == null) {
+            // connect firstly
+            connect_to_top_attribution(hiveConf);
+            if (HMSHandler.topdcli == null) {
+              throw new MetaException("Top-level attribution metastore is null, please check!");
+            }
+          }
+          db = HMSHandler.topdcli.get_attribution(tbl.getDbName());
+        }
+
+        if (db != null) {
+          getMS().createDatabase(db);
+        }
+        LOG.info("Create database " + tbl.getDbName() + " done locally.");
       }
       // try to create the table, if it doesn't exist
       try {
@@ -5753,7 +5522,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         close_file(entry.getValue());
       }
 
-      LOG.info("OK, we will migrate DC " + from_dc + " DB " + tbl.getDbName() + " Table " +
+      LOG.info("OK, we will migrate DC " + from_db + " DB " + tbl.getDbName() + " Table " +
           tbl.getTableName() + "'s " + parts.size() + " Partition(s) w/ " + fileMap.size() +
           " files to local DC.");
 
@@ -6090,6 +5859,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return null;
     }
 
+    @Override
+    public void update_attribution(Database db) throws NoSuchObjectException,
+        InvalidOperationException, MetaException, TException {
+      getMS().alterDatabase(db.getName(), db);
+    }
+
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {
@@ -6236,25 +6011,27 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       // Catch the exception, log it and rethrow it.
       HMSHandler.LOG
           .error("Metastore Thrift Server threw an exception...", t);
+      System.exit(-1);
       throw t;
     }
+    HMSHandler.LOG.error("HERE ->>>>>>>>>>>>>>>>>");
   }
 
-  static void connect_to_top_dc(HiveConf conf) throws MetaException {
-    boolean is_top_dc = conf.getBoolVar(ConfVars.IS_TOP_DATACENTER);
-    if (!is_top_dc) {
-      LOG.info("Begin connecting to Top-level Datacenter Metastore ...");
-      String top_dc_uri = conf.getVar(ConfVars.TOP_DATACENTER);
-      if (top_dc_uri == null) {
-        throw new MetaException("Please set 'hive.datacenter.top' as top-level metastore URI." );
+  static void connect_to_top_attribution(HiveConf conf) throws MetaException {
+    boolean is_top_attribution = conf.getBoolVar(ConfVars.IS_TOP_ATTRIBUTION);
+    if (!is_top_attribution) {
+      LOG.info("Begin connecting to Top-level Attribution Metastore ...");
+      String top_attribution_uri = conf.getVar(ConfVars.TOP_ATTRIBUTION);
+      if (top_attribution_uri == null) {
+        throw new MetaException("Please set 'hive.attribution.top' as top-level metastore URI." );
       }
       try {
-      HMSHandler.topdcli = new HiveMetaStoreClient(top_dc_uri,
+      HMSHandler.topdcli = new HiveMetaStoreClient(top_attribution_uri,
           HiveConf.getIntVar(conf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
           conf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
           null);
       } catch (MetaException me) {
-        LOG.info("Connect to top-level Datacenter failed!");
+        LOG.info("Connect to top-level Attribution failed!");
       }
     }
   }
@@ -6283,8 +6060,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
   public static void startMetaStore(int port, HadoopThriftAuthBridge bridge,
       HiveConf conf) throws Throwable {
     try {
-      // init connection to top-level datacenter if it is not top-level dc
-      connect_to_top_dc(conf);
+      // init connection to top-level attribution if it is not top-level attribution
+      connect_to_top_attribution(conf);
 
       // generate this msuri
       HMSHandler.msUri = "thrift://" + InetAddress.getLocalHost().getHostName() + ":" + port;

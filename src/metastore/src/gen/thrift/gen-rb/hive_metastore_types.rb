@@ -360,34 +360,6 @@ class NodeGroup
   ::Thrift::Struct.generate_accessors self
 end
 
-class Datacenter
-  include ::Thrift::Struct, ::Thrift::Struct_Union
-  NAME = 1
-  DESCRIPTION = 2
-  LOCATIONURI = 3
-  PARAMETERS = 4
-  PRIVILEGES = 5
-  NODES = 6
-  NODEGROUPS = 7
-
-  FIELDS = {
-    NAME => {:type => ::Thrift::Types::STRING, :name => 'name'},
-    DESCRIPTION => {:type => ::Thrift::Types::STRING, :name => 'description'},
-    LOCATIONURI => {:type => ::Thrift::Types::STRING, :name => 'locationUri'},
-    PARAMETERS => {:type => ::Thrift::Types::MAP, :name => 'parameters', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}},
-    PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true},
-    NODES => {:type => ::Thrift::Types::LIST, :name => 'nodes', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Node}, :optional => true},
-    NODEGROUPS => {:type => ::Thrift::Types::LIST, :name => 'nodeGroups', :element => {:type => ::Thrift::Types::STRUCT, :class => ::NodeGroup}, :optional => true}
-  }
-
-  def struct_fields; FIELDS; end
-
-  def validate
-  end
-
-  ::Thrift::Struct.generate_accessors self
-end
-
 class Database
   include ::Thrift::Struct, ::Thrift::Struct_Union
   NAME = 1
@@ -395,15 +367,13 @@ class Database
   LOCATIONURI = 3
   PARAMETERS = 4
   PRIVILEGES = 5
-  DATACENTER = 6
 
   FIELDS = {
     NAME => {:type => ::Thrift::Types::STRING, :name => 'name'},
     DESCRIPTION => {:type => ::Thrift::Types::STRING, :name => 'description'},
     LOCATIONURI => {:type => ::Thrift::Types::STRING, :name => 'locationUri'},
     PARAMETERS => {:type => ::Thrift::Types::MAP, :name => 'parameters', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}},
-    PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true},
-    DATACENTER => {:type => ::Thrift::Types::STRUCT, :name => 'datacenter', :class => ::Datacenter, :optional => true}
+    PRIVILEGES => {:type => ::Thrift::Types::STRUCT, :name => 'privileges', :class => ::PrincipalPrivilegeSet, :optional => true}
   }
 
   def struct_fields; FIELDS; end
@@ -691,13 +661,11 @@ end
 class BusiTypeDatacenter
   include ::Thrift::Struct, ::Thrift::Struct_Union
   BUSITYPE = 1
-  DC = 2
-  DB_NAME = 3
+  DB = 2
 
   FIELDS = {
     BUSITYPE => {:type => ::Thrift::Types::STRING, :name => 'busiType'},
-    DC => {:type => ::Thrift::Types::STRUCT, :name => 'dc', :class => ::Datacenter},
-    DB_NAME => {:type => ::Thrift::Types::STRING, :name => 'db_name'}
+    DB => {:type => ::Thrift::Types::STRUCT, :name => 'db', :class => ::Database}
   }
 
   def struct_fields; FIELDS; end

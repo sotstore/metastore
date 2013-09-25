@@ -91,14 +91,12 @@ import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
 import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DDLWork;
 import org.apache.hadoop.hive.ql.plan.DescDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.DescFunctionDesc;
 import org.apache.hadoop.hive.ql.plan.DescTableDesc;
 import org.apache.hadoop.hive.ql.plan.DropDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.DropDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.DropEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.DropGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
@@ -159,7 +157,6 @@ import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
 import org.apache.hadoop.hive.ql.plan.StatsWork;
 import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.SwitchDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.TableDesc;
 import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
 import org.apache.hadoop.hive.ql.plan.UserDDLDesc;
@@ -454,15 +451,6 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     //added by liulichao for authentification and authorization, end.
     // added by zjw for additional DDL
 
-    case HiveParser.TOK_CREATEDATACENTER:
-      analyzeCreateDatacenter(ast);
-      break;
-    case HiveParser.TOK_SWITCHDATACENTER:
-      analyzeSwitchDatacenter(ast);
-      break;
-    case HiveParser.TOK_DROPDATACENTER:
-      analyzeDropDatacenter(ast);
-      break;
     case HiveParser.TOK_ADDNODE:
       analyzeAddNode(ast);
       break;
@@ -530,10 +518,6 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     case HiveParser.TOK_SHOWPARTITIONKEYS:
       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
       analyzeShowPartitionKeys(ast);
-      break;
-    case HiveParser.TOK_SHOWDATACENTERS:
-      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
-      analyzeShowDatacenters(ast);
       break;
     case HiveParser.TOK_SHOWBUSITYPES:
       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
@@ -1326,66 +1310,6 @@ private void analyzeCreateUser(ASTNode ast) {
       throw new SemanticException(ErrorMsg.INVALID_INDEX.getMsg(indexName));
     }
     return idx;
-  }
-
-  private void analyzeSwitchDatacenter(ASTNode ast) {
-
-    String dcName = unescapeIdentifier(ast.getChild(0).getText());
-    SwitchDatacenterDesc switchDatacenterDesc = new SwitchDatacenterDesc(dcName);
-    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
-        switchDatacenterDesc), conf));
-  }
-
-  private void analyzeCreateDatacenter(ASTNode ast) throws SemanticException {
-    String dbName = unescapeIdentifier(ast.getChild(0).getText());
-    boolean ifNotExists = false;
-    String dcComment = null;
-    String dcLocation = null;
-    Map<String, String> dcProps = null;
-
-    for (int i = 1; i < ast.getChildCount(); i++) {
-      ASTNode childNode = (ASTNode) ast.getChild(i);
-      switch (childNode.getToken().getType()) {
-      case HiveParser.TOK_IFNOTEXISTS:
-        ifNotExists = true;
-        break;
-      case HiveParser.TOK_DATACENTERCOMMENT:
-        dcComment = unescapeSQLString(childNode.getChild(0).getText());
-        break;
-      case HiveParser.TOK_DATACENTERPROPERTIES:
-        dcProps = DDLSemanticAnalyzer.getProps((ASTNode) childNode.getChild(0));
-        break;
-      default:
-        throw new SemanticException("Unrecognized token in CREATE DATACENTER statement");
-      }
-    }
-
-    CreateDatacenterDesc createDatacenterDesc =
-        new CreateDatacenterDesc(dbName, dcComment, dcLocation, ifNotExists);
-    if (dcProps != null) {
-      createDatacenterDesc.setDatacenterProperties(dcProps);
-    }
-
-    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
-        createDatacenterDesc), conf));
-
-  }
-
-  private void analyzeDropDatacenter(ASTNode ast) throws SemanticException {
-    String dbName = unescapeIdentifier(ast.getChild(0).getText());
-    boolean ifExists = false;
-    boolean ifCascade = false;
-
-    if (null != ast.getFirstChildWithType(HiveParser.TOK_IFEXISTS)) {
-      ifExists = true;
-    }
-
-    if (null != ast.getFirstChildWithType(HiveParser.TOK_CASCADE)) {
-      ifCascade = true;
-    }
-
-    DropDatacenterDesc dropDatacenterDesc = new DropDatacenterDesc(dbName, ifExists, ifCascade);
-    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), dropDatacenterDesc), conf));
   }
 
   private void analyzeGrantRevokeRole(boolean grant, ASTNode ast) {

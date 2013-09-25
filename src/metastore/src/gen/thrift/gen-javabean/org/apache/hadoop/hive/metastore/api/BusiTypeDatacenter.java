@@ -35,8 +35,7 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("BusiTypeDatacenter");
 
   private static final org.apache.thrift.protocol.TField BUSI_TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("busiType", org.apache.thrift.protocol.TType.STRING, (short)1);
-  private static final org.apache.thrift.protocol.TField DC_FIELD_DESC = new org.apache.thrift.protocol.TField("dc", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-  private static final org.apache.thrift.protocol.TField DB_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("db_name", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField DB_FIELD_DESC = new org.apache.thrift.protocol.TField("db", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -45,14 +44,12 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
   }
 
   private String busiType; // required
-  private Datacenter dc; // required
-  private String db_name; // required
+  private Database db; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     BUSI_TYPE((short)1, "busiType"),
-    DC((short)2, "dc"),
-    DB_NAME((short)3, "db_name");
+    DB((short)2, "db");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -69,10 +66,8 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
       switch(fieldId) {
         case 1: // BUSI_TYPE
           return BUSI_TYPE;
-        case 2: // DC
-          return DC;
-        case 3: // DB_NAME
-          return DB_NAME;
+        case 2: // DB
+          return DB;
         default:
           return null;
       }
@@ -118,10 +113,8 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.BUSI_TYPE, new org.apache.thrift.meta_data.FieldMetaData("busiType", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.DC, new org.apache.thrift.meta_data.FieldMetaData("dc", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Datacenter.class)));
-    tmpMap.put(_Fields.DB_NAME, new org.apache.thrift.meta_data.FieldMetaData("db_name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.DB, new org.apache.thrift.meta_data.FieldMetaData("db", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Database.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(BusiTypeDatacenter.class, metaDataMap);
   }
@@ -131,13 +124,11 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
 
   public BusiTypeDatacenter(
     String busiType,
-    Datacenter dc,
-    String db_name)
+    Database db)
   {
     this();
     this.busiType = busiType;
-    this.dc = dc;
-    this.db_name = db_name;
+    this.db = db;
   }
 
   /**
@@ -147,11 +138,8 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
     if (other.isSetBusiType()) {
       this.busiType = other.busiType;
     }
-    if (other.isSetDc()) {
-      this.dc = new Datacenter(other.dc);
-    }
-    if (other.isSetDb_name()) {
-      this.db_name = other.db_name;
+    if (other.isSetDb()) {
+      this.db = new Database(other.db);
     }
   }
 
@@ -162,8 +150,7 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
   @Override
   public void clear() {
     this.busiType = null;
-    this.dc = null;
-    this.db_name = null;
+    this.db = null;
   }
 
   public String getBusiType() {
@@ -189,49 +176,26 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
     }
   }
 
-  public Datacenter getDc() {
-    return this.dc;
+  public Database getDb() {
+    return this.db;
   }
 
-  public void setDc(Datacenter dc) {
-    this.dc = dc;
+  public void setDb(Database db) {
+    this.db = db;
   }
 
-  public void unsetDc() {
-    this.dc = null;
+  public void unsetDb() {
+    this.db = null;
   }
 
-  /** Returns true if field dc is set (has been assigned a value) and false otherwise */
-  public boolean isSetDc() {
-    return this.dc != null;
+  /** Returns true if field db is set (has been assigned a value) and false otherwise */
+  public boolean isSetDb() {
+    return this.db != null;
   }
 
-  public void setDcIsSet(boolean value) {
+  public void setDbIsSet(boolean value) {
     if (!value) {
-      this.dc = null;
-    }
-  }
-
-  public String getDb_name() {
-    return this.db_name;
-  }
-
-  public void setDb_name(String db_name) {
-    this.db_name = db_name;
-  }
-
-  public void unsetDb_name() {
-    this.db_name = null;
-  }
-
-  /** Returns true if field db_name is set (has been assigned a value) and false otherwise */
-  public boolean isSetDb_name() {
-    return this.db_name != null;
-  }
-
-  public void setDb_nameIsSet(boolean value) {
-    if (!value) {
-      this.db_name = null;
+      this.db = null;
     }
   }
 
@@ -245,19 +209,11 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
       }
       break;
 
-    case DC:
+    case DB:
       if (value == null) {
-        unsetDc();
+        unsetDb();
       } else {
-        setDc((Datacenter)value);
-      }
-      break;
-
-    case DB_NAME:
-      if (value == null) {
-        unsetDb_name();
-      } else {
-        setDb_name((String)value);
+        setDb((Database)value);
       }
       break;
 
@@ -269,11 +225,8 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
     case BUSI_TYPE:
       return getBusiType();
 
-    case DC:
-      return getDc();
-
-    case DB_NAME:
-      return getDb_name();
+    case DB:
+      return getDb();
 
     }
     throw new IllegalStateException();
@@ -288,10 +241,8 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
     switch (field) {
     case BUSI_TYPE:
       return isSetBusiType();
-    case DC:
-      return isSetDc();
-    case DB_NAME:
-      return isSetDb_name();
+    case DB:
+      return isSetDb();
     }
     throw new IllegalStateException();
   }
@@ -318,21 +269,12 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
         return false;
     }
 
-    boolean this_present_dc = true && this.isSetDc();
-    boolean that_present_dc = true && that.isSetDc();
-    if (this_present_dc || that_present_dc) {
-      if (!(this_present_dc && that_present_dc))
+    boolean this_present_db = true && this.isSetDb();
+    boolean that_present_db = true && that.isSetDb();
+    if (this_present_db || that_present_db) {
+      if (!(this_present_db && that_present_db))
         return false;
-      if (!this.dc.equals(that.dc))
-        return false;
-    }
-
-    boolean this_present_db_name = true && this.isSetDb_name();
-    boolean that_present_db_name = true && that.isSetDb_name();
-    if (this_present_db_name || that_present_db_name) {
-      if (!(this_present_db_name && that_present_db_name))
-        return false;
-      if (!this.db_name.equals(that.db_name))
+      if (!this.db.equals(that.db))
         return false;
     }
 
@@ -348,15 +290,10 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
     if (present_busiType)
       builder.append(busiType);
 
-    boolean present_dc = true && (isSetDc());
-    builder.append(present_dc);
-    if (present_dc)
-      builder.append(dc);
-
-    boolean present_db_name = true && (isSetDb_name());
-    builder.append(present_db_name);
-    if (present_db_name)
-      builder.append(db_name);
+    boolean present_db = true && (isSetDb());
+    builder.append(present_db);
+    if (present_db)
+      builder.append(db);
 
     return builder.toHashCode();
   }
@@ -379,22 +316,12 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetDc()).compareTo(typedOther.isSetDc());
+    lastComparison = Boolean.valueOf(isSetDb()).compareTo(typedOther.isSetDb());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetDc()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.dc, typedOther.dc);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetDb_name()).compareTo(typedOther.isSetDb_name());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetDb_name()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.db_name, typedOther.db_name);
+    if (isSetDb()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.db, typedOther.db);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -427,19 +354,11 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("dc:");
-    if (this.dc == null) {
+    sb.append("db:");
+    if (this.db == null) {
       sb.append("null");
     } else {
-      sb.append(this.dc);
-    }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("db_name:");
-    if (this.db_name == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.db_name);
+      sb.append(this.db);
     }
     first = false;
     sb.append(")");
@@ -449,8 +368,8 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
-    if (dc != null) {
-      dc.validate();
+    if (db != null) {
+      db.validate();
     }
   }
 
@@ -496,19 +415,11 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // DC
+          case 2: // DB
             if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-              struct.dc = new Datacenter();
-              struct.dc.read(iprot);
-              struct.setDcIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 3: // DB_NAME
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.db_name = iprot.readString();
-              struct.setDb_nameIsSet(true);
+              struct.db = new Database();
+              struct.db.read(iprot);
+              struct.setDbIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -531,14 +442,9 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
         oprot.writeString(struct.busiType);
         oprot.writeFieldEnd();
       }
-      if (struct.dc != null) {
-        oprot.writeFieldBegin(DC_FIELD_DESC);
-        struct.dc.write(oprot);
-        oprot.writeFieldEnd();
-      }
-      if (struct.db_name != null) {
-        oprot.writeFieldBegin(DB_NAME_FIELD_DESC);
-        oprot.writeString(struct.db_name);
+      if (struct.db != null) {
+        oprot.writeFieldBegin(DB_FIELD_DESC);
+        struct.db.write(oprot);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -562,40 +468,30 @@ public class BusiTypeDatacenter implements org.apache.thrift.TBase<BusiTypeDatac
       if (struct.isSetBusiType()) {
         optionals.set(0);
       }
-      if (struct.isSetDc()) {
+      if (struct.isSetDb()) {
         optionals.set(1);
       }
-      if (struct.isSetDb_name()) {
-        optionals.set(2);
-      }
-      oprot.writeBitSet(optionals, 3);
+      oprot.writeBitSet(optionals, 2);
       if (struct.isSetBusiType()) {
         oprot.writeString(struct.busiType);
       }
-      if (struct.isSetDc()) {
-        struct.dc.write(oprot);
-      }
-      if (struct.isSetDb_name()) {
-        oprot.writeString(struct.db_name);
+      if (struct.isSetDb()) {
+        struct.db.write(oprot);
       }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, BusiTypeDatacenter struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
         struct.busiType = iprot.readString();
         struct.setBusiTypeIsSet(true);
       }
       if (incoming.get(1)) {
-        struct.dc = new Datacenter();
-        struct.dc.read(iprot);
-        struct.setDcIsSet(true);
-      }
-      if (incoming.get(2)) {
-        struct.db_name = iprot.readString();
-        struct.setDb_nameIsSet(true);
+        struct.db = new Database();
+        struct.db.read(iprot);
+        struct.setDbIsSet(true);
       }
     }
   }

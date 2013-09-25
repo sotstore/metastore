@@ -302,16 +302,11 @@ TOK_VALUES_LESS;
 TOK_VALUES_GREATER;
 TOK_VALUES;
 
-TOK_CREATEDATACENTER;
-TOK_DATACENTERPROPERTIES;
-TOK_DCPROPLIST;
-TOK_SWITCHDATACENTER;
-TOK_DROPDATACENTER;
-TOK_DATACENTERCOMMENT;
 TOK_ADDNODE;
 
 TOK_DROPNODE;
 TOK_NODERPROPERTIES;
+TOK_NODEPROPLIST;
 TOK_MODIFYNODE;
 TOK_ALTERTABLE_DROP_PARTITION;
 TOK_ALTERTABLE_DROP_SUBPARTITION;
@@ -332,7 +327,6 @@ TOK_ALTERINDEX_MODIFY_SUBPARTINDEX_DROP_FILE;
 TOK_SHOWSUBPARTITIONS;
 TOK_HETER;
 TOK_SHOWPARTITIONKEYS;
-TOK_SHOWDATACENTERS;
 TOK_SHOWBUSITYPES;
 TOK_BUSITYPECOMMENT;
 TOK_CREATEBUSITYPE;
@@ -420,9 +414,6 @@ ddlStatement
 @init { msgs.push("ddl statement"); }
 @after { msgs.pop(); }
     : createDatabaseStatement
-    | createDatacenterStatement
-    | switchDatacenterStatement
-    | dropDatacenterStatement
     | switchDatabaseStatement
     | dropDatabaseStatement
     | createTableStatement
@@ -588,66 +579,6 @@ orReplace
     -> ^(TOK_ORREPLACE)
     ;
     
-//start of datacenter
-
-createDatacenterStatement
-@init { msgs.push("create datacenter statement"); }
-@after { msgs.pop(); }
-    : KW_CREATE (KW_DATACENTER|KW_SCHEMA)
-        ifNotExists?
-        name=Identifier
-        datacenterComment?
-        dcLocation?
-        (KW_WITH KW_DCPROPERTIES dcprops=dcProperties)?
-    -> ^(TOK_CREATEDATACENTER $name ifNotExists? dcLocation? datacenterComment? $dcprops?)
-    ;
-
-dcLocation
-@init { msgs.push("datacenter location specification"); }
-@after { msgs.pop(); }
-    :
-      KW_LOCATION locn=StringLiteral -> ^(TOK_DATABASELOCATION $locn)
-    ;
-
-dcProperties
-@init { msgs.push("dcproperties"); }
-@after { msgs.pop(); }
-    :
-      LPAREN dcPropertiesList RPAREN -> ^(TOK_DATACENTERPROPERTIES dcPropertiesList)
-    ;
-
-dcPropertiesList
-@init { msgs.push("databaCENTER properties list"); }
-@after { msgs.pop(); }
-    :
-      keyValueProperty (COMMA keyValueProperty)* -> ^(TOK_DCPROPLIST keyValueProperty+)
-    ;
-
-
-switchDatacenterStatement
-@init { msgs.push("switch datacenter statement"); }
-@after { msgs.pop(); }
-    : KW_USE Identifier
-    -> ^(TOK_SWITCHDATACENTER Identifier)
-    ;
-
-dropDatacenterStatement
-@init { msgs.push("drop datacenter statement"); }
-@after { msgs.pop(); }
-    : KW_DROP (KW_DATACENTER|KW_SCHEMA) ifExists? Identifier restrictOrCascade?
-    -> ^(TOK_DROPDATACENTER Identifier ifExists? restrictOrCascade?)
-    ;
-
-datacenterComment
-@init { msgs.push("datacenter's comment"); }
-@after { msgs.pop(); }
-    : KW_COMMENT comment=StringLiteral
-    -> ^(TOK_DATACENTERCOMMENT $comment)
-    ;
-    
-//end of datacenter
-
-
     
 createBusitypeStatement
 @init { msgs.push("create busiType statement"); }
@@ -687,7 +618,7 @@ nodePropertiesList
 @init { msgs.push("node properties list"); }
 @after { msgs.pop(); }
     :
-      keyValueProperty (COMMA keyValueProperty)* -> ^(TOK_DCPROPLIST keyValueProperty+)
+      keyValueProperty (COMMA keyValueProperty)* -> ^(TOK_NODEPROPLIST keyValueProperty+)
     ;
 
 dropNodeStatement
@@ -1334,7 +1265,6 @@ showStatement
 @init { msgs.push("show statement"); }
 @after { msgs.pop(); }
     : KW_SHOW (KW_DATABASES|KW_SCHEMAS) (dc_name=Identifier )?  (KW_LIKE  showStmtIdentifier)? -> ^(TOK_SHOWDATABASES $dc_name? (KW_LIKE showStmtIdentifier)?)
-    | KW_SHOW KW_DATACENTERS showStmtIdentifier?  -> ^(TOK_SHOWDATACENTERS showStmtIdentifier?)
     | KW_SHOW KW_BUSITYPES  -> ^(TOK_SHOWBUSITYPES )
     | KW_SHOW KW_NODES (dc_name=Identifier )? -> ^(TOK_SHOWNODES $dc_name?)
     | KW_SHOW KW_FILES (part_name=StringLiteral (KW_FROM|KW_IN) tabname=tableName)? -> ^(TOK_SHOWFILES ($part_name $tabname)?)
@@ -3161,8 +3091,6 @@ KW_THAN:'THAN';
 KW_DW:'DATAWAREHOUSE';
 KW_DIRECT:'DIRECT';
 
-KW_DATACENTER:'DATACENTER';
-KW_DCPROPERTIES:'DCPROPERTIES';
 KW_NODE:'NODE';
 KW_NODEPROPERTIES:'NODEPROPERTIES';
 KW_MODIFY:'MODIFY';
@@ -3170,7 +3098,6 @@ KW_FILE:'FILE';
 KW_SUBPARTITIONS:'SUBPARTITIONS';
 KW_HETER: 'HETER';
 KW_PARTITION_KEYS: 'PARTITION_KEYS';
-KW_DATACENTERS:'DATACENTERS';
 KW_BUSITYPES:'BUSITYPES';
 KW_BUSITYPE:'BUSITYPE';
 KW_NODES:'NODES';

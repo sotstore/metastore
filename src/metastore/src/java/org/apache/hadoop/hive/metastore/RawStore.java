@@ -29,7 +29,6 @@ import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
@@ -542,13 +541,7 @@ public interface RawStore extends Configurable {
 
   public List<SFileRef> getPartitionIndexFiles(Index index, Partition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
 
-  public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException;
-
-  public void createDatacenter(Datacenter dc) throws InvalidObjectException, MetaException;
-
   public boolean add_datawarehouse_sql(int dwNum, String sql)throws InvalidObjectException, MetaException;
-
-  public void setThisDC(String thisDC);
 
   public abstract List<SFileRef> getSubpartitionIndexFiles(Index index, Subpartition subpart) throws InvalidObjectException, MetaException ;
 
@@ -558,12 +551,6 @@ public interface RawStore extends Configurable {
   public abstract List<BusiTypeColumn> getAllBusiTypeCols()throws MetaException;
 
   public Partition getParentPartition(String dbName, String tableName, String subpart_name) throws NoSuchObjectException, MetaException;
-
-  public List<Datacenter> getAllDatacenters() throws MetaException;
-
-  public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException;
-
-  public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException;
 
   public abstract List<BusiTypeDatacenter> get_all_busi_type_datacenters()throws  MetaException, TException ;
 

@@ -28,7 +28,6 @@ import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -1105,21 +1104,18 @@ public interface IMetaStoreClient {
 
   public List<String> getSubPartitions(String dbName, String tabName, String partName) throws MetaException, TException;
 
-  public Datacenter get_local_center() throws MetaException, TException;
+  public Database get_local_attribution() throws MetaException, TException;
 
-  public List<Datacenter> get_all_centers() throws MetaException, TException;
+  public List<Database> get_all_attributions() throws MetaException, TException;
 
-  public Datacenter get_center(String name) throws NoSuchObjectException, MetaException,
+  public Database get_attribution(String name) throws NoSuchObjectException, MetaException,
         TException;
 
-  public void create_datacenter(Datacenter datacenter) throws AlreadyExistsException,
+  public void create_attribution(Database db) throws AlreadyExistsException,
         InvalidObjectException, MetaException, TException;
 
-  public void update_center(Datacenter datacenter) throws NoSuchObjectException,
+  public void update_attribution(Database db) throws NoSuchObjectException,
         InvalidOperationException, MetaException, TException;
-
-  public boolean migrate_out(String dbName, String tableName, List<String> partNames, String to_dc)
-        throws MetaException, TException;
 
   public List<SFileLocation> migrate2_stage1(String dbName, String tableName, List<String> partNames, String to_dc)
       throws MetaException, TException;
@@ -1132,8 +1128,6 @@ public interface IMetaStoreClient {
 
   public String getMP(String node_name, String devid) throws MetaException, TException;
 
-  public Map<Long, SFile> migrate_in(Table tbl, List<Partition> parts, String from_dc) throws MetaException, TException;
-
   public List<BusiTypeColumn> get_all_busi_type_cols() throws MetaException, TException;
 
   void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
@@ -1141,7 +1135,7 @@ public interface IMetaStoreClient {
 
   List<BusiTypeDatacenter> get_all_busi_type_datacenters() throws MetaException, TException;
 
-  public IMetaStoreClient getRemoteDcMSC(String dc_name) throws MetaException, TException;
+  public IMetaStoreClient getRemoteDbMSC(String db_name) throws MetaException, TException;
 
   public List<Busitype> showBusitypes()throws MetaException, TException;
 

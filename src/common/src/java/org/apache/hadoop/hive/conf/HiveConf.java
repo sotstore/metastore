@@ -687,9 +687,9 @@ public class HiveConf extends Configuration {
     HIVE_USERPWD("hive.hive.userpassword", "111111"),
 
     // Datacenter
-    IS_TOP_DATACENTER("hive.datacenter.is_top", false),
-    LOCAL_DATACENTER("hive.datacenter.local", null),
-    TOP_DATACENTER("hive.datacenter.top", null),
+    IS_TOP_ATTRIBUTION("hive.attribution.is_top", false),
+    LOCAL_ATTRIBUTION("hive.attribution.local", null),
+    TOP_ATTRIBUTION("hive.attribution.top", null),
 
     // Disk Manager
     DISKMANAGERLISTENPORT("hive.diskmanager.listen.port", 20202),

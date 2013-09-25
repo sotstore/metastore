@@ -70,7 +70,6 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.DoubleColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
@@ -117,7 +116,6 @@ import org.apache.hadoop.hive.metastore.model.MBusitype;
 import org.apache.hadoop.hive.metastore.model.MColumnDescriptor;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MDatabase;
-import org.apache.hadoop.hive.metastore.model.MDatacenter;
 import org.apache.hadoop.hive.metastore.model.MDevice;
 import org.apache.hadoop.hive.metastore.model.MDirectDDL;
 import org.apache.hadoop.hive.metastore.model.MEquipRoom;
@@ -169,7 +167,6 @@ import com.taobao.metamorphosis.exception.MetaClientException;
  * filestore.
  */
 public class ObjectStore implements RawStore, Configurable {
-  private static String g_thisDC = null;
   private static final Long g_fid_syncer = new Long(0);
   private static long g_fid = 0;
   private static boolean g_fid_inited = false;
@@ -181,10 +178,6 @@ public class ObjectStore implements RawStore, Configurable {
 
   private static enum TXN_STATUS {
     NO_STATE, OPEN, COMMITED, ROLLBACK
-  }
-
-  public void setThisDC(String thisDC) {
-    g_thisDC = thisDC;
   }
 
   private void restoreFID() {
@@ -231,7 +224,6 @@ public class ObjectStore implements RawStore, Configurable {
     map.put("files", MFile.class);
     map.put("nodes", MNode.class);
     map.put("direct_ddl", MDirectDDL.class);
-    map.put("datacenter", MDatacenter.class);
     map.put("busi_column", MBusiTypeColumn.class);
     map.put("index", MIndex.class);
     map.put("partindex", MPartitionIndex.class);
@@ -491,15 +483,7 @@ public class ObjectStore implements RawStore, Configurable {
     mdb.setLocationUri(db.getLocationUri());
     mdb.setDescription(db.getDescription());
     mdb.setParameters(db.getParameters());
-    try {
-      if(db.getDatacenter()!= null){
-        mdb.setDatacenter(getMDatacenter(db.getDatacenter().getName()));
-      }else{
-        mdb.setDatacenter(getMDatacenter(this.g_thisDC));
-      }
-    } catch (NoSuchObjectException e) {
-      throw new InvalidObjectException("This datacenter " + db.getDatacenter().getName() + " is invalid.");
-    }
+
     try {
       openTransaction();
       pm.makePersistent(mdb);
@@ -569,7 +553,6 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       mdb = getMDatabase(name);
-      pm.retrieve(mdb.getDatacenter());
       commited = commitTransaction();
     } finally {
       if (!commited) {
@@ -577,11 +560,6 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     Database db = new Database();
-    try{
-      db.setDatacenter(convertToDatacenter(mdb.getDatacenter()));
-    }catch(MetaException e){
-      throw new NoSuchObjectException(e.getMessage());
-    }
     db.setName(mdb.getName());
     db.setDescription(mdb.getDescription());
     db.setLocationUri(mdb.getLocationUri());
@@ -640,14 +618,12 @@ public class ObjectStore implements RawStore, Configurable {
         }
         pm.deletePersistent(db);
       }
-      String dc_name = db.getName();
-      String db_name = db.getDatacenter().getName();
+      String db_name = db.getName();
       long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(db).toString()));
 
       success = commitTransaction();
       HashMap<String,Object> old_params= new HashMap<String,Object>();
 
-      old_params.put("datacenter_name", dc_name);
       old_params.put("db_name", db_name);
       MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DROP_DATABESE,db_id,-1, pm, db,old_params));
     } finally {
@@ -1277,21 +1253,6 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
-  public void createDatacenter(Datacenter dc) throws InvalidObjectException, MetaException {
-    boolean commited = false;
-
-    try {
-      openTransaction();
-      MDatacenter mdc = convertToMDatacenter(dc);
-      pm.makePersistent(mdc);
-      commited = commitTransaction();
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      }
-    }
-  }
-
   public void createFileLocaiton(SFileLocation fl) throws InvalidObjectException, MetaException {
     boolean commited = false;
 
@@ -1691,35 +1652,6 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
-  public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException {
-    boolean success = false;
-
-    MDatacenter mdc = getMDatacenter(dc.getName());
-    if (mdc != null) {
-      mdc.setDescription(dc.getDescription());
-      mdc.setLocationUri(dc.getLocationUri());
-      mdc.setParameters(dc.getParameters());
-    } else {
-      return success;
-    }
-
-    boolean commited = false;
-
-    try {
-      openTransaction();
-      pm.makePersistent(mdc);
-      commited = commitTransaction();
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      } else {
-        success = true;
-      }
-    }
-
-    return success;
-  }
-
   public long countNode() throws MetaException {
     boolean commited = false;
     long r = 0;
@@ -1780,47 +1712,6 @@ public class ObjectStore implements RawStore, Configurable {
     return ln;
   }
 
-  public List<Datacenter> getAllDatacenters() throws MetaException {
-    List<Datacenter> ld = new ArrayList<Datacenter>();
-    boolean commited = false;
-
-    try {
-      openTransaction();
-      Query q = pm.newQuery(MDatacenter.class);
-      Collection allDCs = (Collection)q.execute();
-      Iterator iter = allDCs.iterator();
-      while (iter.hasNext()) {
-        Datacenter dc = convertToDatacenter((MDatacenter)iter.next());
-        ld.add(dc);
-      }
-      commited = commitTransaction();
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      }
-    }
-    return ld;
-  }
-
-  public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException {
-    boolean commited = false;
-    Datacenter dc = null;
-
-    try {
-      openTransaction();
-      dc = convertToDatacenter(getMDatacenter(name));
-      commited = commitTransaction();
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      }
-    }
-    if (dc == null) {
-      throw new NoSuchObjectException("Can not find Datacenter " + name + ", please check it!");
-    }
-    return dc;
-  }
-
   public Device getDevice(String devid) throws MetaException, NoSuchObjectException {
     boolean commited = false;
     Device d = null;
@@ -1853,9 +1744,6 @@ public class ObjectStore implements RawStore, Configurable {
         String[] ns = node_name.split(".");
         if (ns.length != 2) {
           throw new MetaException("Node name " + node_name + " contains too many '.'!");
-        }
-        if (g_thisDC == null || !g_thisDC.equals(ns[0])) {
-          throw new MetaException("Node name " + node_name + " is on DC " + ns[0] + ", please call getNode() on that DC.");
         }
         node_name = ns[1];
       }
@@ -2327,29 +2215,6 @@ public class ObjectStore implements RawStore, Configurable {
     return mn;
   }
 
-  private MDatacenter getMDatacenter(String name) throws NoSuchObjectException {
-    MDatacenter dc = null;
-    boolean commited = false;
-    try {
-      openTransaction();
-      name = name.trim();
-      Query query = pm.newQuery(MDatacenter.class, "this.name == name");
-      query.declareParameters("java.lang.String name");
-      query.setUnique(true);
-      dc = (MDatacenter)query.execute(name);
-      pm.retrieve(dc);
-      commited = commitTransaction();
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      }
-    }
-    if (dc == null) {
-      throw new NoSuchObjectException("There is no datacenter named " + name);
-    }
-    return dc;
-  }
-
   private MFile getMFile(long fid) {
     MFile mf = null;
     boolean commited = false;
@@ -2552,13 +2417,6 @@ public class ObjectStore implements RawStore, Configurable {
         md.getStatus());
   }
 
-  private Datacenter convertToDatacenter(MDatacenter mdc) throws MetaException {
-    if (mdc == null) {
-      return null;
-    }
-    return new Datacenter(mdc.getName(), mdc.getDescription(), mdc.getLocationUri(), mdc.getParameters());
-  }
-
   private SFile convertToSFile(MFile mf) throws MetaException {
     if (mf == null) {
       return null;
@@ -2594,6 +2452,22 @@ public class ObjectStore implements RawStore, Configurable {
     pm.retrieve(mfl);
     return new SFileLocation(mfl.getDev().getNode().getNode_name(), mfl.getFile().getFid(), mfl.getDev().getDev_name(),
         mfl.getLocation(), mfl.getRep_id(), mfl.getUpdate_time(), mfl.getVisit_status(), mfl.getDigest());
+  }
+
+  private MDatabase convertToMDatabase(Database db) throws MetaException {
+    if (db == null) {
+      return null;
+    }
+
+    return new MDatabase(db.getName(), db.getDescription(), db.getLocationUri(), db.getParameters());
+  }
+
+  private Database convertToDatabase(MDatabase mdb) throws MetaException {
+    if (mdb == null) {
+      return null;
+    }
+
+    return new Database(mdb.getName(), mdb.getDescription(), mdb.getLocationUri(), mdb.getParameters());
   }
 
   private Table convertToTable(MTable mtbl) throws MetaException {
@@ -2634,14 +2508,6 @@ public class ObjectStore implements RawStore, Configurable {
     MNode mn = this.getMNode(device.getNode_name());
 
     return new MDevice(mn, device.getDevid(), device.getProp(), device.getStatus());
-  }
-
-  private MDatacenter convertToMDatacenter(Datacenter dc) {
-    if (dc == null) {
-      return null;
-    }
-
-    return new MDatacenter(dc.getName(), dc.getLocationUri(), dc.getDescription(), dc.getParameters());
   }
 
   private MFile convertToMFile(SFile file) throws InvalidObjectException {
@@ -7876,23 +7742,6 @@ public MUser getMUser(String userName) {
     return success;
   }
 
-  public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException {
-    boolean success = false;
-    try {
-      openTransaction();
-      MDatacenter mdc = getMDatacenter(dc_name);
-      if (mdc != null) {
-        pm.deletePersistent(mdc);
-      }
-      success = commitTransaction();
-    } finally {
-      if (!success) {
-        rollbackTransaction();
-      }
-    }
-    return success;
-  }
-
   private boolean dropPartitionIndexStore(Index index, Partition part, SFile store) throws InvalidObjectException,
       NoSuchObjectException, MetaException {
     boolean success = false;
@@ -8142,7 +7991,7 @@ public MUser getMUser(String userName) {
       for (Iterator i = mbtcs.iterator(); i.hasNext();) {
         MBusiTypeColumn col = (MBusiTypeColumn)i.next();
         BusiTypeColumn btc = new BusiTypeColumn(col.getBusiType(),
-            convertToTable(col.getTable()),col.getColumn());
+           convertToTable(col.getTable()),col.getColumn());
         btcols.add(btc);
       }
       success = commitTransaction();
@@ -8168,7 +8017,7 @@ public MUser getMUser(String userName) {
       for (Iterator i = mbdcs.iterator(); i.hasNext();) {
         MBusiTypeDatacenter mdatacenter = (MBusiTypeDatacenter)i.next();
         BusiTypeDatacenter bdc = new BusiTypeDatacenter(mdatacenter.getBusiType(),
-            convertToDatacenter(mdatacenter.getDc()),mdatacenter.getDb_name());
+            convertToDatabase(mdatacenter.getDb()));
         bdcs.add(bdc);
       }
       success = commitTransaction();
@@ -8185,23 +8034,22 @@ public MUser getMUser(String userName) {
   public void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
       throws InvalidObjectException, MetaException, TException {
     boolean success = false;
+    MDatabase mdb = null;
     int now = (int)(System.currentTimeMillis()/1000);
     try {
       openTransaction();
-      MDatacenter datacenter = null;
       try{
-        datacenter = getMDatacenter(busiTypeDatacenter.getDc().getName());
+        mdb = getMDatabase(busiTypeDatacenter.getDb().getName());
       }catch(NoSuchObjectException e){
-        LOG.warn("No datacenter:"+busiTypeDatacenter.getDc().getName());
+        LOG.warn("No database:"+busiTypeDatacenter.getDb().getName());
       }
       MBusiTypeDatacenter mtdc = null;
-      if(datacenter !=null){
-        mtdc = new MBusiTypeDatacenter(busiTypeDatacenter.getBusiType(),
-            datacenter,busiTypeDatacenter.getDb_name());
+      if(mdb !=null){
+        mtdc = new MBusiTypeDatacenter(busiTypeDatacenter.getBusiType(), mdb);
         pm.makePersistent(mtdc);
       }else{
         mtdc = new MBusiTypeDatacenter(busiTypeDatacenter.getBusiType(),
-            convertToMDatacenter(busiTypeDatacenter.getDc()),busiTypeDatacenter.getDb_name());
+            convertToMDatabase(busiTypeDatacenter.getDb()));
         pm.makePersistent(mtdc);
       }
       success = commitTransaction();
@@ -8211,7 +8059,6 @@ public MUser getMUser(String userName) {
       }
     }
     return ;
-
   }
 
   @Override

@@ -312,14 +312,12 @@ public class MSGFactory {
       case MSGType.MSG_NEW_DATABESE :
       //新建库
             MDatabase db = (MDatabase)msg.getEventObject();
-            params.put("datacenter_name",db.getDatacenter() == null ? "null":db.getDatacenter().getName());
             params.put("db_name",db.getName());
 
             break;
       case MSGType.MSG_ALTER_DATABESE :
             //修改库
           MDatabase alt_db = (MDatabase)msg.getEventObject();
-          params.put("datacenter_name",alt_db.getDatacenter().getName());
           params.put("db_name",alt_db.getName());
           if(msg.getOld_object_params().containsKey("old_db_name")){
             params.put("old_db_name",msg.getOld_object_params().get("old_db_name"));
@@ -328,7 +326,6 @@ public class MSGFactory {
       case MSGType.MSG_ALTER_DATABESE_PARAM :
             //修改库属性
           MDatabase alt_param_db = (MDatabase)msg.getEventObject();
-          params.put("datacenter_name",alt_param_db.getDatacenter().getName());
           params.put("db_name",alt_param_db.getName());
           if(msg.getOld_object_params().containsKey("param_name")){
             params.put("param_name",msg.getOld_object_params().get("param_name"));
@@ -337,9 +334,7 @@ public class MSGFactory {
       case MSGType.MSG_DROP_DATABESE :
             //删除库
           MDatabase drop_db = (MDatabase)msg.getEventObject();
-          params.put("datacenter_name",drop_db.getDatacenter().getName());
           params.put("db_name",drop_db.getName());
-
           break;
       case MSGType.MSG_NEW_TALBE :
             //新建表

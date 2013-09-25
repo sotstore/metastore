@@ -879,121 +879,20 @@ class NodeGroup {
 
 void swap(NodeGroup &a, NodeGroup &b);
 
-typedef struct _Datacenter__isset {
-  _Datacenter__isset() : name(false), description(false), locationUri(false), parameters(false), privileges(false), nodes(false), nodeGroups(false) {}
-  bool name;
-  bool description;
-  bool locationUri;
-  bool parameters;
-  bool privileges;
-  bool nodes;
-  bool nodeGroups;
-} _Datacenter__isset;
-
-class Datacenter {
- public:
-
-  static const char* ascii_fingerprint; // = "10DAA6026F2E077C9DE7E6E32D766CDB";
-  static const uint8_t binary_fingerprint[16]; // = {0x10,0xDA,0xA6,0x02,0x6F,0x2E,0x07,0x7C,0x9D,0xE7,0xE6,0xE3,0x2D,0x76,0x6C,0xDB};
-
-  Datacenter() : name(), description(), locationUri() {
-  }
-
-  virtual ~Datacenter() throw() {}
-
-  std::string name;
-  std::string description;
-  std::string locationUri;
-  std::map<std::string, std::string>  parameters;
-  PrincipalPrivilegeSet privileges;
-  std::vector<Node>  nodes;
-  std::vector<NodeGroup>  nodeGroups;
-
-  _Datacenter__isset __isset;
-
-  void __set_name(const std::string& val) {
-    name = val;
-  }
-
-  void __set_description(const std::string& val) {
-    description = val;
-  }
-
-  void __set_locationUri(const std::string& val) {
-    locationUri = val;
-  }
-
-  void __set_parameters(const std::map<std::string, std::string> & val) {
-    parameters = val;
-  }
-
-  void __set_privileges(const PrincipalPrivilegeSet& val) {
-    privileges = val;
-    __isset.privileges = true;
-  }
-
-  void __set_nodes(const std::vector<Node> & val) {
-    nodes = val;
-    __isset.nodes = true;
-  }
-
-  void __set_nodeGroups(const std::vector<NodeGroup> & val) {
-    nodeGroups = val;
-    __isset.nodeGroups = true;
-  }
-
-  bool operator == (const Datacenter & rhs) const
-  {
-    if (!(name == rhs.name))
-      return false;
-    if (!(description == rhs.description))
-      return false;
-    if (!(locationUri == rhs.locationUri))
-      return false;
-    if (!(parameters == rhs.parameters))
-      return false;
-    if (__isset.privileges != rhs.__isset.privileges)
-      return false;
-    else if (__isset.privileges && !(privileges == rhs.privileges))
-      return false;
-    if (__isset.nodes != rhs.__isset.nodes)
-      return false;
-    else if (__isset.nodes && !(nodes == rhs.nodes))
-      return false;
-    if (__isset.nodeGroups != rhs.__isset.nodeGroups)
-      return false;
-    else if (__isset.nodeGroups && !(nodeGroups == rhs.nodeGroups))
-      return false;
-    return true;
-  }
-  bool operator != (const Datacenter &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Datacenter & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(Datacenter &a, Datacenter &b);
-
 typedef struct _Database__isset {
-  _Database__isset() : name(false), description(false), locationUri(false), parameters(false), privileges(false), datacenter(false) {}
+  _Database__isset() : name(false), description(false), locationUri(false), parameters(false), privileges(false) {}
   bool name;
   bool description;
   bool locationUri;
   bool parameters;
   bool privileges;
-  bool datacenter;
 } _Database__isset;
 
 class Database {
  public:
 
-  static const char* ascii_fingerprint; // = "43FC76D4975F51842B856B85FA3EC1A8";
-  static const uint8_t binary_fingerprint[16]; // = {0x43,0xFC,0x76,0xD4,0x97,0x5F,0x51,0x84,0x2B,0x85,0x6B,0x85,0xFA,0x3E,0xC1,0xA8};
+  static const char* ascii_fingerprint; // = "213967572143E49C9F1A23F7A866E2F5";
+  static const uint8_t binary_fingerprint[16]; // = {0x21,0x39,0x67,0x57,0x21,0x43,0xE4,0x9C,0x9F,0x1A,0x23,0xF7,0xA8,0x66,0xE2,0xF5};
 
   Database() : name(), description(), locationUri() {
   }
@@ -1005,7 +904,6 @@ class Database {
   std::string locationUri;
   std::map<std::string, std::string>  parameters;
   PrincipalPrivilegeSet privileges;
-  Datacenter datacenter;
 
   _Database__isset __isset;
 
@@ -1030,11 +928,6 @@ class Database {
     __isset.privileges = true;
   }
 
-  void __set_datacenter(const Datacenter& val) {
-    datacenter = val;
-    __isset.datacenter = true;
-  }
-
   bool operator == (const Database & rhs) const
   {
     if (!(name == rhs.name))
@@ -1048,10 +941,6 @@ class Database {
     if (__isset.privileges != rhs.__isset.privileges)
       return false;
     else if (__isset.privileges && !(privileges == rhs.privileges))
-      return false;
-    if (__isset.datacenter != rhs.__isset.datacenter)
-      return false;
-    else if (__isset.datacenter && !(datacenter == rhs.datacenter))
       return false;
     return true;
   }
@@ -2015,26 +1904,24 @@ class BusiTypeColumn {
 void swap(BusiTypeColumn &a, BusiTypeColumn &b);
 
 typedef struct _BusiTypeDatacenter__isset {
-  _BusiTypeDatacenter__isset() : busiType(false), dc(false), db_name(false) {}
+  _BusiTypeDatacenter__isset() : busiType(false), db(false) {}
   bool busiType;
-  bool dc;
-  bool db_name;
+  bool db;
 } _BusiTypeDatacenter__isset;
 
 class BusiTypeDatacenter {
  public:
 
-  static const char* ascii_fingerprint; // = "2A578EA4D27E03B025CFB596CECC8EF4";
-  static const uint8_t binary_fingerprint[16]; // = {0x2A,0x57,0x8E,0xA4,0xD2,0x7E,0x03,0xB0,0x25,0xCF,0xB5,0x96,0xCE,0xCC,0x8E,0xF4};
+  static const char* ascii_fingerprint; // = "3D42CF44649E64872587912574D1C399";
+  static const uint8_t binary_fingerprint[16]; // = {0x3D,0x42,0xCF,0x44,0x64,0x9E,0x64,0x87,0x25,0x87,0x91,0x25,0x74,0xD1,0xC3,0x99};
 
-  BusiTypeDatacenter() : busiType(), db_name() {
+  BusiTypeDatacenter() : busiType() {
   }
 
   virtual ~BusiTypeDatacenter() throw() {}
 
   std::string busiType;
-  Datacenter dc;
-  std::string db_name;
+  Database db;
 
   _BusiTypeDatacenter__isset __isset;
 
@@ -2042,21 +1929,15 @@ class BusiTypeDatacenter {
     busiType = val;
   }
 
-  void __set_dc(const Datacenter& val) {
-    dc = val;
-  }
-
-  void __set_db_name(const std::string& val) {
-    db_name = val;
+  void __set_db(const Database& val) {
+    db = val;
   }
 
   bool operator == (const BusiTypeDatacenter & rhs) const
   {
     if (!(busiType == rhs.busiType))
       return false;
-    if (!(dc == rhs.dc))
-      return false;
-    if (!(db_name == rhs.db_name))
+    if (!(db == rhs.db))
       return false;
     return true;
   }

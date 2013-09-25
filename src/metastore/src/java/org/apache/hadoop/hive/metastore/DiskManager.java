@@ -31,7 +31,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -1733,7 +1733,7 @@ public class DiskManager {
       }
       NodeInfo ni = ndmap.get(node);
       if (ni == null) {
-        throw new IOException("Node '" + node + "' does not exist in NDMap, are you sure node '" + node + "' belongs to this MetaStore?" + hiveConf.getVar(HiveConf.ConfVars.LOCAL_DATACENTER) + "\n");
+        throw new IOException("Node '" + node + "' does not exist in NDMap, are you sure node '" + node + "' belongs to this MetaStore?" + hiveConf.getVar(HiveConf.ConfVars.LOCAL_ATTRIBUTION) + "\n");
       }
       List<DeviceInfo> dilist = ni.dis;
       if (flp.mode == FileLocatingPolicy.EXCLUDE_NODES_DEVS_SHARED) {
@@ -2355,7 +2355,7 @@ public class DiskManager {
             if (!toCheckMig.isEmpty()) {
               if (HMSHandler.topdcli == null) {
                 try {
-                  HiveMetaStore.connect_to_top_dc(hiveConf);
+                  HiveMetaStore.connect_to_top_attribution(hiveConf);
                 } catch (MetaException e) {
                   LOG.error(e, e);
                 }
@@ -2370,8 +2370,8 @@ public class DiskManager {
                     rrmap.remove(t);
                     // connect to remote DC, and close the file
                     try {
-                      Datacenter rdc = HMSHandler.topdcli.get_center(me.to_dc);
-                      IMetaStoreClient rcli = new HiveMetaStoreClient(rdc.getLocationUri(),
+                      Database rdb = HMSHandler.topdcli.get_attribution(me.to_dc);
+                      IMetaStoreClient rcli = new HiveMetaStoreClient(rdb.getParameters().get("service.metastore.uri"),
                           HiveConf.getIntVar(hiveConf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
                           hiveConf.getIntVar(HiveConf.ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
                           null);

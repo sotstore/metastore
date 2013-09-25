@@ -26,7 +26,6 @@ import java.util.Set;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.Busitype;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.SFile;
@@ -154,8 +153,6 @@ public interface MetaDataFormatter {
 
     public void showPartitionKeys(DataOutputStream outStream, List<PartitionInfo> partitionInfo)
         throws HiveException;
-
-    public void showDatacenters(DataOutputStream outStream, List<Datacenter> dcs)throws HiveException;
 
     public void showBusitypes(DataOutputStream outStream, List<Busitype> bts)throws HiveException;
 
