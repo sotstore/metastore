@@ -16,12 +16,12 @@ namespace Apache { namespace Hadoop { namespace Hive {
 class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookServiceIf {
  public:
   virtual ~ThriftHiveMetastoreIf() {}
-  virtual void create_datacenter(const Datacenter& datacenter) = 0;
-  virtual void get_center(Datacenter& _return, const std::string& name) = 0;
-  virtual void drop_center(const std::string& name, const bool deleteData, const bool cascade) = 0;
-  virtual void update_center(const Datacenter& datacenter) = 0;
-  virtual void get_all_centers(std::vector<Datacenter> & _return) = 0;
-  virtual void get_local_center(Datacenter& _return) = 0;
+  virtual void create_attribution(const Database& db) = 0;
+  virtual void get_attribution(Database& _return, const std::string& name) = 0;
+  virtual void drop_attribution(const std::string& name, const bool deleteData, const bool cascade) = 0;
+  virtual void update_attribution(const Database& db) = 0;
+  virtual void get_all_attributions(std::vector<Database> & _return) = 0;
+  virtual void get_local_attribution(Database& _return) = 0;
   virtual void get_lucene_index_names(std::vector<std::string> & _return, const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes) = 0;
   virtual void get_all_busi_type_cols(std::vector<BusiTypeColumn> & _return) = 0;
   virtual void get_all_busi_type_datacenters(std::vector<BusiTypeDatacenter> & _return) = 0;
@@ -159,11 +159,9 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void find_best_nodes_in_groups(std::vector<Node> & _return, const std::string& dbName, const std::string& tableName, const int32_t nr, const FindNodePolicy::type policy) = 0;
   virtual void get_all_nodes(std::vector<Node> & _return) = 0;
   virtual void getDMStatus(std::string& _return) = 0;
-  virtual void migrate_in(std::map<int64_t, SFile> & _return, const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc) = 0;
-  virtual bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) = 0;
-  virtual bool migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) = 0;
-  virtual void migrate2_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) = 0;
-  virtual bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_db, const std::string& to_nas_devid) = 0;
+  virtual bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) = 0;
+  virtual void migrate2_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_db) = 0;
+  virtual bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& from_db, const std::string& to_db, const std::string& to_nas_devid) = 0;
   virtual void getMP(std::string& _return, const std::string& node_name, const std::string& devid) = 0;
   virtual bool createSchema(const GlobalSchema& schema) = 0;
   virtual bool modifySchema(const GlobalSchema& schema) = 0;
@@ -173,7 +171,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void getTableNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName) = 0;
   virtual void getTableNodeFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& nodeName) = 0;
   virtual void listTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const int16_t max_num) = 0;
-  virtual void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& exp) = 0;
+  virtual void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<std::string> & values) = 0;
   virtual bool addNodeGroup(const NodeGroup& ng) = 0;
   virtual bool modifyNodeGroup(const NodeGroup& ng) = 0;
   virtual bool deleteNodeGroup(const NodeGroup& ng) = 0;
@@ -211,22 +209,22 @@ class ThriftHiveMetastoreIfSingletonFactory : virtual public ThriftHiveMetastore
 class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual public  ::facebook::fb303::FacebookServiceNull {
  public:
   virtual ~ThriftHiveMetastoreNull() {}
-  void create_datacenter(const Datacenter& /* datacenter */) {
+  void create_attribution(const Database& /* db */) {
     return;
   }
-  void get_center(Datacenter& /* _return */, const std::string& /* name */) {
+  void get_attribution(Database& /* _return */, const std::string& /* name */) {
     return;
   }
-  void drop_center(const std::string& /* name */, const bool /* deleteData */, const bool /* cascade */) {
+  void drop_attribution(const std::string& /* name */, const bool /* deleteData */, const bool /* cascade */) {
     return;
   }
-  void update_center(const Datacenter& /* datacenter */) {
+  void update_attribution(const Database& /* db */) {
     return;
   }
-  void get_all_centers(std::vector<Datacenter> & /* _return */) {
+  void get_all_attributions(std::vector<Database> & /* _return */) {
     return;
   }
-  void get_local_center(Datacenter& /* _return */) {
+  void get_local_attribution(Database& /* _return */) {
     return;
   }
   void get_lucene_index_names(std::vector<std::string> & /* _return */, const std::string& /* db_name */, const std::string& /* tbl_name */, const int16_t /* max_indexes */) {
@@ -694,21 +692,14 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void getDMStatus(std::string& /* _return */) {
     return;
   }
-  void migrate_in(std::map<int64_t, SFile> & /* _return */, const Table& /* tbl */, const std::vector<Partition> & /* parts */, const std::string& /* from_dc */) {
-    return;
-  }
-  bool migrate2_in(const Table& /* tbl */, const std::vector<Partition> & /* parts */, const std::vector<Index> & /* idxs */, const std::string& /* from_dc */, const std::string& /* to_nas_devid */, const std::map<int64_t, SFileLocation> & /* fileMap */) {
+  bool migrate2_in(const Table& /* tbl */, const std::vector<Partition> & /* parts */, const std::vector<Index> & /* idxs */, const std::string& /* from_db */, const std::string& /* to_nas_devid */, const std::map<int64_t, SFileLocation> & /* fileMap */) {
     bool _return = false;
     return _return;
   }
-  bool migrate_out(const std::string& /* dbName */, const std::string& /* tableName */, const std::vector<std::string> & /* partNames */, const std::string& /* to_dc */) {
-    bool _return = false;
-    return _return;
-  }
-  void migrate2_stage1(std::vector<SFileLocation> & /* _return */, const std::string& /* dbName */, const std::string& /* tableName */, const std::vector<std::string> & /* partNames */, const std::string& /* to_dc */) {
+  void migrate2_stage1(std::vector<SFileLocation> & /* _return */, const std::string& /* dbName */, const std::string& /* tableName */, const std::vector<std::string> & /* partNames */, const std::string& /* to_db */) {
     return;
   }
-  bool migrate2_stage2(const std::string& /* dbName */, const std::string& /* tableName */, const std::vector<std::string> & /* partNames */, const std::string& /* to_dc */, const std::string& /* to_db */, const std::string& /* to_nas_devid */) {
+  bool migrate2_stage2(const std::string& /* dbName */, const std::string& /* tableName */, const std::vector<std::string> & /* partNames */, const std::string& /* from_db */, const std::string& /* to_db */, const std::string& /* to_nas_devid */) {
     bool _return = false;
     return _return;
   }
@@ -742,7 +733,7 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void listTableFiles(std::vector<SFile> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const int16_t /* max_num */) {
     return;
   }
-  void filterTableFiles(std::vector<SFile> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const std::string& /* exp */) {
+  void filterTableFiles(std::vector<SFile> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const std::vector<std::string> & /* values */) {
     return;
   }
   bool addNodeGroup(const NodeGroup& /* ng */) {
@@ -776,38 +767,38 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   }
 };
 
-typedef struct _ThriftHiveMetastore_create_datacenter_args__isset {
-  _ThriftHiveMetastore_create_datacenter_args__isset() : datacenter(false) {}
-  bool datacenter;
-} _ThriftHiveMetastore_create_datacenter_args__isset;
+typedef struct _ThriftHiveMetastore_create_attribution_args__isset {
+  _ThriftHiveMetastore_create_attribution_args__isset() : db(false) {}
+  bool db;
+} _ThriftHiveMetastore_create_attribution_args__isset;
 
-class ThriftHiveMetastore_create_datacenter_args {
+class ThriftHiveMetastore_create_attribution_args {
  public:
 
-  ThriftHiveMetastore_create_datacenter_args() {
+  ThriftHiveMetastore_create_attribution_args() {
   }
 
-  virtual ~ThriftHiveMetastore_create_datacenter_args() throw() {}
+  virtual ~ThriftHiveMetastore_create_attribution_args() throw() {}
 
-  Datacenter datacenter;
+  Database db;
 
-  _ThriftHiveMetastore_create_datacenter_args__isset __isset;
+  _ThriftHiveMetastore_create_attribution_args__isset __isset;
 
-  void __set_datacenter(const Datacenter& val) {
-    datacenter = val;
+  void __set_db(const Database& val) {
+    db = val;
   }
 
-  bool operator == (const ThriftHiveMetastore_create_datacenter_args & rhs) const
+  bool operator == (const ThriftHiveMetastore_create_attribution_args & rhs) const
   {
-    if (!(datacenter == rhs.datacenter))
+    if (!(db == rhs.db))
       return false;
     return true;
   }
-  bool operator != (const ThriftHiveMetastore_create_datacenter_args &rhs) const {
+  bool operator != (const ThriftHiveMetastore_create_attribution_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const ThriftHiveMetastore_create_datacenter_args & ) const;
+  bool operator < (const ThriftHiveMetastore_create_attribution_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -815,38 +806,38 @@ class ThriftHiveMetastore_create_datacenter_args {
 };
 
 
-class ThriftHiveMetastore_create_datacenter_pargs {
+class ThriftHiveMetastore_create_attribution_pargs {
  public:
 
 
-  virtual ~ThriftHiveMetastore_create_datacenter_pargs() throw() {}
+  virtual ~ThriftHiveMetastore_create_attribution_pargs() throw() {}
 
-  const Datacenter* datacenter;
+  const Database* db;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _ThriftHiveMetastore_create_datacenter_result__isset {
-  _ThriftHiveMetastore_create_datacenter_result__isset() : o1(false), o2(false), o3(false) {}
+typedef struct _ThriftHiveMetastore_create_attribution_result__isset {
+  _ThriftHiveMetastore_create_attribution_result__isset() : o1(false), o2(false), o3(false) {}
   bool o1;
   bool o2;
   bool o3;
-} _ThriftHiveMetastore_create_datacenter_result__isset;
+} _ThriftHiveMetastore_create_attribution_result__isset;
 
-class ThriftHiveMetastore_create_datacenter_result {
+class ThriftHiveMetastore_create_attribution_result {
  public:
 
-  ThriftHiveMetastore_create_datacenter_result() {
+  ThriftHiveMetastore_create_attribution_result() {
   }
 
-  virtual ~ThriftHiveMetastore_create_datacenter_result() throw() {}
+  virtual ~ThriftHiveMetastore_create_attribution_result() throw() {}
 
   AlreadyExistsException o1;
   InvalidObjectException o2;
   MetaException o3;
 
-  _ThriftHiveMetastore_create_datacenter_result__isset __isset;
+  _ThriftHiveMetastore_create_attribution_result__isset __isset;
 
   void __set_o1(const AlreadyExistsException& val) {
     o1 = val;
@@ -860,7 +851,7 @@ class ThriftHiveMetastore_create_datacenter_result {
     o3 = val;
   }
 
-  bool operator == (const ThriftHiveMetastore_create_datacenter_result & rhs) const
+  bool operator == (const ThriftHiveMetastore_create_attribution_result & rhs) const
   {
     if (!(o1 == rhs.o1))
       return false;
@@ -870,72 +861,72 @@ class ThriftHiveMetastore_create_datacenter_result {
       return false;
     return true;
   }
-  bool operator != (const ThriftHiveMetastore_create_datacenter_result &rhs) const {
+  bool operator != (const ThriftHiveMetastore_create_attribution_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const ThriftHiveMetastore_create_datacenter_result & ) const;
+  bool operator < (const ThriftHiveMetastore_create_attribution_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _ThriftHiveMetastore_create_datacenter_presult__isset {
-  _ThriftHiveMetastore_create_datacenter_presult__isset() : o1(false), o2(false), o3(false) {}
+typedef struct _ThriftHiveMetastore_create_attribution_presult__isset {
+  _ThriftHiveMetastore_create_attribution_presult__isset() : o1(false), o2(false), o3(false) {}
   bool o1;
   bool o2;
   bool o3;
-} _ThriftHiveMetastore_create_datacenter_presult__isset;
+} _ThriftHiveMetastore_create_attribution_presult__isset;
 
-class ThriftHiveMetastore_create_datacenter_presult {
+class ThriftHiveMetastore_create_attribution_presult {
  public:
 
 
-  virtual ~ThriftHiveMetastore_create_datacenter_presult() throw() {}
+  virtual ~ThriftHiveMetastore_create_attribution_presult() throw() {}
 
   AlreadyExistsException o1;
   InvalidObjectException o2;
   MetaException o3;
 
-  _ThriftHiveMetastore_create_datacenter_presult__isset __isset;
+  _ThriftHiveMetastore_create_attribution_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _ThriftHiveMetastore_get_center_args__isset {
-  _ThriftHiveMetastore_get_center_args__isset() : name(false) {}
+typedef struct _ThriftHiveMetastore_get_attribution_args__isset {
+  _ThriftHiveMetastore_get_attribution_args__isset() : name(false) {}
   bool name;
-} _ThriftHiveMetastore_get_center_args__isset;
+} _ThriftHiveMetastore_get_attribution_args__isset;
 
-class ThriftHiveMetastore_get_center_args {
+class ThriftHiveMetastore_get_attribution_args {
  public:
 
-  ThriftHiveMetastore_get_center_args() : name() {
+  ThriftHiveMetastore_get_attribution_args() : name() {
   }
 
-  virtual ~ThriftHiveMetastore_get_center_args() throw() {}
+  virtual ~ThriftHiveMetastore_get_attribution_args() throw() {}
 
   std::string name;
 
-  _ThriftHiveMetastore_get_center_args__isset __isset;
+  _ThriftHiveMetastore_get_attribution_args__isset __isset;
 
   void __set_name(const std::string& val) {
     name = val;
   }
 
-  bool operator == (const ThriftHiveMetastore_get_center_args & rhs) const
+  bool operator == (const ThriftHiveMetastore_get_attribution_args & rhs) const
   {
     if (!(name == rhs.name))
       return false;
     return true;
   }
-  bool operator != (const ThriftHiveMetastore_get_center_args &rhs) const {
+  bool operator != (const ThriftHiveMetastore_get_attribution_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const ThriftHiveMetastore_get_center_args & ) const;
+  bool operator < (const ThriftHiveMetastore_get_attribution_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -943,11 +934,11 @@ class ThriftHiveMetastore_get_center_args {
 };
 
 
-class ThriftHiveMetastore_get_center_pargs {
+class ThriftHiveMetastore_get_attribution_pargs {
  public:
 
 
-  virtual ~ThriftHiveMetastore_get_center_pargs() throw() {}
+  virtual ~ThriftHiveMetastore_get_attribution_pargs() throw() {}
 
   const std::string* name;
 
@@ -955,28 +946,28 @@ class ThriftHiveMetastore_get_center_pargs {
 
 };
 
-typedef struct _ThriftHiveMetastore_get_center_result__isset {
-  _ThriftHiveMetastore_get_center_result__isset() : success(false), o1(false), o2(false) {}
+typedef struct _ThriftHiveMetastore_get_attribution_result__isset {
+  _ThriftHiveMetastore_get_attribution_result__isset() : success(false), o1(false), o2(false) {}
   bool success;
   bool o1;
   bool o2;
-} _ThriftHiveMetastore_get_center_result__isset;
+} _ThriftHiveMetastore_get_attribution_result__isset;
 
-class ThriftHiveMetastore_get_center_result {
+class ThriftHiveMetastore_get_attribution_result {
  public:
 
-  ThriftHiveMetastore_get_center_result() {
+  ThriftHiveMetastore_get_attribution_result() {
   }
 
-  virtual ~ThriftHiveMetastore_get_center_result() throw() {}
+  virtual ~ThriftHiveMetastore_get_attribution_result() throw() {}
 
-  Datacenter success;
+  Database success;
   NoSuchObjectException o1;
   MetaException o2;
 
-  _ThriftHiveMetastore_get_center_result__isset __isset;
+  _ThriftHiveMetastore_get_attribution_result__isset __isset;
 
-  void __set_success(const Datacenter& val) {
+  void __set_success(const Database& val) {
     success = val;
   }
 
@@ -988,7 +979,7 @@ class ThriftHiveMetastore_get_center_result {
     o2 = val;
   }
 
-  bool operator == (const ThriftHiveMetastore_get_center_result & rhs) const
+  bool operator == (const ThriftHiveMetastore_get_attribution_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
@@ -998,60 +989,60 @@ class ThriftHiveMetastore_get_center_result {
       return false;
     return true;
   }
-  bool operator != (const ThriftHiveMetastore_get_center_result &rhs) const {
+  bool operator != (const ThriftHiveMetastore_get_attribution_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const ThriftHiveMetastore_get_center_result & ) const;
+  bool operator < (const ThriftHiveMetastore_get_attribution_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _ThriftHiveMetastore_get_center_presult__isset {
-  _ThriftHiveMetastore_get_center_presult__isset() : success(false), o1(false), o2(false) {}
+typedef struct _ThriftHiveMetastore_get_attribution_presult__isset {
+  _ThriftHiveMetastore_get_attribution_presult__isset() : success(false), o1(false), o2(false) {}
   bool success;
   bool o1;
   bool o2;
-} _ThriftHiveMetastore_get_center_presult__isset;
+} _ThriftHiveMetastore_get_attribution_presult__isset;
 
-class ThriftHiveMetastore_get_center_presult {
+class ThriftHiveMetastore_get_attribution_presult {
  public:
 
 
-  virtual ~ThriftHiveMetastore_get_center_presult() throw() {}
+  virtual ~ThriftHiveMetastore_get_attribution_presult() throw() {}
 
-  Datacenter* success;
+  Database* success;
   NoSuchObjectException o1;
   MetaException o2;
 
-  _ThriftHiveMetastore_get_center_presult__isset __isset;
+  _ThriftHiveMetastore_get_attribution_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _ThriftHiveMetastore_drop_center_args__isset {
-  _ThriftHiveMetastore_drop_center_args__isset() : name(false), deleteData(false), cascade(false) {}
+typedef struct _ThriftHiveMetastore_drop_attribution_args__isset {
+  _ThriftHiveMetastore_drop_attribution_args__isset() : name(false), deleteData(false), cascade(false) {}
   bool name;
   bool deleteData;
   bool cascade;
-} _ThriftHiveMetastore_drop_center_args__isset;
+} _ThriftHiveMetastore_drop_attribution_args__isset;
 
-class ThriftHiveMetastore_drop_center_args {
+class ThriftHiveMetastore_drop_attribution_args {
  public:
 
-  ThriftHiveMetastore_drop_center_args() : name(), deleteData(0), cascade(0) {
+  ThriftHiveMetastore_drop_attribution_args() : name(), deleteData(0), cascade(0) {
   }
 
-  virtual ~ThriftHiveMetastore_drop_center_args() throw() {}
+  virtual ~ThriftHiveMetastore_drop_attribution_args() throw() {}
 
   std::string name;
   bool deleteData;
   bool cascade;
 
-  _ThriftHiveMetastore_drop_center_args__isset __isset;
+  _ThriftHiveMetastore_drop_attribution_args__isset __isset;
 
   void __set_name(const std::string& val) {
     name = val;
@@ -1065,7 +1056,7 @@ class ThriftHiveMetastore_drop_center_args {
     cascade = val;
   }
 
-  bool operator == (const ThriftHiveMetastore_drop_center_args & rhs) const
+  bool operator == (const ThriftHiveMetastore_drop_attribution_args & rhs) const
   {
     if (!(name == rhs.name))
       return false;
@@ -1075,11 +1066,11 @@ class ThriftHiveMetastore_drop_center_args {
       return false;
     return true;
   }
-  bool operator != (const ThriftHiveMetastore_drop_center_args &rhs) const {
+  bool operator != (const ThriftHiveMetastore_drop_attribution_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const ThriftHiveMetastore_drop_center_args & ) const;
+  bool operator < (const ThriftHiveMetastore_drop_attribution_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1087,11 +1078,11 @@ class ThriftHiveMetastore_drop_center_args {
 };
 
 
-class ThriftHiveMetastore_drop_center_pargs {
+class ThriftHiveMetastore_drop_attribution_pargs {
  public:
 
 
-  virtual ~ThriftHiveMetastore_drop_center_pargs() throw() {}
+  virtual ~ThriftHiveMetastore_drop_attribution_pargs() throw() {}
 
   const std::string* name;
   const bool* deleteData;
@@ -1101,26 +1092,26 @@ class ThriftHiveMetastore_drop_center_pargs {
 
 };
 
-typedef struct _ThriftHiveMetastore_drop_center_result__isset {
-  _ThriftHiveMetastore_drop_center_result__isset() : o1(false), o2(false), o3(false) {}
+typedef struct _ThriftHiveMetastore_drop_attribution_result__isset {
+  _ThriftHiveMetastore_drop_attribution_result__isset() : o1(false), o2(false), o3(false) {}
   bool o1;
   bool o2;
   bool o3;
-} _ThriftHiveMetastore_drop_center_result__isset;
+} _ThriftHiveMetastore_drop_attribution_result__isset;
 
-class ThriftHiveMetastore_drop_center_result {
+class ThriftHiveMetastore_drop_attribution_result {
  public:
 
-  ThriftHiveMetastore_drop_center_result() {
+  ThriftHiveMetastore_drop_attribution_result() {
   }
 
-  virtual ~ThriftHiveMetastore_drop_center_result() throw() {}
+  virtual ~ThriftHiveMetastore_drop_attribution_result() throw() {}
 
   NoSuchObjectException o1;
   InvalidOperationException o2;
   MetaException o3;
 
-  _ThriftHiveMetastore_drop_center_result__isset __isset;
+  _ThriftHiveMetastore_drop_attribution_result__isset __isset;
 
   void __set_o1(const NoSuchObjectException& val) {
     o1 = val;
@@ -1134,7 +1125,7 @@ class ThriftHiveMetastore_drop_center_result {
     o3 = val;
   }
 
-  bool operator == (const ThriftHiveMetastore_drop_center_result & rhs) const
+  bool operator == (const ThriftHiveMetastore_drop_attribution_result & rhs) const
   {
     if (!(o1 == rhs.o1))
       return false;
@@ -1144,72 +1135,72 @@ class ThriftHiveMetastore_drop_center_result {
       return false;
     return true;
   }
-  bool operator != (const ThriftHiveMetastore_drop_center_result &rhs) const {
+  bool operator != (const ThriftHiveMetastore_drop_attribution_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const ThriftHiveMetastore_drop_center_result & ) const;
+  bool operator < (const ThriftHiveMetastore_drop_attribution_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _ThriftHiveMetastore_drop_center_presult__isset {
-  _ThriftHiveMetastore_drop_center_presult__isset() : o1(false), o2(false), o3(false) {}
+typedef struct _ThriftHiveMetastore_drop_attribution_presult__isset {
+  _ThriftHiveMetastore_drop_attribution_presult__isset() : o1(false), o2(false), o3(false) {}
   bool o1;
   bool o2;
   bool o3;
-} _ThriftHiveMetastore_drop_center_presult__isset;
+} _ThriftHiveMetastore_drop_attribution_presult__isset;
 
-class ThriftHiveMetastore_drop_center_presult {
+class ThriftHiveMetastore_drop_attribution_presult {
  public:
 
 
-  virtual ~ThriftHiveMetastore_drop_center_presult() throw() {}
+  virtual ~ThriftHiveMetastore_drop_attribution_presult() throw() {}
 
   NoSuchObjectException o1;
   InvalidOperationException o2;
   MetaException o3;
 
-  _ThriftHiveMetastore_drop_center_presult__isset __isset;
+  _ThriftHiveMetastore_drop_attribution_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _ThriftHiveMetastore_update_center_args__isset {
-  _ThriftHiveMetastore_update_center_args__isset() : datacenter(false) {}
-  bool datacenter;
-} _ThriftHiveMetastore_update_center_args__isset;
+typedef struct _ThriftHiveMetastore_update_attribution_args__isset {
+  _ThriftHiveMetastore_update_attribution_args__isset() : db(false) {}
+  bool db;
+} _ThriftHiveMetastore_update_attribution_args__isset;
 
-class ThriftHiveMetastore_update_center_args {
+class ThriftHiveMetastore_update_attribution_args {
  public:
 
-  ThriftHiveMetastore_update_center_args() {
+  ThriftHiveMetastore_update_attribution_args() {
   }
 
-  virtual ~ThriftHiveMetastore_update_center_args() throw() {}
+  virtual ~ThriftHiveMetastore_update_attribution_args() throw() {}
 
-  Datacenter datacenter;
+  Database db;
 
-  _ThriftHiveMetastore_update_center_args__isset __isset;
+  _ThriftHiveMetastore_update_attribution_args__isset __isset;
 
-  void __set_datacenter(const Datacenter& val) {
-    datacenter = val;
+  void __set_db(const Database& val) {
+    db = val;
   }
 
-  bool operator == (const ThriftHiveMetastore_update_center_args & rhs) const
+  bool operator == (const ThriftHiveMetastore_update_attribution_args & rhs) const
   {
-    if (!(datacenter == rhs.datacenter))
+    if (!(db == rhs.db))
       return false;
     return true;
   }
-  bool operator != (const ThriftHiveMetastore_update_center_args &rhs) const {
+  bool operator != (const ThriftHiveMetastore_update_attribution_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const ThriftHiveMetastore_update_center_args & ) const;
+  bool operator < (const ThriftHiveMetastore_update_attribution_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1217,38 +1208,38 @@ class ThriftHiveMetastore_update_center_args {
 };
 
 
-class ThriftHiveMetastore_update_center_pargs {
+class ThriftHiveMetastore_update_attribution_pargs {
  public:
 
 
-  virtual ~ThriftHiveMetastore_update_center_pargs() throw() {}
+  virtual ~ThriftHiveMetastore_update_attribution_pargs() throw() {}
 
-  const Datacenter* datacenter;
+  const Database* db;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _ThriftHiveMetastore_update_center_result__isset {
-  _ThriftHiveMetastore_update_center_result__isset() : o1(false), o2(false), o3(false) {}
+typedef struct _ThriftHiveMetastore_update_attribution_result__isset {
+  _ThriftHiveMetastore_update_attribution_result__isset() : o1(false), o2(false), o3(false) {}
   bool o1;
   bool o2;
   bool o3;
-} _ThriftHiveMetastore_update_center_result__isset;
+} _ThriftHiveMetastore_update_attribution_result__isset;
 
-class ThriftHiveMetastore_update_center_result {
+class ThriftHiveMetastore_update_attribution_result {
  public:
 
-  ThriftHiveMetastore_update_center_result() {
+  ThriftHiveMetastore_update_attribution_result() {
   }
 
-  virtual ~ThriftHiveMetastore_update_center_result() throw() {}
+  virtual ~ThriftHiveMetastore_update_attribution_result() throw() {}
 
   NoSuchObjectException o1;
   InvalidOperationException o2;
   MetaException o3;
 
-  _ThriftHiveMetastore_update_center_result__isset __isset;
+  _ThriftHiveMetastore_update_attribution_result__isset __isset;
 
   void __set_o1(const NoSuchObjectException& val) {
     o1 = val;
@@ -1262,7 +1253,7 @@ class ThriftHiveMetastore_update_center_result {
     o3 = val;
   }
 
-  bool operator == (const ThriftHiveMetastore_update_center_result & rhs) const
+  bool operator == (const ThriftHiveMetastore_update_attribution_result & rhs) const
   {
     if (!(o1 == rhs.o1))
       return false;
@@ -1272,59 +1263,59 @@ class ThriftHiveMetastore_update_center_result {
       return false;
     return true;
   }
-  bool operator != (const ThriftHiveMetastore_update_center_result &rhs) const {
+  bool operator != (const ThriftHiveMetastore_update_attribution_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const ThriftHiveMetastore_update_center_result & ) const;
+  bool operator < (const ThriftHiveMetastore_update_attribution_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _ThriftHiveMetastore_update_center_presult__isset {
-  _ThriftHiveMetastore_update_center_presult__isset() : o1(false), o2(false), o3(false) {}
+typedef struct _ThriftHiveMetastore_update_attribution_presult__isset {
+  _ThriftHiveMetastore_update_attribution_presult__isset() : o1(false), o2(false), o3(false) {}
   bool o1;
   bool o2;
   bool o3;
-} _ThriftHiveMetastore_update_center_presult__isset;
+} _ThriftHiveMetastore_update_attribution_presult__isset;
 
-class ThriftHiveMetastore_update_center_presult {
+class ThriftHiveMetastore_update_attribution_presult {
  public:
 
 
-  virtual ~ThriftHiveMetastore_update_center_presult() throw() {}
+  virtual ~ThriftHiveMetastore_update_attribution_presult() throw() {}
 
   NoSuchObjectException o1;
   InvalidOperationException o2;
   MetaException o3;
 
-  _ThriftHiveMetastore_update_center_presult__isset __isset;
+  _ThriftHiveMetastore_update_attribution_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
 
-class ThriftHiveMetastore_get_all_centers_args {
+class ThriftHiveMetastore_get_all_attributions_args {
  public:
 
-  ThriftHiveMetastore_get_all_centers_args() {
+  ThriftHiveMetastore_get_all_attributions_args() {
   }
 
-  virtual ~ThriftHiveMetastore_get_all_centers_args() throw() {}
+  virtual ~ThriftHiveMetastore_get_all_attributions_args() throw() {}
 
 
-  bool operator == (const ThriftHiveMetastore_get_all_centers_args & /* rhs */) const
+  bool operator == (const ThriftHiveMetastore_get_all_attributions_args & /* rhs */) const
   {
     return true;
   }
-  bool operator != (const ThriftHiveMetastore_get_all_centers_args &rhs) const {
+  bool operator != (const ThriftHiveMetastore_get_all_attributions_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const ThriftHiveMetastore_get_all_centers_args & ) const;
+  bool operator < (const ThriftHiveMetastore_get_all_attributions_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1332,37 +1323,37 @@ class ThriftHiveMetastore_get_all_centers_args {
 };
 
 
-class ThriftHiveMetastore_get_all_centers_pargs {
+class ThriftHiveMetastore_get_all_attributions_pargs {
  public:
 
 
-  virtual ~ThriftHiveMetastore_get_all_centers_pargs() throw() {}
+  virtual ~ThriftHiveMetastore_get_all_attributions_pargs() throw() {}
 
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _ThriftHiveMetastore_get_all_centers_result__isset {
-  _ThriftHiveMetastore_get_all_centers_result__isset() : success(false), o1(false) {}
+typedef struct _ThriftHiveMetastore_get_all_attributions_result__isset {
+  _ThriftHiveMetastore_get_all_attributions_result__isset() : success(false), o1(false) {}
   bool success;
   bool o1;
-} _ThriftHiveMetastore_get_all_centers_result__isset;
+} _ThriftHiveMetastore_get_all_attributions_result__isset;
 
-class ThriftHiveMetastore_get_all_centers_result {
+class ThriftHiveMetastore_get_all_attributions_result {
  public:
 
-  ThriftHiveMetastore_get_all_centers_result() {
+  ThriftHiveMetastore_get_all_attributions_result() {
   }
 
-  virtual ~ThriftHiveMetastore_get_all_centers_result() throw() {}
+  virtual ~ThriftHiveMetastore_get_all_attributions_result() throw() {}
 
-  std::vector<Datacenter>  success;
+  std::vector<Database>  success;
   MetaException o1;
 
-  _ThriftHiveMetastore_get_all_centers_result__isset __isset;
+  _ThriftHiveMetastore_get_all_attributions_result__isset __isset;
 
-  void __set_success(const std::vector<Datacenter> & val) {
+  void __set_success(const std::vector<Database> & val) {
     success = val;
   }
 
@@ -1370,7 +1361,7 @@ class ThriftHiveMetastore_get_all_centers_result {
     o1 = val;
   }
 
-  bool operator == (const ThriftHiveMetastore_get_all_centers_result & rhs) const
+  bool operator == (const ThriftHiveMetastore_get_all_attributions_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
@@ -1378,57 +1369,57 @@ class ThriftHiveMetastore_get_all_centers_result {
       return false;
     return true;
   }
-  bool operator != (const ThriftHiveMetastore_get_all_centers_result &rhs) const {
+  bool operator != (const ThriftHiveMetastore_get_all_attributions_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const ThriftHiveMetastore_get_all_centers_result & ) const;
+  bool operator < (const ThriftHiveMetastore_get_all_attributions_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _ThriftHiveMetastore_get_all_centers_presult__isset {
-  _ThriftHiveMetastore_get_all_centers_presult__isset() : success(false), o1(false) {}
+typedef struct _ThriftHiveMetastore_get_all_attributions_presult__isset {
+  _ThriftHiveMetastore_get_all_attributions_presult__isset() : success(false), o1(false) {}
   bool success;
   bool o1;
-} _ThriftHiveMetastore_get_all_centers_presult__isset;
+} _ThriftHiveMetastore_get_all_attributions_presult__isset;
 
-class ThriftHiveMetastore_get_all_centers_presult {
+class ThriftHiveMetastore_get_all_attributions_presult {
  public:
 
 
-  virtual ~ThriftHiveMetastore_get_all_centers_presult() throw() {}
+  virtual ~ThriftHiveMetastore_get_all_attributions_presult() throw() {}
 
-  std::vector<Datacenter> * success;
+  std::vector<Database> * success;
   MetaException o1;
 
-  _ThriftHiveMetastore_get_all_centers_presult__isset __isset;
+  _ThriftHiveMetastore_get_all_attributions_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
 
-class ThriftHiveMetastore_get_local_center_args {
+class ThriftHiveMetastore_get_local_attribution_args {
  public:
 
-  ThriftHiveMetastore_get_local_center_args() {
+  ThriftHiveMetastore_get_local_attribution_args() {
   }
 
-  virtual ~ThriftHiveMetastore_get_local_center_args() throw() {}
+  virtual ~ThriftHiveMetastore_get_local_attribution_args() throw() {}
 
 
-  bool operator == (const ThriftHiveMetastore_get_local_center_args & /* rhs */) const
+  bool operator == (const ThriftHiveMetastore_get_local_attribution_args & /* rhs */) const
   {
     return true;
   }
-  bool operator != (const ThriftHiveMetastore_get_local_center_args &rhs) const {
+  bool operator != (const ThriftHiveMetastore_get_local_attribution_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const ThriftHiveMetastore_get_local_center_args & ) const;
+  bool operator < (const ThriftHiveMetastore_get_local_attribution_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1436,37 +1427,37 @@ class ThriftHiveMetastore_get_local_center_args {
 };
 
 
-class ThriftHiveMetastore_get_local_center_pargs {
+class ThriftHiveMetastore_get_local_attribution_pargs {
  public:
 
 
-  virtual ~ThriftHiveMetastore_get_local_center_pargs() throw() {}
+  virtual ~ThriftHiveMetastore_get_local_attribution_pargs() throw() {}
 
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _ThriftHiveMetastore_get_local_center_result__isset {
-  _ThriftHiveMetastore_get_local_center_result__isset() : success(false), o1(false) {}
+typedef struct _ThriftHiveMetastore_get_local_attribution_result__isset {
+  _ThriftHiveMetastore_get_local_attribution_result__isset() : success(false), o1(false) {}
   bool success;
   bool o1;
-} _ThriftHiveMetastore_get_local_center_result__isset;
+} _ThriftHiveMetastore_get_local_attribution_result__isset;
 
-class ThriftHiveMetastore_get_local_center_result {
+class ThriftHiveMetastore_get_local_attribution_result {
  public:
 
-  ThriftHiveMetastore_get_local_center_result() {
+  ThriftHiveMetastore_get_local_attribution_result() {
   }
 
-  virtual ~ThriftHiveMetastore_get_local_center_result() throw() {}
+  virtual ~ThriftHiveMetastore_get_local_attribution_result() throw() {}
 
-  Datacenter success;
+  Database success;
   MetaException o1;
 
-  _ThriftHiveMetastore_get_local_center_result__isset __isset;
+  _ThriftHiveMetastore_get_local_attribution_result__isset __isset;
 
-  void __set_success(const Datacenter& val) {
+  void __set_success(const Database& val) {
     success = val;
   }
 
@@ -1474,7 +1465,7 @@ class ThriftHiveMetastore_get_local_center_result {
     o1 = val;
   }
 
-  bool operator == (const ThriftHiveMetastore_get_local_center_result & rhs) const
+  bool operator == (const ThriftHiveMetastore_get_local_attribution_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
@@ -1482,33 +1473,33 @@ class ThriftHiveMetastore_get_local_center_result {
       return false;
     return true;
   }
-  bool operator != (const ThriftHiveMetastore_get_local_center_result &rhs) const {
+  bool operator != (const ThriftHiveMetastore_get_local_attribution_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const ThriftHiveMetastore_get_local_center_result & ) const;
+  bool operator < (const ThriftHiveMetastore_get_local_attribution_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _ThriftHiveMetastore_get_local_center_presult__isset {
-  _ThriftHiveMetastore_get_local_center_presult__isset() : success(false), o1(false) {}
+typedef struct _ThriftHiveMetastore_get_local_attribution_presult__isset {
+  _ThriftHiveMetastore_get_local_attribution_presult__isset() : success(false), o1(false) {}
   bool success;
   bool o1;
-} _ThriftHiveMetastore_get_local_center_presult__isset;
+} _ThriftHiveMetastore_get_local_attribution_presult__isset;
 
-class ThriftHiveMetastore_get_local_center_presult {
+class ThriftHiveMetastore_get_local_attribution_presult {
  public:
 
 
-  virtual ~ThriftHiveMetastore_get_local_center_presult() throw() {}
+  virtual ~ThriftHiveMetastore_get_local_attribution_presult() throw() {}
 
-  Datacenter* success;
+  Database* success;
   MetaException o1;
 
-  _ThriftHiveMetastore_get_local_center_presult__isset __isset;
+  _ThriftHiveMetastore_get_local_attribution_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -19863,148 +19854,12 @@ class ThriftHiveMetastore_getDMStatus_presult {
 
 };
 
-typedef struct _ThriftHiveMetastore_migrate_in_args__isset {
-  _ThriftHiveMetastore_migrate_in_args__isset() : tbl(false), parts(false), from_dc(false) {}
-  bool tbl;
-  bool parts;
-  bool from_dc;
-} _ThriftHiveMetastore_migrate_in_args__isset;
-
-class ThriftHiveMetastore_migrate_in_args {
- public:
-
-  ThriftHiveMetastore_migrate_in_args() : from_dc() {
-  }
-
-  virtual ~ThriftHiveMetastore_migrate_in_args() throw() {}
-
-  Table tbl;
-  std::vector<Partition>  parts;
-  std::string from_dc;
-
-  _ThriftHiveMetastore_migrate_in_args__isset __isset;
-
-  void __set_tbl(const Table& val) {
-    tbl = val;
-  }
-
-  void __set_parts(const std::vector<Partition> & val) {
-    parts = val;
-  }
-
-  void __set_from_dc(const std::string& val) {
-    from_dc = val;
-  }
-
-  bool operator == (const ThriftHiveMetastore_migrate_in_args & rhs) const
-  {
-    if (!(tbl == rhs.tbl))
-      return false;
-    if (!(parts == rhs.parts))
-      return false;
-    if (!(from_dc == rhs.from_dc))
-      return false;
-    return true;
-  }
-  bool operator != (const ThriftHiveMetastore_migrate_in_args &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const ThriftHiveMetastore_migrate_in_args & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class ThriftHiveMetastore_migrate_in_pargs {
- public:
-
-
-  virtual ~ThriftHiveMetastore_migrate_in_pargs() throw() {}
-
-  const Table* tbl;
-  const std::vector<Partition> * parts;
-  const std::string* from_dc;
-
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-typedef struct _ThriftHiveMetastore_migrate_in_result__isset {
-  _ThriftHiveMetastore_migrate_in_result__isset() : success(false), o1(false) {}
-  bool success;
-  bool o1;
-} _ThriftHiveMetastore_migrate_in_result__isset;
-
-class ThriftHiveMetastore_migrate_in_result {
- public:
-
-  ThriftHiveMetastore_migrate_in_result() {
-  }
-
-  virtual ~ThriftHiveMetastore_migrate_in_result() throw() {}
-
-  std::map<int64_t, SFile>  success;
-  MetaException o1;
-
-  _ThriftHiveMetastore_migrate_in_result__isset __isset;
-
-  void __set_success(const std::map<int64_t, SFile> & val) {
-    success = val;
-  }
-
-  void __set_o1(const MetaException& val) {
-    o1 = val;
-  }
-
-  bool operator == (const ThriftHiveMetastore_migrate_in_result & rhs) const
-  {
-    if (!(success == rhs.success))
-      return false;
-    if (!(o1 == rhs.o1))
-      return false;
-    return true;
-  }
-  bool operator != (const ThriftHiveMetastore_migrate_in_result &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const ThriftHiveMetastore_migrate_in_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-typedef struct _ThriftHiveMetastore_migrate_in_presult__isset {
-  _ThriftHiveMetastore_migrate_in_presult__isset() : success(false), o1(false) {}
-  bool success;
-  bool o1;
-} _ThriftHiveMetastore_migrate_in_presult__isset;
-
-class ThriftHiveMetastore_migrate_in_presult {
- public:
-
-
-  virtual ~ThriftHiveMetastore_migrate_in_presult() throw() {}
-
-  std::map<int64_t, SFile> * success;
-  MetaException o1;
-
-  _ThriftHiveMetastore_migrate_in_presult__isset __isset;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-
-};
-
 typedef struct _ThriftHiveMetastore_migrate2_in_args__isset {
-  _ThriftHiveMetastore_migrate2_in_args__isset() : tbl(false), parts(false), idxs(false), from_dc(false), to_nas_devid(false), fileMap(false) {}
+  _ThriftHiveMetastore_migrate2_in_args__isset() : tbl(false), parts(false), idxs(false), from_db(false), to_nas_devid(false), fileMap(false) {}
   bool tbl;
   bool parts;
   bool idxs;
-  bool from_dc;
+  bool from_db;
   bool to_nas_devid;
   bool fileMap;
 } _ThriftHiveMetastore_migrate2_in_args__isset;
@@ -20012,7 +19867,7 @@ typedef struct _ThriftHiveMetastore_migrate2_in_args__isset {
 class ThriftHiveMetastore_migrate2_in_args {
  public:
 
-  ThriftHiveMetastore_migrate2_in_args() : from_dc(), to_nas_devid() {
+  ThriftHiveMetastore_migrate2_in_args() : from_db(), to_nas_devid() {
   }
 
   virtual ~ThriftHiveMetastore_migrate2_in_args() throw() {}
@@ -20020,7 +19875,7 @@ class ThriftHiveMetastore_migrate2_in_args {
   Table tbl;
   std::vector<Partition>  parts;
   std::vector<Index>  idxs;
-  std::string from_dc;
+  std::string from_db;
   std::string to_nas_devid;
   std::map<int64_t, SFileLocation>  fileMap;
 
@@ -20038,8 +19893,8 @@ class ThriftHiveMetastore_migrate2_in_args {
     idxs = val;
   }
 
-  void __set_from_dc(const std::string& val) {
-    from_dc = val;
+  void __set_from_db(const std::string& val) {
+    from_db = val;
   }
 
   void __set_to_nas_devid(const std::string& val) {
@@ -20058,7 +19913,7 @@ class ThriftHiveMetastore_migrate2_in_args {
       return false;
     if (!(idxs == rhs.idxs))
       return false;
-    if (!(from_dc == rhs.from_dc))
+    if (!(from_db == rhs.from_db))
       return false;
     if (!(to_nas_devid == rhs.to_nas_devid))
       return false;
@@ -20087,7 +19942,7 @@ class ThriftHiveMetastore_migrate2_in_pargs {
   const Table* tbl;
   const std::vector<Partition> * parts;
   const std::vector<Index> * idxs;
-  const std::string* from_dc;
+  const std::string* from_db;
   const std::string* to_nas_devid;
   const std::map<int64_t, SFileLocation> * fileMap;
 
@@ -20162,163 +20017,18 @@ class ThriftHiveMetastore_migrate2_in_presult {
 
 };
 
-typedef struct _ThriftHiveMetastore_migrate_out_args__isset {
-  _ThriftHiveMetastore_migrate_out_args__isset() : dbName(false), tableName(false), partNames(false), to_dc(false) {}
-  bool dbName;
-  bool tableName;
-  bool partNames;
-  bool to_dc;
-} _ThriftHiveMetastore_migrate_out_args__isset;
-
-class ThriftHiveMetastore_migrate_out_args {
- public:
-
-  ThriftHiveMetastore_migrate_out_args() : dbName(), tableName(), to_dc() {
-  }
-
-  virtual ~ThriftHiveMetastore_migrate_out_args() throw() {}
-
-  std::string dbName;
-  std::string tableName;
-  std::vector<std::string>  partNames;
-  std::string to_dc;
-
-  _ThriftHiveMetastore_migrate_out_args__isset __isset;
-
-  void __set_dbName(const std::string& val) {
-    dbName = val;
-  }
-
-  void __set_tableName(const std::string& val) {
-    tableName = val;
-  }
-
-  void __set_partNames(const std::vector<std::string> & val) {
-    partNames = val;
-  }
-
-  void __set_to_dc(const std::string& val) {
-    to_dc = val;
-  }
-
-  bool operator == (const ThriftHiveMetastore_migrate_out_args & rhs) const
-  {
-    if (!(dbName == rhs.dbName))
-      return false;
-    if (!(tableName == rhs.tableName))
-      return false;
-    if (!(partNames == rhs.partNames))
-      return false;
-    if (!(to_dc == rhs.to_dc))
-      return false;
-    return true;
-  }
-  bool operator != (const ThriftHiveMetastore_migrate_out_args &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const ThriftHiveMetastore_migrate_out_args & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class ThriftHiveMetastore_migrate_out_pargs {
- public:
-
-
-  virtual ~ThriftHiveMetastore_migrate_out_pargs() throw() {}
-
-  const std::string* dbName;
-  const std::string* tableName;
-  const std::vector<std::string> * partNames;
-  const std::string* to_dc;
-
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-typedef struct _ThriftHiveMetastore_migrate_out_result__isset {
-  _ThriftHiveMetastore_migrate_out_result__isset() : success(false), o1(false) {}
-  bool success;
-  bool o1;
-} _ThriftHiveMetastore_migrate_out_result__isset;
-
-class ThriftHiveMetastore_migrate_out_result {
- public:
-
-  ThriftHiveMetastore_migrate_out_result() : success(0) {
-  }
-
-  virtual ~ThriftHiveMetastore_migrate_out_result() throw() {}
-
-  bool success;
-  MetaException o1;
-
-  _ThriftHiveMetastore_migrate_out_result__isset __isset;
-
-  void __set_success(const bool val) {
-    success = val;
-  }
-
-  void __set_o1(const MetaException& val) {
-    o1 = val;
-  }
-
-  bool operator == (const ThriftHiveMetastore_migrate_out_result & rhs) const
-  {
-    if (!(success == rhs.success))
-      return false;
-    if (!(o1 == rhs.o1))
-      return false;
-    return true;
-  }
-  bool operator != (const ThriftHiveMetastore_migrate_out_result &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const ThriftHiveMetastore_migrate_out_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-typedef struct _ThriftHiveMetastore_migrate_out_presult__isset {
-  _ThriftHiveMetastore_migrate_out_presult__isset() : success(false), o1(false) {}
-  bool success;
-  bool o1;
-} _ThriftHiveMetastore_migrate_out_presult__isset;
-
-class ThriftHiveMetastore_migrate_out_presult {
- public:
-
-
-  virtual ~ThriftHiveMetastore_migrate_out_presult() throw() {}
-
-  bool* success;
-  MetaException o1;
-
-  _ThriftHiveMetastore_migrate_out_presult__isset __isset;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-
-};
-
 typedef struct _ThriftHiveMetastore_migrate2_stage1_args__isset {
-  _ThriftHiveMetastore_migrate2_stage1_args__isset() : dbName(false), tableName(false), partNames(false), to_dc(false) {}
+  _ThriftHiveMetastore_migrate2_stage1_args__isset() : dbName(false), tableName(false), partNames(false), to_db(false) {}
   bool dbName;
   bool tableName;
   bool partNames;
-  bool to_dc;
+  bool to_db;
 } _ThriftHiveMetastore_migrate2_stage1_args__isset;
 
 class ThriftHiveMetastore_migrate2_stage1_args {
  public:
 
-  ThriftHiveMetastore_migrate2_stage1_args() : dbName(), tableName(), to_dc() {
+  ThriftHiveMetastore_migrate2_stage1_args() : dbName(), tableName(), to_db() {
   }
 
   virtual ~ThriftHiveMetastore_migrate2_stage1_args() throw() {}
@@ -20326,7 +20036,7 @@ class ThriftHiveMetastore_migrate2_stage1_args {
   std::string dbName;
   std::string tableName;
   std::vector<std::string>  partNames;
-  std::string to_dc;
+  std::string to_db;
 
   _ThriftHiveMetastore_migrate2_stage1_args__isset __isset;
 
@@ -20342,8 +20052,8 @@ class ThriftHiveMetastore_migrate2_stage1_args {
     partNames = val;
   }
 
-  void __set_to_dc(const std::string& val) {
-    to_dc = val;
+  void __set_to_db(const std::string& val) {
+    to_db = val;
   }
 
   bool operator == (const ThriftHiveMetastore_migrate2_stage1_args & rhs) const
@@ -20354,7 +20064,7 @@ class ThriftHiveMetastore_migrate2_stage1_args {
       return false;
     if (!(partNames == rhs.partNames))
       return false;
-    if (!(to_dc == rhs.to_dc))
+    if (!(to_db == rhs.to_db))
       return false;
     return true;
   }
@@ -20379,7 +20089,7 @@ class ThriftHiveMetastore_migrate2_stage1_pargs {
   const std::string* dbName;
   const std::string* tableName;
   const std::vector<std::string> * partNames;
-  const std::string* to_dc;
+  const std::string* to_db;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -20453,11 +20163,11 @@ class ThriftHiveMetastore_migrate2_stage1_presult {
 };
 
 typedef struct _ThriftHiveMetastore_migrate2_stage2_args__isset {
-  _ThriftHiveMetastore_migrate2_stage2_args__isset() : dbName(false), tableName(false), partNames(false), to_dc(false), to_db(false), to_nas_devid(false) {}
+  _ThriftHiveMetastore_migrate2_stage2_args__isset() : dbName(false), tableName(false), partNames(false), from_db(false), to_db(false), to_nas_devid(false) {}
   bool dbName;
   bool tableName;
   bool partNames;
-  bool to_dc;
+  bool from_db;
   bool to_db;
   bool to_nas_devid;
 } _ThriftHiveMetastore_migrate2_stage2_args__isset;
@@ -20465,7 +20175,7 @@ typedef struct _ThriftHiveMetastore_migrate2_stage2_args__isset {
 class ThriftHiveMetastore_migrate2_stage2_args {
  public:
 
-  ThriftHiveMetastore_migrate2_stage2_args() : dbName(), tableName(), to_dc(), to_db(), to_nas_devid() {
+  ThriftHiveMetastore_migrate2_stage2_args() : dbName(), tableName(), from_db(), to_db(), to_nas_devid() {
   }
 
   virtual ~ThriftHiveMetastore_migrate2_stage2_args() throw() {}
@@ -20473,7 +20183,7 @@ class ThriftHiveMetastore_migrate2_stage2_args {
   std::string dbName;
   std::string tableName;
   std::vector<std::string>  partNames;
-  std::string to_dc;
+  std::string from_db;
   std::string to_db;
   std::string to_nas_devid;
 
@@ -20491,8 +20201,8 @@ class ThriftHiveMetastore_migrate2_stage2_args {
     partNames = val;
   }
 
-  void __set_to_dc(const std::string& val) {
-    to_dc = val;
+  void __set_from_db(const std::string& val) {
+    from_db = val;
   }
 
   void __set_to_db(const std::string& val) {
@@ -20511,7 +20221,7 @@ class ThriftHiveMetastore_migrate2_stage2_args {
       return false;
     if (!(partNames == rhs.partNames))
       return false;
-    if (!(to_dc == rhs.to_dc))
+    if (!(from_db == rhs.from_db))
       return false;
     if (!(to_db == rhs.to_db))
       return false;
@@ -20540,7 +20250,7 @@ class ThriftHiveMetastore_migrate2_stage2_pargs {
   const std::string* dbName;
   const std::string* tableName;
   const std::vector<std::string> * partNames;
-  const std::string* to_dc;
+  const std::string* from_db;
   const std::string* to_db;
   const std::string* to_nas_devid;
 
@@ -21738,23 +21448,23 @@ class ThriftHiveMetastore_listTableFiles_presult {
 };
 
 typedef struct _ThriftHiveMetastore_filterTableFiles_args__isset {
-  _ThriftHiveMetastore_filterTableFiles_args__isset() : dbName(false), tabName(false), exp(false) {}
+  _ThriftHiveMetastore_filterTableFiles_args__isset() : dbName(false), tabName(false), values(false) {}
   bool dbName;
   bool tabName;
-  bool exp;
+  bool values;
 } _ThriftHiveMetastore_filterTableFiles_args__isset;
 
 class ThriftHiveMetastore_filterTableFiles_args {
  public:
 
-  ThriftHiveMetastore_filterTableFiles_args() : dbName(), tabName(), exp() {
+  ThriftHiveMetastore_filterTableFiles_args() : dbName(), tabName() {
   }
 
   virtual ~ThriftHiveMetastore_filterTableFiles_args() throw() {}
 
   std::string dbName;
   std::string tabName;
-  std::string exp;
+  std::vector<std::string>  values;
 
   _ThriftHiveMetastore_filterTableFiles_args__isset __isset;
 
@@ -21766,8 +21476,8 @@ class ThriftHiveMetastore_filterTableFiles_args {
     tabName = val;
   }
 
-  void __set_exp(const std::string& val) {
-    exp = val;
+  void __set_values(const std::vector<std::string> & val) {
+    values = val;
   }
 
   bool operator == (const ThriftHiveMetastore_filterTableFiles_args & rhs) const
@@ -21776,7 +21486,7 @@ class ThriftHiveMetastore_filterTableFiles_args {
       return false;
     if (!(tabName == rhs.tabName))
       return false;
-    if (!(exp == rhs.exp))
+    if (!(values == rhs.values))
       return false;
     return true;
   }
@@ -21800,7 +21510,7 @@ class ThriftHiveMetastore_filterTableFiles_pargs {
 
   const std::string* dbName;
   const std::string* tabName;
-  const std::string* exp;
+  const std::vector<std::string> * values;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -22870,24 +22580,24 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
-  void create_datacenter(const Datacenter& datacenter);
-  void send_create_datacenter(const Datacenter& datacenter);
-  void recv_create_datacenter();
-  void get_center(Datacenter& _return, const std::string& name);
-  void send_get_center(const std::string& name);
-  void recv_get_center(Datacenter& _return);
-  void drop_center(const std::string& name, const bool deleteData, const bool cascade);
-  void send_drop_center(const std::string& name, const bool deleteData, const bool cascade);
-  void recv_drop_center();
-  void update_center(const Datacenter& datacenter);
-  void send_update_center(const Datacenter& datacenter);
-  void recv_update_center();
-  void get_all_centers(std::vector<Datacenter> & _return);
-  void send_get_all_centers();
-  void recv_get_all_centers(std::vector<Datacenter> & _return);
-  void get_local_center(Datacenter& _return);
-  void send_get_local_center();
-  void recv_get_local_center(Datacenter& _return);
+  void create_attribution(const Database& db);
+  void send_create_attribution(const Database& db);
+  void recv_create_attribution();
+  void get_attribution(Database& _return, const std::string& name);
+  void send_get_attribution(const std::string& name);
+  void recv_get_attribution(Database& _return);
+  void drop_attribution(const std::string& name, const bool deleteData, const bool cascade);
+  void send_drop_attribution(const std::string& name, const bool deleteData, const bool cascade);
+  void recv_drop_attribution();
+  void update_attribution(const Database& db);
+  void send_update_attribution(const Database& db);
+  void recv_update_attribution();
+  void get_all_attributions(std::vector<Database> & _return);
+  void send_get_all_attributions();
+  void recv_get_all_attributions(std::vector<Database> & _return);
+  void get_local_attribution(Database& _return);
+  void send_get_local_attribution();
+  void recv_get_local_attribution(Database& _return);
   void get_lucene_index_names(std::vector<std::string> & _return, const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes);
   void send_get_lucene_index_names(const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes);
   void recv_get_lucene_index_names(std::vector<std::string> & _return);
@@ -23299,20 +23009,14 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void getDMStatus(std::string& _return);
   void send_getDMStatus();
   void recv_getDMStatus(std::string& _return);
-  void migrate_in(std::map<int64_t, SFile> & _return, const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc);
-  void send_migrate_in(const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc);
-  void recv_migrate_in(std::map<int64_t, SFile> & _return);
-  bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap);
-  void send_migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap);
+  bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap);
+  void send_migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap);
   bool recv_migrate2_in();
-  bool migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc);
-  void send_migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc);
-  bool recv_migrate_out();
-  void migrate2_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc);
-  void send_migrate2_stage1(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc);
+  void migrate2_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_db);
+  void send_migrate2_stage1(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_db);
   void recv_migrate2_stage1(std::vector<SFileLocation> & _return);
-  bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_db, const std::string& to_nas_devid);
-  void send_migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_db, const std::string& to_nas_devid);
+  bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& from_db, const std::string& to_db, const std::string& to_nas_devid);
+  void send_migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& from_db, const std::string& to_db, const std::string& to_nas_devid);
   bool recv_migrate2_stage2();
   void getMP(std::string& _return, const std::string& node_name, const std::string& devid);
   void send_getMP(const std::string& node_name, const std::string& devid);
@@ -23341,8 +23045,8 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void listTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const int16_t max_num);
   void send_listTableFiles(const std::string& dbName, const std::string& tabName, const int16_t max_num);
   void recv_listTableFiles(std::vector<SFile> & _return);
-  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& exp);
-  void send_filterTableFiles(const std::string& dbName, const std::string& tabName, const std::string& exp);
+  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<std::string> & values);
+  void send_filterTableFiles(const std::string& dbName, const std::string& tabName, const std::vector<std::string> & values);
   void recv_filterTableFiles(std::vector<SFile> & _return);
   bool addNodeGroup(const NodeGroup& ng);
   void send_addNodeGroup(const NodeGroup& ng);
@@ -23378,12 +23082,12 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   typedef  void (ThriftHiveMetastoreProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);
   typedef std::map<std::string, ProcessFunction> ProcessMap;
   ProcessMap processMap_;
-  void process_create_datacenter(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_get_center(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_drop_center(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_update_center(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_get_all_centers(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_get_local_center(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_create_attribution(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_attribution(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_drop_attribution(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_update_attribution(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_all_attributions(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_local_attribution(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_lucene_index_names(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_all_busi_type_cols(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_all_busi_type_datacenters(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -23521,9 +23225,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_find_best_nodes_in_groups(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_all_nodes(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getDMStatus(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_migrate_in(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_migrate2_in(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_migrate_out(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_migrate2_stage1(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_migrate2_stage2(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getMP(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -23548,12 +23250,12 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   ThriftHiveMetastoreProcessor(boost::shared_ptr<ThriftHiveMetastoreIf> iface) :
      ::facebook::fb303::FacebookServiceProcessor(iface),
     iface_(iface) {
-    processMap_["create_datacenter"] = &ThriftHiveMetastoreProcessor::process_create_datacenter;
-    processMap_["get_center"] = &ThriftHiveMetastoreProcessor::process_get_center;
-    processMap_["drop_center"] = &ThriftHiveMetastoreProcessor::process_drop_center;
-    processMap_["update_center"] = &ThriftHiveMetastoreProcessor::process_update_center;
-    processMap_["get_all_centers"] = &ThriftHiveMetastoreProcessor::process_get_all_centers;
-    processMap_["get_local_center"] = &ThriftHiveMetastoreProcessor::process_get_local_center;
+    processMap_["create_attribution"] = &ThriftHiveMetastoreProcessor::process_create_attribution;
+    processMap_["get_attribution"] = &ThriftHiveMetastoreProcessor::process_get_attribution;
+    processMap_["drop_attribution"] = &ThriftHiveMetastoreProcessor::process_drop_attribution;
+    processMap_["update_attribution"] = &ThriftHiveMetastoreProcessor::process_update_attribution;
+    processMap_["get_all_attributions"] = &ThriftHiveMetastoreProcessor::process_get_all_attributions;
+    processMap_["get_local_attribution"] = &ThriftHiveMetastoreProcessor::process_get_local_attribution;
     processMap_["get_lucene_index_names"] = &ThriftHiveMetastoreProcessor::process_get_lucene_index_names;
     processMap_["get_all_busi_type_cols"] = &ThriftHiveMetastoreProcessor::process_get_all_busi_type_cols;
     processMap_["get_all_busi_type_datacenters"] = &ThriftHiveMetastoreProcessor::process_get_all_busi_type_datacenters;
@@ -23691,9 +23393,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["find_best_nodes_in_groups"] = &ThriftHiveMetastoreProcessor::process_find_best_nodes_in_groups;
     processMap_["get_all_nodes"] = &ThriftHiveMetastoreProcessor::process_get_all_nodes;
     processMap_["getDMStatus"] = &ThriftHiveMetastoreProcessor::process_getDMStatus;
-    processMap_["migrate_in"] = &ThriftHiveMetastoreProcessor::process_migrate_in;
     processMap_["migrate2_in"] = &ThriftHiveMetastoreProcessor::process_migrate2_in;
-    processMap_["migrate_out"] = &ThriftHiveMetastoreProcessor::process_migrate_out;
     processMap_["migrate2_stage1"] = &ThriftHiveMetastoreProcessor::process_migrate2_stage1;
     processMap_["migrate2_stage2"] = &ThriftHiveMetastoreProcessor::process_migrate2_stage2;
     processMap_["getMP"] = &ThriftHiveMetastoreProcessor::process_getMP;
@@ -23747,60 +23447,60 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     ifaces_.push_back(iface);
   }
  public:
-  void create_datacenter(const Datacenter& datacenter) {
+  void create_attribution(const Database& db) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->create_datacenter(datacenter);
+      ifaces_[i]->create_attribution(db);
     }
-    ifaces_[i]->create_datacenter(datacenter);
+    ifaces_[i]->create_attribution(db);
   }
 
-  void get_center(Datacenter& _return, const std::string& name) {
+  void get_attribution(Database& _return, const std::string& name) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->get_center(_return, name);
+      ifaces_[i]->get_attribution(_return, name);
     }
-    ifaces_[i]->get_center(_return, name);
+    ifaces_[i]->get_attribution(_return, name);
     return;
   }
 
-  void drop_center(const std::string& name, const bool deleteData, const bool cascade) {
+  void drop_attribution(const std::string& name, const bool deleteData, const bool cascade) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->drop_center(name, deleteData, cascade);
+      ifaces_[i]->drop_attribution(name, deleteData, cascade);
     }
-    ifaces_[i]->drop_center(name, deleteData, cascade);
+    ifaces_[i]->drop_attribution(name, deleteData, cascade);
   }
 
-  void update_center(const Datacenter& datacenter) {
+  void update_attribution(const Database& db) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->update_center(datacenter);
+      ifaces_[i]->update_attribution(db);
     }
-    ifaces_[i]->update_center(datacenter);
+    ifaces_[i]->update_attribution(db);
   }
 
-  void get_all_centers(std::vector<Datacenter> & _return) {
+  void get_all_attributions(std::vector<Database> & _return) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->get_all_centers(_return);
+      ifaces_[i]->get_all_attributions(_return);
     }
-    ifaces_[i]->get_all_centers(_return);
+    ifaces_[i]->get_all_attributions(_return);
     return;
   }
 
-  void get_local_center(Datacenter& _return) {
+  void get_local_attribution(Database& _return) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->get_local_center(_return);
+      ifaces_[i]->get_local_attribution(_return);
     }
-    ifaces_[i]->get_local_center(_return);
+    ifaces_[i]->get_local_attribution(_return);
     return;
   }
 
@@ -25104,51 +24804,32 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return;
   }
 
-  void migrate_in(std::map<int64_t, SFile> & _return, const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc) {
+  bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->migrate_in(_return, tbl, parts, from_dc);
+      ifaces_[i]->migrate2_in(tbl, parts, idxs, from_db, to_nas_devid, fileMap);
     }
-    ifaces_[i]->migrate_in(_return, tbl, parts, from_dc);
+    return ifaces_[i]->migrate2_in(tbl, parts, idxs, from_db, to_nas_devid, fileMap);
+  }
+
+  void migrate2_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_db) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->migrate2_stage1(_return, dbName, tableName, partNames, to_db);
+    }
+    ifaces_[i]->migrate2_stage1(_return, dbName, tableName, partNames, to_db);
     return;
   }
 
-  bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) {
+  bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& from_db, const std::string& to_db, const std::string& to_nas_devid) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->migrate2_in(tbl, parts, idxs, from_dc, to_nas_devid, fileMap);
+      ifaces_[i]->migrate2_stage2(dbName, tableName, partNames, from_db, to_db, to_nas_devid);
     }
-    return ifaces_[i]->migrate2_in(tbl, parts, idxs, from_dc, to_nas_devid, fileMap);
-  }
-
-  bool migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->migrate_out(dbName, tableName, partNames, to_dc);
-    }
-    return ifaces_[i]->migrate_out(dbName, tableName, partNames, to_dc);
-  }
-
-  void migrate2_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->migrate2_stage1(_return, dbName, tableName, partNames, to_dc);
-    }
-    ifaces_[i]->migrate2_stage1(_return, dbName, tableName, partNames, to_dc);
-    return;
-  }
-
-  bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_db, const std::string& to_nas_devid) {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->migrate2_stage2(dbName, tableName, partNames, to_dc, to_db, to_nas_devid);
-    }
-    return ifaces_[i]->migrate2_stage2(dbName, tableName, partNames, to_dc, to_db, to_nas_devid);
+    return ifaces_[i]->migrate2_stage2(dbName, tableName, partNames, from_db, to_db, to_nas_devid);
   }
 
   void getMP(std::string& _return, const std::string& node_name, const std::string& devid) {
@@ -25238,13 +24919,13 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return;
   }
 
-  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& exp) {
+  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<std::string> & values) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->filterTableFiles(_return, dbName, tabName, exp);
+      ifaces_[i]->filterTableFiles(_return, dbName, tabName, values);
     }
-    ifaces_[i]->filterTableFiles(_return, dbName, tabName, exp);
+    ifaces_[i]->filterTableFiles(_return, dbName, tabName, values);
     return;
   }
 

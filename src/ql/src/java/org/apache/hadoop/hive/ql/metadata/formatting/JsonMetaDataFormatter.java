@@ -36,7 +36,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.Busitype;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Node;
 import org.apache.hadoop.hive.metastore.api.SFile;
@@ -503,16 +502,6 @@ public class JsonMetaDataFormatter implements MetaDataFormatter {
       asJson(outStream,
           MapBuilder.create()
           .put("keys", partitionInfo.toString())
-          .build());
-
-    }
-
-    @Override
-    public void showDatacenters(DataOutputStream outStream, List<Datacenter> dcs)
-        throws HiveException {
-      asJson(outStream,
-          MapBuilder.create()
-          .put("dcs", dcs.toString())
           .build());
 
     }

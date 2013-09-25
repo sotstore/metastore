@@ -32,7 +32,6 @@ public class MDatabase {
   private String name;
   private String locationUri;
   private String description;
-  private MDatacenter datacenter;
   private Map<String, String> parameters;
   private Set<MNode> nodes;
   private Set<MNodeGroup> nodeGroups;
@@ -51,25 +50,22 @@ public class MDatabase {
    * @param locationUri Location of the database in the warehouse
    * @param description Comment describing the database
    */
-  public MDatabase(String name, String locationUri, String description, MDatacenter datacenter,
-      Map<String, String> parameters) {
+  public MDatabase(String name, String locationUri, String description, Map<String, String> parameters) {
     this.name = name;
     this.locationUri = locationUri;
     this.description = description;
-    this.datacenter = datacenter;
     this.parameters = parameters;
   }
 
 
 
-  public MDatabase(String name, String locationUri, String description, MDatacenter datacenter,
+  public MDatabase(String name, String locationUri, String description,
       Map<String, String> parameters, Set<MNode> nodes, Set<MNodeGroup> nodeGroups,
       Set<MUser> users, Set<MRole> roles) {
     super();
     this.name = name;
     this.locationUri = locationUri;
     this.description = description;
-    this.datacenter = datacenter;
     this.parameters = parameters;
     this.nodes = nodes;
     this.nodeGroups = nodeGroups;
@@ -133,14 +129,6 @@ public class MDatabase {
     this.parameters = parameters;
   }
 
-  public MDatacenter getDatacenter() {
-    return datacenter;
-  }
-
-  public void setDatacenter(MDatacenter datacenter) {
-    this.datacenter = datacenter;
-  }
-
   public Set<MNodeGroup> getNodeGroups() {
     return nodeGroups;
   }
@@ -172,7 +160,5 @@ public class MDatabase {
   public void setRoles(Set<MRole> roles) {
     this.roles = roles;
   }
-
-
 
 }

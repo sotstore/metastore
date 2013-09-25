@@ -199,18 +199,6 @@ struct NodeGroup{
   4: set<Node> nodes,
 }
 
-
-// namespace for dbs
-struct Datacenter {
-  1: string name,
-  2: string description,
-  3: string locationUri,
-  4: map<string, string> parameters, // properties associated with the database
-  5: optional PrincipalPrivilegeSet privileges
-  6: optional list<Node> nodes,
-  7: optional list<NodeGroup> nodeGroups,
-}
-
 // namespace for tables
 struct Database {
   1: string name,
@@ -218,7 +206,6 @@ struct Database {
   3: string locationUri,
   4: map<string, string> parameters, // properties associated with the database
   5: optional PrincipalPrivilegeSet privileges,
-  6: optional Datacenter datacenter
 }
 
 // This object holds the information needed by SerDes
@@ -333,10 +320,8 @@ struct BusiTypeColumn {
 
 struct BusiTypeDatacenter {
   1: string busiType,  // required @ip,@content,@tel,@time
-  2: Datacenter dc,         // Datacenter 
-  3: string db_name      //db_name
+  2: Database db,         // Database 
 }
-
 
 struct Device {
   1: string devid,
@@ -544,12 +529,14 @@ exception FileOperationException {
 service ThriftHiveMetastore extends fb303.FacebookService
 {
 //added by zjw
-  void create_datacenter(1:Datacenter datacenter) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
-  Datacenter get_center(1:string name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
-  void drop_center(1:string name, 2:bool deleteData, 3:bool cascade) throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)
-  void update_center(1:Datacenter datacenter) throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)
-  list<Datacenter> get_all_centers() throws(1:MetaException o1)
-  Datacenter get_local_center() throws(1:MetaException o1)
+  void create_attribution(1:Database db) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
+  Database get_attribution(1:string name) throws(1:NoSuchObjectException o1, 2:MetaException o2)
+  void drop_attribution(1:string name, 2:bool deleteData, 3:bool cascade) throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)
+  void update_attribution(1:Database db) throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)
+  
+  list<Database> get_all_attributions() throws(1:MetaException o1)
+  Database get_local_attribution() throws(1:MetaException o1)
+  
   list<string> get_lucene_index_names(1:string db_name, 2:string tbl_name, 3:i16 max_indexes=-1)
                        throws(1:MetaException o2)
   list<BusiTypeColumn> get_all_busi_type_cols() throws(1:MetaException o1)
@@ -952,15 +939,11 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   string getDMStatus() throws(1:MetaException o1)
   
-  map<i64, SFile> migrate_in(1:Table tbl, 2:list<Partition> parts, 3:string from_dc) throws (1:MetaException o1)
+  bool migrate2_in(1:Table tbl, 2:list<Partition> parts, 3:list<Index> idxs, 4:string from_db, 5:string to_nas_devid, 6:map<i64, SFileLocation> fileMap) throws (1:MetaException o1)
   
-  bool migrate2_in(1:Table tbl, 2:list<Partition> parts, 3:list<Index> idxs, 4:string from_dc, 5:string to_nas_devid, 6:map<i64, SFileLocation> fileMap) throws (1:MetaException o1)
+  list<SFileLocation> migrate2_stage1(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_db) throws (1:MetaException o1)
   
-  bool migrate_out(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc) throws (1:MetaException o1)
-  
-  list<SFileLocation> migrate2_stage1(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc) throws (1:MetaException o1)
-  
-  bool migrate2_stage2(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_dc, 5:string to_db, 6:string to_nas_devid) throws (1:MetaException o1)
+  bool migrate2_stage2(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string from_db, 5:string to_db, 6:string to_nas_devid) throws (1:MetaException o1)
   
   string getMP(1:string node_name, 2:string devid) throws (1:MetaException o1) 
   
@@ -974,7 +957,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   list<SFile> getTableNodeFiles(1:string dbName,2:string tabName,3:string nodeName)  throws (1:MetaException o1)
   
   list<SFile> listTableFiles(1:string dbName,2:string tabName,3:i16 max_num)  throws (1:MetaException o1)
-  list<SFile> filterTableFiles(1:string dbName,2:string tabName,3:string exp)  throws (1:MetaException o1)
+  list<SFile> filterTableFiles(1:string dbName,2:string tabName,3:list<string> values)  throws (1:MetaException o1)
   
   bool addNodeGroup(1:NodeGroup ng) throws (1:AlreadyExistsException o1,2:MetaException o2)
   bool modifyNodeGroup (1:NodeGroup ng) throws (1:MetaException o1)

@@ -29,9 +29,9 @@ import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
 import org.apache.hadoop.hive.metastore.api.GlobalSchema;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -41,6 +41,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.NodeGroup;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
@@ -542,13 +543,7 @@ public interface RawStore extends Configurable {
 
   public List<SFileRef> getPartitionIndexFiles(Index index, Partition part) throws InvalidObjectException, NoSuchObjectException, MetaException;
 
-  public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException;
-
-  public void createDatacenter(Datacenter dc) throws InvalidObjectException, MetaException;
-
   public boolean add_datawarehouse_sql(int dwNum, String sql)throws InvalidObjectException, MetaException;
-
-  public void setThisDC(String thisDC);
 
   public abstract List<SFileRef> getSubpartitionIndexFiles(Index index, Subpartition subpart) throws InvalidObjectException, MetaException ;
 
@@ -558,12 +553,6 @@ public interface RawStore extends Configurable {
   public abstract List<BusiTypeColumn> getAllBusiTypeCols()throws MetaException;
 
   public Partition getParentPartition(String dbName, String tableName, String subpart_name) throws NoSuchObjectException, MetaException;
-
-  public List<Datacenter> getAllDatacenters() throws MetaException;
-
-  public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException;
-
-  public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException;
 
   public abstract List<BusiTypeDatacenter> get_all_busi_type_datacenters()throws  MetaException, TException ;
 
@@ -595,9 +584,43 @@ public interface RawStore extends Configurable {
 
   public abstract List<GeoLocation> listGeoLocation() throws MetaException;
 
-  public List<String> listUsersNames(String dbName) throws MetaException;
+  public abstract List<String> listUsersNames(String dbName) throws MetaException;
 
   public abstract Schema getSchema(String schema_name)throws MetaException;
+
+  public abstract  boolean modifySchema(String schemaName,GlobalSchema schema) throws InvalidObjectException, MetaException;
+  //修改表模式
+
+  public abstract  boolean deleteSchema(String schemaName) throws InvalidObjectException, InvalidInputException,NoSuchObjectException,  MetaException;
+  //删除模式
+
+  public abstract  List<GlobalSchema> listSchemas() throws  MetaException;
+  //获取所有模式
+
+  public abstract  boolean addNodeGroup(NodeGroup ng) throws InvalidObjectException, MetaException;
+  //新增节点组
+
+  public abstract  boolean modifyNodeGroup(NodeGroup ng) throws InvalidObjectException, MetaException;
+  //修改节点组
+
+  public abstract  boolean deleteNodeGroup(NodeGroup ng) throws  MetaException;
+  //删除节点组
+
+  public abstract  List<NodeGroup> listNodeGroups() throws  MetaException;
+  //获取所有节点组
+
+  public abstract  List<NodeGroup> listDBNodeGroups(String dbName) throws  MetaException;
+  //获取某归属地所有节点组
+
+  public abstract  boolean addTableNodeDist(String db, String tab, List<String> ng) throws  MetaException;
+  //新增某归属地表的存储节点组
+
+  public abstract  boolean deleteTableNodeDist(String db, String tab, List<String> ng) throws  MetaException;
+  //删除某归属地表的存储节点组
+
+  public abstract  List<NodeGroup> listTableNodeDists(String dbName, String tabName) throws  MetaException;
+  //获取某归属地的表分布节点组
+
 
   public abstract void createSchema(GlobalSchema schema)throws InvalidObjectException, MetaException;
 
@@ -606,5 +629,13 @@ public interface RawStore extends Configurable {
   public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException;
 
   public abstract GeoLocation getGeoLocationByName(String geoLocName) throws MetaException;
+
+  public abstract List<SFile> listTableFiles(String dbName, String tableName, short max_num) throws MetaException;
+
+  public abstract List<SFile> filterTableFiles(String dbName, String tableName, List<String> values)
+      throws MetaException;
+
+  public boolean assiginSchematoDB(String dbName, String schemaName, List<FieldSchema> fileSplitKeys, List<FieldSchema> part_keys,
+      List<NodeGroup> ngs) throws InvalidObjectException,NoSuchObjectException, MetaException;
 
 }

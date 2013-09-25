@@ -31,9 +31,9 @@ import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
 import org.apache.hadoop.hive.metastore.api.GlobalSchema;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -43,6 +43,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.NodeGroup;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
@@ -795,18 +796,6 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public void createDatacenter(Datacenter dc) throws InvalidObjectException, MetaException {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
   public boolean add_datawarehouse_sql(int dwNum, String sql) throws InvalidObjectException,
       MetaException {
     // TODO Auto-generated method stub
@@ -835,12 +824,6 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public void setThisDC(String thisDC) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
   public List<BusiTypeColumn> getAllBusiTypeCols() throws MetaException {
     // TODO Auto-generated method stub
     return null;
@@ -851,24 +834,6 @@ public class DummyRawStoreForJdoConnection implements RawStore {
       throws NoSuchObjectException, MetaException {
     // TODO Auto-generated method stub
     return null;
-  }
-
-  @Override
-  public List<Datacenter> getAllDatacenters() throws MetaException {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  @Override
-  public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException {
-    // TODO Auto-generated method stub
-    return false;
   }
 
   @Override
@@ -1062,6 +1027,7 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     // TODO Auto-generated method stub
 
   }
+
   public boolean addNodeAssignment(String nodename, String dbname) throws MetaException,
       NoSuchObjectException {
     // TODO Auto-generated method stub
@@ -1079,6 +1045,93 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public boolean deleteSchema(String schemaName) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public List<GlobalSchema> listSchemas() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean addNodeGroup(NodeGroup ng) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean modifyNodeGroup(NodeGroup ng) throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean deleteNodeGroup(NodeGroup ng) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public List<NodeGroup> listNodeGroups() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<SFile> listTableFiles(String dbName, String tableName, short max_num)
+      throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public List<NodeGroup> listDBNodeGroups(String dbName) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<SFile> filterTableFiles(String dbName, String tableName, List<String> values)
+      throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public boolean addTableNodeDist(String db, String tab, List<String> ng) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean deleteTableNodeDist(String db, String tab, List<String> ng) throws MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public List<NodeGroup> listTableNodeDists(String dbName, String tabName) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean modifySchema(String schemaName, GlobalSchema schema)
+      throws InvalidObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean assiginSchematoDB(String dbName, String schemaName,
+      List<FieldSchema> fileSplitKeys, List<FieldSchema> part_keys, List<NodeGroup> ngs)
+      throws InvalidObjectException, NoSuchObjectException, MetaException {
+    // TODO Auto-generated method stub
+    return false;
   }
 
 }

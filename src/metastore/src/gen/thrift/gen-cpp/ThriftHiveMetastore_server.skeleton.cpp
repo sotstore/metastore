@@ -22,34 +22,34 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     // Your initialization goes here
   }
 
-  void create_datacenter(const Datacenter& datacenter) {
+  void create_attribution(const Database& db) {
     // Your implementation goes here
-    printf("create_datacenter\n");
+    printf("create_attribution\n");
   }
 
-  void get_center(Datacenter& _return, const std::string& name) {
+  void get_attribution(Database& _return, const std::string& name) {
     // Your implementation goes here
-    printf("get_center\n");
+    printf("get_attribution\n");
   }
 
-  void drop_center(const std::string& name, const bool deleteData, const bool cascade) {
+  void drop_attribution(const std::string& name, const bool deleteData, const bool cascade) {
     // Your implementation goes here
-    printf("drop_center\n");
+    printf("drop_attribution\n");
   }
 
-  void update_center(const Datacenter& datacenter) {
+  void update_attribution(const Database& db) {
     // Your implementation goes here
-    printf("update_center\n");
+    printf("update_attribution\n");
   }
 
-  void get_all_centers(std::vector<Datacenter> & _return) {
+  void get_all_attributions(std::vector<Database> & _return) {
     // Your implementation goes here
-    printf("get_all_centers\n");
+    printf("get_all_attributions\n");
   }
 
-  void get_local_center(Datacenter& _return) {
+  void get_local_attribution(Database& _return) {
     // Your implementation goes here
-    printf("get_local_center\n");
+    printf("get_local_attribution\n");
   }
 
   void get_lucene_index_names(std::vector<std::string> & _return, const std::string& db_name, const std::string& tbl_name, const int16_t max_indexes) {
@@ -737,27 +737,17 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("getDMStatus\n");
   }
 
-  void migrate_in(std::map<int64_t, SFile> & _return, const Table& tbl, const std::vector<Partition> & parts, const std::string& from_dc) {
-    // Your implementation goes here
-    printf("migrate_in\n");
-  }
-
-  bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_dc, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) {
+  bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) {
     // Your implementation goes here
     printf("migrate2_in\n");
   }
 
-  bool migrate_out(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) {
-    // Your implementation goes here
-    printf("migrate_out\n");
-  }
-
-  void migrate2_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc) {
+  void migrate2_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_db) {
     // Your implementation goes here
     printf("migrate2_stage1\n");
   }
 
-  bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_dc, const std::string& to_db, const std::string& to_nas_devid) {
+  bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& from_db, const std::string& to_db, const std::string& to_nas_devid) {
     // Your implementation goes here
     printf("migrate2_stage2\n");
   }
@@ -807,7 +797,7 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("listTableFiles\n");
   }
 
-  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& exp) {
+  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<std::string> & values) {
     // Your implementation goes here
     printf("filterTableFiles\n");
   }

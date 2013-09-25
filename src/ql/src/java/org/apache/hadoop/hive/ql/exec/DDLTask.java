@@ -64,7 +64,6 @@ import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
@@ -816,15 +815,13 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   }
 
   private int showDatacentersDesc(Hive db, ShowDatacentersDesc showDatacentersDesc) throws HiveException {
-    List<Datacenter> dcs = db.getAllDatacenters();
-    LOG.debug("---zjw--dcs.size:"+dcs.size());
     DataOutputStream outStream = null;
     try {
       Path resFile = new Path(showDatacentersDesc.getResFile());
       FileSystem fs = resFile.getFileSystem(conf);
       outStream = fs.create(resFile);
 
-      formatter.showDatacenters(outStream, dcs);
+      formatter.logWarn(outStream, "DataCenter is gone ... ;-)", MetaDataFormatter.ERROR);
 
       ((FSDataOutputStream) outStream).close();
       outStream = null;

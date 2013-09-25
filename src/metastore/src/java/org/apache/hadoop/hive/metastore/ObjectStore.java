@@ -70,7 +70,6 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.DoubleColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
@@ -88,6 +87,7 @@ import org.apache.hadoop.hive.metastore.api.LongColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.NodeGroup;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
@@ -117,7 +117,6 @@ import org.apache.hadoop.hive.metastore.model.MBusitype;
 import org.apache.hadoop.hive.metastore.model.MColumnDescriptor;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MDatabase;
-import org.apache.hadoop.hive.metastore.model.MDatacenter;
 import org.apache.hadoop.hive.metastore.model.MDevice;
 import org.apache.hadoop.hive.metastore.model.MDirectDDL;
 import org.apache.hadoop.hive.metastore.model.MEquipRoom;
@@ -128,6 +127,7 @@ import org.apache.hadoop.hive.metastore.model.MGeoLocation;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
 import org.apache.hadoop.hive.metastore.model.MIndex;
 import org.apache.hadoop.hive.metastore.model.MNode;
+import org.apache.hadoop.hive.metastore.model.MNodeGroup;
 import org.apache.hadoop.hive.metastore.model.MOrder;
 import org.apache.hadoop.hive.metastore.model.MPartition;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnPrivilege;
@@ -169,7 +169,6 @@ import com.taobao.metamorphosis.exception.MetaClientException;
  * filestore.
  */
 public class ObjectStore implements RawStore, Configurable {
-  private static String g_thisDC = null;
   private static final Long g_fid_syncer = new Long(0);
   private static long g_fid = 0;
   private static boolean g_fid_inited = false;
@@ -181,10 +180,6 @@ public class ObjectStore implements RawStore, Configurable {
 
   private static enum TXN_STATUS {
     NO_STATE, OPEN, COMMITED, ROLLBACK
-  }
-
-  public void setThisDC(String thisDC) {
-    g_thisDC = thisDC;
   }
 
   private void restoreFID() {
@@ -231,7 +226,6 @@ public class ObjectStore implements RawStore, Configurable {
     map.put("files", MFile.class);
     map.put("nodes", MNode.class);
     map.put("direct_ddl", MDirectDDL.class);
-    map.put("datacenter", MDatacenter.class);
     map.put("busi_column", MBusiTypeColumn.class);
     map.put("index", MIndex.class);
     map.put("partindex", MPartitionIndex.class);
@@ -491,15 +485,7 @@ public class ObjectStore implements RawStore, Configurable {
     mdb.setLocationUri(db.getLocationUri());
     mdb.setDescription(db.getDescription());
     mdb.setParameters(db.getParameters());
-    try {
-      if(db.getDatacenter()!= null){
-        mdb.setDatacenter(getMDatacenter(db.getDatacenter().getName()));
-      }else{
-        mdb.setDatacenter(getMDatacenter(this.g_thisDC));
-      }
-    } catch (NoSuchObjectException e) {
-      throw new InvalidObjectException("This datacenter " + db.getDatacenter().getName() + " is invalid.");
-    }
+
     try {
       openTransaction();
       pm.makePersistent(mdb);
@@ -569,7 +555,6 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       mdb = getMDatabase(name);
-      pm.retrieve(mdb.getDatacenter());
       commited = commitTransaction();
     } finally {
       if (!commited) {
@@ -577,11 +562,6 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     Database db = new Database();
-    try{
-      db.setDatacenter(convertToDatacenter(mdb.getDatacenter()));
-    }catch(MetaException e){
-      throw new NoSuchObjectException(e.getMessage());
-    }
     db.setName(mdb.getName());
     db.setDescription(mdb.getDescription());
     db.setLocationUri(mdb.getLocationUri());
@@ -640,14 +620,12 @@ public class ObjectStore implements RawStore, Configurable {
         }
         pm.deletePersistent(db);
       }
-      String dc_name = db.getName();
-      String db_name = db.getDatacenter().getName();
+      String db_name = db.getName();
       long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(db).toString()));
 
       success = commitTransaction();
       HashMap<String,Object> old_params= new HashMap<String,Object>();
 
-      old_params.put("datacenter_name", dc_name);
       old_params.put("db_name", db_name);
       MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DROP_DATABESE,db_id,-1, pm, db,old_params));
     } finally {
@@ -788,6 +766,61 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
     return success;
+  }
+
+  @Override
+  public List<SFile> filterTableFiles(String dbName, String tableName, List<String> values) throws MetaException {
+    List<SFile> rls = new ArrayList<SFile>();
+    int splitLen = values.size();
+
+    if (splitLen < 1 || splitLen > 2) {
+      return rls;
+    }
+
+    try {
+      Query q = pm.newQuery(MFile.class, "this.table.tableName == tableName && this.table.database.name == dbName");
+      if (splitLen == 1) {
+        q.setFilter("this.values.get(0) == values.get(0)");
+      } else {
+        q.setFilter("this.values.get(0) == values.get(0) && this.values.get(1) == values.get(1)");
+      }
+      q.declareParameters("java.lang.String tableName, java.lang.String dbName, java.util.List values");
+      Collection files = (Collection)q.execute(dbName, tableName, values);
+      Iterator iter = files.iterator();
+      while (iter.hasNext()) {
+        MFile mf = (MFile)iter.next();
+        if (mf == null) {
+          continue;
+        }
+        rls.add(convertToSFile(mf));
+      }
+    } finally {
+    }
+
+    return rls;
+  }
+
+  @Override
+  public List<SFile> listTableFiles(String dbName, String tableName, short max_num) throws MetaException {
+    List<SFile> rls = new ArrayList<SFile>();
+
+    try {
+      Query q = pm.newQuery(MFile.class, "this.table.tableName == tableName && this.table.database.name == dbName");
+      q.setRange(0, max_num);
+      q.declareParameters("java.lang.String tableName, java.lang.String dbName");
+      Collection files = (Collection)q.execute(dbName, tableName);
+      Iterator iter = files.iterator();
+      while (iter.hasNext()) {
+        MFile mf = (MFile)iter.next();
+        if (mf == null) {
+          continue;
+        }
+        rls.add(convertToSFile(mf));
+      }
+    } finally {
+    }
+
+    return rls;
   }
 
   public void findVoidFiles(List<SFile> voidFiles) throws MetaException {
@@ -1222,21 +1255,6 @@ public class ObjectStore implements RawStore, Configurable {
     }
   }
 
-  public void createDatacenter(Datacenter dc) throws InvalidObjectException, MetaException {
-    boolean commited = false;
-
-    try {
-      openTransaction();
-      MDatacenter mdc = convertToMDatacenter(dc);
-      pm.makePersistent(mdc);
-      commited = commitTransaction();
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      }
-    }
-  }
-
   public void createFileLocaiton(SFileLocation fl) throws InvalidObjectException, MetaException {
     boolean commited = false;
 
@@ -1340,10 +1358,18 @@ public class ObjectStore implements RawStore, Configurable {
       if (mn == null) {
         throw new InvalidObjectException("Invalid Node name '" + node.getNode_name() + "'!");
       }
-      md = new MDevice(mn, di.dev.trim(), di.prop);
+      if (di.mp == null) {
+        md = new MDevice(mn, di.dev.trim(), di.prop);
+      } else {
+        md = new MDevice(mn, di.dev.trim(), di.prop, MetaStoreConst.MDeviceStatus.ONLINE);
+      }
       doCreate = true;
     } else {
       // update it now?
+      if (di.mp != null && md.getStatus() == MetaStoreConst.MDeviceStatus.SUSPECT) {
+        // if the Device is in SUSPECT state, update it to ONLINE
+        md.setStatus(MetaStoreConst.MDeviceStatus.ONLINE);
+      }
       if (!md.getNode().getNode_name().equals(node.getNode_name()) &&
           md.getProp() == MetaStoreConst.MDeviceProp.ALONE) {
         LOG.info("Saved " + md.getNode().getNode_name() + ", this " + node.getNode_name());
@@ -1628,35 +1654,6 @@ public class ObjectStore implements RawStore, Configurable {
     return success;
   }
 
-  public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException {
-    boolean success = false;
-
-    MDatacenter mdc = getMDatacenter(dc.getName());
-    if (mdc != null) {
-      mdc.setDescription(dc.getDescription());
-      mdc.setLocationUri(dc.getLocationUri());
-      mdc.setParameters(dc.getParameters());
-    } else {
-      return success;
-    }
-
-    boolean commited = false;
-
-    try {
-      openTransaction();
-      pm.makePersistent(mdc);
-      commited = commitTransaction();
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      } else {
-        success = true;
-      }
-    }
-
-    return success;
-  }
-
   public long countNode() throws MetaException {
     boolean commited = false;
     long r = 0;
@@ -1717,47 +1714,6 @@ public class ObjectStore implements RawStore, Configurable {
     return ln;
   }
 
-  public List<Datacenter> getAllDatacenters() throws MetaException {
-    List<Datacenter> ld = new ArrayList<Datacenter>();
-    boolean commited = false;
-
-    try {
-      openTransaction();
-      Query q = pm.newQuery(MDatacenter.class);
-      Collection allDCs = (Collection)q.execute();
-      Iterator iter = allDCs.iterator();
-      while (iter.hasNext()) {
-        Datacenter dc = convertToDatacenter((MDatacenter)iter.next());
-        ld.add(dc);
-      }
-      commited = commitTransaction();
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      }
-    }
-    return ld;
-  }
-
-  public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException {
-    boolean commited = false;
-    Datacenter dc = null;
-
-    try {
-      openTransaction();
-      dc = convertToDatacenter(getMDatacenter(name));
-      commited = commitTransaction();
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      }
-    }
-    if (dc == null) {
-      throw new NoSuchObjectException("Can not find Datacenter " + name + ", please check it!");
-    }
-    return dc;
-  }
-
   public Device getDevice(String devid) throws MetaException, NoSuchObjectException {
     boolean commited = false;
     Device d = null;
@@ -1790,9 +1746,6 @@ public class ObjectStore implements RawStore, Configurable {
         String[] ns = node_name.split(".");
         if (ns.length != 2) {
           throw new MetaException("Node name " + node_name + " contains too many '.'!");
-        }
-        if (g_thisDC == null || !g_thisDC.equals(ns[0])) {
-          throw new MetaException("Node name " + node_name + " is on DC " + ns[0] + ", please call getNode() on that DC.");
         }
         node_name = ns[1];
       }
@@ -2264,29 +2217,6 @@ public class ObjectStore implements RawStore, Configurable {
     return mn;
   }
 
-  private MDatacenter getMDatacenter(String name) throws NoSuchObjectException {
-    MDatacenter dc = null;
-    boolean commited = false;
-    try {
-      openTransaction();
-      name = name.trim();
-      Query query = pm.newQuery(MDatacenter.class, "this.name == name");
-      query.declareParameters("java.lang.String name");
-      query.setUnique(true);
-      dc = (MDatacenter)query.execute(name);
-      pm.retrieve(dc);
-      commited = commitTransaction();
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      }
-    }
-    if (dc == null) {
-      throw new NoSuchObjectException("There is no datacenter named " + name);
-    }
-    return dc;
-  }
-
   private MFile getMFile(long fid) {
     MFile mf = null;
     boolean commited = false;
@@ -2474,11 +2404,33 @@ public class ObjectStore implements RawStore, Configurable {
     return tables;
   }
 
-  private Node convertToNode(MNode mn) throws MetaException {
+  private Node convertToNode(MNode mn) {
     if (mn == null) {
       return null;
     }
     return new Node(mn.getNode_name(), mn.getIPList(), mn.getStatus());
+  }
+
+  private Set<Node> convertToNodeSet(Set<MNode> mnSet)  {
+    if (mnSet == null) {
+      return null;
+    }
+    Set<Node> nodes = new HashSet<Node>();
+    for(MNode mn : mnSet){
+      nodes.add(convertToNode(mn));
+    }
+    return nodes;
+  }
+
+  private Set<MNode> convertToMNodeSet(Set<Node> mnSet)  {
+    if (mnSet == null) {
+      return null;
+    }
+    Set<MNode> nodes = new HashSet<MNode>();
+    for(Node mn : mnSet){
+      nodes.add(convertToMNode(mn));
+    }
+    return nodes;
   }
 
   private Device convertToDevice(MDevice md) throws MetaException {
@@ -2487,13 +2439,6 @@ public class ObjectStore implements RawStore, Configurable {
     }
     return new Device(md.getDev_name(), md.getProp(), md.getNode() != null ? md.getNode().getNode_name() : null,
         md.getStatus());
-  }
-
-  private Datacenter convertToDatacenter(MDatacenter mdc) throws MetaException {
-    if (mdc == null) {
-      return null;
-    }
-    return new Datacenter(mdc.getName(), mdc.getDescription(), mdc.getLocationUri(), mdc.getParameters());
   }
 
   private SFile convertToSFile(MFile mf) throws MetaException {
@@ -2531,6 +2476,22 @@ public class ObjectStore implements RawStore, Configurable {
     pm.retrieve(mfl);
     return new SFileLocation(mfl.getDev().getNode().getNode_name(), mfl.getFile().getFid(), mfl.getDev().getDev_name(),
         mfl.getLocation(), mfl.getRep_id(), mfl.getUpdate_time(), mfl.getVisit_status(), mfl.getDigest());
+  }
+
+  private MDatabase convertToMDatabase(Database db) throws MetaException {
+    if (db == null) {
+      return null;
+    }
+
+    return new MDatabase(db.getName(), db.getDescription(), db.getLocationUri(), db.getParameters());
+  }
+
+  private Database convertToDatabase(MDatabase mdb) throws MetaException {
+    if (mdb == null) {
+      return null;
+    }
+
+    return new Database(mdb.getName(), mdb.getDescription(), mdb.getLocationUri(), mdb.getParameters());
   }
 
   private Table convertToTable(MTable mtbl) throws MetaException {
@@ -2571,14 +2532,6 @@ public class ObjectStore implements RawStore, Configurable {
     MNode mn = this.getMNode(device.getNode_name());
 
     return new MDevice(mn, device.getDevid(), device.getProp(), device.getStatus());
-  }
-
-  private MDatacenter convertToMDatacenter(Datacenter dc) {
-    if (dc == null) {
-      return null;
-    }
-
-    return new MDatacenter(dc.getName(), dc.getLocationUri(), dc.getDescription(), dc.getParameters());
   }
 
   private MFile convertToMFile(SFile file) throws InvalidObjectException {
@@ -7813,23 +7766,6 @@ public MUser getMUser(String userName) {
     return success;
   }
 
-  public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException {
-    boolean success = false;
-    try {
-      openTransaction();
-      MDatacenter mdc = getMDatacenter(dc_name);
-      if (mdc != null) {
-        pm.deletePersistent(mdc);
-      }
-      success = commitTransaction();
-    } finally {
-      if (!success) {
-        rollbackTransaction();
-      }
-    }
-    return success;
-  }
-
   private boolean dropPartitionIndexStore(Index index, Partition part, SFile store) throws InvalidObjectException,
       NoSuchObjectException, MetaException {
     boolean success = false;
@@ -8079,7 +8015,7 @@ public MUser getMUser(String userName) {
       for (Iterator i = mbtcs.iterator(); i.hasNext();) {
         MBusiTypeColumn col = (MBusiTypeColumn)i.next();
         BusiTypeColumn btc = new BusiTypeColumn(col.getBusiType(),
-            convertToTable(col.getTable()),col.getColumn());
+           convertToTable(col.getTable()),col.getColumn());
         btcols.add(btc);
       }
       success = commitTransaction();
@@ -8105,7 +8041,7 @@ public MUser getMUser(String userName) {
       for (Iterator i = mbdcs.iterator(); i.hasNext();) {
         MBusiTypeDatacenter mdatacenter = (MBusiTypeDatacenter)i.next();
         BusiTypeDatacenter bdc = new BusiTypeDatacenter(mdatacenter.getBusiType(),
-            convertToDatacenter(mdatacenter.getDc()),mdatacenter.getDb_name());
+            convertToDatabase(mdatacenter.getDb()));
         bdcs.add(bdc);
       }
       success = commitTransaction();
@@ -8122,23 +8058,22 @@ public MUser getMUser(String userName) {
   public void append_busi_type_datacenter(BusiTypeDatacenter busiTypeDatacenter)
       throws InvalidObjectException, MetaException, TException {
     boolean success = false;
+    MDatabase mdb = null;
     int now = (int)(System.currentTimeMillis()/1000);
     try {
       openTransaction();
-      MDatacenter datacenter = null;
       try{
-        datacenter = getMDatacenter(busiTypeDatacenter.getDc().getName());
+        mdb = getMDatabase(busiTypeDatacenter.getDb().getName());
       }catch(NoSuchObjectException e){
-        LOG.warn("No datacenter:"+busiTypeDatacenter.getDc().getName());
+        LOG.warn("No database:"+busiTypeDatacenter.getDb().getName());
       }
       MBusiTypeDatacenter mtdc = null;
-      if(datacenter !=null){
-        mtdc = new MBusiTypeDatacenter(busiTypeDatacenter.getBusiType(),
-            datacenter,busiTypeDatacenter.getDb_name());
+      if(mdb !=null){
+        mtdc = new MBusiTypeDatacenter(busiTypeDatacenter.getBusiType(), mdb);
         pm.makePersistent(mtdc);
       }else{
         mtdc = new MBusiTypeDatacenter(busiTypeDatacenter.getBusiType(),
-            convertToMDatacenter(busiTypeDatacenter.getDc()),busiTypeDatacenter.getDb_name());
+            convertToMDatabase(busiTypeDatacenter.getDb()));
         pm.makePersistent(mtdc);
       }
       success = commitTransaction();
@@ -8148,7 +8083,6 @@ public MUser getMUser(String userName) {
       }
     }
     return ;
-
   }
 
   @Override
@@ -8200,9 +8134,17 @@ public MUser getMUser(String userName) {
     }
   }
 
+/**
+ * cry
+ */
+
   @Override
   public boolean addEquipRoom(EquipRoom er) throws MetaException {
     MEquipRoom mer = new MEquipRoom();
+    mer.setEqRoomName(er.getEqRoomName());
+    mer.setStatus(er.getStatus());
+    mer.setComment(er.getComment());
+    mer.setGeolocation(convertToMGeoLocation(er.getGeolocation()));
     boolean success = false;
     int now = (int)(System.currentTimeMillis()/1000);
     try {
@@ -8219,6 +8161,12 @@ public MUser getMUser(String userName) {
     }else{
       return false;
     }
+  }
+  private MGeoLocation convertToMGeoLocation(GeoLocation gl) {
+    if (gl == null) {
+      return null;
+    }
+    return new MGeoLocation(gl.getGeoLocName(),gl.getNation(),gl.getProvince(),gl.getCity(),gl.getDist());
   }
 
   @Override
@@ -8293,6 +8241,11 @@ public MUser getMUser(String userName) {
   @Override
   public boolean addGeoLocation(GeoLocation gl) throws MetaException {
     MGeoLocation mgl = new MGeoLocation();
+    mgl.setGeoLocName(gl.getGeoLocName());
+    mgl.setNation(gl.getNation());
+    mgl.setProvince(gl.getProvince());
+    mgl.setCity(gl.getCity());
+    mgl.setDist(gl.getDist());
     boolean success = false;
     int now = (int)(System.currentTimeMillis()/1000);
     try {
@@ -8344,6 +8297,11 @@ public MUser getMUser(String userName) {
     try {
       openTransaction();
       MGeoLocation mgl = new MGeoLocation();
+      mgl.setGeoLocName(gl.getGeoLocName());
+      mgl.setNation(gl.getNation());
+      mgl.setProvince(gl.getProvince());
+      mgl.setCity(gl.getCity());
+      mgl.setDist(gl.getDist());
       if (mgl != null) {
         pm.deletePersistent(mgl);
       }
@@ -8402,7 +8360,7 @@ public MUser getMUser(String userName) {
     try {
       openTransaction();
       MSchema mSchema = convertToMSchema(schema);
-      boolean make_table = false;
+      boolean make_schema = false;
       if(mSchema.getSd().getCD().getCols() != null){//增加业务类型查询支持
         List<MBusiTypeColumn> bcs = new ArrayList<MBusiTypeColumn>();
 
@@ -8411,27 +8369,29 @@ public MUser getMUser(String userName) {
 
         if(!bcs.isEmpty()){
 
-          LOG.info("--zjw--getPartitions is not null,size:"+bcs.size());
-          pm.makePersistentAll(bcs);
+          LOG.info("--zjw--MBusiTypeColumn,size:"+bcs.size());
+//          pm.makePersistentAll(bcs);
         }else{
           pm.makePersistent(mSchema);
-          make_table =true;
+          make_schema =true;
           LOG.info("--zjw-- view:"+schema.getViewExpandedText()+"--"+schema.getViewOriginalText());
         }
       }
-      if(!make_table){
+      if(!make_schema){
         pm.makePersistent(mSchema);
       }
 
 
 
       LOG.info("createSchema w/ ID=" + JDOHelper.getObjectId(mSchema));
-      PrincipalPrivilegeSet principalPrivs = schema.getPrivileges();
-      List<Object> toPersistPrivObjs = new ArrayList<Object>();
-      if (principalPrivs != null) {
-        int now = (int)(System.currentTimeMillis()/1000);
 
-        //@FIXME
+      //@FIXME
+//      PrincipalPrivilegeSet principalPrivs = schema.getPrivileges();
+//      List<Object> toPersistPrivObjs = new ArrayList<Object>();
+//      if (principalPrivs != null) {
+//        int now = (int)(System.currentTimeMillis()/1000);
+//
+
 //        Map<String, List<PrivilegeGrantInfo>> userPrivs = principalPrivs.getUserPrivileges();
 //        putPersistentPrivObjects(mSchema, toPersistPrivObjs, now, userPrivs, PrincipalType.USER);
 //
@@ -8440,8 +8400,8 @@ public MUser getMUser(String userName) {
 //
 //        Map<String, List<PrivilegeGrantInfo>> rolePrivs = principalPrivs.getRolePrivileges();
 //        putPersistentPrivObjects(mSchema, toPersistPrivObjs, now, rolePrivs, PrincipalType.ROLE);
-      }
-      pm.makePersistentAll(toPersistPrivObjs);
+//      }
+//      pm.makePersistentAll(toPersistPrivObjs);
 
       commited = commitTransaction();
 
@@ -8515,9 +8475,545 @@ public MUser getMUser(String userName) {
 
   @Override
   public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException {
+
     GeoLocation gl = null;
-    gl =  this.getGeoLocationByName(geoLocName);
+    boolean committed = false;
+    try {
+      openTransaction();//创建并开始一个事务
+      Query query = pm.newQuery(MGeoLocation.class);//设置这个query作用的范围，即查询的是那个表或记录集
+      query.setFilter("geoLocName == \"geoLocName\"");
+      query.declareParameters("java.lang.String geoLocName");
+//      gl =  (GeoLocation) query.execute(geoLocName);
+      query.setUnique(true);//设置返回的结果是唯一的
+      MGeoLocation result=(MGeoLocation)query.execute(geoLocName);
+      gl = convertToGeoLocation(result);
+      committed = commitTransaction();
+    } finally {
+      if (!committed) {
+        rollbackTransaction();
+      }
+    }
     return gl;
+
+  }
+  private GeoLocation convertToGeoLocation(MGeoLocation mgl) {
+    if (mgl == null) {
+      return null;
+    }
+    return new GeoLocation(mgl.getGeoLocName(),mgl.getNation(),mgl.getProvince(),mgl.getCity(),mgl.getDist());
+  }
+
+  /**
+   * 修改模式结构的同时，需要修改表和视图
+   * @throws NoSuchObjectException
+   */
+  @Override
+  public boolean assiginSchematoDB(String dbName, String schemaName,List<FieldSchema> fileSplitKeys,
+      List<FieldSchema> part_keys,List<NodeGroup> ngs) throws InvalidObjectException, NoSuchObjectException, MetaException {
+    boolean success = false;
+    try {
+      openTransaction();
+      schemaName = schemaName.toLowerCase();
+      dbName = dbName.toLowerCase();
+      MSchema mSchema = getMSchema(schemaName);
+      if (mSchema == null) {
+        throw new InvalidObjectException("schema "+schemaName+" is invalid");
+      }
+
+      MDatabase mdb = getMDatabase(dbName);
+      if (mdb == null) {
+        throw new InvalidObjectException("database "+dbName+" is invalid");
+      }
+
+      MTable mtbl = getMTable(dbName, schemaName);
+      if (mSchema == null) {
+        throw new MetaException(" schema "+ schemaName +" in db"+ dbName +" is already exist.");
+      }
+
+      /***
+       * 注意！！！！！！！！！
+       * 此处新建表，表和schema共用同一个MStorageDescriptor对象！！！
+       */
+      MTable oldmt = new MTable();
+      // For now only alter name, owner, paramters, cols, bucketcols are allowed
+      oldmt.setTableName(mSchema.getSchemaName().toLowerCase());
+      oldmt.setParameters(mSchema.getParameters());
+      oldmt.setOwner(mSchema.getOwner());
+      // Fully copy over the contents of the new SD into the old SD,
+      // so we don't create an extra SD in the metastore db that has no references.
+      copyMSD(mSchema.getSd(), oldmt.getSd());//Schema的修改不涉及修改归属地/分区方法和类型
+      oldmt.setDatabase(mdb);
+      oldmt.setRetention(mSchema.getRetention());
+      oldmt.setPartitionKeys(convertToMFieldSchemas(part_keys));
+      oldmt.setPartitionKeys(convertToMFieldSchemas(fileSplitKeys));
+      oldmt.setTableType(mSchema.getSchemaType());
+      oldmt.setLastAccessTime(mSchema.getLastAccessTime());
+      oldmt.setViewOriginalText(mSchema.getViewOriginalText());
+      oldmt.setViewExpandedText(mSchema.getViewExpandedText());
+      //FIXME: enable the following line on next commit!
+      //oldmt.setGroupDistribute(MetaUtil.CollectionToHashSet(convertToMNodeGroups(ngs)));
+
+      // commit the changes
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+
+    return success;
+  }
+
+  /**
+   * 修改模式结构的同时，需要修改表和视图
+   */
+  @Override
+  public boolean modifySchema(String schemaName, GlobalSchema newSchema) throws InvalidObjectException, MetaException {
+    boolean success = false;
+    try {
+      openTransaction();
+      schemaName = schemaName.toLowerCase();
+      MSchema mSchema = convertToMSchema(newSchema);
+      List<MTable> mtbls = getMTablesBySchemaName(schemaName);
+      if (mSchema == null) {
+        throw new InvalidObjectException("new table is invalid");
+      }
+
+      MSchema oldSchema = null;
+      try{
+        oldSchema = getMSchema(schemaName);
+      }catch(NoSuchObjectException e){
+        throw new MetaException("schema " + schemaName + " doesn't exist");
+      }
+      if (oldSchema == null) {
+        throw new MetaException("schema " + schemaName + " doesn't exist");
+      }
+      oldSchema.setSchemaName(mSchema.getSchemaName().toLowerCase());
+      oldSchema.setParameters(mSchema.getParameters());
+      oldSchema.setOwner(mSchema.getOwner());
+      // Fully copy over the contents of the new SD into the old SD,
+      // so we don't create an extra SD in the metastore db that has no references.
+      copyMSD(mSchema.getSd(), oldSchema.getSd());
+      oldSchema.setRetention(mSchema.getRetention());
+      oldSchema.setSchemaType(mSchema.getSchemaType());
+      oldSchema.setLastAccessTime(mSchema.getLastAccessTime());
+      oldSchema.setViewOriginalText(mSchema.getViewOriginalText());
+      oldSchema.setViewExpandedText(mSchema.getViewExpandedText());
+
+      for(MTable oldmt : mtbls){
+        // For now only alter name, owner, paramters, cols, bucketcols are allowed
+        oldmt.setTableName(mSchema.getSchemaName().toLowerCase());
+        oldmt.setParameters(mSchema.getParameters());
+        oldmt.setOwner(mSchema.getOwner());
+        // Fully copy over the contents of the new SD into the old SD,
+        // so we don't create an extra SD in the metastore db that has no references.
+        copyMSD(mSchema.getSd(), oldmt.getSd());//Schema的修改不涉及修改归属地/分区方法和类型
+//        oldmt.setDatabase(mSchema.getDatabase());
+        oldmt.setRetention(mSchema.getRetention());
+//        oldmt.setPartitionKeys(mSchema.getPartitionKeys());
+//        oldmt.setTableType(mSchema.getTableType());
+        oldmt.setLastAccessTime(mSchema.getLastAccessTime());
+        oldmt.setViewOriginalText(mSchema.getViewOriginalText());
+        oldmt.setViewExpandedText(mSchema.getViewExpandedText());
+      }
+
+      // commit the changes
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+
+    return success;
+  }
+
+  private List<MTable> getMTablesBySchemaName(String schemaName) {
+    List<MTable> mtbls = null;
+    boolean commited = false;
+    try {
+      openTransaction();
+      schemaName = schemaName.toLowerCase().trim();
+      Query query = pm.newQuery(MTable.class, "schema.name == schemaName");
+      query.declareParameters("java.lang.String schemaName");
+      mtbls = (List<MTable>) query.execute(schemaName);
+      pm.retrieve(mtbls);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return mtbls;
+  }
+
+  /**
+   * 删除schema需要完成的工作非常多，包括：
+   * 1.删除所有schema相关的业务类型
+   * 2.删除列上的所有视图（递归删除视图上的权限）
+   * 3.删除所有归属地上的同名table
+   * @throws InvalidInputException
+   * @throws InvalidObjectException
+   * @throws NoSuchObjectExceptionMetaException,
+   *
+   */
+  @Override
+  public boolean deleteSchema(String schemaName) throws InvalidObjectException, InvalidInputException,NoSuchObjectException, MetaException {
+    boolean success = false;
+    try {
+      openTransaction();
+      MSchema schema = getMSchema(schemaName);
+      pm.retrieve(schema);
+
+      if (schema != null) {
+        // first remove all the grants
+//        List<MTablePrivilege> tabGrants = listAllTableGrants(schemaName);
+//        if (tabGrants != null && tabGrants.size() > 0) {
+//          pm.deletePersistentAll(tabGrants);
+//        }
+//        List<MTableColumnPrivilege> tblColGrants = listTableAllColumnGrants(schemaName);
+//        if (tblColGrants != null && tblColGrants.size() > 0) {
+//          pm.deletePersistentAll(tblColGrants);
+//        }
+//
+//        List<MPartitionPrivilege> partGrants = this.listTableAllPartitionGrants(schemaName);
+//        if (partGrants != null && partGrants.size() > 0) {
+//          pm.deletePersistentAll(partGrants);
+//        }
+//
+//        List<MPartitionColumnPrivilege> partColGrants = listTableAllPartitionColumnGrants(schemaName);
+//        if (partColGrants != null && partColGrants.size() > 0) {
+//          pm.deletePersistentAll(partColGrants);
+//        }
+
+        //@FIXME 删除业务列和相关视图
+
+        preDropStorageDescriptor(schema.getSd());
+        // then remove the table
+        pm.deletePersistentAll(schema);
+      }
+
+      //@todo test!!!!
+      List<MTable> mtbls = getMTablesBySchemaName(schemaName);
+      pm.retrieveAll(mtbls);
+      if(mtbls != null && !mtbls.isEmpty()){
+        for(MTable mtbl : mtbls){
+          this.dropTable(mtbl.getDatabase().getName(), mtbl.getTableName());
+        }
+      }
+
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public List<GlobalSchema> listSchemas() throws  MetaException {
+    List<GlobalSchema> schemas = null;
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MSchema.class);
+      List<MSchema> mschemas = (List<MSchema>) query.execute();
+      pm.retrieveAll(mschemas);
+
+      success = commitTransaction();
+      schemas = convertToSchemas(mschemas);
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return schemas;
+  }
+
+  private List<GlobalSchema> convertToSchemas(List<MSchema> mschemas) throws MetaException {
+    List<GlobalSchema> schemas = null;
+    if(mschemas != null) {
+      schemas = new ArrayList<GlobalSchema>();
+      for(MSchema mschema : mschemas){
+        GlobalSchema schema = new GlobalSchema(mschema.getSchemaName(), mschema.getOwner(),
+            mschema.getCreateTime(), mschema.getLastAccessTime(), mschema.getRetention(),
+            convertToStorageDescriptor(mschema.getSd()), mschema.getParameters(),
+            mschema.getViewOriginalText(), mschema.getViewExpandedText(), mschema.getSchemaType());
+        schemas.add(schema);
+      }
+    }
+    return schemas;
+  }
+
+  private List<MSchema> convertToMSchemas(List<GlobalSchema> schemas) throws MetaException {
+    List<MSchema> mschemas = null;
+    if(mschemas != null) {
+      mschemas = new ArrayList<MSchema>();
+      for(GlobalSchema schema : schemas){
+
+        MSchema mschema = new MSchema(schema.getSchemaName(), convertToMStorageDescriptor(schema.getSd()),
+            schema.getCreateTime(), schema.getLastAccessTime(), schema.getRetention(),
+             schema.getParameters(),
+            schema.getViewOriginalText(), schema.getViewExpandedText(), schema.getSchemaType());
+        mschemas.add(mschema);
+      }
+    }
+    return mschemas;
+  }
+
+  @Override
+  public boolean addNodeGroup(NodeGroup ng) throws InvalidObjectException, MetaException {
+
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MNodeGroup mng = convertToMNodeGroup(ng);
+
+      pm.makePersistent(mng);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public boolean modifyNodeGroup(NodeGroup ng) throws InvalidObjectException, MetaException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MNodeGroup mng = convertToMNodeGroup(ng);
+
+      pm.makePersistent(mng);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public boolean deleteNodeGroup(NodeGroup ng) throws MetaException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      List<String> ngNames = new ArrayList<String>();
+      ngNames.add(ng.getNode_group_name());
+      List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
+      if (mngs == null) {
+        throw new MetaException("NodeGroup " + ng.getNode_group_name()+" does not exist.");
+      }
+
+      pm.deletePersistentAll(mngs);// watch here
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public List<NodeGroup> listNodeGroups() throws MetaException {
+    List<NodeGroup> ngs = null;
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MNodeGroup.class);
+      List<MNodeGroup> mngs = (List<MNodeGroup>) query.execute();
+      pm.retrieveAll(mngs);
+
+      success = commitTransaction();
+      ngs = this.convertToNodeGroups(mngs);
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return ngs;
+  }
+
+  @Override
+  public List<NodeGroup> listDBNodeGroups(String dbName) throws MetaException {
+    MDatabase mdb;
+    try {
+      mdb = this.getMDatabase(dbName);
+    } catch (NoSuchObjectException e) {
+      LOG.error("No db :"+ dbName);
+      return null;
+    }
+    List<NodeGroup> ngs = new ArrayList<NodeGroup>();
+    ngs.addAll(this.convertToNodeGroups(mdb.getNodeGroups()));
+    return ngs;
+  }
+
+  @Override
+  public boolean addTableNodeDist(String db, String tab, List<String> ng) throws MetaException {
+    boolean success = false;
+    boolean commited = false;
+    Set<String> ngNameMap = new HashSet<String>();
+    if(ng == null || ng.isEmpty()){
+      throw new MetaException("No node group defined.");
+    }else{
+      ngNameMap.addAll(ng);
+    }
+    try {
+      openTransaction();
+      MTable mtbl = this.getMTable(db, tab);
+      if (mtbl == null) {
+        throw new MetaException("tab " + tab + " in db "+db+" does not exist.");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+
+      List<MNodeGroup> mngs = this.getMNodeGroupByNames(ng);//new ArrayList<MNodeGroup>();
+      for(MNodeGroup mng : mngs){
+          if(!mtbl.getGroupDistribute().contains(mng)){//always in lowercase,else ask zhuqihan
+            mtbl.getGroupDistribute().add(mng);//many-to-many delete
+            mng.getAttachedtables().add(mtbl);
+          }else{
+            mngs.remove(mng);
+          }
+       }
+
+      pm.makePersistent(mtbl);
+      pm.makePersistentAll(mngs);// watch here
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  private List<MNodeGroup> getMNodeGroupByNames(List<String> ngs)throws MetaException {
+    boolean success = false;
+    List<MNodeGroup> results = new ArrayList<MNodeGroup>();
+
+    try {
+      openTransaction();
+
+      StringBuilder sb = new StringBuilder(
+          "(");
+      int n = 0;
+      Map<String, String> params = new HashMap<String, String>();
+      for (Iterator<String> itr = ngs.iterator(); itr.hasNext();) {
+        String pn = "p" + n;
+        n++;
+        String part = itr.next();
+        params.put(pn, part);
+        sb.append("node_group_name == ").append(pn);
+        sb.append(" || ");
+      }
+      sb.setLength(sb.length() - 4); // remove the last " || "
+      sb.append(')');
+
+      Query query = pm.newQuery(MNodeGroup.class, sb.toString());
+
+      LOG.debug(" JDOQL filter is " + sb.toString());
+
+      String parameterDeclaration = makeParameterDeclarationString(params);
+      query.declareParameters(parameterDeclaration);
+      query.setOrdering("node_group_name ascending");
+
+      results = (List<MNodeGroup>) query.executeWithMap(params);
+
+      query.closeAll();
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+
+    return results;
+  }
+
+  private List<NodeGroup> convertToNodeGroups(Collection<MNodeGroup> mngs) {
+    List<NodeGroup> ngs = null;
+    if(mngs != null) {
+      ngs = new ArrayList<NodeGroup>();
+      for(MNodeGroup mng : mngs){
+        NodeGroup ng = new NodeGroup(mng.getNode_group_name(),
+            mng.getComment(),mng.getStatus(),convertToNodeSet(mng.getNodes()));
+        ngs.add(ng);
+      }
+    }
+    return ngs;
+  }
+
+  private List<MNodeGroup> convertToMNodeGroups(List<NodeGroup> ngs) {
+    List<MNodeGroup> mngs = null;
+    if(mngs != null) {
+      mngs = new ArrayList<MNodeGroup>();
+      for(NodeGroup ng : ngs){
+        MNodeGroup mng = new MNodeGroup(ng.getNode_group_name(),
+            ng.getComment(),ng.getStatus(),convertToMNodeSet(ng.getNodes()));
+        mngs.add(mng);
+      }
+    }
+    return mngs;
+  }
+
+  private MNodeGroup convertToMNodeGroup(NodeGroup ng) {
+    return  new MNodeGroup(ng.getNode_group_name(),
+        ng.getComment(),ng.getStatus(),convertToMNodeSet(ng.getNodes()));
+  }
+
+  @Override
+  public boolean deleteTableNodeDist(String db, String tab, List<String> ng) throws MetaException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MTable mtbl = this.getMTable(db, tab);
+      if (mtbl == null) {
+        throw new MetaException("tab " + tab + " in db "+db+" does not exist.");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+
+      List<MNodeGroup> mngs = new ArrayList<MNodeGroup>();
+      for(MNodeGroup mng : mtbl.getGroupDistribute()){
+          for(String ngName:ng){
+            if(mng.equals(ngName.toLowerCase())){
+              mtbl.getGroupDistribute().remove(mng);//many-to-many delete
+              mng.getAttachedtables().remove(mtbl);
+              mngs.add(mng);
+              break;
+            }
+          }
+
+      }
+
+      pm.makePersistent(mtbl);
+      pm.makePersistentAll(mngs);// watch here
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public List<NodeGroup> listTableNodeDists(String dbName, String tabName) throws MetaException {
+    Table tbl = this.getTable(dbName, tabName);
+    return tbl.getNodeGroups();
   }
 
 }

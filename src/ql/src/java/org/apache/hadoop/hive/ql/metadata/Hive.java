@@ -60,7 +60,6 @@ import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
@@ -972,7 +971,7 @@ public class Hive {
     try {
       String[] db_names = this.getQualifiedNames(dbName);
       if(db_names.length >1){
-        tTable = getRemoteDcMSC(db_names[0]).getTable(db_names[1], tableName);
+        tTable = getRemoteDbMSC(db_names[0]).getTable(db_names[1], tableName);
       }
       else{
         tTable = getMSC().getTable(dbName, tableName);
@@ -1066,7 +1065,7 @@ public class Hive {
     //added by zjw for dc.db
       String[] db_names = this.getQualifiedNames(dbName);
       if(db_names.length == 2){
-        return getRemoteDcMSC(db_names[0]).getTables((db_names[1]), tablePattern);
+        return getRemoteDbMSC(db_names[0]).getTables((db_names[1]), tablePattern);
       } else {
         return getMSC().getTables(dbName, tablePattern);
       }
@@ -1123,7 +1122,7 @@ public class Hive {
     //added by zjw for dc.db
       String[] dc_names = this.getQualifiedNames(databasePattern);
       if(dc_names.length == 2){
-        return getRemoteDcMSC(dc_names[0]).getDatabases(dc_names[1]) ;
+        return getRemoteDbMSC(dc_names[0]).getDatabases(dc_names[1]) ;
       } else {
         return getMSC().getDatabases(databasePattern);
       }
@@ -1179,7 +1178,7 @@ public class Hive {
       //added by zjw for dc.db
       String[] db_names = this.getQualifiedNames(dbName);
       if(db_names.length >1){
-        return getRemoteDcMSC(db_names[0]).getDatabase(db_names[1]);
+        return getRemoteDbMSC(db_names[0]).getDatabase(db_names[1]);
       } else {
         return getMSC().getDatabase(dbName);
       }
@@ -2443,13 +2442,13 @@ public class Hive {
     return metaStoreClient;
   }
 
-  private IMetaStoreClient getRemoteDcMSC(String dc_name) throws HiveException {
+  private IMetaStoreClient getRemoteDbMSC(String db_name) throws HiveException {
     try{
-      Datacenter dc = getMSC().get_center(dc_name);
-      if(dc == null){
-        throw new MetaException("There is no datacenter named:"+dc_name+",or top datacenter is not reachable.");
+      Database db = getMSC().get_attribution(db_name);
+      if(db == null){
+        throw new MetaException("There is no Attribution named:"+db_name+",or top attribution is not reachable.");
       }
-      return getMSC().getRemoteDcMSC(dc_name);
+      return getMSC().getRemoteDbMSC(db_name);
     } catch (TException e) {
       throw new HiveException("Unable to alter getRemoteDcMSC,metastore service unreachable.", e);
     }
@@ -2608,18 +2607,9 @@ public class Hive {
     }
   }
 
-  public List<Datacenter> getAllDatacenters() throws HiveException {
-    try{
-//      Table t = this.getTable(db_name, tbl_name);
-      return getMSC().get_all_centers();
-    } catch (Exception e) {
-      throw new HiveException(e);
-    }
-  }
-
   public List<String> getAllDatabases(String dc_name)throws HiveException {
     try{
-      return getRemoteDcMSC(dc_name).getAllDatabases();
+      return getRemoteDbMSC(dc_name).getAllDatabases();
     } catch (Exception e) {
       throw new HiveException(e);
     }
@@ -2627,7 +2617,7 @@ public class Hive {
 
   public List<String> getDatabases(String dc_name,String tablePattern) throws HiveException {
     try{
-      return getRemoteDcMSC(dc_name).getDatabases(tablePattern);
+      return getRemoteDbMSC(dc_name).getDatabases(tablePattern);
     } catch (Exception e) {
       throw new HiveException(e);
     }

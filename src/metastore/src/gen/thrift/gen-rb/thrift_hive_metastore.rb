@@ -12,104 +12,104 @@ module ThriftHiveMetastore
   class Client < ::FacebookService::Client 
     include ::Thrift::Client
 
-    def create_datacenter(datacenter)
-      send_create_datacenter(datacenter)
-      recv_create_datacenter()
+    def create_attribution(db)
+      send_create_attribution(db)
+      recv_create_attribution()
     end
 
-    def send_create_datacenter(datacenter)
-      send_message('create_datacenter', Create_datacenter_args, :datacenter => datacenter)
+    def send_create_attribution(db)
+      send_message('create_attribution', Create_attribution_args, :db => db)
     end
 
-    def recv_create_datacenter()
-      result = receive_message(Create_datacenter_result)
+    def recv_create_attribution()
+      result = receive_message(Create_attribution_result)
       raise result.o1 unless result.o1.nil?
       raise result.o2 unless result.o2.nil?
       raise result.o3 unless result.o3.nil?
       return
     end
 
-    def get_center(name)
-      send_get_center(name)
-      return recv_get_center()
+    def get_attribution(name)
+      send_get_attribution(name)
+      return recv_get_attribution()
     end
 
-    def send_get_center(name)
-      send_message('get_center', Get_center_args, :name => name)
+    def send_get_attribution(name)
+      send_message('get_attribution', Get_attribution_args, :name => name)
     end
 
-    def recv_get_center()
-      result = receive_message(Get_center_result)
+    def recv_get_attribution()
+      result = receive_message(Get_attribution_result)
       return result.success unless result.success.nil?
       raise result.o1 unless result.o1.nil?
       raise result.o2 unless result.o2.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_center failed: unknown result')
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_attribution failed: unknown result')
     end
 
-    def drop_center(name, deleteData, cascade)
-      send_drop_center(name, deleteData, cascade)
-      recv_drop_center()
+    def drop_attribution(name, deleteData, cascade)
+      send_drop_attribution(name, deleteData, cascade)
+      recv_drop_attribution()
     end
 
-    def send_drop_center(name, deleteData, cascade)
-      send_message('drop_center', Drop_center_args, :name => name, :deleteData => deleteData, :cascade => cascade)
+    def send_drop_attribution(name, deleteData, cascade)
+      send_message('drop_attribution', Drop_attribution_args, :name => name, :deleteData => deleteData, :cascade => cascade)
     end
 
-    def recv_drop_center()
-      result = receive_message(Drop_center_result)
-      raise result.o1 unless result.o1.nil?
-      raise result.o2 unless result.o2.nil?
-      raise result.o3 unless result.o3.nil?
-      return
-    end
-
-    def update_center(datacenter)
-      send_update_center(datacenter)
-      recv_update_center()
-    end
-
-    def send_update_center(datacenter)
-      send_message('update_center', Update_center_args, :datacenter => datacenter)
-    end
-
-    def recv_update_center()
-      result = receive_message(Update_center_result)
+    def recv_drop_attribution()
+      result = receive_message(Drop_attribution_result)
       raise result.o1 unless result.o1.nil?
       raise result.o2 unless result.o2.nil?
       raise result.o3 unless result.o3.nil?
       return
     end
 
-    def get_all_centers()
-      send_get_all_centers()
-      return recv_get_all_centers()
+    def update_attribution(db)
+      send_update_attribution(db)
+      recv_update_attribution()
     end
 
-    def send_get_all_centers()
-      send_message('get_all_centers', Get_all_centers_args)
+    def send_update_attribution(db)
+      send_message('update_attribution', Update_attribution_args, :db => db)
     end
 
-    def recv_get_all_centers()
-      result = receive_message(Get_all_centers_result)
+    def recv_update_attribution()
+      result = receive_message(Update_attribution_result)
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise result.o3 unless result.o3.nil?
+      return
+    end
+
+    def get_all_attributions()
+      send_get_all_attributions()
+      return recv_get_all_attributions()
+    end
+
+    def send_get_all_attributions()
+      send_message('get_all_attributions', Get_all_attributions_args)
+    end
+
+    def recv_get_all_attributions()
+      result = receive_message(Get_all_attributions_result)
       return result.success unless result.success.nil?
       raise result.o1 unless result.o1.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_all_centers failed: unknown result')
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_all_attributions failed: unknown result')
     end
 
-    def get_local_center()
-      send_get_local_center()
-      return recv_get_local_center()
+    def get_local_attribution()
+      send_get_local_attribution()
+      return recv_get_local_attribution()
     end
 
-    def send_get_local_center()
-      send_message('get_local_center', Get_local_center_args)
+    def send_get_local_attribution()
+      send_message('get_local_attribution', Get_local_attribution_args)
     end
 
-    def recv_get_local_center()
-      result = receive_message(Get_local_center_result)
+    def recv_get_local_attribution()
+      result = receive_message(Get_local_attribution_result)
       return result.success unless result.success.nil?
       raise result.o1 unless result.o1.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_local_center failed: unknown result')
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_local_attribution failed: unknown result')
     end
 
     def get_lucene_index_names(db_name, tbl_name, max_indexes)
@@ -2391,29 +2391,13 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getDMStatus failed: unknown result')
     end
 
-    def migrate_in(tbl, parts, from_dc)
-      send_migrate_in(tbl, parts, from_dc)
-      return recv_migrate_in()
-    end
-
-    def send_migrate_in(tbl, parts, from_dc)
-      send_message('migrate_in', Migrate_in_args, :tbl => tbl, :parts => parts, :from_dc => from_dc)
-    end
-
-    def recv_migrate_in()
-      result = receive_message(Migrate_in_result)
-      return result.success unless result.success.nil?
-      raise result.o1 unless result.o1.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate_in failed: unknown result')
-    end
-
-    def migrate2_in(tbl, parts, idxs, from_dc, to_nas_devid, fileMap)
-      send_migrate2_in(tbl, parts, idxs, from_dc, to_nas_devid, fileMap)
+    def migrate2_in(tbl, parts, idxs, from_db, to_nas_devid, fileMap)
+      send_migrate2_in(tbl, parts, idxs, from_db, to_nas_devid, fileMap)
       return recv_migrate2_in()
     end
 
-    def send_migrate2_in(tbl, parts, idxs, from_dc, to_nas_devid, fileMap)
-      send_message('migrate2_in', Migrate2_in_args, :tbl => tbl, :parts => parts, :idxs => idxs, :from_dc => from_dc, :to_nas_devid => to_nas_devid, :fileMap => fileMap)
+    def send_migrate2_in(tbl, parts, idxs, from_db, to_nas_devid, fileMap)
+      send_message('migrate2_in', Migrate2_in_args, :tbl => tbl, :parts => parts, :idxs => idxs, :from_db => from_db, :to_nas_devid => to_nas_devid, :fileMap => fileMap)
     end
 
     def recv_migrate2_in()
@@ -2423,29 +2407,13 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate2_in failed: unknown result')
     end
 
-    def migrate_out(dbName, tableName, partNames, to_dc)
-      send_migrate_out(dbName, tableName, partNames, to_dc)
-      return recv_migrate_out()
-    end
-
-    def send_migrate_out(dbName, tableName, partNames, to_dc)
-      send_message('migrate_out', Migrate_out_args, :dbName => dbName, :tableName => tableName, :partNames => partNames, :to_dc => to_dc)
-    end
-
-    def recv_migrate_out()
-      result = receive_message(Migrate_out_result)
-      return result.success unless result.success.nil?
-      raise result.o1 unless result.o1.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate_out failed: unknown result')
-    end
-
-    def migrate2_stage1(dbName, tableName, partNames, to_dc)
-      send_migrate2_stage1(dbName, tableName, partNames, to_dc)
+    def migrate2_stage1(dbName, tableName, partNames, to_db)
+      send_migrate2_stage1(dbName, tableName, partNames, to_db)
       return recv_migrate2_stage1()
     end
 
-    def send_migrate2_stage1(dbName, tableName, partNames, to_dc)
-      send_message('migrate2_stage1', Migrate2_stage1_args, :dbName => dbName, :tableName => tableName, :partNames => partNames, :to_dc => to_dc)
+    def send_migrate2_stage1(dbName, tableName, partNames, to_db)
+      send_message('migrate2_stage1', Migrate2_stage1_args, :dbName => dbName, :tableName => tableName, :partNames => partNames, :to_db => to_db)
     end
 
     def recv_migrate2_stage1()
@@ -2455,13 +2423,13 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate2_stage1 failed: unknown result')
     end
 
-    def migrate2_stage2(dbName, tableName, partNames, to_dc, to_db, to_nas_devid)
-      send_migrate2_stage2(dbName, tableName, partNames, to_dc, to_db, to_nas_devid)
+    def migrate2_stage2(dbName, tableName, partNames, from_db, to_db, to_nas_devid)
+      send_migrate2_stage2(dbName, tableName, partNames, from_db, to_db, to_nas_devid)
       return recv_migrate2_stage2()
     end
 
-    def send_migrate2_stage2(dbName, tableName, partNames, to_dc, to_db, to_nas_devid)
-      send_message('migrate2_stage2', Migrate2_stage2_args, :dbName => dbName, :tableName => tableName, :partNames => partNames, :to_dc => to_dc, :to_db => to_db, :to_nas_devid => to_nas_devid)
+    def send_migrate2_stage2(dbName, tableName, partNames, from_db, to_db, to_nas_devid)
+      send_message('migrate2_stage2', Migrate2_stage2_args, :dbName => dbName, :tableName => tableName, :partNames => partNames, :from_db => from_db, :to_db => to_db, :to_nas_devid => to_nas_devid)
     end
 
     def recv_migrate2_stage2()
@@ -2617,13 +2585,13 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listTableFiles failed: unknown result')
     end
 
-    def filterTableFiles(dbName, tabName, exp)
-      send_filterTableFiles(dbName, tabName, exp)
+    def filterTableFiles(dbName, tabName, values)
+      send_filterTableFiles(dbName, tabName, values)
       return recv_filterTableFiles()
     end
 
-    def send_filterTableFiles(dbName, tabName, exp)
-      send_message('filterTableFiles', FilterTableFiles_args, :dbName => dbName, :tabName => tabName, :exp => exp)
+    def send_filterTableFiles(dbName, tabName, values)
+      send_message('filterTableFiles', FilterTableFiles_args, :dbName => dbName, :tabName => tabName, :values => values)
     end
 
     def recv_filterTableFiles()
@@ -2767,11 +2735,11 @@ module ThriftHiveMetastore
   class Processor < ::FacebookService::Processor 
     include ::Thrift::Processor
 
-    def process_create_datacenter(seqid, iprot, oprot)
-      args = read_args(iprot, Create_datacenter_args)
-      result = Create_datacenter_result.new()
+    def process_create_attribution(seqid, iprot, oprot)
+      args = read_args(iprot, Create_attribution_args)
+      result = Create_attribution_result.new()
       begin
-        @handler.create_datacenter(args.datacenter)
+        @handler.create_attribution(args.db)
       rescue ::AlreadyExistsException => o1
         result.o1 = o1
       rescue ::InvalidObjectException => o2
@@ -2779,27 +2747,27 @@ module ThriftHiveMetastore
       rescue ::MetaException => o3
         result.o3 = o3
       end
-      write_result(result, oprot, 'create_datacenter', seqid)
+      write_result(result, oprot, 'create_attribution', seqid)
     end
 
-    def process_get_center(seqid, iprot, oprot)
-      args = read_args(iprot, Get_center_args)
-      result = Get_center_result.new()
+    def process_get_attribution(seqid, iprot, oprot)
+      args = read_args(iprot, Get_attribution_args)
+      result = Get_attribution_result.new()
       begin
-        result.success = @handler.get_center(args.name)
+        result.success = @handler.get_attribution(args.name)
       rescue ::NoSuchObjectException => o1
         result.o1 = o1
       rescue ::MetaException => o2
         result.o2 = o2
       end
-      write_result(result, oprot, 'get_center', seqid)
+      write_result(result, oprot, 'get_attribution', seqid)
     end
 
-    def process_drop_center(seqid, iprot, oprot)
-      args = read_args(iprot, Drop_center_args)
-      result = Drop_center_result.new()
+    def process_drop_attribution(seqid, iprot, oprot)
+      args = read_args(iprot, Drop_attribution_args)
+      result = Drop_attribution_result.new()
       begin
-        @handler.drop_center(args.name, args.deleteData, args.cascade)
+        @handler.drop_attribution(args.name, args.deleteData, args.cascade)
       rescue ::NoSuchObjectException => o1
         result.o1 = o1
       rescue ::InvalidOperationException => o2
@@ -2807,14 +2775,14 @@ module ThriftHiveMetastore
       rescue ::MetaException => o3
         result.o3 = o3
       end
-      write_result(result, oprot, 'drop_center', seqid)
+      write_result(result, oprot, 'drop_attribution', seqid)
     end
 
-    def process_update_center(seqid, iprot, oprot)
-      args = read_args(iprot, Update_center_args)
-      result = Update_center_result.new()
+    def process_update_attribution(seqid, iprot, oprot)
+      args = read_args(iprot, Update_attribution_args)
+      result = Update_attribution_result.new()
       begin
-        @handler.update_center(args.datacenter)
+        @handler.update_attribution(args.db)
       rescue ::NoSuchObjectException => o1
         result.o1 = o1
       rescue ::InvalidOperationException => o2
@@ -2822,29 +2790,29 @@ module ThriftHiveMetastore
       rescue ::MetaException => o3
         result.o3 = o3
       end
-      write_result(result, oprot, 'update_center', seqid)
+      write_result(result, oprot, 'update_attribution', seqid)
     end
 
-    def process_get_all_centers(seqid, iprot, oprot)
-      args = read_args(iprot, Get_all_centers_args)
-      result = Get_all_centers_result.new()
+    def process_get_all_attributions(seqid, iprot, oprot)
+      args = read_args(iprot, Get_all_attributions_args)
+      result = Get_all_attributions_result.new()
       begin
-        result.success = @handler.get_all_centers()
+        result.success = @handler.get_all_attributions()
       rescue ::MetaException => o1
         result.o1 = o1
       end
-      write_result(result, oprot, 'get_all_centers', seqid)
+      write_result(result, oprot, 'get_all_attributions', seqid)
     end
 
-    def process_get_local_center(seqid, iprot, oprot)
-      args = read_args(iprot, Get_local_center_args)
-      result = Get_local_center_result.new()
+    def process_get_local_attribution(seqid, iprot, oprot)
+      args = read_args(iprot, Get_local_attribution_args)
+      result = Get_local_attribution_result.new()
       begin
-        result.success = @handler.get_local_center()
+        result.success = @handler.get_local_attribution()
       rescue ::MetaException => o1
         result.o1 = o1
       end
-      write_result(result, oprot, 'get_local_center', seqid)
+      write_result(result, oprot, 'get_local_attribution', seqid)
     end
 
     def process_get_lucene_index_names(seqid, iprot, oprot)
@@ -4548,44 +4516,22 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'getDMStatus', seqid)
     end
 
-    def process_migrate_in(seqid, iprot, oprot)
-      args = read_args(iprot, Migrate_in_args)
-      result = Migrate_in_result.new()
-      begin
-        result.success = @handler.migrate_in(args.tbl, args.parts, args.from_dc)
-      rescue ::MetaException => o1
-        result.o1 = o1
-      end
-      write_result(result, oprot, 'migrate_in', seqid)
-    end
-
     def process_migrate2_in(seqid, iprot, oprot)
       args = read_args(iprot, Migrate2_in_args)
       result = Migrate2_in_result.new()
       begin
-        result.success = @handler.migrate2_in(args.tbl, args.parts, args.idxs, args.from_dc, args.to_nas_devid, args.fileMap)
+        result.success = @handler.migrate2_in(args.tbl, args.parts, args.idxs, args.from_db, args.to_nas_devid, args.fileMap)
       rescue ::MetaException => o1
         result.o1 = o1
       end
       write_result(result, oprot, 'migrate2_in', seqid)
     end
 
-    def process_migrate_out(seqid, iprot, oprot)
-      args = read_args(iprot, Migrate_out_args)
-      result = Migrate_out_result.new()
-      begin
-        result.success = @handler.migrate_out(args.dbName, args.tableName, args.partNames, args.to_dc)
-      rescue ::MetaException => o1
-        result.o1 = o1
-      end
-      write_result(result, oprot, 'migrate_out', seqid)
-    end
-
     def process_migrate2_stage1(seqid, iprot, oprot)
       args = read_args(iprot, Migrate2_stage1_args)
       result = Migrate2_stage1_result.new()
       begin
-        result.success = @handler.migrate2_stage1(args.dbName, args.tableName, args.partNames, args.to_dc)
+        result.success = @handler.migrate2_stage1(args.dbName, args.tableName, args.partNames, args.to_db)
       rescue ::MetaException => o1
         result.o1 = o1
       end
@@ -4596,7 +4542,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, Migrate2_stage2_args)
       result = Migrate2_stage2_result.new()
       begin
-        result.success = @handler.migrate2_stage2(args.dbName, args.tableName, args.partNames, args.to_dc, args.to_db, args.to_nas_devid)
+        result.success = @handler.migrate2_stage2(args.dbName, args.tableName, args.partNames, args.from_db, args.to_db, args.to_nas_devid)
       rescue ::MetaException => o1
         result.o1 = o1
       end
@@ -4710,7 +4656,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, FilterTableFiles_args)
       result = FilterTableFiles_result.new()
       begin
-        result.success = @handler.filterTableFiles(args.dbName, args.tabName, args.exp)
+        result.success = @handler.filterTableFiles(args.dbName, args.tabName, args.values)
       rescue ::MetaException => o1
         result.o1 = o1
       end
@@ -4811,12 +4757,12 @@ module ThriftHiveMetastore
 
   # HELPER FUNCTIONS AND STRUCTURES
 
-  class Create_datacenter_args
+  class Create_attribution_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
-    DATACENTER = 1
+    DB = 1
 
     FIELDS = {
-      DATACENTER => {:type => ::Thrift::Types::STRUCT, :name => 'datacenter', :class => ::Datacenter}
+      DB => {:type => ::Thrift::Types::STRUCT, :name => 'db', :class => ::Database}
     }
 
     def struct_fields; FIELDS; end
@@ -4827,7 +4773,7 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Create_datacenter_result
+  class Create_attribution_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     O1 = 1
     O2 = 2
@@ -4847,7 +4793,7 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Get_center_args
+  class Get_attribution_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     NAME = 1
 
@@ -4863,14 +4809,14 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Get_center_result
+  class Get_attribution_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1
     O2 = 2
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Datacenter},
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Database},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::NoSuchObjectException},
       O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
     }
@@ -4883,7 +4829,7 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Drop_center_args
+  class Drop_attribution_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     NAME = 1
     DELETEDATA = 2
@@ -4903,7 +4849,7 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Drop_center_result
+  class Drop_attribution_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     O1 = 1
     O2 = 2
@@ -4923,12 +4869,12 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Update_center_args
+  class Update_attribution_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
-    DATACENTER = 1
+    DB = 1
 
     FIELDS = {
-      DATACENTER => {:type => ::Thrift::Types::STRUCT, :name => 'datacenter', :class => ::Datacenter}
+      DB => {:type => ::Thrift::Types::STRUCT, :name => 'db', :class => ::Database}
     }
 
     def struct_fields; FIELDS; end
@@ -4939,7 +4885,7 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Update_center_result
+  class Update_attribution_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     O1 = 1
     O2 = 2
@@ -4959,7 +4905,7 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Get_all_centers_args
+  class Get_all_attributions_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
 
     FIELDS = {
@@ -4974,13 +4920,13 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Get_all_centers_result
+  class Get_all_attributions_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Datacenter}},
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Database}},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
@@ -4992,7 +4938,7 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Get_local_center_args
+  class Get_local_attribution_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
 
     FIELDS = {
@@ -5007,13 +4953,13 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Get_local_center_result
+  class Get_local_attribution_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Datacenter},
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Database},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
@@ -10196,50 +10142,12 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Migrate_in_args
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-    TBL = 1
-    PARTS = 2
-    FROM_DC = 3
-
-    FIELDS = {
-      TBL => {:type => ::Thrift::Types::STRUCT, :name => 'tbl', :class => ::Table},
-      PARTS => {:type => ::Thrift::Types::LIST, :name => 'parts', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Partition}},
-      FROM_DC => {:type => ::Thrift::Types::STRING, :name => 'from_dc'}
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
-  class Migrate_in_result
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-    SUCCESS = 0
-    O1 = 1
-
-    FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}},
-      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
   class Migrate2_in_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     TBL = 1
     PARTS = 2
     IDXS = 3
-    FROM_DC = 4
+    FROM_DB = 4
     TO_NAS_DEVID = 5
     FILEMAP = 6
 
@@ -10247,7 +10155,7 @@ module ThriftHiveMetastore
       TBL => {:type => ::Thrift::Types::STRUCT, :name => 'tbl', :class => ::Table},
       PARTS => {:type => ::Thrift::Types::LIST, :name => 'parts', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Partition}},
       IDXS => {:type => ::Thrift::Types::LIST, :name => 'idxs', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Index}},
-      FROM_DC => {:type => ::Thrift::Types::STRING, :name => 'from_dc'},
+      FROM_DB => {:type => ::Thrift::Types::STRING, :name => 'from_db'},
       TO_NAS_DEVID => {:type => ::Thrift::Types::STRING, :name => 'to_nas_devid'},
       FILEMAP => {:type => ::Thrift::Types::MAP, :name => 'fileMap', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::SFileLocation}}
     }
@@ -10278,58 +10186,18 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class Migrate_out_args
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-    DBNAME = 1
-    TABLENAME = 2
-    PARTNAMES = 3
-    TO_DC = 4
-
-    FIELDS = {
-      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
-      TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
-      PARTNAMES => {:type => ::Thrift::Types::LIST, :name => 'partNames', :element => {:type => ::Thrift::Types::STRING}},
-      TO_DC => {:type => ::Thrift::Types::STRING, :name => 'to_dc'}
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
-  class Migrate_out_result
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-    SUCCESS = 0
-    O1 = 1
-
-    FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
   class Migrate2_stage1_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     DBNAME = 1
     TABLENAME = 2
     PARTNAMES = 3
-    TO_DC = 4
+    TO_DB = 4
 
     FIELDS = {
       DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
       TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
       PARTNAMES => {:type => ::Thrift::Types::LIST, :name => 'partNames', :element => {:type => ::Thrift::Types::STRING}},
-      TO_DC => {:type => ::Thrift::Types::STRING, :name => 'to_dc'}
+      TO_DB => {:type => ::Thrift::Types::STRING, :name => 'to_db'}
     }
 
     def struct_fields; FIELDS; end
@@ -10363,7 +10231,7 @@ module ThriftHiveMetastore
     DBNAME = 1
     TABLENAME = 2
     PARTNAMES = 3
-    TO_DC = 4
+    FROM_DB = 4
     TO_DB = 5
     TO_NAS_DEVID = 6
 
@@ -10371,7 +10239,7 @@ module ThriftHiveMetastore
       DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
       TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
       PARTNAMES => {:type => ::Thrift::Types::LIST, :name => 'partNames', :element => {:type => ::Thrift::Types::STRING}},
-      TO_DC => {:type => ::Thrift::Types::STRING, :name => 'to_dc'},
+      FROM_DB => {:type => ::Thrift::Types::STRING, :name => 'from_db'},
       TO_DB => {:type => ::Thrift::Types::STRING, :name => 'to_db'},
       TO_NAS_DEVID => {:type => ::Thrift::Types::STRING, :name => 'to_nas_devid'}
     }
@@ -10727,12 +10595,12 @@ module ThriftHiveMetastore
     include ::Thrift::Struct, ::Thrift::Struct_Union
     DBNAME = 1
     TABNAME = 2
-    EXP = 3
+    VALUES = 3
 
     FIELDS = {
       DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
       TABNAME => {:type => ::Thrift::Types::STRING, :name => 'tabName'},
-      EXP => {:type => ::Thrift::Types::STRING, :name => 'exp'}
+      VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRING}}
     }
 
     def struct_fields; FIELDS; end

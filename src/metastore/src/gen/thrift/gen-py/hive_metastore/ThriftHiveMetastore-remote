@@ -23,12 +23,12 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print 'Usage: ' + sys.argv[0] + ' [-h host[:port]] [-u url] [-f[ramed]] function [arg1 [arg2...]]'
   print ''
   print 'Functions:'
-  print '  void create_datacenter(Datacenter datacenter)'
-  print '  Datacenter get_center(string name)'
-  print '  void drop_center(string name, bool deleteData, bool cascade)'
-  print '  void update_center(Datacenter datacenter)'
-  print '   get_all_centers()'
-  print '  Datacenter get_local_center()'
+  print '  void create_attribution(Database db)'
+  print '  Database get_attribution(string name)'
+  print '  void drop_attribution(string name, bool deleteData, bool cascade)'
+  print '  void update_attribution(Database db)'
+  print '   get_all_attributions()'
+  print '  Database get_local_attribution()'
   print '   get_lucene_index_names(string db_name, string tbl_name, i16 max_indexes)'
   print '   get_all_busi_type_cols()'
   print '   get_all_busi_type_datacenters()'
@@ -166,11 +166,9 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '   find_best_nodes_in_groups(string dbName, string tableName, i32 nr, FindNodePolicy policy)'
   print '   get_all_nodes()'
   print '  string getDMStatus()'
-  print '   migrate_in(Table tbl,  parts, string from_dc)'
-  print '  bool migrate2_in(Table tbl,  parts,  idxs, string from_dc, string to_nas_devid,  fileMap)'
-  print '  bool migrate_out(string dbName, string tableName,  partNames, string to_dc)'
-  print '   migrate2_stage1(string dbName, string tableName,  partNames, string to_dc)'
-  print '  bool migrate2_stage2(string dbName, string tableName,  partNames, string to_dc, string to_db, string to_nas_devid)'
+  print '  bool migrate2_in(Table tbl,  parts,  idxs, string from_db, string to_nas_devid,  fileMap)'
+  print '   migrate2_stage1(string dbName, string tableName,  partNames, string to_db)'
+  print '  bool migrate2_stage2(string dbName, string tableName,  partNames, string from_db, string to_db, string to_nas_devid)'
   print '  string getMP(string node_name, string devid)'
   print '  bool createSchema(GlobalSchema schema)'
   print '  bool modifySchema(GlobalSchema schema)'
@@ -180,7 +178,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '   getTableNodeGroups(string dbName, string tabName)'
   print '   getTableNodeFiles(string dbName, string tabName, string nodeName)'
   print '   listTableFiles(string dbName, string tabName, i16 max_num)'
-  print '   filterTableFiles(string dbName, string tabName, string exp)'
+  print '   filterTableFiles(string dbName, string tabName,  values)'
   print '  bool addNodeGroup(NodeGroup ng)'
   print '  bool modifyNodeGroup(NodeGroup ng)'
   print '  bool deleteNodeGroup(NodeGroup ng)'
@@ -240,41 +238,41 @@ protocol = TBinaryProtocol.TBinaryProtocol(transport)
 client = ThriftHiveMetastore.Client(protocol)
 transport.open()
 
-if cmd == 'create_datacenter':
+if cmd == 'create_attribution':
   if len(args) != 1:
-    print 'create_datacenter requires 1 args'
+    print 'create_attribution requires 1 args'
     sys.exit(1)
-  pp.pprint(client.create_datacenter(eval(args[0]),))
+  pp.pprint(client.create_attribution(eval(args[0]),))
 
-elif cmd == 'get_center':
+elif cmd == 'get_attribution':
   if len(args) != 1:
-    print 'get_center requires 1 args'
+    print 'get_attribution requires 1 args'
     sys.exit(1)
-  pp.pprint(client.get_center(args[0],))
+  pp.pprint(client.get_attribution(args[0],))
 
-elif cmd == 'drop_center':
+elif cmd == 'drop_attribution':
   if len(args) != 3:
-    print 'drop_center requires 3 args'
+    print 'drop_attribution requires 3 args'
     sys.exit(1)
-  pp.pprint(client.drop_center(args[0],eval(args[1]),eval(args[2]),))
+  pp.pprint(client.drop_attribution(args[0],eval(args[1]),eval(args[2]),))
 
-elif cmd == 'update_center':
+elif cmd == 'update_attribution':
   if len(args) != 1:
-    print 'update_center requires 1 args'
+    print 'update_attribution requires 1 args'
     sys.exit(1)
-  pp.pprint(client.update_center(eval(args[0]),))
+  pp.pprint(client.update_attribution(eval(args[0]),))
 
-elif cmd == 'get_all_centers':
+elif cmd == 'get_all_attributions':
   if len(args) != 0:
-    print 'get_all_centers requires 0 args'
+    print 'get_all_attributions requires 0 args'
     sys.exit(1)
-  pp.pprint(client.get_all_centers())
+  pp.pprint(client.get_all_attributions())
 
-elif cmd == 'get_local_center':
+elif cmd == 'get_local_attribution':
   if len(args) != 0:
-    print 'get_local_center requires 0 args'
+    print 'get_local_attribution requires 0 args'
     sys.exit(1)
-  pp.pprint(client.get_local_center())
+  pp.pprint(client.get_local_attribution())
 
 elif cmd == 'get_lucene_index_names':
   if len(args) != 3:
@@ -1098,23 +1096,11 @@ elif cmd == 'getDMStatus':
     sys.exit(1)
   pp.pprint(client.getDMStatus())
 
-elif cmd == 'migrate_in':
-  if len(args) != 3:
-    print 'migrate_in requires 3 args'
-    sys.exit(1)
-  pp.pprint(client.migrate_in(eval(args[0]),eval(args[1]),args[2],))
-
 elif cmd == 'migrate2_in':
   if len(args) != 6:
     print 'migrate2_in requires 6 args'
     sys.exit(1)
   pp.pprint(client.migrate2_in(eval(args[0]),eval(args[1]),eval(args[2]),args[3],args[4],eval(args[5]),))
-
-elif cmd == 'migrate_out':
-  if len(args) != 4:
-    print 'migrate_out requires 4 args'
-    sys.exit(1)
-  pp.pprint(client.migrate_out(args[0],args[1],eval(args[2]),args[3],))
 
 elif cmd == 'migrate2_stage1':
   if len(args) != 4:
@@ -1186,7 +1172,7 @@ elif cmd == 'filterTableFiles':
   if len(args) != 3:
     print 'filterTableFiles requires 3 args'
     sys.exit(1)
-  pp.pprint(client.filterTableFiles(args[0],args[1],args[2],))
+  pp.pprint(client.filterTableFiles(args[0],args[1],eval(args[2]),))
 
 elif cmd == 'addNodeGroup':
   if len(args) != 1:

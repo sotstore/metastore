@@ -50,7 +50,6 @@ import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ConfigValSecurityException;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -1772,43 +1771,33 @@ public boolean authentication(String user_name, String passwd)
   }
 
   @Override
-  public Datacenter get_local_center() throws MetaException, TException {
-    return client.get_local_center();
+  public Database get_local_attribution() throws MetaException, TException {
+    return client.get_local_attribution();
   }
 
   @Override
-  public List<Datacenter> get_all_centers() throws MetaException, TException {
-    return client.get_all_centers();
+  public List<Database> get_all_attributions() throws MetaException, TException {
+    return client.get_all_attributions();
   }
 
   @Override
-  public Datacenter get_center(String name) throws NoSuchObjectException, MetaException, TException {
+  public Database get_attribution(String name) throws NoSuchObjectException, MetaException, TException {
     assert name != null;
-    return client.get_center(name);
+    return client.get_attribution(name);
   }
 
   @Override
-  public void create_datacenter(Datacenter datacenter) throws AlreadyExistsException,
+  public void create_attribution(Database database) throws AlreadyExistsException,
       InvalidObjectException, MetaException, TException {
-    assert datacenter != null;
-    client.create_datacenter(datacenter);
+    assert database != null;
+    client.create_attribution(database);
   }
 
   @Override
-  public void update_center(Datacenter datacenter) throws NoSuchObjectException,
+  public void update_attribution(Database database) throws NoSuchObjectException,
       InvalidOperationException, MetaException, TException {
-    assert datacenter != null;
-    client.update_center(datacenter);
-  }
-
-  @Override
-  public Map<Long, SFile> migrate_in(Table tbl, List<Partition> parts, String from_dc)
-      throws MetaException, TException {
-    assert tbl != null;
-    assert parts != null;
-    assert from_dc != null;
-    LOG.info("client parts " + parts.get(0).getSubpartitions().get(0).getFiles());
-    return client.migrate_in(tbl, parts, from_dc);
+    assert database != null;
+    client.update_attribution(database);
   }
 
   @Override
@@ -1816,16 +1805,6 @@ public boolean authentication(String user_name, String passwd)
     assert node_name != null;
     assert devid != null;
     return client.getMP(node_name, devid);
-  }
-
-  @Override
-  public boolean migrate_out(String dbName, String tableName, List<String> partNames, String to_dc)
-      throws MetaException, TException {
-    assert dbName != null;
-    assert tableName != null;
-    assert partNames != null;
-    assert to_dc != null;
-    return client.migrate_out(dbName, tableName, partNames, to_dc);
   }
 
   @Override
@@ -1894,18 +1873,18 @@ public boolean authentication(String user_name, String passwd)
   }
 
   @Override
-  public IMetaStoreClient getRemoteDcMSC(String dc_name) throws MetaException, TException {
+  public IMetaStoreClient getRemoteDbMSC(String db_name) throws MetaException, TException {
     HiveMetaStoreClient rc = null;
-    Datacenter dc =  null;
-    if( !remore_dc_map.containsKey(dc_name.toLowerCase())){
-      dc = get_center(dc_name);
-      rc = new HiveMetaStoreClient(dc.getLocationUri(),
+    Database db =  null;
+    if( !remore_dc_map.containsKey(db_name.toLowerCase())){
+      db = get_attribution(db_name);
+      rc = new HiveMetaStoreClient(db.getParameters().get("service.metastore.uri"),
           HiveConf.getIntVar(conf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
           conf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
           null);
-      remore_dc_map.put(dc.getName(), rc);
+      remore_dc_map.put(db.getName(), rc);
     }else{
-      rc = remore_dc_map.get(dc_name);
+      rc = remore_dc_map.get(db_name);
     }
     return rc;
   }

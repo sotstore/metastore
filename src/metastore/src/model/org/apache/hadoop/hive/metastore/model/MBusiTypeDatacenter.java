@@ -22,16 +22,14 @@ package org.apache.hadoop.hive.metastore.model;
 public class MBusiTypeDatacenter {
 
   private String busiType; // partitionname ==>  (key=value/)*(key=value)
-  private MDatacenter dc;
-  private String db_name;
+  private MDatabase db;
 
   public MBusiTypeDatacenter() {}
 
-  public MBusiTypeDatacenter(String busiType, MDatacenter dc, String db_name) {
+  public MBusiTypeDatacenter(String busiType, MDatabase db) {
     super();
     this.busiType = busiType;
-    this.dc = dc;
-    this.db_name = db_name;
+    this.db = db;
   }
 
   public String getBusiType() {
@@ -42,21 +40,11 @@ public class MBusiTypeDatacenter {
     this.busiType = busiType;
   }
 
-  public MDatacenter getDc() {
-    return dc;
+  public MDatabase getDb() {
+    return db;
   }
 
-  public void setDc(MDatacenter dc) {
-    this.dc = dc;
+  public void setDb(MDatabase db) {
+    this.db = db;
   }
-
-  public String getDb_name() {
-    return db_name;
-  }
-
-  public void setDb_name(String db_name) {
-    this.db_name = db_name;
-  }
-
-
 }
