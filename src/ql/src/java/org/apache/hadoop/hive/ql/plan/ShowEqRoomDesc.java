@@ -7,7 +7,7 @@ public class ShowEqRoomDesc extends DDLDesc implements Serializable {
   private static final long serialVersionUID = 1L;
   String resFile;
 
-  private static final String schema = "eqRoomName,status,geoLocName,comment#string:string:string:string";
+  private static final String schema = "eqRoomName,status,comment,geoLocName#string:string:string:string";
 
   public ShowEqRoomDesc() {
   }

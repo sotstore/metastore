@@ -42,6 +42,7 @@ import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.exec.Utilities;
+import org.apache.hadoop.hive.ql.metadata.EqRoom;
 import org.apache.hadoop.hive.ql.metadata.GeoLoc;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
@@ -618,17 +619,6 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
     }
 
     @Override
-    public void showHelp(DataOutputStream outStream, String result) throws HiveException {
-      // TODO Auto-generated method stub
-        try{
-          outStream.writeBytes(result);
-          outStream.write(terminator);
-        } catch (IOException e) {
-          throw new HiveException(e);
-        }
-    }
-
-    @Override
     public void showGeoLoc(DataOutputStream outStream, List<GeoLoc> geoloc) throws HiveException {
       try {
         for (GeoLoc gl : geoloc) {
@@ -646,13 +636,24 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
       } catch (IOException e) {
         throw new HiveException(e);
       }
-
     }
 
     @Override
-    public void showEqRoom(DataOutputStream outStream, String result) throws HiveException {
-      // TODO Auto-generated method stub
-
+    public void showEqRoom(DataOutputStream outStream, List<EqRoom> eqRoom) throws HiveException {
+      try {
+        for (EqRoom er : eqRoom) {
+          outStream.writeBytes(""+er.getEqRoomName());
+          outStream.write(separator);
+          outStream.writeBytes(er.getStatus());
+          outStream.write(separator);
+          outStream.writeBytes(er.getGeoLoc().getGeoLocName());
+          outStream.write(separator);
+          outStream.writeBytes(er.getComment());
+          outStream.write(separator);
+        }
+      } catch (IOException e) {
+        throw new HiveException(e);
+      }
     }
 
     @Override

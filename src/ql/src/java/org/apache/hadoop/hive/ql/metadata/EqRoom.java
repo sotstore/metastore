@@ -2,49 +2,38 @@ package org.apache.hadoop.hive.ql.metadata;
 
 import java.io.Serializable;
 
-public class EqRoomDesc implements Serializable {
+public class EqRoom implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  String eqRoomId;
   String eqRoomName;
   String status;
-  String geoLocName;
   String comment;
+  GeoLoc geoLoc;
 
-  public EqRoomDesc(){
+  public EqRoom(){
 
   }
 
-  public EqRoomDesc(String eqRoomName) {
+  public EqRoom(String eqRoomName) {
     super();
     this.eqRoomName = eqRoomName;
   }
 
-  public EqRoomDesc(String eqRoomName, String status, String geoLocName, String comment) {
+  public EqRoom(String eqRoomName, String status, String comment, GeoLoc geoLoc) {
     super();
     this.eqRoomName = eqRoomName;
     this.status = status;
-    this.geoLocName = geoLocName;
     this.comment = comment;
+    this.geoLoc = geoLoc;
   }
 
 
-  public EqRoomDesc(String eqRoomId, String eqRoomName, String status, String geoLocName,
-      String comment) {
-    super();
-    this.eqRoomId = eqRoomId;
-    this.eqRoomName = eqRoomName;
-    this.status = status;
-    this.geoLocName = geoLocName;
-    this.comment = comment;
+  public GeoLoc getGeoLoc() {
+    return geoLoc;
   }
 
-  public String getGeoLocName() {
-    return geoLocName;
-  }
-
-  public void setGeoLocId(String geoLocName) {
-    this.geoLocName = geoLocName;
+  public void setGeoLoc(GeoLoc geoLoc) {
+    this.geoLoc = geoLoc;
   }
 
   public String getEqRoomName() {

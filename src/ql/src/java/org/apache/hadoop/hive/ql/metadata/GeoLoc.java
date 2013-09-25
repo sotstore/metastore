@@ -5,7 +5,6 @@ import java.io.Serializable;
 public class GeoLoc implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  String geoLocId;
   String geoLocName;
   String nation;
   String province;
@@ -30,24 +29,6 @@ public class GeoLoc implements Serializable {
     this.dist = dist;
   }
 
-  public GeoLoc(String geoLocId, String geoLocName, String nation, String province,
-      String city, String dist) {
-    super();
-    this.geoLocId = geoLocId;
-    this.geoLocName = geoLocName;
-    this.nation = nation;
-    this.province = province;
-    this.city = city;
-    this.dist = dist;
-  }
-
-  public String getGeoLocId() {
-    return geoLocId;
-  }
-
-  public void setGeoLocId(String geoLocId) {
-    this.geoLocId = geoLocId;
-  }
 
   public String getGeoLocName() {
     return geoLocName;

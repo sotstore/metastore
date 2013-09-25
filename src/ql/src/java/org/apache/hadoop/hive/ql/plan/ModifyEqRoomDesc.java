@@ -14,8 +14,8 @@ public class ModifyEqRoomDesc extends DDLDesc implements Serializable {
 
   String eqRoomName;
   String status;
-  String geoLocName;
   String comment;
+  String geoLocName;
 
   public ModifyEqRoomDesc() {
   }
@@ -28,12 +28,12 @@ public class ModifyEqRoomDesc extends DDLDesc implements Serializable {
   }
 
 
-  public ModifyEqRoomDesc(String eqRoomName, String status, String geoLocName, String comment) {
+  public ModifyEqRoomDesc(String eqRoomName, String status, String comment, String geoLocName) {
     super();
     this.eqRoomName = eqRoomName;
     this.status = status;
-    this.geoLocName = geoLocName;
     this.comment = comment;
+    this.geoLocName = geoLocName;
   }
 
 

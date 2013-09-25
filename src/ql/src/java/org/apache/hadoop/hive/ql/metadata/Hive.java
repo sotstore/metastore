@@ -61,6 +61,7 @@ import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Datacenter;
+import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
@@ -84,6 +85,7 @@ import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.index.HiveIndex.IndexType;
+import org.apache.hadoop.hive.ql.parse.SemanticException;
 import org.apache.hadoop.hive.ql.session.CreateTableAutomaticGrant;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.hive.serde2.Deserializer;
@@ -2702,52 +2704,42 @@ public class Hive {
 
   }
 
-  public void addGeoLoc(GeoLoc gd) throws HiveException, NoSuchObjectException {
+  public void addGeoLoc(GeoLoc gd) throws HiveException {
       GeoLocation geoLocation = new GeoLocation();
       geoLocation.setGeoLocName(gd.getGeoLocName());
       geoLocation.setNation(gd.getNation());
       geoLocation.setProvince(gd.getProvince());
       geoLocation.setCity(gd.getCity());
       geoLocation.setDist(gd.getDist());
-
-      try {
+      try{
         getMSC().addGeoLocation(geoLocation);
-      } catch (NoSuchObjectException e) {
-        throw e;
       } catch (Exception e) {
         throw new HiveException(e);
       }
   }
 
-  public void dropGeoLoc(GeoLoc gd) throws HiveException, NoSuchObjectException {
-
-    try {
-      GeoLocation geoLocation = getMSC().getGeoLocationByName(gd.getGeoLocName());
-      getMSC().deleteGeoLocation(geoLocation);
-    } catch (MetaException e) {
-      e.printStackTrace();
-    } catch (TException e) {
-      e.printStackTrace();
-    }
+  public void dropGeoLoc(GeoLoc gd) throws HiveException {
+      try {
+        GeoLocation geoLocation = getMSC().getGeoLocationByName(gd.getGeoLocName());
+        getMSC().deleteGeoLocation(geoLocation);
+      } catch (Exception e) {
+        throw new HiveException(e);
+      }
 
   }
 
-  public void modifyGeoLoc(GeoLoc gd) throws HiveException, NoSuchObjectException {
+  public void modifyGeoLoc(GeoLoc gd) throws HiveException {
     GeoLocation geoLocation = new GeoLocation();
     geoLocation.setGeoLocName(gd.getGeoLocName());
     geoLocation.setNation(gd.getNation());
     geoLocation.setProvince(gd.getProvince());
     geoLocation.setCity(gd.getCity());
     geoLocation.setDist(gd.getDist());
-
     try {
       getMSC().modifyGeoLocation(geoLocation);
-    } catch (NoSuchObjectException e) {
-      throw e;
-    } catch (Exception e) {
+    }catch (Exception e) {
       throw new HiveException(e);
     }
-
   }
 
   public List<GeoLoc> showGeoLoc() throws HiveException {
@@ -2766,45 +2758,105 @@ public class Hive {
 
   }
 
-  public void addEqRoom(EqRoomDesc gd) {
-    // TODO Auto-generated method stub
+  public void addEqRoom(EqRoom gd) throws HiveException,SemanticException {
+    GeoLocation geoLocation;
+    try {
+      geoLocation = getMSC().getGeoLocationByName(gd.geoLoc.getGeoLocName());
+      EquipRoom equipRoom = new EquipRoom();
+      equipRoom.setEqRoomName(gd.getEqRoomName());
+      String eqStatus = gd.getStatus();
+      int status = -1;
+      if(eqStatus.equals("ONLINE")){
+        status = 0;
+      }else if (eqStatus.equals("OFFLINE")){
+        status = 1;
+      }else if (eqStatus.equals("SUSPECT")){
+        status = 2;
+      }else{
+        throw new SemanticException("Not valid Status for adding equipment room.");
+      }
+      equipRoom.setStatus(status);
+      equipRoom.setComment(gd.getComment());
+      equipRoom.setGeolocation(geoLocation);
+      getMSC().addEquipRoom(equipRoom);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public void dropEqRoom(EqRoom gd) throws HiveException {
+    try {
+      EquipRoom equipRoom = new EquipRoom(); //= getMSC().getEquipRoomByName(gd.getEqRoomName());
+      getMSC().deleteEquipRoom(equipRoom);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public void modifyEqRoom(EqRoom gd) throws HiveException,SemanticException {
+      try {
+        EquipRoom equipRoom = new EquipRoom();
+        equipRoom.setEqRoomName(gd.getEqRoomName());
+        String eqStatus = gd.getStatus();
+        int status = -1;
+        if(eqStatus.equals("ONLINE")){
+          status = 0;
+        }else if (eqStatus.equals("OFFLINE")){
+          status = 1;
+        }else if (eqStatus.equals("SUSPECT")){
+          status = 2;
+        }else{
+          throw new SemanticException("Not valid Status for adding equipment room.");
+        }
+        equipRoom.setStatus(status);
+        equipRoom.setComment(gd.getComment());
+        GeoLocation geoLocation = getMSC().getGeoLocationByName(gd.geoLoc.getGeoLocName());
+        equipRoom.setGeolocation(geoLocation);
+        getMSC().modifyEquipRoom(equipRoom);
+      } catch (Exception e) {
+        throw new HiveException(e);
+      }
 
   }
 
-  public void dropEqRoom(EqRoomDesc gd) {
-    // TODO Auto-generated method stub
-
+  public List<EqRoom> showEqRoom() throws HiveException {
+      List<EqRoom> ers = new ArrayList<EqRoom>();
+      try{
+        List<EquipRoom> equipRooms = getMSC().listEquipRoom();
+        for(EquipRoom eqr : equipRooms){
+          GeoLoc geoLoc = new GeoLoc(eqr.getGeolocation().getGeoLocName(),eqr.getGeolocation().getNation(),
+              eqr.getGeolocation().getProvince(),eqr.getGeolocation().getCity(),eqr.getGeolocation().getDist());
+          String eqStatus = "";
+          if(eqr.getStatus() == 0){
+            eqStatus = "ONLINE";
+          }else if(eqr.getStatus() == 1){
+            eqStatus = "OFFLINE";
+          }else if(eqr.getStatus() == 2){
+            eqStatus = "SUSPECT";
+          }
+          EqRoom er = new EqRoom(eqr.getEqRoomName(),eqStatus,eqr.getComment(),geoLoc);
+          ers.add(er);
+        }
+      } catch (Exception e) {
+        throw new HiveException(e);
+      }
+      return ers;
   }
 
-  public void modifyEqRoom(EqRoomDesc gd) {
-    // TODO Auto-generated method stub
-
-  }
-
-  public String showEqRoom() {
-    return "Aha , you get it showEqRoom().";
-
-  }
-
-  public void addNodeAssignment(NodeAssignmentDesc gd) {
-
+  public void addNodeAssignment(NodeAssignment gd) throws HiveException {
+    try {
+      getMSC().addNodeAssignment(gd.nodeName, gd.dbName);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
    }
 
-
-
-  public void dropNodeAssignment(NodeAssignmentDesc gd) {
-    // TODO Auto-generated method stub
-
-  }
-
-  public void modifyNodeAssignment(NodeAssignmentDesc gd) {
-    // TODO Auto-generated method stub
-
-  }
-
-  public String showNodeAssignment() {
-    // TODO Auto-generated method stub
-    return null;
+  public void dropNodeAssignment(NodeAssignment gd) throws HiveException {
+    try {
+      getMSC().deleteNodeAssignment(gd.nodeName, gd.dbName);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
   }
 
 };

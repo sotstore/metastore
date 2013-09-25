@@ -99,14 +99,14 @@ import org.apache.hadoop.hive.ql.lockmgr.HiveLockMode;
 import org.apache.hadoop.hive.ql.lockmgr.HiveLockObject;
 import org.apache.hadoop.hive.ql.lockmgr.HiveLockObject.HiveLockObjectData;
 import org.apache.hadoop.hive.ql.metadata.CheckResult;
-import org.apache.hadoop.hive.ql.metadata.EqRoomDesc;
+import org.apache.hadoop.hive.ql.metadata.EqRoom;
 import org.apache.hadoop.hive.ql.metadata.GeoLoc;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveMetaStoreChecker;
 import org.apache.hadoop.hive.ql.metadata.HiveStorageHandler;
 import org.apache.hadoop.hive.ql.metadata.InvalidTableException;
-import org.apache.hadoop.hive.ql.metadata.NodeAssignmentDesc;
+import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.metadata.formatting.JsonMetaDataFormatter;
@@ -157,7 +157,6 @@ import org.apache.hadoop.hive.ql.plan.GrantRevokeRoleDDL;
 import org.apache.hadoop.hive.ql.plan.LockTableDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyNodeDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartIndexAddFileDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartIndexDropFileDesc;
@@ -186,10 +185,8 @@ import org.apache.hadoop.hive.ql.plan.ShowFilesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowFunctionsDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
-import org.apache.hadoop.hive.ql.plan.ShowHelpDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
@@ -611,10 +608,6 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         return mergeFiles(db, mergeFilesDesc);
       }
 
-//      ShowHelpDesc showHelpDesc = work.getShowHelpDesc();
-//      if (showHelpDesc != null) {
-//        return showHelp(db, showHelpDesc);
-//      }
       AddGeoLocDesc addGeoLocDesc = work.getAddGeoLocDesc();
       if (addGeoLocDesc != null) {
         return addGeoLoc(db, addGeoLocDesc);
@@ -665,17 +658,6 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         return dropNodeAssignment(db, dropNodeAssignmentDesc);
       }
 
-      ModifyNodeAssignmentDesc modifyNodeAssignmentDesc = work.getModifyNodeAssignmentDesc();
-      if (modifyNodeAssignmentDesc != null) {
-        return modifyNodeAssignment(db, modifyNodeAssignmentDesc);
-      }
-
-      ShowNodeAssignmentDesc showNodeAssignmentDesc = work.getShowNodeAssignmentDesc();
-      if (showNodeAssignmentDesc != null) {
-        return showNodeAssignment(db, showNodeAssignmentDesc);
-      }
-
-
     } catch (InvalidTableException e) {
       formatter.consoleError(console, "Table " + e.getTableName() + " does not exist",
                              formatter.MISSING);
@@ -703,34 +685,6 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       return (1);
     }
     assert false;
-    return 0;
-  }
-
-  private int showHelp(Hive db, ShowHelpDesc showHelpDesc) throws HiveException {
-    String result = db.showHelp();
-    DataOutputStream outStream = null;
-    try {
-      Path resFile = new Path(showHelpDesc.getResFile());
-      FileSystem fs = resFile.getFileSystem(conf);
-      outStream = fs.create(resFile);
-
-      formatter.showHelp(outStream, result);
-
-      ((FSDataOutputStream) outStream).close();
-      outStream = null;
-    } catch (FileNotFoundException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
-                          MetaDataFormatter.ERROR);
-        return 1;
-      } catch (IOException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
-                          MetaDataFormatter.ERROR);
-        return 1;
-    } catch (Exception e) {
-      throw new HiveException(e);
-    } finally {
-      IOUtils.closeStream((FSDataOutputStream) outStream);
-    }
     return 0;
   }
 
@@ -4695,38 +4649,23 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
    */
 
   private int addGeoLoc(Hive db, AddGeoLocDesc addGeoLocDesc) throws HiveException {
-
-    GeoLoc gd = new GeoLoc(addGeoLocDesc.getGeoLocName(),addGeoLocDesc.getNation(),addGeoLocDesc.getProvince(),addGeoLocDesc.getCity(),addGeoLocDesc.getDist());
-    try {
-      this.db.addGeoLoc(gd);
-    } catch (NoSuchObjectException e) {
-      e.printStackTrace();
-    }
+    GeoLoc gd = new GeoLoc(addGeoLocDesc.getGeoLocName(),addGeoLocDesc.getNation(),
+        addGeoLocDesc.getProvince(),addGeoLocDesc.getCity(),addGeoLocDesc.getDist());
+    this.db.addGeoLoc(gd);
     return 0;
-
   }
 
   private int dropGeoLoc(Hive db, DropGeoLocDesc dropGeoLocDesc) throws HiveException {
-
     GeoLoc gd = new GeoLoc(dropGeoLocDesc.getGeoLocName());
-    try {
-      this.db.dropGeoLoc(gd);
-    } catch (NoSuchObjectException e) {
-      e.printStackTrace();
-    }
+    this.db.dropGeoLoc(gd);
     return 0;
-
   }
 
   private int modifyGeoLoc(Hive db, ModifyGeoLocDesc modifyGeoLocDesc) throws HiveException {
-    GeoLoc gd = new GeoLoc(modifyGeoLocDesc.getGeoLocName(),modifyGeoLocDesc.getNation(),modifyGeoLocDesc.getProvince(),modifyGeoLocDesc.getCity(),modifyGeoLocDesc.getDist());
-    try {
-      this.db.modifyGeoLoc(gd);
-    } catch (NoSuchObjectException e) {
-      e.printStackTrace();
-    }
+    GeoLoc gd = new GeoLoc(modifyGeoLocDesc.getGeoLocName(),modifyGeoLocDesc.getNation(),
+        modifyGeoLocDesc.getProvince(),modifyGeoLocDesc.getCity(),modifyGeoLocDesc.getDist());
+    this.db.modifyGeoLoc(gd);
     return 0;
-
   }
 
   private int showGeoLoc(Hive db, ShowGeoLocDesc showGeoLocDesc) throws HiveException {
@@ -4758,37 +4697,35 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   }
 
   private int addEqRoom(Hive db, AddEqRoomDesc addEqRoomDesc) throws HiveException {
-
-    EqRoomDesc gd = new EqRoomDesc(addEqRoomDesc.getEqRoomName(),addEqRoomDesc.getStatus(),addEqRoomDesc.getGeoLocName(),addEqRoomDesc.getComment());
+    GeoLoc gl = new GeoLoc(addEqRoomDesc.getEqRoomName());
+    EqRoom gd = new EqRoom(addEqRoomDesc.getEqRoomName(),addEqRoomDesc.getStatus(),addEqRoomDesc.getComment(),gl);
     this.db.addEqRoom(gd);
     return 0;
-
   }
 
   private int dropEqRoom(Hive db, DropEqRoomDesc dropEqRoomDesc) throws HiveException {
-
-    EqRoomDesc gd = new EqRoomDesc(dropEqRoomDesc.getEqRoomName());
-    this.db.dropEqRoom(gd);
-    return 0;
-
+      EqRoom gd = new EqRoom(dropEqRoomDesc.getEqRoomName());
+      this.db.dropEqRoom(gd);
+      return 0;
   }
 
   private int modifyEqRoom(Hive db, ModifyEqRoomDesc modifyEqRoomcDesc) throws HiveException {
-    EqRoomDesc gd = new EqRoomDesc(modifyEqRoomcDesc.getEqRoomName(),modifyEqRoomcDesc.getStatus(),modifyEqRoomcDesc.getGeoLocName(),modifyEqRoomcDesc.getComment());
+    GeoLoc gl = new GeoLoc(modifyEqRoomcDesc.getEqRoomName());
+    EqRoom gd = new EqRoom(modifyEqRoomcDesc.getEqRoomName(),
+        modifyEqRoomcDesc.getStatus(),modifyEqRoomcDesc.getComment(),gl);
     this.db.modifyEqRoom(gd);
     return 0;
-
   }
 
   private int showEqRoom(Hive db, ShowEqRoomDesc showEqRoomDesc) throws HiveException {
-    String result = db.showEqRoom();
+    List<EqRoom> eqRoom = db.showEqRoom();
     DataOutputStream outStream = null;
     try {
       Path resFile = new Path(showEqRoomDesc.getResFile());
       FileSystem fs = resFile.getFileSystem(conf);
       outStream = fs.create(resFile);
 
-      formatter.showEqRoom(outStream, result);
+      formatter.showEqRoom(outStream, eqRoom);
 
       ((FSDataOutputStream) outStream).close();
       outStream = null;
@@ -4810,7 +4747,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
   private int addNodeAssignment(Hive db, AddNodeAssignmentDesc addNodeAssignmentDesc) throws HiveException {
 
-    NodeAssignmentDesc gd = new NodeAssignmentDesc(addNodeAssignmentDesc.getNodeName(),addNodeAssignmentDesc.getDbName());
+    NodeAssignment gd = new NodeAssignment(addNodeAssignmentDesc.getNodeName(),addNodeAssignmentDesc.getDbName());
     this.db.addNodeAssignment(gd);
     return 0;
 
@@ -4818,45 +4755,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
   private int dropNodeAssignment(Hive db, DropNodeAssignmentDesc dropNodeAssignmentDesc) throws HiveException {
 
-    NodeAssignmentDesc gd = new NodeAssignmentDesc(dropNodeAssignmentDesc.getNodeName(),dropNodeAssignmentDesc.getDbName());
+    NodeAssignment gd = new NodeAssignment(dropNodeAssignmentDesc.getNodeName(),dropNodeAssignmentDesc.getDbName());
     this.db.dropNodeAssignment(gd);
     return 0;
 
   }
 
-  private int modifyNodeAssignment(Hive db, ModifyNodeAssignmentDesc modifyNodeAssignmentDesc) throws HiveException {
 
-    NodeAssignmentDesc gd = new NodeAssignmentDesc(modifyNodeAssignmentDesc.getNodeName(),modifyNodeAssignmentDesc.getDbName());
-    this.db.modifyNodeAssignment(gd);
-    return 0;
-
-  }
-
-  private int showNodeAssignment(Hive db, ShowNodeAssignmentDesc showNodeAssignmentDesc) throws HiveException {
-    String result = db.showNodeAssignment();
-    DataOutputStream outStream = null;
-    try {
-      Path resFile = new Path(showNodeAssignmentDesc.getResFile());
-      FileSystem fs = resFile.getFileSystem(conf);
-      outStream = fs.create(resFile);
-
-      formatter.showNodeAssignment(outStream, result);
-
-      ((FSDataOutputStream) outStream).close();
-      outStream = null;
-    } catch (FileNotFoundException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
-                          MetaDataFormatter.ERROR);
-        return 1;
-      } catch (IOException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
-                          MetaDataFormatter.ERROR);
-        return 1;
-    } catch (Exception e) {
-      throw new HiveException(e);
-    } finally {
-      IOUtils.closeStream((FSDataOutputStream) outStream);
-    }
-    return 0;
-  }
 }
