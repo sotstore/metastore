@@ -572,6 +572,19 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     case HiveParser.TOK_SHOWNODEASSIGNMENT:
       analyzeShowNodeAssignment(ast);
       break;
+    case HiveParser.TOK_CREATENODEGROUP:
+      analyzeCreateNodeGroup(ast);
+      break;
+    case HiveParser.TOK_MODIFYNODEGROUP:
+      analyzeModifyNodeGroup(ast);
+      break;
+    case HiveParser.TOK_DROPNODEGROUP:
+      analyzeDropNodeGroup(ast);
+      break;
+    case HiveParser.TOK_SHOWNODEGROUPS:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowEqRoom(ast);
+      break;
     default:
       throw new SemanticException("Unsupported command.");
     }
@@ -583,6 +596,21 @@ private void analyzeShowNodeAssignment(ASTNode ast) {
         showNodeAssignmentDesc), conf));
   setFetchTask(createFetchTask(showNodeAssignmentDesc.getSchema()));
 }
+
+private void analyzeDropNodeGroup(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+private void analyzeModifyNodeGroup(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
+
+private void analyzeCreateNodeGroup(ASTNode ast) {
+    // TODO Auto-generated method stub
+
+  }
 
 private void analyzeDropNodeAssignment(ASTNode ast) {
   String nodeName = unescapeSQLString((ast.getChild(0).getText()));

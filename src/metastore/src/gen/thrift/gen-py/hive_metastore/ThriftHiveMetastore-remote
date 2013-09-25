@@ -187,6 +187,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  bool addTableNodeDist(string db, string tab,  ng)'
   print '  bool deleteTableNodeDist(string db, string tab,  ng)'
   print '   listTableNodeDists(string dbName, string tabName)'
+  print '  bool assiginSchematoDB(string dbName, string schemaName,  fileSplitKeys,  part_keys,  ngs)'
   print ''
   sys.exit(0)
 
@@ -1221,6 +1222,12 @@ elif cmd == 'listTableNodeDists':
     print 'listTableNodeDists requires 2 args'
     sys.exit(1)
   pp.pprint(client.listTableNodeDists(args[0],args[1],))
+
+elif cmd == 'assiginSchematoDB':
+  if len(args) != 5:
+    print 'assiginSchematoDB requires 5 args'
+    sys.exit(1)
+  pp.pprint(client.assiginSchematoDB(args[0],args[1],eval(args[2]),eval(args[3]),eval(args[4]),))
 
 else:
   print 'Unrecognized method %s' % cmd
