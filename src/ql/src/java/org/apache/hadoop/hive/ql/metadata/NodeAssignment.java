@@ -1,30 +1,22 @@
-package org.apache.hadoop.hive.ql.plan;
+package org.apache.hadoop.hive.ql.metadata;
 
 import java.io.Serializable;
 
-
-/**
- * ModifyNodeAssignmentDesc.
- *
- */
-@Explain(displayName = "Modify NodeAssignment")
-public class ModifyNodeAssignmentDesc  extends DDLDesc implements Serializable {
+public class NodeAssignment implements Serializable {
 
   private static final long serialVersionUID = 1L;
-
   String nodeName;
   String dbName;
 
-  public ModifyNodeAssignmentDesc() {
+  public NodeAssignment() {
   }
 
-  public ModifyNodeAssignmentDesc(String nodeName, String dbName) {
+  public NodeAssignment(String nodeName, String dbName) {
     super();
     this.nodeName = nodeName;
     this.dbName = dbName;
   }
 
-  @Explain(displayName="NodeName")
   public String getNodeName() {
     return nodeName;
   }
@@ -32,7 +24,7 @@ public class ModifyNodeAssignmentDesc  extends DDLDesc implements Serializable {
   public void setNodeName(String nodeName) {
     this.nodeName = nodeName;
   }
-  @Explain(displayName="DbName")
+
   public String getDbName() {
     return dbName;
   }
@@ -40,6 +32,5 @@ public class ModifyNodeAssignmentDesc  extends DDLDesc implements Serializable {
   public void setDbName(String dbName) {
     this.dbName = dbName;
   }
-
 
 }

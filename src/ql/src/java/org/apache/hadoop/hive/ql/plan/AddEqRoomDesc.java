@@ -14,8 +14,8 @@ public class AddEqRoomDesc extends DDLDesc implements Serializable {
 
   String eqRoomName;
   String status;
-  String geoLocName;
   String comment;
+  String geoLocName;
 
   public AddEqRoomDesc() {
   }
@@ -27,15 +27,13 @@ public class AddEqRoomDesc extends DDLDesc implements Serializable {
     this.status = status;
   }
 
-
-  public AddEqRoomDesc(String eqRoomName, String status, String geoLocName, String comment) {
+  public AddEqRoomDesc(String eqRoomName, String status, String comment, String geoLocName) {
     super();
     this.eqRoomName = eqRoomName;
     this.status = status;
-    this.geoLocName = geoLocName;
     this.comment = comment;
+    this.geoLocName = geoLocName;
   }
-
 
 
   @Explain(displayName="getGeoLocName")

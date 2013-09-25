@@ -333,19 +333,6 @@ TOK_CREATEBUSITYPE;
 TOK_SHOWNODES;
 TOK_SHOWFILES;
 TOK_SHOWFILELOCATIONS;
-TOK_ADDGEO_LOC;
-TOK_DROPGEO_LOC;
-TOK_MODIFYGEO_LOC;
-TOK_SHOWGEO_LOC;
-TOK_ADDEQ_ROOM;
-TOK_SHOWEQ_ROOM;
-TOK_MODIFYEQ_ROOM;
-TOK_DROPEQ_ROOM;
-TOK_ADDNODE_ASSIGNMENT;
-TOK_DROPNODE_ASSIGNMENT;
-TOK_MODIFYNODE_ASSIGNMENT;
-TOK_SHOWNODE_ASSIGNMENT;
-
 TOK_STRINGLITERALLIST;
 TOK_TABLEDISTRIBUTION;
 
@@ -356,6 +343,16 @@ TOK_DROPNODEGROUP;
 TOK_NODEGROUPCOMMENT;
 TOK_SHOWNODEGROUPS;
 
+TOK_CREATEGEOLOC;
+TOK_DROPGEOLOC;
+TOK_MODIFYGEOLOC;
+TOK_SHOWGEOLOC;
+TOK_CREATEEQROOM;
+TOK_SHOWEQROOM;
+TOK_MODIFYEQROOM;
+TOK_DROPEQROOM;
+TOK_CREATENODEASSIGNMENT;
+TOK_DROPNODEASSIGNMENT;
 }
 
 
@@ -461,18 +458,16 @@ ddlStatement
     | dropNodeStatement
     | alterNodeStatement
     | createBusitypeStatement
-    | addGeoLocStatement
+    | createGeoLocStatement
     | dropGeoLocStatement
     | alterGeoLocStatement
     | showGeoLoc
-    | addEqRoomStatement
+    | createEqRoomStatement
     | dropEqRoomStatement
     | alterEqRoomStatement
     | showEqRoom
-    | addNodeAssignmentStatement
+    | createNodeAssignmentStatement
     | dropNodeAssignmentStatement
-    | alterNodeAssignmentStatement
-    | showNodeAssignment
     
     | createRoleStatement
     | dropRoleStatement
@@ -484,81 +479,69 @@ ddlStatement
     ;
 //
 
-showNodeAssignment
-@init { msgs.push("show NodeAssignment"); }
-@after { msgs.pop(); }
-    :  KW_SHOW KW_NODE_ASSIGNMENT
-     -> ^(TOK_SHOWNODE_ASSIGNMENT)
-    ;
-alterNodeAssignmentStatement
-@init { msgs.push("alter NodeAssignmentStatement"); }
-@after { msgs.pop(); }
-    :  KW_MODIFY KW_NODE_ASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA NAME= StringLiteral RPAREN 
-    -> ^(TOK_MODIFYNODE_ASSIGNMENT $NODE_NAME $NAME)
-    ;
         
 dropNodeAssignmentStatement
 @init { msgs.push("drop NodeAssignmentStatement"); }
 @after { msgs.pop(); }
-    : KW_DROP KW_NODE_ASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA NAME= StringLiteral RPAREN 
-    -> ^(TOK_DROPNODE_ASSIGNMENT $NODE_NAME $NAME)
+    : KW_DROP KW_NODEASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA DBNAME= StringLiteral RPAREN 
+    -> ^(TOK_DROPNODEASSIGNMENT $NODE_NAME $DBNAME)
     ;
     
-addNodeAssignmentStatement
-@init { msgs.push("add NodeAssignmentStatement"); }
+createNodeAssignmentStatement
+@init { msgs.push("create NodeAssignmentStatement"); }
 @after { msgs.pop(); }
-    : KW_CREATE KW_NODE_ASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA NAME= StringLiteral RPAREN 
-    -> ^(TOK_ADDNODE_ASSIGNMENT $NODE_NAME $NAME)
+    : KW_CREATE KW_NODEASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA DBNAME= StringLiteral RPAREN 
+    -> ^(TOK_CREATENODEASSIGNMENT $NODE_NAME $DBNAME)
         ;
 showEqRoom
 @init { msgs.push("show EqRoom"); }
 @after { msgs.pop(); }
-    :  KW_SHOW KW_EQ_ROOM
-     -> ^(TOK_SHOWEQ_ROOM)
+    :  KW_SHOW KW_EQROOM
+     -> ^(TOK_SHOWEQROOM)
     ;
 alterEqRoomStatement
 @init { msgs.push("alter EqRoomStatement"); }
 @after { msgs.pop(); }
-    :  KW_MODIFY KW_EQ_ROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier COMMA GEO_LOC_NAME=StringLiteral COMMA  cmt=StringLiteral RPAREN 
-    -> ^(TOK_MODIFYEQ_ROOM $EQ_ROOM_NAME $STATUS $GEO_LOC_NAME $cmt)
+    :  KW_MODIFY KW_EQROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier RPAREN  (KW_COMMENT CMT=StringLiteral)? ( KW_ON GEO_LOC_NAME=StringLiteral)? 
+    -> ^(TOK_MODIFYEQROOM $EQ_ROOM_NAME $STATUS $GEO_LOC_NAME $CMT)
     ;
     
 dropEqRoomStatement
 @init { msgs.push("drop EqRoomStatement"); }
 @after { msgs.pop(); }
-    : KW_DROP KW_EQ_ROOM StringLiteral 
-    -> ^(TOK_DROPEQ_ROOM StringLiteral)
+    : KW_DROP KW_EQROOM StringLiteral 
+    -> ^(TOK_DROPEQROOM StringLiteral)
     ;
-addEqRoomStatement
-@init { msgs.push("add EqRoomStatement"); }
+createEqRoomStatement
+@init { msgs.push("create EqRoomStatement"); }
 @after { msgs.pop(); }
-    : KW_CREATE KW_EQ_ROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier COMMA GEO_LOC_NAME=StringLiteral COMMA cmt=StringLiteral RPAREN 
-    -> ^(TOK_ADDEQ_ROOM $EQ_ROOM_NAME $STATUS $GEO_LOC_NAME $cmt)
+    : KW_CREATE KW_EQROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier RPAREN  (KW_COMMENT CMT=StringLiteral)? ( KW_ON GEO_LOC_NAME=StringLiteral)? 
+    -> ^(TOK_CREATEEQROOM $EQ_ROOM_NAME $STATUS $CMT? (KW_ON $GEO_LOC_NAME)? )
         ;
         
 showGeoLoc
 @init { msgs.push("show GeoLoc"); }
 @after { msgs.pop(); }
-    :  KW_SHOW KW_GEO_LOC
-     -> ^(TOK_SHOWGEO_LOC)
+    :  KW_SHOW KW_GEOLOC
+     -> ^(TOK_SHOWGEOLOC)
     ;
 alterGeoLocStatement
 @init { msgs.push("alter GeoLocstatement"); }
 @after { msgs.pop(); }
-    :  KW_MODIFY KW_GEO_LOC LPAREN GEO_LOC_NAME=StringLiteral COMMA NATION=StringLiteral COMMA PROVINCE=StringLiteral COMMA CITY= StringLiteral COMMA DIST=StringLiteral RPAREN 
-    -> ^(TOK_MODIFYGEO_LOC $GEO_LOC_NAME $NATION $PROVINCE $CITY $DIST)
+    :  KW_MODIFY KW_GEOLOC LPAREN GEO_LOC_NAME=StringLiteral COMMA NATION=StringLiteral COMMA PROVINCE=StringLiteral COMMA CITY= StringLiteral COMMA DIST=StringLiteral RPAREN 
+    -> ^(TOK_MODIFYGEOLOC $GEO_LOC_NAME $NATION $PROVINCE $CITY $DIST)
     ;
 dropGeoLocStatement
 @init { msgs.push("drop GeoLocStatement"); }
 @after { msgs.pop(); }
-    : KW_DROP KW_GEO_LOC StringLiteral 
-    -> ^(TOK_DROPGEO_LOC StringLiteral)
+    : KW_DROP KW_GEOLOC StringLiteral 
+    -> ^(TOK_DROPGEOLOC StringLiteral)
     ;
-addGeoLocStatement
-@init { msgs.push("add GeoLocStatement"); }
+createGeoLocStatement
+@init { msgs.push("create GeoLocStatement"); }
 @after { msgs.pop(); }
-    : KW_CREATE KW_GEO_LOC LPAREN  GEO_LOC_NAME=StringLiteral COMMA NATION=StringLiteral COMMA PROVINCE=StringLiteral COMMA CITY= StringLiteral COMMA DIST=StringLiteral RPAREN 
-    -> ^(TOK_ADDGEO_LOC $GEO_LOC_NAME $NATION $PROVINCE $CITY $DIST)
+    : KW_CREATE KW_GEOLOC LPAREN  GEO_LOC_NAME=StringLiteral COMMA NATION=StringLiteral COMMA PROVINCE=StringLiteral COMMA CITY= StringLiteral COMMA DIST=StringLiteral RPAREN 
+    -> ^(TOK_CREATEGEOLOC $GEO_LOC_NAME $NATION $PROVINCE $CITY $DIST)
         ;
 ifExists
 @init { msgs.push("if exists clause"); }
@@ -3201,12 +3184,11 @@ KW_BUSITYPE:'BUSITYPE';
 KW_NODES:'NODES';
 KW_FILES:'FILES';
 KW_FILELOCATIONS:'FILELOCATIONS';
-KW_GEO_LOC:'GEOLOC';
-KW_EQ_ROOM:'EQROOM';
-KW_NODE_ASSIGNMENT:'NODEASSIGNMENT';
-
 KW_NODEGROUP:'NODEGROUP';
 KW_NODEGROUPS:'NODEGROUPS';
+KW_GEOLOC:'GEOLOC';
+KW_EQROOM:'EQROOM';
+KW_NODEASSIGNMENT:'NODEASSIGNMENT';
 // Operators
 // NOTE: if you add a new function/operator, add it to sysFuncNames so that describe function _FUNC_ will work.
 
