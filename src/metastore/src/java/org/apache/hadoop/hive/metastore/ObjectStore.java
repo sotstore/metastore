@@ -8201,11 +8201,91 @@ public MUser getMUser(String userName) {
   }
 
   @Override
+  public Schema getSchema(String schema_name) throws MetaException {
+    MSchema mSchema = null;
+    try {
+      mSchema =  this.getMSchema(schema_name);
+    } catch (NoSuchObjectException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+    Schema schema = new Schema();
+
+    return schema;
+  }
+
+  @Override
+  public void createSchema(GlobalSchema schema) throws InvalidObjectException, MetaException {
+
+    boolean commited = false;
+
+    try {
+      openTransaction();
+      MSchema mSchema = convertToMSchema(schema);
+      boolean make_table = false;
+      if(mSchema.getSd().getCD().getCols() != null){//增加业务类型查询支持
+        List<MBusiTypeColumn> bcs = new ArrayList<MBusiTypeColumn>();
+
+        //@FIXME
+//        createBusiTypeCol(mSchema, bcs);
+
+        if(!bcs.isEmpty()){
+
+          LOG.info("--zjw--getPartitions is not null,size:"+bcs.size());
+          pm.makePersistentAll(bcs);
+        }else{
+          pm.makePersistent(mSchema);
+          make_table =true;
+          LOG.info("--zjw-- view:"+schema.getViewExpandedText()+"--"+schema.getViewOriginalText());
+        }
+      }
+      if(!make_table){
+        pm.makePersistent(mSchema);
+      }
+
+
+
+      LOG.info("createSchema w/ ID=" + JDOHelper.getObjectId(mSchema));
+      PrincipalPrivilegeSet principalPrivs = schema.getPrivileges();
+      List<Object> toPersistPrivObjs = new ArrayList<Object>();
+      if (principalPrivs != null) {
+        int now = (int)(System.currentTimeMillis()/1000);
+
+        //@FIXME
+//        Map<String, List<PrivilegeGrantInfo>> userPrivs = principalPrivs.getUserPrivileges();
+//        putPersistentPrivObjects(mSchema, toPersistPrivObjs, now, userPrivs, PrincipalType.USER);
+//
+//        Map<String, List<PrivilegeGrantInfo>> groupPrivs = principalPrivs.getGroupPrivileges();
+//        putPersistentPrivObjects(mSchema, toPersistPrivObjs, now, groupPrivs, PrincipalType.GROUP);
+//
+//        Map<String, List<PrivilegeGrantInfo>> rolePrivs = principalPrivs.getRolePrivileges();
+//        putPersistentPrivObjects(mSchema, toPersistPrivObjs, now, rolePrivs, PrincipalType.ROLE);
+      }
+      pm.makePersistentAll(toPersistPrivObjs);
+
+      commited = commitTransaction();
+
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+
+
+  }
+
+/**
+ * cry
+ */
+
+  @Override
   public boolean addEquipRoom(EquipRoom er) throws MetaException {
     MEquipRoom mer = new MEquipRoom();
     mer.setEqRoomName(er.getEqRoomName());
     mer.setStatus(er.getStatus());
     mer.setComment(er.getComment());
+    mer.setGeolocation(convertToMGeoLocation(er.getGeolocation()));
     boolean success = false;
     int now = (int)(System.currentTimeMillis()/1000);
     try {
@@ -8222,6 +8302,12 @@ public MUser getMUser(String userName) {
     }else{
       return false;
     }
+  }
+  private MGeoLocation convertToMGeoLocation(GeoLocation gl) {
+    if (gl == null) {
+      return null;
+    }
+    return new MGeoLocation(gl.getGeoLocName(),gl.getNation(),gl.getProvince(),gl.getCity(),gl.getDist());
   }
 
   @Override
@@ -8393,84 +8479,6 @@ public MUser getMUser(String userName) {
   }
 
   @Override
-  public Schema getSchema(String schema_name) throws MetaException {
-    MSchema mSchema = null;
-    try {
-      mSchema =  this.getMSchema(schema_name);
-    } catch (NoSuchObjectException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-
-    Schema schema = new Schema();
-
-    return schema;
-  }
-
-  @Override
-  public void createSchema(GlobalSchema schema) throws InvalidObjectException, MetaException {
-
-    boolean commited = false;
-
-    try {
-      openTransaction();
-      MSchema mSchema = convertToMSchema(schema);
-      boolean make_table = false;
-      if(mSchema.getSd().getCD().getCols() != null){//增加业务类型查询支持
-        List<MBusiTypeColumn> bcs = new ArrayList<MBusiTypeColumn>();
-
-        //@FIXME
-//        createBusiTypeCol(mSchema, bcs);
-
-        if(!bcs.isEmpty()){
-
-          LOG.info("--zjw--getPartitions is not null,size:"+bcs.size());
-          pm.makePersistentAll(bcs);
-        }else{
-          pm.makePersistent(mSchema);
-          make_table =true;
-          LOG.info("--zjw-- view:"+schema.getViewExpandedText()+"--"+schema.getViewOriginalText());
-        }
-      }
-      if(!make_table){
-        pm.makePersistent(mSchema);
-      }
-
-
-
-      LOG.info("createSchema w/ ID=" + JDOHelper.getObjectId(mSchema));
-      PrincipalPrivilegeSet principalPrivs = schema.getPrivileges();
-      List<Object> toPersistPrivObjs = new ArrayList<Object>();
-      if (principalPrivs != null) {
-        int now = (int)(System.currentTimeMillis()/1000);
-
-        //@FIXME
-//        Map<String, List<PrivilegeGrantInfo>> userPrivs = principalPrivs.getUserPrivileges();
-//        putPersistentPrivObjects(mSchema, toPersistPrivObjs, now, userPrivs, PrincipalType.USER);
-//
-//        Map<String, List<PrivilegeGrantInfo>> groupPrivs = principalPrivs.getGroupPrivileges();
-//        putPersistentPrivObjects(mSchema, toPersistPrivObjs, now, groupPrivs, PrincipalType.GROUP);
-//
-//        Map<String, List<PrivilegeGrantInfo>> rolePrivs = principalPrivs.getRolePrivileges();
-//        putPersistentPrivObjects(mSchema, toPersistPrivObjs, now, rolePrivs, PrincipalType.ROLE);
-      }
-      pm.makePersistentAll(toPersistPrivObjs);
-
-      commited = commitTransaction();
-
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      }
-    }
-
-
-  }
-
-/*
- * cry
- */
-  @Override
   public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException {
     boolean success = false;
     boolean commited = false;
@@ -8528,19 +8536,18 @@ public MUser getMUser(String userName) {
 
   @Override
   public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException {
-    List<GeoLocation> gls = new ArrayList<GeoLocation>();
+
     GeoLocation gl = null;
     boolean committed = false;
     try {
       openTransaction();//创建并开始一个事务
       Query query = pm.newQuery(MGeoLocation.class);//设置这个query作用的范围，即查询的是那个表或记录集
-      query.setFilter("MGeoLocation.name == \"geoLocName\"");
+      query.setFilter("geoLocName == \"geoLocName\"");
       query.declareParameters("java.lang.String geoLocName");
 //      gl =  (GeoLocation) query.execute(geoLocName);
-      Collection result=(Collection)query.execute(geoLocName);
-      for(Iterator itr=result.iterator();itr.hasNext();){
-        gl=(GeoLocation)itr.next();
-      }
+      query.setUnique(true);//设置返回的结果是唯一的
+      MGeoLocation result=(MGeoLocation)query.execute(geoLocName);
+      gl = convertToGeoLocation(result);
       committed = commitTransaction();
     } finally {
       if (!committed) {
@@ -8549,6 +8556,12 @@ public MUser getMUser(String userName) {
     }
     return gl;
 
+  }
+  private GeoLocation convertToGeoLocation(MGeoLocation mgl) {
+    if (mgl == null) {
+      return null;
+    }
+    return new GeoLocation(mgl.getGeoLocName(),mgl.getNation(),mgl.getProvince(),mgl.getCity(),mgl.getDist());
   }
 
 }
