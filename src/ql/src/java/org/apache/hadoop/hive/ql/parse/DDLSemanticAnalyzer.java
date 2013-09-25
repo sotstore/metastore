@@ -583,21 +583,15 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       break;
     case HiveParser.TOK_SHOWNODEGROUPS:
       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
-      analyzeShowEqRoom(ast);
+      analyzeShowNodeGroup(ast);
       break;
     default:
       throw new SemanticException("Unsupported command.");
     }
   }
 
-private void analyzeShowNodeAssignment(ASTNode ast) {
-  ShowNodeAssignmentDesc showNodeAssignmentDesc = new ShowNodeAssignmentDesc(ctx.getResFile().toString());
-    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
-        showNodeAssignmentDesc), conf));
-  setFetchTask(createFetchTask(showNodeAssignmentDesc.getSchema()));
-}
 
-private void analyzeDropNodeGroup(ASTNode ast) {
+private void analyzeShowNodeGroup(ASTNode ast) {
     // TODO Auto-generated method stub
 
   }
@@ -607,10 +601,22 @@ private void analyzeModifyNodeGroup(ASTNode ast) {
 
   }
 
+private void analyzeDropNodeGroup(ASTNode ast) {
+  // TODO Auto-generated method stub
+
+}
+
 private void analyzeCreateNodeGroup(ASTNode ast) {
     // TODO Auto-generated method stub
 
   }
+
+private void analyzeShowNodeAssignment(ASTNode ast) {
+  ShowNodeAssignmentDesc showNodeAssignmentDesc = new ShowNodeAssignmentDesc(ctx.getResFile().toString());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showNodeAssignmentDesc), conf));
+  setFetchTask(createFetchTask(showNodeAssignmentDesc.getSchema()));
+}
 
 private void analyzeDropNodeAssignment(ASTNode ast) {
   String nodeName = unescapeSQLString((ast.getChild(0).getText()));
