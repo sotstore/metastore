@@ -99,7 +99,6 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
-import org.apache.hadoop.hive.metastore.api.Schema;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
@@ -8338,16 +8337,10 @@ public MUser getMUser(String userName) {
   }
 
   @Override
-  public Schema getSchema(String schema_name) throws MetaException {
-    MSchema mSchema = null;
-    try {
-      mSchema =  this.getMSchema(schema_name);
-    } catch (NoSuchObjectException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+  public GlobalSchema getSchema(String schema_name) throws NoSuchObjectException,MetaException {
+    MSchema mSchema =  this.getMSchema(schema_name);
 
-    Schema schema = new Schema();
+    GlobalSchema schema = convertToSchema(mSchema);
 
     return schema;
   }
@@ -8731,6 +8724,17 @@ public MUser getMUser(String userName) {
     return schemas;
   }
 
+  private GlobalSchema convertToSchema(MSchema mschema) throws MetaException {
+    GlobalSchema schema = null;
+    if(mschema != null) {
+        schema = new GlobalSchema(mschema.getSchemaName(), mschema.getOwner(),
+            mschema.getCreateTime(), mschema.getLastAccessTime(), mschema.getRetention(),
+            convertToStorageDescriptor(mschema.getSd()), mschema.getParameters(),
+            mschema.getViewOriginalText(), mschema.getViewExpandedText(), mschema.getSchemaType());
+    }
+    return schema;
+  }
+
   private List<GlobalSchema> convertToSchemas(List<MSchema> mschemas) throws MetaException {
     List<GlobalSchema> schemas = null;
     if(mschemas != null) {
@@ -8783,12 +8787,24 @@ public MUser getMUser(String userName) {
   }
 
   @Override
-  public boolean modifyNodeGroup(NodeGroup ng) throws InvalidObjectException, MetaException {
+  public boolean modifyNodeGroup(String ngName,NodeGroup ng) throws InvalidObjectException, MetaException {
     boolean success = false;
     boolean commited = false;
     try {
+      List<String> ngNames = new ArrayList<String>();
+      ngNames.add(ngName);
+      List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
+      if (mngs == null) {
+        throw new MetaException("NodeGroup " + ngName+" does not exist.");
+      }else if(mngs.size() != 1){
+        throw new MetaException("Duplicated NodeGroup " + ngName+" exist.");
+      }
+
       openTransaction();
-      MNodeGroup mng = convertToMNodeGroup(ng);
+      MNodeGroup new_mng = convertToMNodeGroup(ng);
+
+      MNodeGroup mng = mngs.get(0);
+      mng.setMNodeGroup(new_mng);
 
       pm.makePersistent(mng);
       commited = commitTransaction();
@@ -8806,13 +8822,13 @@ public MUser getMUser(String userName) {
     boolean success = false;
     boolean commited = false;
     try {
-      openTransaction();
       List<String> ngNames = new ArrayList<String>();
       ngNames.add(ng.getNode_group_name());
       List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
       if (mngs == null) {
         throw new MetaException("NodeGroup " + ng.getNode_group_name()+" does not exist.");
       }
+      openTransaction();
 
       pm.deletePersistentAll(mngs);// watch here
       commited = commitTransaction();
