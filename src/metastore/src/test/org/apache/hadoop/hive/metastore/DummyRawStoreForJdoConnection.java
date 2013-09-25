@@ -31,7 +31,6 @@ import org.apache.hadoop.hive.metastore.api.BusiTypeDatacenter;
 import org.apache.hadoop.hive.metastore.api.Busitype;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Datacenter;
 import org.apache.hadoop.hive.metastore.api.Device;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
@@ -795,18 +794,6 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public Datacenter getDatacenter(String name) throws MetaException, NoSuchObjectException {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public void createDatacenter(Datacenter dc) throws InvalidObjectException, MetaException {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
   public boolean add_datawarehouse_sql(int dwNum, String sql) throws InvalidObjectException,
       MetaException {
     // TODO Auto-generated method stub
@@ -835,12 +822,6 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public void setThisDC(String thisDC) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
   public List<BusiTypeColumn> getAllBusiTypeCols() throws MetaException {
     // TODO Auto-generated method stub
     return null;
@@ -851,24 +832,6 @@ public class DummyRawStoreForJdoConnection implements RawStore {
       throws NoSuchObjectException, MetaException {
     // TODO Auto-generated method stub
     return null;
-  }
-
-  @Override
-  public List<Datacenter> getAllDatacenters() throws MetaException {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public boolean updateDatacenter(Datacenter dc) throws MetaException, NoSuchObjectException {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  @Override
-  public boolean dropDatacenter(String dc_name) throws MetaException, NoSuchObjectException {
-    // TODO Auto-generated method stub
-    return false;
   }
 
   @Override
