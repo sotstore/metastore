@@ -11,16 +11,17 @@ public class MNodeGroup {
   private Set<MTable> attachedtables;
   private Set<MDatabase> dbs;
 
-  public MNodeGroup(String node_group_name,String comment, int status) {
+  public MNodeGroup(String node_group_name,String comment, int status,Set<MNode> nodes) {
 
     this.node_group_name = node_group_name;
     this.comment = comment;
     this.status = status;
+    this.nodes = nodes;
   }
 
   public MNodeGroup(String node_group_name,String comment, int status,Set<MNode> nodes,Set<MDatabase> dbs,Set<MTable> attachedtables) {
 
-    this(node_group_name, comment, status);
+    this(node_group_name, comment, status,nodes);
     this.nodes = nodes;
     this.attachedtables = attachedtables;
     this.dbs = dbs;
