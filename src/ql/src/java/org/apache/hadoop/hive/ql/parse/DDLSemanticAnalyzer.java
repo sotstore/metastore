@@ -92,6 +92,7 @@ import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
 import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
+import org.apache.hadoop.hive.ql.plan.CreateNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.DDLWork;
 import org.apache.hadoop.hive.ql.plan.DescDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.DescFunctionDesc;
@@ -102,6 +103,7 @@ import org.apache.hadoop.hive.ql.plan.DropGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
+import org.apache.hadoop.hive.ql.plan.DropNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
 import org.apache.hadoop.hive.ql.plan.DropSubpartIndexDesc;
@@ -115,6 +117,7 @@ import org.apache.hadoop.hive.ql.plan.LockTableDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyNodeDesc;
+import org.apache.hadoop.hive.ql.plan.ModifyNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartIndexAddFileDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartIndexDropFileDesc;
 import org.apache.hadoop.hive.ql.plan.ModifyPartitionAddFileDesc;
@@ -147,6 +150,7 @@ import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodeAssignmentDesc;
+import org.apache.hadoop.hive.ql.plan.ShowNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
@@ -592,24 +596,87 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
 
 
 private void analyzeShowNodeGroup(ASTNode ast) {
-    // TODO Auto-generated method stub
-
+  ShowNodeGroupDesc showNodeGroupDesc;
+  if (ast.getChildCount() == 1) {
+   String ng_name = unescapeIdentifier(ast.getChild(0).getText());
+   showNodeGroupDesc = new ShowNodeGroupDesc(ctx.getResFile(),ng_name);
+   showNodeGroupDesc.setNg_name(ng_name);
+  } else {
+    showNodeGroupDesc = new ShowNodeGroupDesc(ctx.getResFile());
+  }
+  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), showNodeGroupDesc), conf));
+  setFetchTask(createFetchTask(showNodeGroupDesc.getSchema()));
   }
 
 private void analyzeModifyNodeGroup(ASTNode ast) {
-    // TODO Auto-generated method stub
-
+  String nodeGroupName = unescapeIdentifier(ast.getChild(0).getText());
+  ModifyNodeGroupDesc modifyNodeGroupDesc = new ModifyNodeGroupDesc(nodeGroupName);
+  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+      modifyNodeGroupDesc), conf));
   }
 
 private void analyzeDropNodeGroup(ASTNode ast) {
-  // TODO Auto-generated method stub
+  String nodeGroupName = unescapeIdentifier(ast.getChild(0).getText());
+  boolean ifExists = false;
+  boolean ifCascade = false;
+
+  if (null != ast.getFirstChildWithType(HiveParser.TOK_IFEXISTS)) {
+    ifExists = true;
+  }
+
+  if (null != ast.getFirstChildWithType(HiveParser.TOK_CASCADE)) {
+    ifCascade = true;
+  }
+
+  DropNodeGroupDesc dropNodeGroupDesc = new DropNodeGroupDesc(nodeGroupName, ifExists, ifCascade);
+  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), dropNodeGroupDesc), conf));
 
 }
 
-private void analyzeCreateNodeGroup(ASTNode ast) {
-    // TODO Auto-generated method stub
+private void analyzeCreateNodeGroup(ASTNode ast) throws SemanticException {
+  String nodeGroupName = unescapeIdentifier(ast.getChild(0).getText());
+  boolean ifNotExists = false;
+  String nodeGroupcomment = null;
+  Map<String, String> nodeGroupProps = null;
+  Set<String> nodes = null;
+
+  for (int i = 1; i < ast.getChildCount(); i++) {
+    ASTNode childNode = (ASTNode) ast.getChild(i);
+    switch (childNode.getToken().getType()) {
+    case HiveParser.TOK_IFNOTEXISTS:
+      ifNotExists = true;
+      break;
+    case HiveParser.TOK_NODEGROUPCOMMENT:
+      nodeGroupcomment = unescapeSQLString(childNode.getChild(0).getText());
+      break;
+    case HiveParser.TOK_NODEGROUPPROPERTIES:
+      nodeGroupProps = DDLSemanticAnalyzer.getProps((ASTNode) childNode.getChild(0));
+      break;
+    case HiveParser.TOK_STRINGLITERALLIST:
+      nodes = DDLSemanticAnalyzer.getNodes((ASTNode) childNode.getChild(0));
+      break;
+    default:
+      throw new SemanticException("Unrecognized token in CREATE NODEGROUP statement");
+    }
+  }
+
+ CreateNodeGroupDesc createNodeGroupDesc =
+      new CreateNodeGroupDesc(nodeGroupName, nodeGroupcomment, ifNotExists, nodes);
+  if (nodeGroupProps != null) {
+    createNodeGroupDesc.setNodeGroupProps(nodeGroupProps);
+  }
+
+  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+      createNodeGroupDesc), conf));
 
   }
+
+
+static Set<String> getNodes(ASTNode node) {
+  HashSet<String> setNode = new HashSet<String>();
+  readNodes(node, setNode);
+  return setNode;
+}
 
 private void analyzeShowNodeAssignment(ASTNode ast) {
   ShowNodeAssignmentDesc showNodeAssignmentDesc = new ShowNodeAssignmentDesc(ctx.getResFile().toString());
@@ -717,10 +784,10 @@ private void analyzeCreateUser(ASTNode ast) {
 
   private void analyzeModifyEqRoom(ASTNode ast)  throws SemanticException{
 
-    String eqRoomName = "";
-    String status = "";
-    String geoLocName = "";
-    String comment = "";
+    String eqRoomName = null;
+    String status = null;
+    String geoLocName = null;
+    String comment = null;
     if(ast.getChildCount() >= 2){
       eqRoomName = unescapeSQLString((ast.getChild(0).getText()));
       status = unescapeIdentifier((ast.getChild(1).getText()));
@@ -748,10 +815,10 @@ private void analyzeCreateUser(ASTNode ast) {
   }
 
   private void analyzeAddEqRoom(ASTNode ast) throws SemanticException {
-    String eqRoomName = "";
-    String status = "";
-    String geoLocName = "";
-    String comment = "";
+    String eqRoomName = null;
+    String status = null;
+    String geoLocName = null;
+    String comment = null;
     if(ast.getChildCount() >= 2){
       eqRoomName = unescapeSQLString((ast.getChild(0).getText()));
       status = unescapeIdentifier((ast.getChild(1).getText()));
@@ -2315,6 +2382,7 @@ private void analyzeCreateUser(ASTNode ast) {
     readProps(prop, mapProp);
     return mapProp;
   }
+
 
   /**
    * Utility class to resolve QualifiedName

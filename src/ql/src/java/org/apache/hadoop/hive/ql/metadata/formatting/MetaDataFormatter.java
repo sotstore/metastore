@@ -171,5 +171,7 @@ public interface MetaDataFormatter {
     public void showNodeAssignment(DataOutputStream outStream, List<NodeAssignment> nodeAssignment)
        throws HiveException;
 
+    public void showNodeGroups(DataOutputStream outStream, List<String> nodeGroups) throws HiveException;
+
 }
 

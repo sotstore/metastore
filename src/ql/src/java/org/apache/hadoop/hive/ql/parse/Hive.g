@@ -595,8 +595,9 @@ createNodeGroupStatement
         ifNotExists?
         name=Identifier
         nodegroupComment?
-        (KW_WITH KW_DCPROPERTIES nodegroupprops=nodegroupProperties)?
-    -> ^(TOK_CREATENODEGROUP $name ifNotExists?  nodegroupComment? $nodegroupprops?)
+        (KW_WITH KW_DBPROPERTIES nodegroupprops=nodegroupProperties)?
+        (KW_ON KW_NODEPROPERTIES nodeprops=nodeProperties)?
+    -> ^(TOK_CREATENODEGROUP $name ifNotExists?  nodegroupComment? $nodegroupprops? $nodeprops?)
     ;
 
 nodegroupProperties
@@ -605,7 +606,7 @@ nodegroupProperties
     :
       LPAREN nodegroupPropertiesList RPAREN -> ^(TOK_NODEGROUPPROPERTIES nodegroupPropertiesList)
     ;
-
+    
 nodegroupPropertiesList
 @init { msgs.push("nodegroup properties list"); }
 @after { msgs.pop(); }
