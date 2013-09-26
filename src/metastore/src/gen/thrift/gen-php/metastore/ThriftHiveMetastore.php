@@ -36743,9 +36743,10 @@ class ThriftHiveMetastore_create_file_args {
         5 => array(
           'var' => 'values',
           'type' => TType::LST,
-          'etype' => TType::STRING,
+          'etype' => TType::STRUCT,
           'elem' => array(
-            'type' => TType::STRING,
+            'type' => TType::STRUCT,
+            'class' => '\metastore\SplitValue',
             ),
           ),
         );
@@ -36825,7 +36826,8 @@ class ThriftHiveMetastore_create_file_args {
             for ($_i811 = 0; $_i811 < $_size807; ++$_i811)
             {
               $elem812 = null;
-              $xfer += $input->readString($elem812);
+              $elem812 = new \metastore\SplitValue();
+              $xfer += $elem812->read($input);
               $this->values []= $elem812;
             }
             $xfer += $input->readListEnd();
@@ -36872,11 +36874,11 @@ class ThriftHiveMetastore_create_file_args {
       }
       $xfer += $output->writeFieldBegin('values', TType::LST, 5);
       {
-        $output->writeListBegin(TType::STRING, count($this->values));
+        $output->writeListBegin(TType::STRUCT, count($this->values));
         {
           foreach ($this->values as $iter813)
           {
-            $xfer += $output->writeString($iter813);
+            $xfer += $iter813->write($output);
           }
         }
         $output->writeListEnd();

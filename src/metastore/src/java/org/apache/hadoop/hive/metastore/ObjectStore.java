@@ -102,6 +102,7 @@ import org.apache.hadoop.hive.metastore.api.SFileRef;
 import org.apache.hadoop.hive.metastore.api.Schema;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
+import org.apache.hadoop.hive.metastore.api.SplitValue;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.StringColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
@@ -140,6 +141,7 @@ import org.apache.hadoop.hive.metastore.model.MRole;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
 import org.apache.hadoop.hive.metastore.model.MSchema;
 import org.apache.hadoop.hive.metastore.model.MSerDeInfo;
+import org.apache.hadoop.hive.metastore.model.MSplitValue;
 import org.apache.hadoop.hive.metastore.model.MStorageDescriptor;
 import org.apache.hadoop.hive.metastore.model.MStringList;
 import org.apache.hadoop.hive.metastore.model.MTable;
@@ -2453,8 +2455,14 @@ public class ObjectStore implements RawStore, Configurable {
         dbName = mf.getTable().getDatabase().getName();
       }
     }
+    List<SplitValue> values = new ArrayList<SplitValue>();
+    if (mf.getValues() != null) {
+      for (MSplitValue msv : mf.getValues()) {
+        values.add(new SplitValue(msv.getPkname(), msv.getLevel(), msv.getValue()));
+      }
+    }
     return new SFile(mf.getFid(), dbName, tableName, mf.getStore_status(), mf.getRep_nr(),
-        mf.getDigest(), mf.getRecord_nr(), mf.getAll_record_nr(), null, mf.getLength(), mf.getValues());
+        mf.getDigest(), mf.getRecord_nr(), mf.getAll_record_nr(), null, mf.getLength(), values);
   }
 
   private List<SFileLocation> convertToSFileLocation(List<MFileLocation> mfl) throws MetaException {
@@ -2546,9 +2554,15 @@ public class ObjectStore implements RawStore, Configurable {
         throw new InvalidObjectException("Invalid db or table name.");
       }
     }
+    List<MSplitValue> values = new ArrayList<MSplitValue>();
+    if (file.getValuesSize() > 0) {
+      for (SplitValue sv : file.getValues()) {
+        values.add(new MSplitValue(sv.getSplitKeyName(), sv.getLevel(), sv.getValue()));
+      }
+    }
 
     return new MFile(file.getFid(), mt, file.getStore_status(), file.getRep_nr(),
-        file.getDigest(), file.getRecord_nr(), file.getAll_record_nr(), file.getLength(), file.getValues());
+        file.getDigest(), file.getRecord_nr(), file.getAll_record_nr(), file.getLength(), values);
   }
 
   private MFileLocation convertToMFileLocation(SFileLocation location) {

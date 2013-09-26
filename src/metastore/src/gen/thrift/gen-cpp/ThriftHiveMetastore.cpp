@@ -28237,7 +28237,7 @@ uint32_t ThriftHiveMetastore_create_file_args::read(::apache::thrift::protocol::
             uint32_t _i933;
             for (_i933 = 0; _i933 < _size929; ++_i933)
             {
-              xfer += iprot->readString(this->values[_i933]);
+              xfer += this->values[_i933].read(iprot);
             }
             xfer += iprot->readListEnd();
           }
@@ -28280,11 +28280,11 @@ uint32_t ThriftHiveMetastore_create_file_args::write(::apache::thrift::protocol:
 
   xfer += oprot->writeFieldBegin("values", ::apache::thrift::protocol::T_LIST, 5);
   {
-    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRING, static_cast<uint32_t>(this->values.size()));
-    std::vector<std::string> ::const_iterator _iter934;
+    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->values.size()));
+    std::vector<SplitValue> ::const_iterator _iter934;
     for (_iter934 = this->values.begin(); _iter934 != this->values.end(); ++_iter934)
     {
-      xfer += oprot->writeString((*_iter934));
+      xfer += (*_iter934).write(oprot);
     }
     xfer += oprot->writeListEnd();
   }
@@ -28317,11 +28317,11 @@ uint32_t ThriftHiveMetastore_create_file_pargs::write(::apache::thrift::protocol
 
   xfer += oprot->writeFieldBegin("values", ::apache::thrift::protocol::T_LIST, 5);
   {
-    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRING, static_cast<uint32_t>((*(this->values)).size()));
-    std::vector<std::string> ::const_iterator _iter935;
+    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>((*(this->values)).size()));
+    std::vector<SplitValue> ::const_iterator _iter935;
     for (_iter935 = (*(this->values)).begin(); _iter935 != (*(this->values)).end(); ++_iter935)
     {
-      xfer += oprot->writeString((*_iter935));
+      xfer += (*_iter935).write(oprot);
     }
     xfer += oprot->writeListEnd();
   }
@@ -45064,13 +45064,13 @@ void ThriftHiveMetastoreClient::recv_cancel_delegation_token()
   return;
 }
 
-void ThriftHiveMetastoreClient::create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<std::string> & values)
+void ThriftHiveMetastoreClient::create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<SplitValue> & values)
 {
   send_create_file(node_name, repnr, db_name, table_name, values);
   recv_create_file(_return);
 }
 
-void ThriftHiveMetastoreClient::send_create_file(const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<std::string> & values)
+void ThriftHiveMetastoreClient::send_create_file(const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<SplitValue> & values)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("create_file", ::apache::thrift::protocol::T_CALL, cseqid);

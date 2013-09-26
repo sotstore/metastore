@@ -75,6 +75,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.SplitValue;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -1509,7 +1510,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
   }
 
   @Override
-  public SFile create_file(String node_name, int repnr, String db_name, String table_name, List<String> values)
+  public SFile create_file(String node_name, int repnr, String db_name, String table_name, List<SplitValue> values)
       throws FileOperationException, TException {
 
     if ("".equals(node_name)) {

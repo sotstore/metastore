@@ -12,10 +12,10 @@ public class MFile {
   private long all_record_nr;
   //private List<MFileLocation> locations;
   private long length;
-  private List<String> values;
+  private List<MSplitValue> values;
 
   public MFile(long fid, MTable table, int store_status, int rep_nr, String digest,
-      long record_nr, long all_record_nr, long length, List<String> values) {
+      long record_nr, long all_record_nr, long length, List<MSplitValue> values) {
     this.setFid(fid);
     this.setTable(table);
     this.store_status = store_status;
@@ -24,6 +24,7 @@ public class MFile {
     this.record_nr = record_nr;
     this.all_record_nr = all_record_nr;
     this.setLength(length);
+    this.values = values;
   }
 
   public int getStore_status() {
@@ -72,11 +73,11 @@ public class MFile {
     this.length = length;
   }
 
-  public List<String> getValues() {
+  public List<MSplitValue> getValues() {
     return values;
   }
 
-  public void setValues(List<String> values) {
+  public void setValues(List<MSplitValue> values) {
     this.values = values;
   }
 

@@ -103,6 +103,18 @@
         <column name="FCOMMENT" length="4000" jdbc-type="VARCHAR" allows-null="true"/>
       </field>
     </class>
+    
+    <class name="MSplitValue" embedded-only="true" table="SPLIT_VALUES" detachable="true">
+      <field name="pkname">
+		<column name="PKEY_NAME" length="128" jdbc-type="VARCHAR"/>
+	  </field>
+	  <field name="level">
+	    <column name="LEVEL"/>
+	  </field>
+	  <field name="value">
+	    <column name="VALUE" length="4000" jdbc-type="VARCHAR"/>
+	  </field>
+    </class>
 
     <class name="MType" table="TYPES" detachable="true">  
       <field name="name" >  
@@ -1228,11 +1240,27 @@
       </field>
       
       <field name="values" table="FILE_KEY_VALS">
-        <collection element-type="java.lang.String"/>
+        <collection element-type="MSplitValue"/>
         <join>
+          <primary-key name="FILE_KEY_VALS_PK">
+            <column name="FILE_ID"/>
+            <column name="PKEY_NAME"/>
+          </primary-key>
           <column name="FILE_ID"/>
         </join>
-        <element column="FILE_KEY_VAL"/>
+        <element>
+          <embedded>
+          	<field name="pkname">
+          	  <column name="PKEY_NAME" length="128" jdbc-type="VARCHAR"/>
+          	</field>
+          	<field name="level">
+          	  <column name="LEVEL"/>
+          	</field>
+          	<field name="value">
+          	  <column name="VALUE" length="4000" jdbc-type="VARCHAR"/>
+          	</field>
+          </embedded>
+        </element>
       </field>
     </class>
     

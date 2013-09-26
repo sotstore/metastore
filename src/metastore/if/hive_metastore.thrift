@@ -323,6 +323,12 @@ struct BusiTypeDatacenter {
   2: Database db,         // Database 
 }
 
+struct SplitValue {
+  1: string splitKeyName,
+  2: i32    level,
+  3: string value,
+}
+
 struct Device {
   1: string devid,
   2: i32    prop,
@@ -352,7 +358,7 @@ struct SFile {
   8: i64	all_record_nr,
   9: list<SFileLocation> locations,
   10: i64    length,
-  11: list<string> values,
+  11: list<SplitValue> values,
 }
 
 struct SFileRef {
@@ -896,7 +902,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   void cancel_delegation_token(1:string token_str_form) throws (1:MetaException o1)
   
   // method for file operations
-  SFile create_file(1:string node_name, 2:i32 repnr, 3:string db_name, 4:string table_name, 5:list<string> values) throws (1:FileOperationException o1)
+  SFile create_file(1:string node_name, 2:i32 repnr, 3:string db_name, 4:string table_name, 5:list<SplitValue> values) throws (1:FileOperationException o1)
   
   i32 close_file(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
   

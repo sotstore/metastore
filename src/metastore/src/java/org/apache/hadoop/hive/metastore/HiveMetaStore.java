@@ -102,6 +102,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.SplitValue;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
@@ -4295,6 +4296,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return groupNames;
     }
 
+    @Override
     public Device create_device(String devid, int prop, String node_name) throws MetaException, TException {
       DeviceInfo di = new DeviceInfo();
       Node node = null;
@@ -4308,12 +4310,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return d;
     }
 
+    @Override
     public boolean del_device(String devid) throws MetaException, TException {
       return getMS().delDevice(devid);
     }
 
     @Override
-    public SFile create_file(String node_name, int repnr, String db_name, String table_name, List<String> values)
+    public SFile create_file(String node_name, int repnr, String db_name, String table_name, List<SplitValue> values)
         throws FileOperationException, TException {
       // TODO: if repnr less than 1, we should increase it to replicate to BACKUP-STORE
       if (repnr <= 1) {
@@ -4324,7 +4327,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return create_file(flp, node_name, repnr, db_name, table_name, values);
     }
 
-    private SFile create_file_wo_location(int repnr, String dbName, String tableName, List<String> values)
+    private SFile create_file_wo_location(int repnr, String dbName, String tableName, List<SplitValue> values)
       throws FileOperationException, TException {
 
       SFile cfile = new SFile(0, dbName, tableName, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
@@ -4338,7 +4341,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return cfile;
     }
 
-    private SFile create_file(FileLocatingPolicy flp, String node_name, int repnr, String db_name, String table_name, List<String> values)
+    private SFile create_file(FileLocatingPolicy flp, String node_name, int repnr, String db_name, String table_name, List<SplitValue> values)
         throws FileOperationException, TException {
 
       if (node_name == null) {

@@ -29294,7 +29294,7 @@ class create_file_args:
     (2, TType.I32, 'repnr', None, None, ), # 2
     (3, TType.STRING, 'db_name', None, None, ), # 3
     (4, TType.STRING, 'table_name', None, None, ), # 4
-    (5, TType.LIST, 'values', (TType.STRING,None), None, ), # 5
+    (5, TType.LIST, 'values', (TType.STRUCT,(SplitValue, SplitValue.thrift_spec)), None, ), # 5
   )
 
   def __init__(self, node_name=None, repnr=None, db_name=None, table_name=None, values=None,):
@@ -29338,7 +29338,8 @@ class create_file_args:
           self.values = []
           (_etype809, _size806) = iprot.readListBegin()
           for _i810 in xrange(_size806):
-            _elem811 = iprot.readString();
+            _elem811 = SplitValue()
+            _elem811.read(iprot)
             self.values.append(_elem811)
           iprot.readListEnd()
         else:
@@ -29371,9 +29372,9 @@ class create_file_args:
       oprot.writeFieldEnd()
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 5)
-      oprot.writeListBegin(TType.STRING, len(self.values))
+      oprot.writeListBegin(TType.STRUCT, len(self.values))
       for iter812 in self.values:
-        oprot.writeString(iter812)
+        iter812.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()

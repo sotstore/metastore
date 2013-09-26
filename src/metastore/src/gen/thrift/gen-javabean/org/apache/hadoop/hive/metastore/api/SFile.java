@@ -62,7 +62,7 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
   private long all_record_nr; // required
   private List<SFileLocation> locations; // required
   private long length; // required
-  private List<String> values; // required
+  private List<SplitValue> values; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -186,7 +186,7 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.VALUES, new org.apache.thrift.meta_data.FieldMetaData("values", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, SplitValue.class))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(SFile.class, metaDataMap);
   }
@@ -205,7 +205,7 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
     long all_record_nr,
     List<SFileLocation> locations,
     long length,
-    List<String> values)
+    List<SplitValue> values)
   {
     this();
     this.fid = fid;
@@ -255,9 +255,9 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
     }
     this.length = other.length;
     if (other.isSetValues()) {
-      List<String> __this__values = new ArrayList<String>();
-      for (String other_element : other.values) {
-        __this__values.add(other_element);
+      List<SplitValue> __this__values = new ArrayList<SplitValue>();
+      for (SplitValue other_element : other.values) {
+        __this__values.add(new SplitValue(other_element));
       }
       this.values = __this__values;
     }
@@ -531,22 +531,22 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
     return (this.values == null) ? 0 : this.values.size();
   }
 
-  public java.util.Iterator<String> getValuesIterator() {
+  public java.util.Iterator<SplitValue> getValuesIterator() {
     return (this.values == null) ? null : this.values.iterator();
   }
 
-  public void addToValues(String elem) {
+  public void addToValues(SplitValue elem) {
     if (this.values == null) {
-      this.values = new ArrayList<String>();
+      this.values = new ArrayList<SplitValue>();
     }
     this.values.add(elem);
   }
 
-  public List<String> getValues() {
+  public List<SplitValue> getValues() {
     return this.values;
   }
 
-  public void setValues(List<String> values) {
+  public void setValues(List<SplitValue> values) {
     this.values = values;
   }
 
@@ -651,7 +651,7 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
       if (value == null) {
         unsetValues();
       } else {
-        setValues((List<String>)value);
+        setValues((List<SplitValue>)value);
       }
       break;
 
@@ -1248,11 +1248,12 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list305 = iprot.readListBegin();
-                struct.values = new ArrayList<String>(_list305.size);
+                struct.values = new ArrayList<SplitValue>(_list305.size);
                 for (int _i306 = 0; _i306 < _list305.size; ++_i306)
                 {
-                  String _elem307; // required
-                  _elem307 = iprot.readString();
+                  SplitValue _elem307; // required
+                  _elem307 = new SplitValue();
+                  _elem307.read(iprot);
                   struct.values.add(_elem307);
                 }
                 iprot.readListEnd();
@@ -1323,10 +1324,10 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
       if (struct.values != null) {
         oprot.writeFieldBegin(VALUES_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.values.size()));
-          for (String _iter309 : struct.values)
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.values.size()));
+          for (SplitValue _iter309 : struct.values)
           {
-            oprot.writeString(_iter309);
+            _iter309.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -1423,9 +1424,9 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
       if (struct.isSetValues()) {
         {
           oprot.writeI32(struct.values.size());
-          for (String _iter311 : struct.values)
+          for (SplitValue _iter311 : struct.values)
           {
-            oprot.writeString(_iter311);
+            _iter311.write(oprot);
           }
         }
       }
@@ -1487,12 +1488,13 @@ public class SFile implements org.apache.thrift.TBase<SFile, SFile._Fields>, jav
       }
       if (incoming.get(10)) {
         {
-          org.apache.thrift.protocol.TList _list315 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.values = new ArrayList<String>(_list315.size);
+          org.apache.thrift.protocol.TList _list315 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.values = new ArrayList<SplitValue>(_list315.size);
           for (int _i316 = 0; _i316 < _list315.size; ++_i316)
           {
-            String _elem317; // required
-            _elem317 = iprot.readString();
+            SplitValue _elem317; // required
+            _elem317 = new SplitValue();
+            _elem317.read(iprot);
             struct.values.add(_elem317);
           }
         }

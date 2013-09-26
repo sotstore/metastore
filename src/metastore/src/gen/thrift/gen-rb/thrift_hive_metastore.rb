@@ -9397,7 +9397,7 @@ module ThriftHiveMetastore
       REPNR => {:type => ::Thrift::Types::I32, :name => 'repnr'},
       DB_NAME => {:type => ::Thrift::Types::STRING, :name => 'db_name'},
       TABLE_NAME => {:type => ::Thrift::Types::STRING, :name => 'table_name'},
-      VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRING}}
+      VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SplitValue}}
     }
 
     def struct_fields; FIELDS; end

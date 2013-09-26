@@ -52,6 +52,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.SplitValue;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
@@ -980,7 +981,7 @@ public interface IMetaStoreClient {
    */
   public void cancelDelegationToken(String tokenStrForm) throws MetaException, TException;
 
-  public SFile create_file(String node_name, int repnr, String db_name, String table_name, List<String> values)
+  public SFile create_file(String node_name, int repnr, String db_name, String table_name, List<SplitValue> values)
       throws FileOperationException, TException;
 
   public int close_file(SFile file) throws FileOperationException, TException;

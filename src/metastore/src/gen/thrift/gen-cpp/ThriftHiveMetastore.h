@@ -138,7 +138,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void get_delegation_token(std::string& _return, const std::string& token_owner, const std::string& renewer_kerberos_principal_name) = 0;
   virtual int64_t renew_delegation_token(const std::string& token_str_form) = 0;
   virtual void cancel_delegation_token(const std::string& token_str_form) = 0;
-  virtual void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<std::string> & values) = 0;
+  virtual void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<SplitValue> & values) = 0;
   virtual int32_t close_file(const SFile& file) = 0;
   virtual bool online_filelocation(const SFile& file) = 0;
   virtual bool toggle_safemode() = 0;
@@ -621,7 +621,7 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void cancel_delegation_token(const std::string& /* token_str_form */) {
     return;
   }
-  void create_file(SFile& /* _return */, const std::string& /* node_name */, const int32_t /* repnr */, const std::string& /* db_name */, const std::string& /* table_name */, const std::vector<std::string> & /* values */) {
+  void create_file(SFile& /* _return */, const std::string& /* node_name */, const int32_t /* repnr */, const std::string& /* db_name */, const std::string& /* table_name */, const std::vector<SplitValue> & /* values */) {
     return;
   }
   int32_t close_file(const SFile& /* file */) {
@@ -17234,7 +17234,7 @@ class ThriftHiveMetastore_create_file_args {
   int32_t repnr;
   std::string db_name;
   std::string table_name;
-  std::vector<std::string>  values;
+  std::vector<SplitValue>  values;
 
   _ThriftHiveMetastore_create_file_args__isset __isset;
 
@@ -17254,7 +17254,7 @@ class ThriftHiveMetastore_create_file_args {
     table_name = val;
   }
 
-  void __set_values(const std::vector<std::string> & val) {
+  void __set_values(const std::vector<SplitValue> & val) {
     values = val;
   }
 
@@ -17294,7 +17294,7 @@ class ThriftHiveMetastore_create_file_pargs {
   const int32_t* repnr;
   const std::string* db_name;
   const std::string* table_name;
-  const std::vector<std::string> * values;
+  const std::vector<SplitValue> * values;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -22946,8 +22946,8 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void cancel_delegation_token(const std::string& token_str_form);
   void send_cancel_delegation_token(const std::string& token_str_form);
   void recv_cancel_delegation_token();
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<std::string> & values);
-  void send_create_file(const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<std::string> & values);
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<SplitValue> & values);
+  void send_create_file(const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<SplitValue> & values);
   void recv_create_file(SFile& _return);
   int32_t close_file(const SFile& file);
   void send_close_file(const SFile& file);
@@ -24602,7 +24602,7 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     ifaces_[i]->cancel_delegation_token(token_str_form);
   }
 
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<std::string> & values) {
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<SplitValue> & values) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {

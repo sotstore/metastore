@@ -1168,7 +1168,7 @@ public class DiskManager {
           r += " " + e.getKey() + " -> " + "[";
           if (e.getValue().dis != null) {
             for (DeviceInfo di : e.getValue().dis) {
-              r += di.dev + ",";
+              r += di.prop + ":" + di.dev + ",";
             }
           }
           r += "]\n";
@@ -1268,10 +1268,14 @@ public class DiskManager {
           try {
             synchronized (rs) {
               rs.createOrUpdateDevice(di, node);
+              Device d = rs.getDevice(di.dev);
+              di.prop = d.getProp();
             }
           } catch (InvalidObjectException e) {
             LOG.error(e, e);
           } catch (MetaException e) {
+            LOG.error(e, e);
+          } catch (NoSuchObjectException e) {
             LOG.error(e, e);
           }
         }

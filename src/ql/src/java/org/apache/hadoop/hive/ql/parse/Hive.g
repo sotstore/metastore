@@ -589,7 +589,7 @@ createNodeGroupStatement
         ifNotExists?
         name=Identifier
         nodegroupComment?
-        (KW_WITH KW_DCPROPERTIES nodegroupprops=nodegroupProperties)?
+        (KW_WITH KW_NGPROPERTIES nodegroupprops=nodegroupProperties)?
     -> ^(TOK_CREATENODEGROUP $name ifNotExists?  nodegroupComment? $nodegroupprops?)
     ;
 
@@ -610,7 +610,7 @@ nodegroupPropertiesList
 modifyNodeGroupStatement
 @init { msgs.push("modify nodegroup statement"); }
 @after { msgs.pop(); }
-    : KW_USE Identifier
+    : KW_USE KW_NODEGROUP Identifier
     -> ^(TOK_MODIFYNODEGROUP Identifier)
     ;
 
@@ -3186,6 +3186,7 @@ KW_FILES:'FILES';
 KW_FILELOCATIONS:'FILELOCATIONS';
 KW_NODEGROUP:'NODEGROUP';
 KW_NODEGROUPS:'NODEGROUPS';
+KW_NGPROPERTIES:'NGPROPERTIES';
 KW_GEOLOC:'GEOLOC';
 KW_EQROOM:'EQROOM';
 KW_NODEASSIGNMENT:'NODEASSIGNMENT';
