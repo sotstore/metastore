@@ -582,6 +582,18 @@ public class Hive {
           tTbl.setPrivileges(principalPrivs);
         }
       }
+
+/*      // FIXME: add user info here
+      String userName;
+
+      if (ss != null) {
+        userName = ss.getUser();
+      } else {
+        userName = conf.get(HiveConf.ConfVars.HIVE_USER.varname, "root");
+      }
+      User user = new User(userName, "invalid_passwd", System.currentTimeMillis(), "root");
+      LOG.info("GOT USER: " + userName);
+      getMSC().createTableByUser(tTbl, user);*/
       getMSC().createTable(tTbl);
     } catch (AlreadyExistsException e) {
       if (!ifNotExists) {

@@ -69,6 +69,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void get_fields(std::vector<FieldSchema> & _return, const std::string& db_name, const std::string& table_name) = 0;
   virtual void get_schema(std::vector<FieldSchema> & _return, const std::string& db_name, const std::string& table_name) = 0;
   virtual void create_table(const Table& tbl) = 0;
+  virtual void create_table_by_user(const Table& tbl, const User& user) = 0;
   virtual void create_table_with_environment_context(const Table& tbl, const EnvironmentContext& environment_context) = 0;
   virtual void drop_table(const std::string& dbname, const std::string& name, const bool deleteData) = 0;
   virtual void get_tables(std::vector<std::string> & _return, const std::string& db_name, const std::string& pattern) = 0;
@@ -392,6 +393,9 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return;
   }
   void create_table(const Table& /* tbl */) {
+    return;
+  }
+  void create_table_by_user(const Table& /* tbl */, const User& /* user */) {
     return;
   }
   void create_table_with_environment_context(const Table& /* tbl */, const EnvironmentContext& /* environment_context */) {
@@ -7442,6 +7446,153 @@ class ThriftHiveMetastore_create_table_presult {
   NoSuchObjectException o4;
 
   _ThriftHiveMetastore_create_table_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_create_table_by_user_args__isset {
+  _ThriftHiveMetastore_create_table_by_user_args__isset() : tbl(false), user(false) {}
+  bool tbl;
+  bool user;
+} _ThriftHiveMetastore_create_table_by_user_args__isset;
+
+class ThriftHiveMetastore_create_table_by_user_args {
+ public:
+
+  ThriftHiveMetastore_create_table_by_user_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_create_table_by_user_args() throw() {}
+
+  Table tbl;
+  User user;
+
+  _ThriftHiveMetastore_create_table_by_user_args__isset __isset;
+
+  void __set_tbl(const Table& val) {
+    tbl = val;
+  }
+
+  void __set_user(const User& val) {
+    user = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_create_table_by_user_args & rhs) const
+  {
+    if (!(tbl == rhs.tbl))
+      return false;
+    if (!(user == rhs.user))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_create_table_by_user_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_create_table_by_user_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_create_table_by_user_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_create_table_by_user_pargs() throw() {}
+
+  const Table* tbl;
+  const User* user;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_create_table_by_user_result__isset {
+  _ThriftHiveMetastore_create_table_by_user_result__isset() : o1(false), o2(false), o3(false), o4(false) {}
+  bool o1;
+  bool o2;
+  bool o3;
+  bool o4;
+} _ThriftHiveMetastore_create_table_by_user_result__isset;
+
+class ThriftHiveMetastore_create_table_by_user_result {
+ public:
+
+  ThriftHiveMetastore_create_table_by_user_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_create_table_by_user_result() throw() {}
+
+  AlreadyExistsException o1;
+  InvalidObjectException o2;
+  MetaException o3;
+  NoSuchObjectException o4;
+
+  _ThriftHiveMetastore_create_table_by_user_result__isset __isset;
+
+  void __set_o1(const AlreadyExistsException& val) {
+    o1 = val;
+  }
+
+  void __set_o2(const InvalidObjectException& val) {
+    o2 = val;
+  }
+
+  void __set_o3(const MetaException& val) {
+    o3 = val;
+  }
+
+  void __set_o4(const NoSuchObjectException& val) {
+    o4 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_create_table_by_user_result & rhs) const
+  {
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    if (!(o3 == rhs.o3))
+      return false;
+    if (!(o4 == rhs.o4))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_create_table_by_user_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_create_table_by_user_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_create_table_by_user_presult__isset {
+  _ThriftHiveMetastore_create_table_by_user_presult__isset() : o1(false), o2(false), o3(false), o4(false) {}
+  bool o1;
+  bool o2;
+  bool o3;
+  bool o4;
+} _ThriftHiveMetastore_create_table_by_user_presult__isset;
+
+class ThriftHiveMetastore_create_table_by_user_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_create_table_by_user_presult() throw() {}
+
+  AlreadyExistsException o1;
+  InvalidObjectException o2;
+  MetaException o3;
+  NoSuchObjectException o4;
+
+  _ThriftHiveMetastore_create_table_by_user_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -22946,6 +23097,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void create_table(const Table& tbl);
   void send_create_table(const Table& tbl);
   void recv_create_table();
+  void create_table_by_user(const Table& tbl, const User& user);
+  void send_create_table_by_user(const Table& tbl, const User& user);
+  void recv_create_table_by_user();
   void create_table_with_environment_context(const Table& tbl, const EnvironmentContext& environment_context);
   void send_create_table_with_environment_context(const Table& tbl, const EnvironmentContext& environment_context);
   void recv_create_table_with_environment_context();
@@ -23345,6 +23499,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_get_fields(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_schema(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_create_table(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_create_table_by_user(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_create_table_with_environment_context(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_drop_table(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_tables(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -23514,6 +23669,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["get_fields"] = &ThriftHiveMetastoreProcessor::process_get_fields;
     processMap_["get_schema"] = &ThriftHiveMetastoreProcessor::process_get_schema;
     processMap_["create_table"] = &ThriftHiveMetastoreProcessor::process_create_table;
+    processMap_["create_table_by_user"] = &ThriftHiveMetastoreProcessor::process_create_table_by_user;
     processMap_["create_table_with_environment_context"] = &ThriftHiveMetastoreProcessor::process_create_table_with_environment_context;
     processMap_["drop_table"] = &ThriftHiveMetastoreProcessor::process_drop_table;
     processMap_["get_tables"] = &ThriftHiveMetastoreProcessor::process_get_tables;
@@ -24154,6 +24310,15 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->create_table(tbl);
     }
     ifaces_[i]->create_table(tbl);
+  }
+
+  void create_table_by_user(const Table& tbl, const User& user) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->create_table_by_user(tbl, user);
+    }
+    ifaces_[i]->create_table_by_user(tbl, user);
   }
 
   void create_table_with_environment_context(const Table& tbl, const EnvironmentContext& environment_context) {

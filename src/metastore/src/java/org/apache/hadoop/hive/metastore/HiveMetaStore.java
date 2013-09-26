@@ -1230,6 +1230,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
+    public void create_table_by_user(final Table tbl, final User user) throws AlreadyExistsException,
+        MetaException, InvalidObjectException {
+      MSSessionState mss = new MSSessionState();
+      msss.setUserName(user.getUserName());
+      create_table(tbl);
+    }
+
+    @Override
     public void create_table_with_environment_context(final Table table,
         final EnvironmentContext envContext)
         throws AlreadyExistsException, MetaException, InvalidObjectException {

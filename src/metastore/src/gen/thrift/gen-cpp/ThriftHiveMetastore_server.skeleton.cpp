@@ -287,6 +287,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("create_table\n");
   }
 
+  void create_table_by_user(const Table& tbl, const User& user) {
+    // Your implementation goes here
+    printf("create_table_by_user\n");
+  }
+
   void create_table_with_environment_context(const Table& tbl, const EnvironmentContext& environment_context) {
     // Your implementation goes here
     printf("create_table_with_environment_context\n");

@@ -62,6 +62,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
+import org.apache.hadoop.hive.metastore.api.MSOperation;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
@@ -86,6 +87,7 @@ import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.model.MetaStoreConst;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -627,6 +629,27 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
     boolean success = false;
     try {
       client.create_table(tbl);
+      if (hook != null) {
+        hook.commitCreateTable(tbl);
+      }
+      success = true;
+    } finally {
+      if (!success && (hook != null)) {
+        hook.rollbackCreateTable(tbl);
+      }
+    }
+  }
+
+  @Override
+  public void createTableByUser(Table tbl, User user) throws AlreadyExistsException,
+  InvalidObjectException, MetaException, NoSuchObjectException, TException {
+    HiveMetaHook hook = getHook(tbl);
+    if (hook != null) {
+      hook.preCreateTable(tbl);
+    }
+    boolean success = false;
+    try {
+      client.create_table_by_user(tbl, user);
       if (hook != null) {
         hook.commitCreateTable(tbl);
       }
@@ -2018,6 +2041,13 @@ public boolean authentication(String user_name, String passwd)
     return client.deleteNodeAssignment("nodeName", "dbName");
   }
 
-
+  @Override
+  public boolean user_authority_check(User user, Table tbl, List<MSOperation> ops)
+      throws MetaException, TException {
+    assert user != null;
+    assert tbl != null;
+    assert ops != null;
+    return client.user_authority_check(user, tbl, ops);
+  }
 
 }

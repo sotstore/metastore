@@ -880,6 +880,24 @@ module ThriftHiveMetastore
       return
     end
 
+    def create_table_by_user(tbl, user)
+      send_create_table_by_user(tbl, user)
+      recv_create_table_by_user()
+    end
+
+    def send_create_table_by_user(tbl, user)
+      send_message('create_table_by_user', Create_table_by_user_args, :tbl => tbl, :user => user)
+    end
+
+    def recv_create_table_by_user()
+      result = receive_message(Create_table_by_user_result)
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise result.o3 unless result.o3.nil?
+      raise result.o4 unless result.o4.nil?
+      return
+    end
+
     def create_table_with_environment_context(tbl, environment_context)
       send_create_table_with_environment_context(tbl, environment_context)
       recv_create_table_with_environment_context()
@@ -3379,6 +3397,23 @@ module ThriftHiveMetastore
         result.o4 = o4
       end
       write_result(result, oprot, 'create_table', seqid)
+    end
+
+    def process_create_table_by_user(seqid, iprot, oprot)
+      args = read_args(iprot, Create_table_by_user_args)
+      result = Create_table_by_user_result.new()
+      begin
+        @handler.create_table_by_user(args.tbl, args.user)
+      rescue ::AlreadyExistsException => o1
+        result.o1 = o1
+      rescue ::InvalidObjectException => o2
+        result.o2 = o2
+      rescue ::MetaException => o3
+        result.o3 = o3
+      rescue ::NoSuchObjectException => o4
+        result.o4 = o4
+      end
+      write_result(result, oprot, 'create_table_by_user', seqid)
     end
 
     def process_create_table_with_environment_context(seqid, iprot, oprot)
@@ -6680,6 +6715,46 @@ module ThriftHiveMetastore
   end
 
   class Create_table_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    O1 = 1
+    O2 = 2
+    O3 = 3
+    O4 = 4
+
+    FIELDS = {
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::AlreadyExistsException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::InvalidObjectException},
+      O3 => {:type => ::Thrift::Types::STRUCT, :name => 'o3', :class => ::MetaException},
+      O4 => {:type => ::Thrift::Types::STRUCT, :name => 'o4', :class => ::NoSuchObjectException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Create_table_by_user_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    TBL = 1
+    USER = 2
+
+    FIELDS = {
+      TBL => {:type => ::Thrift::Types::STRUCT, :name => 'tbl', :class => ::Table},
+      USER => {:type => ::Thrift::Types::STRUCT, :name => 'user', :class => ::User}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Create_table_by_user_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     O1 = 1
     O2 = 2

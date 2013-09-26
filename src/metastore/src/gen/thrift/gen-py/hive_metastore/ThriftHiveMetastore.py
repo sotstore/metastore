@@ -398,6 +398,14 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
+  def create_table_by_user(self, tbl, user):
+    """
+    Parameters:
+     - tbl
+     - user
+    """
+    pass
+
   def create_table_with_environment_context(self, tbl, environment_context):
     """
     Parameters:
@@ -3080,6 +3088,44 @@ class Client(fb303.FacebookService.Client, Iface):
       self._iprot.readMessageEnd()
       raise x
     result = create_table_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.o1 is not None:
+      raise result.o1
+    if result.o2 is not None:
+      raise result.o2
+    if result.o3 is not None:
+      raise result.o3
+    if result.o4 is not None:
+      raise result.o4
+    return
+
+  def create_table_by_user(self, tbl, user):
+    """
+    Parameters:
+     - tbl
+     - user
+    """
+    self.send_create_table_by_user(tbl, user)
+    self.recv_create_table_by_user()
+
+  def send_create_table_by_user(self, tbl, user):
+    self._oprot.writeMessageBegin('create_table_by_user', TMessageType.CALL, self._seqid)
+    args = create_table_by_user_args()
+    args.tbl = tbl
+    args.user = user
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_create_table_by_user(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = create_table_by_user_result()
     result.read(self._iprot)
     self._iprot.readMessageEnd()
     if result.o1 is not None:
@@ -7172,6 +7218,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["get_fields"] = Processor.process_get_fields
     self._processMap["get_schema"] = Processor.process_get_schema
     self._processMap["create_table"] = Processor.process_create_table
+    self._processMap["create_table_by_user"] = Processor.process_create_table_by_user
     self._processMap["create_table_with_environment_context"] = Processor.process_create_table_with_environment_context
     self._processMap["drop_table"] = Processor.process_drop_table
     self._processMap["get_tables"] = Processor.process_get_tables
@@ -8088,6 +8135,26 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     except NoSuchObjectException as o4:
       result.o4 = o4
     oprot.writeMessageBegin("create_table", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_create_table_by_user(self, seqid, iprot, oprot):
+    args = create_table_by_user_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = create_table_by_user_result()
+    try:
+      self._handler.create_table_by_user(args.tbl, args.user)
+    except AlreadyExistsException as o1:
+      result.o1 = o1
+    except InvalidObjectException as o2:
+      result.o2 = o2
+    except MetaException as o3:
+      result.o3 = o3
+    except NoSuchObjectException as o4:
+      result.o4 = o4
+    oprot.writeMessageBegin("create_table_by_user", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -17652,6 +17719,180 @@ class create_table_result:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
     oprot.writeStructBegin('create_table_result')
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
+      self.o2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o3 is not None:
+      oprot.writeFieldBegin('o3', TType.STRUCT, 3)
+      self.o3.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o4 is not None:
+      oprot.writeFieldBegin('o4', TType.STRUCT, 4)
+      self.o4.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class create_table_by_user_args:
+  """
+  Attributes:
+   - tbl
+   - user
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRUCT, 'tbl', (Table, Table.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'user', (User, User.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, tbl=None, user=None,):
+    self.tbl = tbl
+    self.user = user
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRUCT:
+          self.tbl = Table()
+          self.tbl.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.user = User()
+          self.user.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('create_table_by_user_args')
+    if self.tbl is not None:
+      oprot.writeFieldBegin('tbl', TType.STRUCT, 1)
+      self.tbl.write(oprot)
+      oprot.writeFieldEnd()
+    if self.user is not None:
+      oprot.writeFieldBegin('user', TType.STRUCT, 2)
+      self.user.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class create_table_by_user_result:
+  """
+  Attributes:
+   - o1
+   - o2
+   - o3
+   - o4
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRUCT, 'o1', (AlreadyExistsException, AlreadyExistsException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (InvalidObjectException, InvalidObjectException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'o3', (MetaException, MetaException.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'o4', (NoSuchObjectException, NoSuchObjectException.thrift_spec), None, ), # 4
+  )
+
+  def __init__(self, o1=None, o2=None, o3=None, o4=None,):
+    self.o1 = o1
+    self.o2 = o2
+    self.o3 = o3
+    self.o4 = o4
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = AlreadyExistsException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = InvalidObjectException()
+          self.o2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.o3 = MetaException()
+          self.o3.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.o4 = NoSuchObjectException()
+          self.o4.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('create_table_by_user_result')
     if self.o1 is not None:
       oprot.writeFieldBegin('o1', TType.STRUCT, 1)
       self.o1.write(oprot)

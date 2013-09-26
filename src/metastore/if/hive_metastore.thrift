@@ -636,6 +636,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   // sd.serdeInfo.serializationLib (SerDe class name eg org.apache.hadoop.hive.serde.simple_meta.MetadataTypedColumnsetSerDe
   // * See notes on DDL_TIME
   void create_table(1:Table tbl) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3, 4:NoSuchObjectException o4)
+  void create_table_by_user(1:Table tbl, 2:User user) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3, 4:NoSuchObjectException o4)
   void create_table_with_environment_context(1:Table tbl,
       2:EnvironmentContext environment_context)
       throws (1:AlreadyExistsException o1,

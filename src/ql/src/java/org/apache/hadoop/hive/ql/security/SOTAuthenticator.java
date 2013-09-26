@@ -4,10 +4,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler.MSSessionState;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 
-public class SOTAuthenticator implements HiveAuthenticationProvider {
+public class SOTAuthenticator implements HiveMetastoreAuthenticationProvider {
   private final MSSessionState msss = new MSSessionState();
 
   private Configuration conf;
@@ -37,6 +38,10 @@ public class SOTAuthenticator implements HiveAuthenticationProvider {
 
   @Override
   public void destroy() throws HiveException {
+  }
+
+  @Override
+  public void setMetaStoreHandler(HMSHandler handler) {
   }
 
 }

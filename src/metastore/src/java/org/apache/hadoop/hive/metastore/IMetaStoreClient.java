@@ -40,6 +40,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
+import org.apache.hadoop.hive.metastore.api.MSOperation;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
@@ -515,6 +516,9 @@ public interface IMetaStoreClient {
    */
 
   public void createTable(Table tbl) throws AlreadyExistsException,
+      InvalidObjectException, MetaException, NoSuchObjectException, TException;
+
+  public void createTableByUser(Table tbl, User user) throws AlreadyExistsException,
       InvalidObjectException, MetaException, NoSuchObjectException, TException;
 
   public void alter_table(String defaultDatabaseName, String tblName,
@@ -1155,6 +1159,8 @@ public interface IMetaStoreClient {
   public boolean offlineDevice(String devid) throws MetaException, TException;
 
   public Device changeDeviceLocation(Device dev, Node node) throws MetaException, TException;
+
+  public boolean user_authority_check(User user, Table tbl, List<MSOperation> ops) throws MetaException, TException;
 
 /*
  * cry
