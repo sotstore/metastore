@@ -46,6 +46,7 @@ import org.apache.hadoop.hive.ql.metadata.GeoLoc;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
+import org.apache.hadoop.hive.ql.metadata.NodeGroups;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.session.SessionState.LogHelper;
@@ -657,12 +658,23 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
     }
 
     @Override
-    public void showNodeGroups(DataOutputStream outStream, List<String> nodeGroups)
+    public void showNodeGroups(DataOutputStream outStream, List<NodeGroups> nodeGroups)
         throws HiveException {
           try {
-              for (String nodeGroup : nodeGroups) {
+              for (NodeGroups nodeGroup : nodeGroups) {
                   // create a row per database name
-                  outStream.writeBytes(nodeGroup);
+                  outStream.writeBytes(nodeGroup.getNode_group_name());
+                  outStream.write(terminator);
+                  outStream.writeBytes(nodeGroup.getComment());
+                  outStream.write(terminator);
+                  outStream.writeBytes(nodeGroup.getStatus());
+                  outStream.write(terminator);
+                  String nodes = "[";
+                  for(String node : nodeGroup.getNodes()){
+                    nodes += node;
+                  }
+                  String nodeInfo = nodes + "]";
+                  outStream.writeBytes(nodeInfo);
                   outStream.write(terminator);
                 }
           } catch (IOException e) {

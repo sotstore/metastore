@@ -608,8 +608,8 @@ createNodeGroupStatement
         name=Identifier
         nodegroupComment?
         (KW_WITH KW_DBPROPERTIES nodegroupprops=nodegroupProperties)?
-        (KW_ON KW_NODEPROPERTIES nodeprops=nodeProperties)?
-    -> ^(TOK_CREATENODEGROUP $name ifNotExists?  nodegroupComment? $nodegroupprops? $nodeprops?)
+        (KW_ON KW_NODES nodes=stringLiteralList)?
+    -> ^(TOK_CREATENODEGROUP $name ifNotExists?  nodegroupComment? $nodegroupprops? $nodes?)
     ;
 
 nodegroupProperties

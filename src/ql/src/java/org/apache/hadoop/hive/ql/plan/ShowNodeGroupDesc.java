@@ -32,7 +32,7 @@ public class ShowNodeGroupDesc extends DDLDesc implements Serializable {
   String resFile;
   String ng_name;
 
-  private static final String schema = "ng_name#string".toString();
+  private static final String schema = "ng_name#string";
 
   public String getSchema() {
     return schema;

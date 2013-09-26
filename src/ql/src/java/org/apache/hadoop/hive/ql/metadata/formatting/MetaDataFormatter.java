@@ -36,6 +36,7 @@ import org.apache.hadoop.hive.ql.metadata.GeoLoc;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
+import org.apache.hadoop.hive.ql.metadata.NodeGroups;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.session.SessionState.LogHelper;
@@ -171,7 +172,7 @@ public interface MetaDataFormatter {
     public void showNodeAssignment(DataOutputStream outStream, List<NodeAssignment> nodeAssignment)
        throws HiveException;
 
-    public void showNodeGroups(DataOutputStream outStream, List<String> nodeGroups) throws HiveException;
+    public void showNodeGroups(DataOutputStream outStream, List<NodeGroups> nodeGroups) throws HiveException;
 
 }
 

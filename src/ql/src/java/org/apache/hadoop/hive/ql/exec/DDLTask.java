@@ -134,9 +134,9 @@ import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
+import org.apache.hadoop.hive.ql.plan.CreateNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.CreateSchemaDesc;
 import org.apache.hadoop.hive.ql.plan.CreateSchemaLikeDesc;
-import org.apache.hadoop.hive.ql.plan.CreateNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableLikeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableLikeSchemaDesc;
@@ -696,6 +696,10 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       ModifyNodeGroupDesc modifyNodeGroupDesc = work.getModifyNodeGroupDesc();
       if (null != modifyNodeGroupDesc) {
         return modifyNodeGroup(db, modifyNodeGroupDesc);
+      }
+      ShowNodeGroupDesc showNodeGroupDesc = work.getShowNodeGroupDesc();
+      if (null != showNodeGroupDesc) {
+        return showNodeGroups(db, showNodeGroupDesc);
       }
 
     } catch (InvalidTableException e) {
@@ -5072,13 +5076,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   }
 
   private int showNodeGroups(Hive db, ShowNodeGroupDesc showNodeGroupDesc) throws HiveException {
-    // get the databases for the desired pattern - populate the output stream
-    List<String> nodeGroups = null;
+    List<NodeGroups> nodeGroups = null;
     if(showNodeGroupDesc.getNg_name() != null && !"".equals(showNodeGroupDesc.getNg_name())){
-      nodeGroups = db.getAllDatabases(showNodeGroupDesc.getNg_name());
-
+      nodeGroups = db.getAllNodeGroups(showNodeGroupDesc.getNg_name());
     } else{
-      nodeGroups = db.getAllDatabases();
+      nodeGroups = db.getAllNodeGroups();
     }
     LOG.info("results : " + nodeGroups.size());
 
@@ -5093,11 +5095,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       ((FSDataOutputStream) outStream).close();
       outStream = null;
     } catch (FileNotFoundException e) {
-      formatter.logWarn(outStream, "show databases: " + stringifyException(e),
+      formatter.logWarn(outStream, "show nodeGroups: " + stringifyException(e),
                         formatter.ERROR);
       return 1;
     } catch (IOException e) {
-      formatter.logWarn(outStream, "show databases: " + stringifyException(e),
+      formatter.logWarn(outStream, "show nodeGroups: " + stringifyException(e),
                         formatter.ERROR);
       return 1;
     } catch (Exception e) {
