@@ -2473,13 +2473,13 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'createSchema failed: unknown result')
     end
 
-    def modifySchema(schema)
-      send_modifySchema(schema)
+    def modifySchema(schemaName, schema)
+      send_modifySchema(schemaName, schema)
       return recv_modifySchema()
     end
 
-    def send_modifySchema(schema)
-      send_message('modifySchema', ModifySchema_args, :schema => schema)
+    def send_modifySchema(schemaName, schema)
+      send_message('modifySchema', ModifySchema_args, :schemaName => schemaName, :schema => schema)
     end
 
     def recv_modifySchema()
@@ -2534,6 +2534,7 @@ module ThriftHiveMetastore
       result = receive_message(GetSchemaByName_result)
       return result.success unless result.success.nil?
       raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getSchemaByName failed: unknown result')
     end
 
@@ -2618,13 +2619,13 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addNodeGroup failed: unknown result')
     end
 
-    def modifyNodeGroup(ng)
-      send_modifyNodeGroup(ng)
+    def modifyNodeGroup(schemaName, ng)
+      send_modifyNodeGroup(schemaName, ng)
       return recv_modifyNodeGroup()
     end
 
-    def send_modifyNodeGroup(ng)
-      send_message('modifyNodeGroup', ModifyNodeGroup_args, :ng => ng)
+    def send_modifyNodeGroup(schemaName, ng)
+      send_message('modifyNodeGroup', ModifyNodeGroup_args, :schemaName => schemaName, :ng => ng)
     end
 
     def recv_modifyNodeGroup()
@@ -2728,6 +2729,24 @@ module ThriftHiveMetastore
       return result.success unless result.success.nil?
       raise result.o1 unless result.o1.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listTableNodeDists failed: unknown result')
+    end
+
+    def assiginSchematoDB(dbName, schemaName, fileSplitKeys, part_keys, ngs)
+      send_assiginSchematoDB(dbName, schemaName, fileSplitKeys, part_keys, ngs)
+      return recv_assiginSchematoDB()
+    end
+
+    def send_assiginSchematoDB(dbName, schemaName, fileSplitKeys, part_keys, ngs)
+      send_message('assiginSchematoDB', AssiginSchematoDB_args, :dbName => dbName, :schemaName => schemaName, :fileSplitKeys => fileSplitKeys, :part_keys => part_keys, :ngs => ngs)
+    end
+
+    def recv_assiginSchematoDB()
+      result = receive_message(AssiginSchematoDB_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise result.o3 unless result.o3.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'assiginSchematoDB failed: unknown result')
     end
 
   end
@@ -4579,7 +4598,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, ModifySchema_args)
       result = ModifySchema_result.new()
       begin
-        result.success = @handler.modifySchema(args.schema)
+        result.success = @handler.modifySchema(args.schemaName, args.schema)
       rescue ::MetaException => o1
         result.o1 = o1
       end
@@ -4613,8 +4632,10 @@ module ThriftHiveMetastore
       result = GetSchemaByName_result.new()
       begin
         result.success = @handler.getSchemaByName(args.schemaName)
-      rescue ::MetaException => o1
+      rescue ::NoSuchObjectException => o1
         result.o1 = o1
+      rescue ::MetaException => o2
+        result.o2 = o2
       end
       write_result(result, oprot, 'getSchemaByName', seqid)
     end
@@ -4680,7 +4701,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, ModifyNodeGroup_args)
       result = ModifyNodeGroup_result.new()
       begin
-        result.success = @handler.modifyNodeGroup(args.ng)
+        result.success = @handler.modifyNodeGroup(args.schemaName, args.ng)
       rescue ::MetaException => o1
         result.o1 = o1
       end
@@ -4751,6 +4772,21 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'listTableNodeDists', seqid)
+    end
+
+    def process_assiginSchematoDB(seqid, iprot, oprot)
+      args = read_args(iprot, AssiginSchematoDB_args)
+      result = AssiginSchematoDB_result.new()
+      begin
+        result.success = @handler.assiginSchematoDB(args.dbName, args.schemaName, args.fileSplitKeys, args.part_keys, args.ngs)
+      rescue ::InvalidObjectException => o1
+        result.o1 = o1
+      rescue ::NoSuchObjectException => o2
+        result.o2 = o2
+      rescue ::MetaException => o3
+        result.o3 = o3
+      end
+      write_result(result, oprot, 'assiginSchematoDB', seqid)
     end
 
   end
@@ -10346,9 +10382,11 @@ module ThriftHiveMetastore
 
   class ModifySchema_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
-    SCHEMA = 1
+    SCHEMANAME = 1
+    SCHEMA = 2
 
     FIELDS = {
+      SCHEMANAME => {:type => ::Thrift::Types::STRING, :name => 'schemaName'},
       SCHEMA => {:type => ::Thrift::Types::STRUCT, :name => 'schema', :class => ::GlobalSchema}
     }
 
@@ -10465,10 +10503,12 @@ module ThriftHiveMetastore
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1
+    O2 = 2
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::GlobalSchema},
-      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::NoSuchObjectException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end
@@ -10667,9 +10707,11 @@ module ThriftHiveMetastore
 
   class ModifyNodeGroup_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
-    NG = 1
+    SCHEMANAME = 1
+    NG = 2
 
     FIELDS = {
+      SCHEMANAME => {:type => ::Thrift::Types::STRING, :name => 'schemaName'},
       NG => {:type => ::Thrift::Types::STRUCT, :name => 'ng', :class => ::NodeGroup}
     }
 
@@ -10902,6 +10944,52 @@ module ThriftHiveMetastore
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::NodeGroup}},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AssiginSchematoDB_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    SCHEMANAME = 2
+    FILESPLITKEYS = 3
+    PART_KEYS = 4
+    NGS = 5
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+      SCHEMANAME => {:type => ::Thrift::Types::STRING, :name => 'schemaName'},
+      FILESPLITKEYS => {:type => ::Thrift::Types::LIST, :name => 'fileSplitKeys', :element => {:type => ::Thrift::Types::STRUCT, :class => ::FieldSchema}},
+      PART_KEYS => {:type => ::Thrift::Types::LIST, :name => 'part_keys', :element => {:type => ::Thrift::Types::STRUCT, :class => ::FieldSchema}},
+      NGS => {:type => ::Thrift::Types::LIST, :name => 'ngs', :element => {:type => ::Thrift::Types::STRUCT, :class => ::NodeGroup}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AssiginSchematoDB_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+    O3 = 3
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::InvalidObjectException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::NoSuchObjectException},
+      O3 => {:type => ::Thrift::Types::STRUCT, :name => 'o3', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end

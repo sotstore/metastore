@@ -1185,9 +1185,10 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
-  def modifySchema(self, schema):
+  def modifySchema(self, schemaName, schema):
     """
     Parameters:
+     - schemaName
      - schema
     """
     pass
@@ -1251,9 +1252,10 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
-  def modifyNodeGroup(self, ng):
+  def modifyNodeGroup(self, schemaName, ng):
     """
     Parameters:
+     - schemaName
      - ng
     """
     pass
@@ -1298,6 +1300,17 @@ class Iface(fb303.FacebookService.Iface):
     Parameters:
      - dbName
      - tabName
+    """
+    pass
+
+  def assiginSchematoDB(self, dbName, schemaName, fileSplitKeys, part_keys, ngs):
+    """
+    Parameters:
+     - dbName
+     - schemaName
+     - fileSplitKeys
+     - part_keys
+     - ngs
     """
     pass
 
@@ -6524,17 +6537,19 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "createSchema failed: unknown result");
 
-  def modifySchema(self, schema):
+  def modifySchema(self, schemaName, schema):
     """
     Parameters:
+     - schemaName
      - schema
     """
-    self.send_modifySchema(schema)
+    self.send_modifySchema(schemaName, schema)
     return self.recv_modifySchema()
 
-  def send_modifySchema(self, schema):
+  def send_modifySchema(self, schemaName, schema):
     self._oprot.writeMessageBegin('modifySchema', TMessageType.CALL, self._seqid)
     args = modifySchema_args()
+    args.schemaName = schemaName
     args.schema = schema
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
@@ -6645,6 +6660,8 @@ class Client(fb303.FacebookService.Client, Iface):
       return result.success
     if result.o1 is not None:
       raise result.o1
+    if result.o2 is not None:
+      raise result.o2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getSchemaByName failed: unknown result");
 
   def getTableNodeGroups(self, dbName, tabName):
@@ -6823,17 +6840,19 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "addNodeGroup failed: unknown result");
 
-  def modifyNodeGroup(self, ng):
+  def modifyNodeGroup(self, schemaName, ng):
     """
     Parameters:
+     - schemaName
      - ng
     """
-    self.send_modifyNodeGroup(ng)
+    self.send_modifyNodeGroup(schemaName, ng)
     return self.recv_modifyNodeGroup()
 
-  def send_modifyNodeGroup(self, ng):
+  def send_modifyNodeGroup(self, schemaName, ng):
     self._oprot.writeMessageBegin('modifyNodeGroup', TMessageType.CALL, self._seqid)
     args = modifyNodeGroup_args()
+    args.schemaName = schemaName
     args.ng = ng
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
@@ -7052,6 +7071,50 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "listTableNodeDists failed: unknown result");
 
+  def assiginSchematoDB(self, dbName, schemaName, fileSplitKeys, part_keys, ngs):
+    """
+    Parameters:
+     - dbName
+     - schemaName
+     - fileSplitKeys
+     - part_keys
+     - ngs
+    """
+    self.send_assiginSchematoDB(dbName, schemaName, fileSplitKeys, part_keys, ngs)
+    return self.recv_assiginSchematoDB()
+
+  def send_assiginSchematoDB(self, dbName, schemaName, fileSplitKeys, part_keys, ngs):
+    self._oprot.writeMessageBegin('assiginSchematoDB', TMessageType.CALL, self._seqid)
+    args = assiginSchematoDB_args()
+    args.dbName = dbName
+    args.schemaName = schemaName
+    args.fileSplitKeys = fileSplitKeys
+    args.part_keys = part_keys
+    args.ngs = ngs
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_assiginSchematoDB(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = assiginSchematoDB_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    if result.o2 is not None:
+      raise result.o2
+    if result.o3 is not None:
+      raise result.o3
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "assiginSchematoDB failed: unknown result");
+
 
 class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
   def __init__(self, handler):
@@ -7220,6 +7283,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["addTableNodeDist"] = Processor.process_addTableNodeDist
     self._processMap["deleteTableNodeDist"] = Processor.process_deleteTableNodeDist
     self._processMap["listTableNodeDists"] = Processor.process_listTableNodeDists
+    self._processMap["assiginSchematoDB"] = Processor.process_assiginSchematoDB
 
   def process(self, iprot, oprot):
     (name, type, seqid) = iprot.readMessageBegin()
@@ -9532,7 +9596,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     iprot.readMessageEnd()
     result = modifySchema_result()
     try:
-      result.success = self._handler.modifySchema(args.schema)
+      result.success = self._handler.modifySchema(args.schemaName, args.schema)
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("modifySchema", TMessageType.REPLY, seqid)
@@ -9575,8 +9639,10 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     result = getSchemaByName_result()
     try:
       result.success = self._handler.getSchemaByName(args.schemaName)
-    except MetaException as o1:
+    except NoSuchObjectException as o1:
       result.o1 = o1
+    except MetaException as o2:
+      result.o2 = o2
     oprot.writeMessageBegin("getSchemaByName", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9660,7 +9726,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     iprot.readMessageEnd()
     result = modifyNodeGroup_result()
     try:
-      result.success = self._handler.modifyNodeGroup(args.ng)
+      result.success = self._handler.modifyNodeGroup(args.schemaName, args.ng)
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("modifyNodeGroup", TMessageType.REPLY, seqid)
@@ -9748,6 +9814,24 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("listTableNodeDists", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_assiginSchematoDB(self, seqid, iprot, oprot):
+    args = assiginSchematoDB_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = assiginSchematoDB_result()
+    try:
+      result.success = self._handler.assiginSchematoDB(args.dbName, args.schemaName, args.fileSplitKeys, args.part_keys, args.ngs)
+    except InvalidObjectException as o1:
+      result.o1 = o1
+    except NoSuchObjectException as o2:
+      result.o2 = o2
+    except MetaException as o3:
+      result.o3 = o3
+    oprot.writeMessageBegin("assiginSchematoDB", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -33248,15 +33332,18 @@ class createSchema_result:
 class modifySchema_args:
   """
   Attributes:
+   - schemaName
    - schema
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'schema', (GlobalSchema, GlobalSchema.thrift_spec), None, ), # 1
+    (1, TType.STRING, 'schemaName', None, None, ), # 1
+    (2, TType.STRUCT, 'schema', (GlobalSchema, GlobalSchema.thrift_spec), None, ), # 2
   )
 
-  def __init__(self, schema=None,):
+  def __init__(self, schemaName=None, schema=None,):
+    self.schemaName = schemaName
     self.schema = schema
 
   def read(self, iprot):
@@ -33269,6 +33356,11 @@ class modifySchema_args:
       if ftype == TType.STOP:
         break
       if fid == 1:
+        if ftype == TType.STRING:
+          self.schemaName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
         if ftype == TType.STRUCT:
           self.schema = GlobalSchema()
           self.schema.read(iprot)
@@ -33284,8 +33376,12 @@ class modifySchema_args:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
     oprot.writeStructBegin('modifySchema_args')
+    if self.schemaName is not None:
+      oprot.writeFieldBegin('schemaName', TType.STRING, 1)
+      oprot.writeString(self.schemaName)
+      oprot.writeFieldEnd()
     if self.schema is not None:
-      oprot.writeFieldBegin('schema', TType.STRUCT, 1)
+      oprot.writeFieldBegin('schema', TType.STRUCT, 2)
       self.schema.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -33698,16 +33794,19 @@ class getSchemaByName_result:
   Attributes:
    - success
    - o1
+   - o2
   """
 
   thrift_spec = (
     (0, TType.STRUCT, 'success', (GlobalSchema, GlobalSchema.thrift_spec), None, ), # 0
-    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'o1', (NoSuchObjectException, NoSuchObjectException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (MetaException, MetaException.thrift_spec), None, ), # 2
   )
 
-  def __init__(self, success=None, o1=None,):
+  def __init__(self, success=None, o1=None, o2=None,):
     self.success = success
     self.o1 = o1
+    self.o2 = o2
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -33726,8 +33825,14 @@ class getSchemaByName_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.o1 = MetaException()
+          self.o1 = NoSuchObjectException()
           self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = MetaException()
+          self.o2.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -33747,6 +33852,10 @@ class getSchemaByName_result:
     if self.o1 is not None:
       oprot.writeFieldBegin('o1', TType.STRUCT, 1)
       self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
+      self.o2.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -34571,15 +34680,18 @@ class addNodeGroup_result:
 class modifyNodeGroup_args:
   """
   Attributes:
+   - schemaName
    - ng
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ng', (NodeGroup, NodeGroup.thrift_spec), None, ), # 1
+    (1, TType.STRING, 'schemaName', None, None, ), # 1
+    (2, TType.STRUCT, 'ng', (NodeGroup, NodeGroup.thrift_spec), None, ), # 2
   )
 
-  def __init__(self, ng=None,):
+  def __init__(self, schemaName=None, ng=None,):
+    self.schemaName = schemaName
     self.ng = ng
 
   def read(self, iprot):
@@ -34592,6 +34704,11 @@ class modifyNodeGroup_args:
       if ftype == TType.STOP:
         break
       if fid == 1:
+        if ftype == TType.STRING:
+          self.schemaName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
         if ftype == TType.STRUCT:
           self.ng = NodeGroup()
           self.ng.read(iprot)
@@ -34607,8 +34724,12 @@ class modifyNodeGroup_args:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
     oprot.writeStructBegin('modifyNodeGroup_args')
+    if self.schemaName is not None:
+      oprot.writeFieldBegin('schemaName', TType.STRING, 1)
+      oprot.writeString(self.schemaName)
+      oprot.writeFieldEnd()
     if self.ng is not None:
-      oprot.writeFieldBegin('ng', TType.STRUCT, 1)
+      oprot.writeFieldBegin('ng', TType.STRUCT, 2)
       self.ng.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -35560,6 +35681,239 @@ class listTableNodeDists_result:
     if self.o1 is not None:
       oprot.writeFieldBegin('o1', TType.STRUCT, 1)
       self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class assiginSchematoDB_args:
+  """
+  Attributes:
+   - dbName
+   - schemaName
+   - fileSplitKeys
+   - part_keys
+   - ngs
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'dbName', None, None, ), # 1
+    (2, TType.STRING, 'schemaName', None, None, ), # 2
+    (3, TType.LIST, 'fileSplitKeys', (TType.STRUCT,(FieldSchema, FieldSchema.thrift_spec)), None, ), # 3
+    (4, TType.LIST, 'part_keys', (TType.STRUCT,(FieldSchema, FieldSchema.thrift_spec)), None, ), # 4
+    (5, TType.LIST, 'ngs', (TType.STRUCT,(NodeGroup, NodeGroup.thrift_spec)), None, ), # 5
+  )
+
+  def __init__(self, dbName=None, schemaName=None, fileSplitKeys=None, part_keys=None, ngs=None,):
+    self.dbName = dbName
+    self.schemaName = schemaName
+    self.fileSplitKeys = fileSplitKeys
+    self.part_keys = part_keys
+    self.ngs = ngs
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.dbName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.schemaName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.LIST:
+          self.fileSplitKeys = []
+          (_etype972, _size969) = iprot.readListBegin()
+          for _i973 in xrange(_size969):
+            _elem974 = FieldSchema()
+            _elem974.read(iprot)
+            self.fileSplitKeys.append(_elem974)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.LIST:
+          self.part_keys = []
+          (_etype978, _size975) = iprot.readListBegin()
+          for _i979 in xrange(_size975):
+            _elem980 = FieldSchema()
+            _elem980.read(iprot)
+            self.part_keys.append(_elem980)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.LIST:
+          self.ngs = []
+          (_etype984, _size981) = iprot.readListBegin()
+          for _i985 in xrange(_size981):
+            _elem986 = NodeGroup()
+            _elem986.read(iprot)
+            self.ngs.append(_elem986)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('assiginSchematoDB_args')
+    if self.dbName is not None:
+      oprot.writeFieldBegin('dbName', TType.STRING, 1)
+      oprot.writeString(self.dbName)
+      oprot.writeFieldEnd()
+    if self.schemaName is not None:
+      oprot.writeFieldBegin('schemaName', TType.STRING, 2)
+      oprot.writeString(self.schemaName)
+      oprot.writeFieldEnd()
+    if self.fileSplitKeys is not None:
+      oprot.writeFieldBegin('fileSplitKeys', TType.LIST, 3)
+      oprot.writeListBegin(TType.STRUCT, len(self.fileSplitKeys))
+      for iter987 in self.fileSplitKeys:
+        iter987.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.part_keys is not None:
+      oprot.writeFieldBegin('part_keys', TType.LIST, 4)
+      oprot.writeListBegin(TType.STRUCT, len(self.part_keys))
+      for iter988 in self.part_keys:
+        iter988.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.ngs is not None:
+      oprot.writeFieldBegin('ngs', TType.LIST, 5)
+      oprot.writeListBegin(TType.STRUCT, len(self.ngs))
+      for iter989 in self.ngs:
+        iter989.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class assiginSchematoDB_result:
+  """
+  Attributes:
+   - success
+   - o1
+   - o2
+   - o3
+  """
+
+  thrift_spec = (
+    (0, TType.BOOL, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'o1', (InvalidObjectException, InvalidObjectException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (NoSuchObjectException, NoSuchObjectException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'o3', (MetaException, MetaException.thrift_spec), None, ), # 3
+  )
+
+  def __init__(self, success=None, o1=None, o2=None, o3=None,):
+    self.success = success
+    self.o1 = o1
+    self.o2 = o2
+    self.o3 = o3
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.BOOL:
+          self.success = iprot.readBool();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = InvalidObjectException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = NoSuchObjectException()
+          self.o2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.o3 = MetaException()
+          self.o3.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('assiginSchematoDB_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.BOOL, 0)
+      oprot.writeBool(self.success)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
+      self.o2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o3 is not None:
+      oprot.writeFieldBegin('o3', TType.STRUCT, 3)
+      self.o3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
