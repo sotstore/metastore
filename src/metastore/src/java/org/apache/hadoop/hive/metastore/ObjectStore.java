@@ -8263,24 +8263,15 @@ public MUser getMUser(String userName) {
       return false;
     }
   }
-
   @Override
   public boolean modifyGeoLocation(GeoLocation gl) throws MetaException {
 
     boolean success = false;
     boolean committed = false;
-    if (gl != null) {
-      gl.setGeoLocName(gl.getGeoLocName());
-      gl.setNation(gl.getNation());
-      gl.setProvince(gl.getProvince());
-      gl.setCity(gl.getCity());
-      gl.setDist(gl.getDist());
-    } else {
-      return success;
-    }
     try {
       openTransaction();
-      pm.makePersistent(gl);
+      MGeoLocation mgl = convertToMGeoLocation(gl);
+      pm.makePersistent(mgl);
       committed = commitTransaction();
     } finally {
       if (!committed) {
@@ -8296,12 +8287,13 @@ public MUser getMUser(String userName) {
     boolean success = false;
     try {
       openTransaction();
-      MGeoLocation mgl = new MGeoLocation();
-      mgl.setGeoLocName(gl.getGeoLocName());
-      mgl.setNation(gl.getNation());
-      mgl.setProvince(gl.getProvince());
-      mgl.setCity(gl.getCity());
-      mgl.setDist(gl.getDist());
+      MGeoLocation mgl = convertToMGeoLocation(gl);
+//      MGeoLocation mgl = new MGeoLocation();
+//      mgl.setGeoLocName(gl.getGeoLocName());
+//      mgl.setNation(gl.getNation());
+//      mgl.setProvince(gl.getProvince());
+//      mgl.setCity(gl.getCity());
+//      mgl.setDist(gl.getDist());
       if (mgl != null) {
         pm.deletePersistent(mgl);
       }
@@ -8485,8 +8477,9 @@ public MUser getMUser(String userName) {
       query.declareParameters("java.lang.String geoLocName");
 //      gl =  (GeoLocation) query.execute(geoLocName);
       query.setUnique(true);//设置返回的结果是唯一的
-      MGeoLocation result=(MGeoLocation)query.execute(geoLocName);
-      gl = convertToGeoLocation(result);
+      MGeoLocation mgl=(MGeoLocation)query.execute(geoLocName);
+      LOG.info("++++++++++++++++++++++++MGeoLocation" + mgl.getGeoLocName());
+      gl = convertToGeoLocation(mgl);
       committed = commitTransaction();
     } finally {
       if (!committed) {
