@@ -353,6 +353,7 @@ TOK_MODIFYEQROOM;
 TOK_DROPEQROOM;
 TOK_CREATENODEASSIGNMENT;
 TOK_DROPNODEASSIGNMENT;
+TOK_SHOWNODEASSIGNMENT;
 }
 
 
@@ -468,7 +469,7 @@ ddlStatement
     | showEqRoom
     | createNodeAssignmentStatement
     | dropNodeAssignmentStatement
-    
+    | showNodeAssignment
     | createRoleStatement
     | dropRoleStatement
     
@@ -478,7 +479,12 @@ ddlStatement
     
     ;
 //
-
+showNodeAssignment
+@init { msgs.push("show NodeAssignment"); }
+@after { msgs.pop(); }
+    :  KW_SHOW KW_NODEASSIGNMENT
+     -> ^(TOK_SHOWNODEASSIGNMENT)
+    ;
         
 dropNodeAssignmentStatement
 @init { msgs.push("drop NodeAssignmentStatement"); }

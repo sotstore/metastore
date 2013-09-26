@@ -45,6 +45,7 @@ import org.apache.hadoop.hive.ql.metadata.EqRoom;
 import org.apache.hadoop.hive.ql.metadata.GeoLoc;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.session.SessionState.LogHelper;
@@ -642,10 +643,19 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
     }
 
     @Override
-    public void showNodeAssignment(DataOutputStream outStream, String result) throws HiveException {
-      // TODO Auto-generated method stub
-
+    public void showNodeAssignment(DataOutputStream outStream, List<NodeAssignment> nodeAssignment) throws HiveException {
+      try {
+        for (NodeAssignment nat : nodeAssignment) {
+          outStream.writeBytes(""+nat.getNodeName());
+          outStream.write(separator);
+          outStream.writeBytes(nat.getDbName());
+          outStream.write(separator);
+        }
+      } catch (IOException e) {
+        throw new HiveException(e);
+      }
     }
+
 
 
 }

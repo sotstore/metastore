@@ -2849,4 +2849,18 @@ public class Hive {
     }
   }
 
+  public List<NodeAssignment> showNodeAssignment() throws HiveException {
+    List<NodeAssignment> nats = new ArrayList<NodeAssignment>();
+    /*try{
+      List<NodeAssignment> nodeAssignments = getMSC().listEquipRoom();
+      for(EquipRoom eqr : equipRooms){
+        EqRoom er = new EqRoom(eqr.getEqRoomName(),eqr.getComment());
+        ers.add(er);
+      }
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }*/
+    return nats;
+  }
+
 };
