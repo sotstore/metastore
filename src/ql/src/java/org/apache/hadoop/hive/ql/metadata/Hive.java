@@ -63,6 +63,7 @@ import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
+import org.apache.hadoop.hive.metastore.api.GlobalSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
@@ -71,6 +72,7 @@ import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.NodeGroup;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
@@ -1030,6 +1032,62 @@ public class Hive {
 
     table.checkValidity();
     return table;
+  }
+
+  public org.apache.hadoop.hive.ql.metadata.GlobalSchema getSchema(final String schemaName,
+      boolean throwException) throws HiveException {
+
+    if (schemaName == null || schemaName.equals("")) {
+      throw new HiveException("empty table creation??");
+    }
+
+    // Get the table from metastore
+    org.apache.hadoop.hive.metastore.api.GlobalSchema schema = null;
+    try {
+
+      schema = getMSC().getSchemaByName(schemaName);
+    } catch (NoSuchObjectException e) {
+      if (throwException) {
+        LOG.error(StringUtils.stringifyException(e));
+        throw new InvalidTableException("schema" + schemaName + " not found ", schemaName);
+      }
+      return null;
+    } catch (Exception e) {
+      throw new HiveException("Unable to fetch schema " + schemaName, e);
+    }
+
+    // For non-views, we need to do some extra fixes
+    if (!TableType.VIRTUAL_VIEW.toString().equals(schema.getSchemaType())) {
+      // Fix the non-printable chars
+      Map<String, String> parameters = schema.getSd().getParameters();
+      String sf = parameters.get(SERIALIZATION_FORMAT);
+      if (sf != null) {
+        char[] b = sf.toCharArray();
+        if ((b.length == 1) && (b[0] < 10)) { // ^A, ^B, ^C, ^D, \t
+          parameters.put(SERIALIZATION_FORMAT, Integer.toString(b[0]));
+        }
+      }
+
+      // Use LazySimpleSerDe for MetadataTypedColumnsetSerDe.
+      // NOTE: LazySimpleSerDe does not support tables with a single column of
+      // col
+      // of type "array<string>". This happens when the table is created using
+      // an
+      // earlier version of Hive.
+      if (org.apache.hadoop.hive.serde2.MetadataTypedColumnsetSerDe.class
+          .getName().equals(
+            schema.getSd().getSerdeInfo().getSerializationLib())
+          && schema.getSd().getColsSize() > 0
+          && schema.getSd().getCols().get(0).getType().indexOf('<') == -1) {
+        schema.getSd().getSerdeInfo().setSerializationLib(
+            org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe.class.getName());
+      }
+    }
+
+    org.apache.hadoop.hive.ql.metadata.GlobalSchema schema2 = new org.apache.hadoop.hive.ql.metadata.GlobalSchema(schema);
+
+    schema2.checkValidity();
+    return schema2;
   }
 
   /**
@@ -2585,6 +2643,17 @@ public class Hive {
     }
   }
 
+  public org.apache.hadoop.hive.ql.metadata.GlobalSchema newSchema(String SchemaName) throws HiveException {
+    String[] names = getQualifiedNames(SchemaName);
+    switch (names.length) {
+
+    case 1:
+      return new org.apache.hadoop.hive.ql.metadata.GlobalSchema(names[0]);
+    default:
+      throw new HiveException("Invalid table name: " + SchemaName);
+    }
+  }
+
   private static String[] getQualifiedNames(String qualifiedName) {
     return qualifiedName.split("\\.");
   }
@@ -2701,10 +2770,6 @@ public class Hive {
     return fls;
   }
 
-  public String showHelp() {
-    return "Aha , you get it showHelp().";
-
-  }
 
   public void addGeoLoc(GeoLoc gd) throws HiveException {
       GeoLocation geoLocation = new GeoLocation();
@@ -2795,7 +2860,7 @@ public class Hive {
     }
   }
 
-  public void modifyEqRoom(EqRoom gd) throws HiveException,SemanticException {
+  public void modifyEqRoom(EqRoom gd) throws HiveException {
       try {
         EquipRoom equipRoom = new EquipRoom();
         equipRoom.setEqRoomName(gd.getEqRoomName());
@@ -2835,6 +2900,8 @@ public class Hive {
             eqStatus = "OFFLINE";
           }else if(eqr.getStatus() == 2){
             eqStatus = "SUSPECT";
+          }else{
+            throw new SemanticException("Not valid Status for equipment room.");
           }
           EqRoom er = new EqRoom(eqr.getEqRoomName(),eqStatus,eqr.getComment(),geoLoc);
           ers.add(er);
@@ -2861,6 +2928,73 @@ public class Hive {
     }
   }
 
+
+  public boolean createSchema(GlobalSchema schema) throws HiveException {
+    try {
+    return getMSC().createSchema(schema);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+
+  public boolean modifySchema(String schemaName, GlobalSchema schema) throws HiveException {
+    try {
+    return getMSC().modifySchema(schemaName, schema);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+
+  public boolean deleteSchema(String schemaName) throws HiveException {
+    try {
+    return getMSC().deleteSchema(schemaName);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+
+  public List<GlobalSchema> listSchemas() throws HiveException {
+    try {
+    return getMSC().listSchemas();
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+
+  public GlobalSchema getSchemaByName(String schemaName) throws HiveException {
+    try {
+    return getMSC().getSchemaByName(schemaName);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public List<NodeGroup> getTableNodeGroups(String dbName, String tabName) throws HiveException {
+    try {
+    return getMSC().getTableNodeGroups(dbName, tabName);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+
+  public List<SFile> listTableFiles(String dbName, String tabName, short max_num) throws HiveException {
+    try {
+    return getMSC().listTableFiles(dbName, tabName, max_num);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
   public List<NodeAssignment> showNodeAssignment() throws HiveException {
     List<NodeAssignment> nats = new ArrayList<NodeAssignment>();
     /*try{
@@ -2873,6 +3007,161 @@ public class Hive {
       throw new HiveException(e);
     }*/
     return nats;
+  }
+
+  public void createNodeGroup(NodeGroups ngs) throws HiveException {
+    try{
+      String ngStatus = ngs.getStatus();
+      int status = -1;
+      if(ngStatus.equals("ONLINE")){
+        status = 0;
+      }else if (ngStatus.equals("OFFLINE")){
+        status = 1;
+      }else if (ngStatus.equals("SUSPECT")){
+        status = 2;
+      }else{
+        throw new SemanticException("Not valid Status for adding equipment room.");
+      }
+      //HashSet<Node> nds = new HashSet<Node>();
+      //NodeGroup ng = new NodeGroup(ngs.getNode_group_name(), ngs.getComment(), status, ngs.getNodes());
+      //getMSC().addNodeGroup(ng);
+      } catch (Exception e) {
+        throw new HiveException(e);
+      }
+
+
+  }
+
+  public void dropNodeGroup(NodeGroups ngs) throws HiveException {
+    try {
+      //NodeGroup ng = getMSC().getNodeGroupByName(ngs.getNode_group_name());
+      //getMSC().deleteNodeGroup(ng);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+  public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values) throws HiveException {
+    try {
+    return getMSC().filterTableFiles(dbName, tabName, values);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+  public boolean addNodeGroup(NodeGroup ng)  throws HiveException {
+    try {
+    return getMSC().addNodeGroup(ng);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+  public boolean modifyNodeGroup(String schemaName, NodeGroup ng)  throws HiveException {
+    try {
+    return getMSC().modifyNodeGroup(schemaName, ng);
+     } catch (Exception e) {
+      throw new HiveException(e);
+    }
+   }
+
+  public void modifyNodeGroup(NodeGroups ngs) throws HiveException {
+    try {
+      //NodeGroup ng = getMSC().getNodeGroupByName(ngs.getNode_group_name());
+      //ng.setNode_group_name(ngs.getNode_group_name())
+      //getMSC().modfyNodeGroup(ng);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+
+  }
+  public List<String> getAllNodeGroups(String ng_name)throws HiveException {
+    try{
+     //return getRemoteDbMSC(ng_name).getAllNodeGroups();
+      List<String> a = new ArrayList<String>();
+      return a;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+  public boolean deleteNodeGroup(NodeGroup ng)  throws HiveException {
+    try {
+    return getMSC().deleteNodeGroup(ng);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+  public List<NodeGroup> listNodeGroups()  throws HiveException {
+    try {
+    return getMSC().listNodeGroups();
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public List<NodeGroup> listNodeGroups(List<String> ngNames)  throws HiveException {
+    try {
+    return getMSC().listNodeGroups(ngNames);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+  public List<NodeGroup> listDBNodeGroups(String dbName)   throws HiveException {
+    try {
+    return getMSC().listDBNodeGroups(dbName);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+  public boolean addTableNodeDist(String db, String tab, List<String> ng)   throws HiveException {
+    try {
+    return getMSC().addTableNodeDist(db, tab, ng);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+  public boolean deleteTableNodeDist(String db, String tab, List<String> ng)  throws HiveException {
+    try {
+    return getMSC().deleteTableNodeDist(db, tab, ng);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+  public List<NodeGroup> listTableNodeDists(String dbName, String tabName)  throws HiveException {
+    try {
+    return getMSC().listTableNodeDists(dbName, tabName);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+
+  public boolean assiginSchematoDB(String dbName, String schemaName,
+      List<FieldSchema> fileSplitKeys, List<FieldSchema> part_keys, List<NodeGroup> ngs) throws HiveException {
+    try {
+    return getMSC().assiginSchematoDB(dbName, schemaName, fileSplitKeys, part_keys, ngs);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+   }
+
+  public List<String> getAllNodeGroups() throws HiveException {
+    return getAllTables(getCurrentDatabase());
   }
 
 };

@@ -1133,6 +1133,12 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     return false;
   }
 
+  @Override
+  public List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 }
 
 

@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.Tree;
@@ -411,6 +412,14 @@ public abstract class BaseSemanticAnalyzer {
           .getText());
       mapProp.put(key, value);
     }
+  }
+  public static void readNodes(
+      ASTNode node, Set<String> setNode) {
+      for (int nodeChild = 0; nodeChild < node.getChildCount(); nodeChild++) {
+        String value = unescapeSQLString(node.getChild(nodeChild).getChild(0)
+            .getText());
+        setNode.add(value);
+      }
   }
 
   @SuppressWarnings("nls")

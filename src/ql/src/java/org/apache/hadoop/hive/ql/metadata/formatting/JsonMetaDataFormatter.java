@@ -549,4 +549,11 @@ public class JsonMetaDataFormatter implements MetaDataFormatter {
       // TODO Auto-generated method stub
 
     }
+
+    @Override
+    public void showNodeGroups(DataOutputStream outStream, List<String> nodeGroups)
+        throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
 }

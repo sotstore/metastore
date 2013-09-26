@@ -656,6 +656,18 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
       }
     }
 
-
+    @Override
+    public void showNodeGroups(DataOutputStream outStream, List<String> nodeGroups)
+        throws HiveException {
+          try {
+              for (String nodeGroup : nodeGroups) {
+                  // create a row per database name
+                  outStream.writeBytes(nodeGroup);
+                  outStream.write(terminator);
+                }
+          } catch (IOException e) {
+              throw new HiveException(e);
+          }
+      }
 
 }

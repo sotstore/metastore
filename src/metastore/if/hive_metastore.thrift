@@ -971,6 +971,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   bool deleteNodeGroup (1:NodeGroup ng) throws (1:MetaException o1)
   list<NodeGroup> listNodeGroups() throws (1:MetaException o1)
   list<NodeGroup> listDBNodeGroups(1:string dbName) throws (1:MetaException o1)
+  list<NodeGroup> listNodeGroupByNames(1:list<string> ngNames) throws (1:MetaException o1 )
   
   bool addTableNodeDist(1:string db,2:string tab,3:list<string> ng)  throws (1:MetaException o1)
   bool deleteTableNodeDist(1:string db,2:string tab,3:list<string> ng) throws (1:MetaException o1)

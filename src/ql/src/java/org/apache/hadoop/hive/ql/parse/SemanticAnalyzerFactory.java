@@ -243,6 +243,23 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_MODIFYNODEGROUP:
       case HiveParser.TOK_DROPNODEGROUP:
       case HiveParser.TOK_SHOWNODEGROUPS:
+//      case HiveParser.TOK_CREATESCHEMA:
+      case HiveParser.TOK_DROPSCHEMA:
+      case HiveParser.TOK_ALTERSCHEMA_RENAME:
+      case HiveParser.TOK_ALTERSCHEMA_ADDCOLS:
+      case HiveParser.TOK_ALTERSCHEMA_REPLACECOLS:
+      case HiveParser.TOK_ALTERSCHEMA_RENAMECOL:
+      case HiveParser.TOK_ALTERSCHEMA_CHANGECOL_AFTER_POSITION:
+      case HiveParser.TOK_ALTERSCHEMA_PROPERTIES:
+      case HiveParser.TOK_IFNOTEXISTS:
+      case HiveParser.TOK_NODEGROUPCOMMENT:
+      case HiveParser.TOK_DATABASEPROPERTIES:
+      case HiveParser.TOK_CASCADE:
+      case HiveParser.TOK_IFEXISTS:
+      case HiveParser.TOK_NODEGROUPPROPERTIES:
+      case HiveParser.TOK_NODEPROPLIST:
+      case HiveParser.TOK_NODERPROPERTIES:
+      case HiveParser.TOK_STRINGLITERALLIST:
 
 
 

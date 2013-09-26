@@ -82,6 +82,7 @@ public class CreateTableDesc extends DDLDesc implements Serializable {
   List<String> skewedColNames;
   List<List<String>> skewedColValues;
   boolean isStoredAsSubDirectories = false;
+  List<String> nodeGroupNames;
 
   public CreateTableDesc() {
   }
@@ -552,6 +553,14 @@ public class CreateTableDesc extends DDLDesc implements Serializable {
 
   public void setPartitions(List<Partition> partitions) {
     this.partitions = partitions;
+  }
+
+  public List<String> getNodeGroupNames() {
+    return nodeGroupNames;
+  }
+
+  public void setNodeGroupNames(List<String> nodeGroupNames) {
+    this.nodeGroupNames = nodeGroupNames;
   }
 
 

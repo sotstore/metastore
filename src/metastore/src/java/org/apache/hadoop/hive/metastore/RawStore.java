@@ -634,7 +634,9 @@ public interface RawStore extends Configurable {
   public abstract List<SFile> filterTableFiles(String dbName, String tableName, List<String> values)
       throws MetaException;
 
-  public boolean assiginSchematoDB(String dbName, String schemaName, List<FieldSchema> fileSplitKeys, List<FieldSchema> part_keys,
+  public abstract boolean assiginSchematoDB(String dbName, String schemaName, List<FieldSchema> fileSplitKeys, List<FieldSchema> part_keys,
       List<NodeGroup> ngs) throws InvalidObjectException,NoSuchObjectException, MetaException;
+
+  public abstract List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws  MetaException;
 
 }

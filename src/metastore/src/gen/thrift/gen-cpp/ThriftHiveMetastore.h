@@ -178,6 +178,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual bool deleteNodeGroup(const NodeGroup& ng) = 0;
   virtual void listNodeGroups(std::vector<NodeGroup> & _return) = 0;
   virtual void listDBNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName) = 0;
+  virtual void listNodeGroupByNames(std::vector<NodeGroup> & _return, const std::vector<std::string> & ngNames) = 0;
   virtual bool addTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng) = 0;
   virtual bool deleteTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng) = 0;
   virtual void listTableNodeDists(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName) = 0;
@@ -757,6 +758,9 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return;
   }
   void listDBNodeGroups(std::vector<NodeGroup> & /* _return */, const std::string& /* dbName */) {
+    return;
+  }
+  void listNodeGroupByNames(std::vector<NodeGroup> & /* _return */, const std::vector<std::string> & /* ngNames */) {
     return;
   }
   bool addTableNodeDist(const std::string& /* db */, const std::string& /* tab */, const std::vector<std::string> & /* ng */) {
@@ -22353,6 +22357,124 @@ class ThriftHiveMetastore_listDBNodeGroups_presult {
 
 };
 
+typedef struct _ThriftHiveMetastore_listNodeGroupByNames_args__isset {
+  _ThriftHiveMetastore_listNodeGroupByNames_args__isset() : ngNames(false) {}
+  bool ngNames;
+} _ThriftHiveMetastore_listNodeGroupByNames_args__isset;
+
+class ThriftHiveMetastore_listNodeGroupByNames_args {
+ public:
+
+  ThriftHiveMetastore_listNodeGroupByNames_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_listNodeGroupByNames_args() throw() {}
+
+  std::vector<std::string>  ngNames;
+
+  _ThriftHiveMetastore_listNodeGroupByNames_args__isset __isset;
+
+  void __set_ngNames(const std::vector<std::string> & val) {
+    ngNames = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listNodeGroupByNames_args & rhs) const
+  {
+    if (!(ngNames == rhs.ngNames))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listNodeGroupByNames_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listNodeGroupByNames_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_listNodeGroupByNames_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listNodeGroupByNames_pargs() throw() {}
+
+  const std::vector<std::string> * ngNames;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listNodeGroupByNames_result__isset {
+  _ThriftHiveMetastore_listNodeGroupByNames_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listNodeGroupByNames_result__isset;
+
+class ThriftHiveMetastore_listNodeGroupByNames_result {
+ public:
+
+  ThriftHiveMetastore_listNodeGroupByNames_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_listNodeGroupByNames_result() throw() {}
+
+  std::vector<NodeGroup>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listNodeGroupByNames_result__isset __isset;
+
+  void __set_success(const std::vector<NodeGroup> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listNodeGroupByNames_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listNodeGroupByNames_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listNodeGroupByNames_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listNodeGroupByNames_presult__isset {
+  _ThriftHiveMetastore_listNodeGroupByNames_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listNodeGroupByNames_presult__isset;
+
+class ThriftHiveMetastore_listNodeGroupByNames_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listNodeGroupByNames_presult() throw() {}
+
+  std::vector<NodeGroup> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listNodeGroupByNames_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 typedef struct _ThriftHiveMetastore_addTableNodeDist_args__isset {
   _ThriftHiveMetastore_addTableNodeDist_args__isset() : db(false), tab(false), ng(false) {}
   bool db;
@@ -23424,6 +23546,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void listDBNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName);
   void send_listDBNodeGroups(const std::string& dbName);
   void recv_listDBNodeGroups(std::vector<NodeGroup> & _return);
+  void listNodeGroupByNames(std::vector<NodeGroup> & _return, const std::vector<std::string> & ngNames);
+  void send_listNodeGroupByNames(const std::vector<std::string> & ngNames);
+  void recv_listNodeGroupByNames(std::vector<NodeGroup> & _return);
   bool addTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng);
   void send_addTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng);
   bool recv_addTableNodeDist();
@@ -23608,6 +23733,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_deleteNodeGroup(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_listNodeGroups(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_listDBNodeGroups(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_listNodeGroupByNames(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_addTableNodeDist(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_deleteTableNodeDist(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_listTableNodeDists(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -23778,6 +23904,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["deleteNodeGroup"] = &ThriftHiveMetastoreProcessor::process_deleteNodeGroup;
     processMap_["listNodeGroups"] = &ThriftHiveMetastoreProcessor::process_listNodeGroups;
     processMap_["listDBNodeGroups"] = &ThriftHiveMetastoreProcessor::process_listDBNodeGroups;
+    processMap_["listNodeGroupByNames"] = &ThriftHiveMetastoreProcessor::process_listNodeGroupByNames;
     processMap_["addTableNodeDist"] = &ThriftHiveMetastoreProcessor::process_addTableNodeDist;
     processMap_["deleteTableNodeDist"] = &ThriftHiveMetastoreProcessor::process_deleteTableNodeDist;
     processMap_["listTableNodeDists"] = &ThriftHiveMetastoreProcessor::process_listTableNodeDists;
@@ -25350,6 +25477,16 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->listDBNodeGroups(_return, dbName);
     }
     ifaces_[i]->listDBNodeGroups(_return, dbName);
+    return;
+  }
+
+  void listNodeGroupByNames(std::vector<NodeGroup> & _return, const std::vector<std::string> & ngNames) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->listNodeGroupByNames(_return, ngNames);
+    }
+    ifaces_[i]->listNodeGroupByNames(_return, ngNames);
     return;
   }
 

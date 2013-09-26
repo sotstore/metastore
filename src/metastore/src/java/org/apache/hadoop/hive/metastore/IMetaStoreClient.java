@@ -33,6 +33,7 @@ import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
+import org.apache.hadoop.hive.metastore.api.GlobalSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -44,6 +45,7 @@ import org.apache.hadoop.hive.metastore.api.MSOperation;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.NodeGroup;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
@@ -1187,5 +1189,43 @@ public interface IMetaStoreClient {
   public boolean addNodeAssignment(String nodename, String dbname) throws MetaException, NoSuchObjectException, TException;
 
   public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException, TException;
+
+  public boolean createSchema(GlobalSchema schema) throws AlreadyExistsException, InvalidObjectException, MetaException, TException;
+
+  public boolean modifySchema(String schemaName, GlobalSchema schema) throws MetaException, TException;
+
+  public boolean deleteSchema(String schemaName) throws MetaException, TException;
+
+  public List<GlobalSchema> listSchemas() throws MetaException, TException;
+
+  public GlobalSchema getSchemaByName(String schemaName) throws NoSuchObjectException, MetaException, TException;
+
+  public List<NodeGroup> getTableNodeGroups(String dbName, String tabName) throws MetaException, TException;
+
+  public List<SFile> listTableFiles(String dbName, String tabName, short max_num) throws MetaException, TException;
+
+  public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values) throws MetaException, TException;
+
+  public boolean addNodeGroup(NodeGroup ng) throws AlreadyExistsException, MetaException, TException;
+
+  public boolean modifyNodeGroup(String schemaName, NodeGroup ng) throws MetaException, TException;
+
+  public boolean deleteNodeGroup(NodeGroup ng) throws MetaException, TException;
+
+  public List<NodeGroup> listNodeGroups() throws MetaException, TException;
+
+  public List<NodeGroup> listDBNodeGroups(String dbName) throws MetaException, TException;
+
+  public boolean addTableNodeDist(String db, String tab, List<String> ng) throws MetaException, TException;
+
+  public boolean deleteTableNodeDist(String db, String tab, List<String> ng) throws MetaException, TException;
+
+  public List<NodeGroup> listTableNodeDists(String dbName, String tabName) throws MetaException, TException;
+
+  public boolean assiginSchematoDB(String dbName, String schemaName, List<FieldSchema> fileSplitKeys,
+      List<FieldSchema> part_keys, List<NodeGroup> ngs) throws InvalidObjectException, NoSuchObjectException, MetaException, TException;
+
+  public List<NodeGroup> listNodeGroups(List<String> ngNames) throws MetaException, TException;
+
 
 }

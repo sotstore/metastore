@@ -2701,6 +2701,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listDBNodeGroups failed: unknown result')
     end
 
+    def listNodeGroupByNames(ngNames)
+      send_listNodeGroupByNames(ngNames)
+      return recv_listNodeGroupByNames()
+    end
+
+    def send_listNodeGroupByNames(ngNames)
+      send_message('listNodeGroupByNames', ListNodeGroupByNames_args, :ngNames => ngNames)
+    end
+
+    def recv_listNodeGroupByNames()
+      result = receive_message(ListNodeGroupByNames_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listNodeGroupByNames failed: unknown result')
+    end
+
     def addTableNodeDist(db, tab, ng)
       send_addTableNodeDist(db, tab, ng)
       return recv_addTableNodeDist()
@@ -4774,6 +4790,17 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'listDBNodeGroups', seqid)
+    end
+
+    def process_listNodeGroupByNames(seqid, iprot, oprot)
+      args = read_args(iprot, ListNodeGroupByNames_args)
+      result = ListNodeGroupByNames_result.new()
+      begin
+        result.success = @handler.listNodeGroupByNames(args.ngNames)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'listNodeGroupByNames', seqid)
     end
 
     def process_addTableNodeDist(seqid, iprot, oprot)
@@ -10900,6 +10927,40 @@ module ThriftHiveMetastore
   end
 
   class ListDBNodeGroups_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::NodeGroup}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListNodeGroupByNames_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NGNAMES = 1
+
+    FIELDS = {
+      NGNAMES => {:type => ::Thrift::Types::LIST, :name => 'ngNames', :element => {:type => ::Thrift::Types::STRING}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListNodeGroupByNames_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1

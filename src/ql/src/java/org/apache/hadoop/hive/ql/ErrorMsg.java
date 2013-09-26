@@ -333,7 +333,10 @@ public enum ErrorMsg {
   COLUMNSTATSCOLLECTOR_IO_ERROR(30010, "Encountered I/O exception while parsing rewritten query"),
   //added by zjw
   PARTITIONCOLUMNNOTEXIST_ERROR(40001, "Partition column not exist"),
-  PARTITION_ARGUMENTS_INVALID(40002, "Partition arguments invalid")
+  PARTITION_ARGUMENTS_INVALID(40002, "Partition arguments invalid"),
+
+  CSLS_COLLST_COEXISTENCE(50001, "CREATE SCHEMA LIKE command cannot specify the list of columns for "
+      + "the target table")
     ;
 
   private int errorCode;

@@ -55,6 +55,7 @@ import org.apache.hadoop.hive.metastore.api.EquipRoom;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileOperationException;
 import org.apache.hadoop.hive.metastore.api.GeoLocation;
+import org.apache.hadoop.hive.metastore.api.GlobalSchema;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.Index;
@@ -66,6 +67,7 @@ import org.apache.hadoop.hive.metastore.api.MSOperation;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Node;
+import org.apache.hadoop.hive.metastore.api.NodeGroup;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.PartitionEventType;
@@ -87,7 +89,6 @@ import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.model.MetaStoreConst;
-import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -2048,6 +2049,125 @@ public boolean authentication(String user_name, String passwd)
     assert tbl != null;
     assert ops != null;
     return client.user_authority_check(user, tbl, ops);
+  }
+
+  @Override
+  public boolean createSchema(GlobalSchema schema) throws AlreadyExistsException,
+      InvalidObjectException, MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.createSchema(schema);
+  }
+
+  @Override
+  public boolean modifySchema(String schemaName, GlobalSchema schema) throws MetaException,
+      TException {
+    // TODO Auto-generated method stub
+    return client.modifySchema(schemaName, schema);
+  }
+
+  @Override
+  public boolean deleteSchema(String schemaName) throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.deleteSchema(schemaName);
+  }
+
+  @Override
+  public List<GlobalSchema> listSchemas() throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.listSchemas();
+  }
+
+  @Override
+  public GlobalSchema getSchemaByName(String schemaName) throws NoSuchObjectException,
+      MetaException, TException {
+    return client.getSchemaByName(schemaName);
+  }
+
+  @Override
+  public List<NodeGroup> getTableNodeGroups(String dbName, String tabName) throws MetaException,
+      TException {
+    // TODO Auto-generated method stub
+    return client.getTableNodeGroups(dbName, tabName);
+  }
+
+  @Override
+  public List<SFile> listTableFiles(String dbName, String tabName, short max_num)
+      throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.listTableFiles(dbName, tabName, max_num);
+  }
+
+  @Override
+  public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values)
+      throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.filterTableFiles(dbName, tabName, values);
+  }
+
+  @Override
+  public boolean addNodeGroup(NodeGroup ng) throws AlreadyExistsException, MetaException,
+      TException {
+    // TODO Auto-generated method stub
+    return client.addNodeGroup(ng);
+  }
+
+  @Override
+  public boolean modifyNodeGroup(String schemaName, NodeGroup ng) throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.modifyNodeGroup(schemaName, ng);
+  }
+
+  @Override
+  public boolean deleteNodeGroup(NodeGroup ng) throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.deleteNodeGroup(ng);
+  }
+
+  @Override
+  public List<NodeGroup> listNodeGroups() throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.listNodeGroups();
+  }
+
+  @Override
+  public List<NodeGroup> listDBNodeGroups(String dbName) throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.listDBNodeGroups(dbName);
+  }
+
+  @Override
+  public boolean addTableNodeDist(String db, String tab, List<String> ng) throws MetaException,
+      TException {
+    // TODO Auto-generated method stub
+    return client.addTableNodeDist(db, tab, ng);
+  }
+
+  @Override
+  public boolean deleteTableNodeDist(String db, String tab, List<String> ng) throws MetaException,
+      TException {
+    // TODO Auto-generated method stub
+    return client.deleteTableNodeDist(db, tab, ng);
+  }
+
+  @Override
+  public List<NodeGroup> listTableNodeDists(String dbName, String tabName) throws MetaException,
+      TException {
+    // TODO Auto-generated method stub
+    return client.listTableNodeDists(dbName, tabName);
+  }
+
+  @Override
+  public boolean assiginSchematoDB(String dbName, String schemaName,
+      List<FieldSchema> fileSplitKeys, List<FieldSchema> part_keys, List<NodeGroup> ngs)
+      throws InvalidObjectException, NoSuchObjectException, MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.assiginSchematoDB(dbName, schemaName, fileSplitKeys, part_keys, ngs);
+  }
+
+  @Override
+  public List<NodeGroup> listNodeGroups(List<String> ngNames) throws MetaException, TException {
+    // TODO Auto-generated method stub
+    return client.listNodeGroupByNames(ngNames);
   }
 
 }

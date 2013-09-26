@@ -8371,7 +8371,7 @@ public MUser getMUser(String userName) {
       if(mSchema.getSd().getCD().getCols() != null){//增加业务类型查询支持
         List<MBusiTypeColumn> bcs = new ArrayList<MBusiTypeColumn>();
 
-        //@FIXME
+        //FIXME 修改业务视图
 //        createBusiTypeCol(mSchema, bcs);
 
         if(!bcs.isEmpty()){
@@ -8392,7 +8392,7 @@ public MUser getMUser(String userName) {
 
       LOG.info("createSchema w/ ID=" + JDOHelper.getObjectId(mSchema));
 
-      //@FIXME
+      //FIXME 修改权限
 //      PrincipalPrivilegeSet principalPrivs = schema.getPrivileges();
 //      List<Object> toPersistPrivObjs = new ArrayList<Object>();
 //      if (principalPrivs != null) {
@@ -8693,7 +8693,7 @@ public MUser getMUser(String userName) {
 //          pm.deletePersistentAll(partColGrants);
 //        }
 
-        //@FIXME 删除业务列和相关视图
+        //FIXME 删除业务列和相关视图
 
         preDropStorageDescriptor(schema.getSd());
         // then remove the table
@@ -9044,6 +9044,12 @@ public MUser getMUser(String userName) {
   public List<NodeGroup> listTableNodeDists(String dbName, String tabName) throws MetaException {
     Table tbl = this.getTable(dbName, tabName);
     return tbl.getNodeGroups();
+  }
+
+  @Override
+  public List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws MetaException {
+    List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
+    return convertToNodeGroups(mngs);
   }
 
 }
