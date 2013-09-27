@@ -2473,6 +2473,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getMP failed: unknown result')
     end
 
+    def getSessionId()
+      send_getSessionId()
+      return recv_getSessionId()
+    end
+
+    def send_getSessionId()
+      send_message('getSessionId', GetSessionId_args)
+    end
+
+    def recv_getSessionId()
+      result = receive_message(GetSessionId_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getSessionId failed: unknown result')
+    end
+
     def createSchema(schema)
       send_createSchema(schema)
       return recv_createSchema()
@@ -4628,6 +4644,17 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'getMP', seqid)
+    end
+
+    def process_getSessionId(seqid, iprot, oprot)
+      args = read_args(iprot, GetSessionId_args)
+      result = GetSessionId_result.new()
+      begin
+        result.success = @handler.getSessionId()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'getSessionId', seqid)
     end
 
     def process_createSchema(seqid, iprot, oprot)
@@ -10433,6 +10460,39 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetSessionId_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetSessionId_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::I64, :name => 'success'},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 

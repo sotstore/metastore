@@ -952,7 +952,9 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   bool migrate2_stage2(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string from_db, 5:string to_db, 6:string to_nas_devid) throws (1:MetaException o1)
   
-  string getMP(1:string node_name, 2:string devid) throws (1:MetaException o1) 
+  string getMP(1:string node_name, 2:string devid) throws (1:MetaException o1)
+  
+  i64 getSessionId() throws (1:MetaException o1) 
   
   bool createSchema(1:GlobalSchema schema) throws (1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
   bool modifySchema(1:string schemaName,2:GlobalSchema schema) throws (1:MetaException o1)

@@ -164,6 +164,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void migrate2_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& to_db) = 0;
   virtual bool migrate2_stage2(const std::string& dbName, const std::string& tableName, const std::vector<std::string> & partNames, const std::string& from_db, const std::string& to_db, const std::string& to_nas_devid) = 0;
   virtual void getMP(std::string& _return, const std::string& node_name, const std::string& devid) = 0;
+  virtual int64_t getSessionId() = 0;
   virtual bool createSchema(const GlobalSchema& schema) = 0;
   virtual bool modifySchema(const std::string& schemaName, const GlobalSchema& schema) = 0;
   virtual bool deleteSchema(const std::string& schemaName) = 0;
@@ -711,6 +712,10 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   }
   void getMP(std::string& /* _return */, const std::string& /* node_name */, const std::string& /* devid */) {
     return;
+  }
+  int64_t getSessionId() {
+    int64_t _return = 0;
+    return _return;
   }
   bool createSchema(const GlobalSchema& /* schema */) {
     bool _return = false;
@@ -20612,6 +20617,110 @@ class ThriftHiveMetastore_getMP_presult {
 
 };
 
+
+class ThriftHiveMetastore_getSessionId_args {
+ public:
+
+  ThriftHiveMetastore_getSessionId_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_getSessionId_args() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_getSessionId_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_getSessionId_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_getSessionId_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_getSessionId_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_getSessionId_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_getSessionId_result__isset {
+  _ThriftHiveMetastore_getSessionId_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_getSessionId_result__isset;
+
+class ThriftHiveMetastore_getSessionId_result {
+ public:
+
+  ThriftHiveMetastore_getSessionId_result() : success(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_getSessionId_result() throw() {}
+
+  int64_t success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_getSessionId_result__isset __isset;
+
+  void __set_success(const int64_t val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_getSessionId_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_getSessionId_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_getSessionId_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_getSessionId_presult__isset {
+  _ThriftHiveMetastore_getSessionId_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_getSessionId_presult__isset;
+
+class ThriftHiveMetastore_getSessionId_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_getSessionId_presult() throw() {}
+
+  int64_t* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_getSessionId_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 typedef struct _ThriftHiveMetastore_createSchema_args__isset {
   _ThriftHiveMetastore_createSchema_args__isset() : schema(false) {}
   bool schema;
@@ -23504,6 +23613,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void getMP(std::string& _return, const std::string& node_name, const std::string& devid);
   void send_getMP(const std::string& node_name, const std::string& devid);
   void recv_getMP(std::string& _return);
+  int64_t getSessionId();
+  void send_getSessionId();
+  int64_t recv_getSessionId();
   bool createSchema(const GlobalSchema& schema);
   void send_createSchema(const GlobalSchema& schema);
   bool recv_createSchema();
@@ -23719,6 +23831,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_migrate2_stage1(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_migrate2_stage2(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getMP(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_getSessionId(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_createSchema(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_modifySchema(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_deleteSchema(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -23890,6 +24003,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["migrate2_stage1"] = &ThriftHiveMetastoreProcessor::process_migrate2_stage1;
     processMap_["migrate2_stage2"] = &ThriftHiveMetastoreProcessor::process_migrate2_stage2;
     processMap_["getMP"] = &ThriftHiveMetastoreProcessor::process_getMP;
+    processMap_["getSessionId"] = &ThriftHiveMetastoreProcessor::process_getSessionId;
     processMap_["createSchema"] = &ThriftHiveMetastoreProcessor::process_createSchema;
     processMap_["modifySchema"] = &ThriftHiveMetastoreProcessor::process_modifySchema;
     processMap_["deleteSchema"] = &ThriftHiveMetastoreProcessor::process_deleteSchema;
@@ -25344,6 +25458,15 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     }
     ifaces_[i]->getMP(_return, node_name, devid);
     return;
+  }
+
+  int64_t getSessionId() {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->getSessionId();
+    }
+    return ifaces_[i]->getSessionId();
   }
 
   bool createSchema(const GlobalSchema& schema) {

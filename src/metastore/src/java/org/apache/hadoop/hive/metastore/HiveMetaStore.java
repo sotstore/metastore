@@ -228,6 +228,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
               return null;
             }
           };
+      private static final ThreadLocal<Long> threadLocalSessionId =
+          new ThreadLocal<Long>() {
+            @Override
+            protected synchronized Long initialValue() {
+              return new Long(0);
+            }
+          };
 
           public String getUserName() {
             String userName = threadLocalUserName.get();
@@ -241,6 +248,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
           public void setUserName(String userName) {
             threadLocalUserName.set(userName);
+          }
+
+          public Long getSessionId() {
+            return threadLocalSessionId.get();
+          }
+
+          public void setSessionid(long value) {
+            threadLocalSessionId.set(value);
           }
     };
 
@@ -4879,6 +4894,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public String getDMStatus() throws MetaException, TException {
+      LOG.info("--------> GOT SessionId: " + msss.getSessionId());
       if (dm != null) {
         return dm.getDMStatus();
       }
@@ -5095,7 +5111,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       throws NoSuchObjectException, MetaException, TException {
         incrementCounter("user_authentication");
 
-        Boolean ret = null;
+        Boolean ret = false;
         try {
           ret = getMS().authentication(user_name, passwd);
         } catch (NoSuchObjectException e) {
@@ -5103,6 +5119,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         } catch (MetaException e) {
           throw e;
         }
+    if (ret) {
+      HiveMetaStoreServerContext serverContext = HiveMetaStoreServerEventHandler.getServerContext(msss.getSessionId());
+      serverContext.setUserName(user_name);
+      serverContext.setAuthenticated(true);
+    }
     return ret;
   }
    //added by liulichao
@@ -5890,6 +5911,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return getMS().listNodeGroupByNames(ngNames) ;
     }
 
+    @Override
+    public long getSessionId() throws MetaException, TException {
+      return msss.getSessionId();
+    }
+
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {
@@ -6154,6 +6180,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       HMSHandler.LOG.info("Options.maxWorkerThreads = "
           + maxWorkerThreads);
       HMSHandler.LOG.info("TCP keepalive = " + tcpKeepAlive);
+
+      HiveMetaStoreServerEventHandler eventHandler = new HiveMetaStoreServerEventHandler();
+      tServer.setServerEventHandler(eventHandler);
 
       tServer.serve();
     } catch (Throwable x) {

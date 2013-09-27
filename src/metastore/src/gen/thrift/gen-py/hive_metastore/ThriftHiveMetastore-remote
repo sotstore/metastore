@@ -171,6 +171,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '   migrate2_stage1(string dbName, string tableName,  partNames, string to_db)'
   print '  bool migrate2_stage2(string dbName, string tableName,  partNames, string from_db, string to_db, string to_nas_devid)'
   print '  string getMP(string node_name, string devid)'
+  print '  i64 getSessionId()'
   print '  bool createSchema(GlobalSchema schema)'
   print '  bool modifySchema(string schemaName, GlobalSchema schema)'
   print '  bool deleteSchema(string schemaName)'
@@ -1128,6 +1129,12 @@ elif cmd == 'getMP':
     print 'getMP requires 2 args'
     sys.exit(1)
   pp.pprint(client.getMP(args[0],args[1],))
+
+elif cmd == 'getSessionId':
+  if len(args) != 0:
+    print 'getSessionId requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.getSessionId())
 
 elif cmd == 'createSchema':
   if len(args) != 1:

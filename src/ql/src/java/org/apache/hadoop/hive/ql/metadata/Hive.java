@@ -2508,6 +2508,18 @@ public class Hive {
   private IMetaStoreClient getMSC() throws MetaException {
     if (metaStoreClient == null) {
       metaStoreClient = createMetaStoreClient();
+      // do authentication here
+      String user_name = conf.get(HiveConf.ConfVars.HIVE_USER.varname, "root");
+      String passwd = conf.get(HiveConf.ConfVars.HIVE_USERPWD.varname, "111111");
+      try {
+        metaStoreClient.authentication(user_name, "'" + passwd + "'");
+      } catch (NoSuchObjectException e) {
+        e.printStackTrace();
+        throw new MetaException(e.getMessage());
+      } catch (TException e) {
+        e.printStackTrace();
+        throw new MetaException(e.getMessage());
+      }
     }
     return metaStoreClient;
   }

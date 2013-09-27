@@ -762,6 +762,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("getMP\n");
   }
 
+  int64_t getSessionId() {
+    // Your implementation goes here
+    printf("getSessionId\n");
+  }
+
   bool createSchema(const GlobalSchema& schema) {
     // Your implementation goes here
     printf("createSchema\n");
