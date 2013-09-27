@@ -8301,12 +8301,6 @@ public MUser getMUser(String userName) {
     try {
       openTransaction();
       MGeoLocation mgl = convertToMGeoLocation(gl);
-//      MGeoLocation mgl = new MGeoLocation();
-//      mgl.setGeoLocName(gl.getGeoLocName());
-//      mgl.setNation(gl.getNation());
-//      mgl.setProvince(gl.getProvince());
-//      mgl.setCity(gl.getCity());
-//      mgl.setDist(gl.getDist());
       if (mgl != null) {
         pm.deletePersistent(mgl);
       }
@@ -8483,9 +8477,9 @@ public MUser getMUser(String userName) {
       query.setFilter("geoLocName == \"geoLocName\"");
       query.declareParameters("java.lang.String geoLocName");
 //      gl =  (GeoLocation) query.execute(geoLocName);
-      query.setUnique(true);//设置返回的结果是唯一的
+//      query.setUnique(true);//设置返回的结果是唯一的
       MGeoLocation mgl=(MGeoLocation)query.execute(geoLocName);
-      LOG.info("++++++++++++++++++++++++MGeoLocation" + mgl.getGeoLocName());
+      LOG.info("++++++++++++++++++++++++++++++MGeoLocation" + mgl.getGeoLocName());
       gl = convertToGeoLocation(mgl);
       committed = commitTransaction();
     } finally {

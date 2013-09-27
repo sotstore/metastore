@@ -5669,7 +5669,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public boolean deleteGeoLocation(GeoLocation gl) throws MetaException, TException {
-      getMS().deleteGeoLocation(gl);
+      try{
+        LOG.info("++++++++++++++++++++++++++++++before deleteGeoLocation");
+        getMS().deleteGeoLocation(gl);
+        LOG.info("++++++++++++++++++++++++++++++after deleteGeoLocation");
+      }catch(Exception e){
+        LOG.error("++++++++++++++++++++++++++++++Error deleteGeoLocation");
+        LOG.error(e,e);
+      }
       return true;
     }
 
@@ -5681,6 +5688,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException,
         TException {
+      LOG.info("++++++++++++++++++++++++++++++before getGeoLocationByName");
       return getMS().getGeoLocationByName(geoLocName);
     }
 
