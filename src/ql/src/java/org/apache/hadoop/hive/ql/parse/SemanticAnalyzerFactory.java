@@ -260,6 +260,9 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_NODEPROPLIST:
       case HiveParser.TOK_NODERPROPERTIES:
       case HiveParser.TOK_STRINGLITERALLIST:
+      case HiveParser.TOK_CREATENODEGROUPASSIGNMENT:
+      case HiveParser.TOK_DROPNODEGROUPASSIGNMENT:
+      case HiveParser.TOK_SHOWNODEGROUPASSIGNMENT:
 
 
 

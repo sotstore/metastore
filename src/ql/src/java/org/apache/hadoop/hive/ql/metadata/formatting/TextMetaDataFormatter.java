@@ -46,6 +46,7 @@ import org.apache.hadoop.hive.ql.metadata.GeoLoc;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
+import org.apache.hadoop.hive.ql.metadata.NodeGroupAssignment;
 import org.apache.hadoop.hive.ql.metadata.NodeGroups;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
@@ -662,7 +663,6 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
         throws HiveException {
           try {
               for (NodeGroups nodeGroup : nodeGroups) {
-                  // create a row per database name
                   outStream.writeBytes(nodeGroup.getNode_group_name());
                   outStream.write(terminator);
                   outStream.writeBytes(nodeGroup.getComment());
@@ -681,5 +681,20 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
               throw new HiveException(e);
           }
       }
+
+    @Override
+    public void showNodeGroupAssignment(DataOutputStream outStream,
+        List<NodeGroupAssignment> nodeGroupAssignments) throws HiveException {
+      try {
+        for (NodeGroupAssignment nag : nodeGroupAssignments) {
+            outStream.writeBytes(nag.getDbName());
+            outStream.write(terminator);
+            outStream.writeBytes(nag.getNodeGroupName());
+            outStream.write(terminator);
+          }
+    } catch (IOException e) {
+        throw new HiveException(e);
+    }
+    }
 
 }

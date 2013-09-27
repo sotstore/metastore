@@ -140,6 +140,9 @@ public class DDLWork implements Serializable {
   private DropNodeGroupDesc dropNodeGroupDesc;
   private ModifyNodeGroupDesc modifyNodeGroupDesc;
   private ShowNodeGroupDesc showNodeGroupDesc;
+  private AddNodeGroupAssignmentDesc addNodeGroupAssignmentDesc;
+  private DropNodeGroupAssignmentDesc dropNodeGroupAssignmentDesc;
+  private ShowNodeGroupAssignmentDesc showNodeGroupAssignmentDesc;
 
 
   public DDLWork() {
@@ -792,6 +795,24 @@ public class DDLWork implements Serializable {
       ShowNodeGroupDesc showNodeGroupDesc) {
     this(inputs, outputs);
     this.showNodeGroupDesc = showNodeGroupDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      AddNodeGroupAssignmentDesc addNodeGroupAssignmentDesc) {
+    this(inputs, outputs);
+    this.addNodeGroupAssignmentDesc = addNodeGroupAssignmentDesc;
+    }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DropNodeGroupAssignmentDesc dropNodeGroupAssignmentDesc) {
+    this(inputs, outputs);
+    this.dropNodeGroupAssignmentDesc = dropNodeGroupAssignmentDesc;
+    }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowNodeGroupAssignmentDesc showNodeGroupAssignmentDesc) {
+    this(inputs, outputs);
+    this.showNodeGroupAssignmentDesc = showNodeGroupAssignmentDesc;
   }
 
   /**
@@ -1750,6 +1771,30 @@ public class DDLWork implements Serializable {
 
   public void setShowNodeGroupDesc(ShowNodeGroupDesc showNodeGroupDesc) {
     this.showNodeGroupDesc = showNodeGroupDesc;
+  }
+
+  public AddNodeGroupAssignmentDesc getAddNodeGroupAssignmentDesc() {
+    return addNodeGroupAssignmentDesc;
+  }
+
+  public void setAddNodeGroupAssignmentDesc(AddNodeGroupAssignmentDesc addNodeGroupAssignmentDesc) {
+    this.addNodeGroupAssignmentDesc = addNodeGroupAssignmentDesc;
+  }
+
+  public DropNodeGroupAssignmentDesc getDropNodeGroupAssignmentDesc() {
+    return dropNodeGroupAssignmentDesc;
+  }
+
+  public void setDropNodeGroupAssignmentDesc(DropNodeGroupAssignmentDesc dropNodeGroupAssignmentDesc) {
+    this.dropNodeGroupAssignmentDesc = dropNodeGroupAssignmentDesc;
+  }
+
+  public ShowNodeGroupAssignmentDesc getShowNodeGroupAssignmentDesc() {
+    return showNodeGroupAssignmentDesc;
+  }
+
+  public void setShowNodeGroupAssignmentDesc(ShowNodeGroupAssignmentDesc showNodeGroupAssignmentDesc) {
+    this.showNodeGroupAssignmentDesc = showNodeGroupAssignmentDesc;
   }
 
 }

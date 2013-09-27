@@ -21,7 +21,12 @@ public class DDLTest {
     //String sql = "show eqroom";
 
     //String sql = "create NODEASSIGNMENT('aaa','qw')";
-   String sql = "DROP NODEASSIGNMENT('aaa','qw')";
+    //String sql = "DROP NODEASSIGNMENT('aaa','qw')";
+    //String sql = "show NODEASSIGNMENT";
+
+    String sql = "create nodeGroupAssignment('a','b')";
+    //String sql = "DROP nodeGroupAssignment('a','b')";
+    //String sql = "show nodeGroupAssignment";
 
     Driver dr = new Driver(new HiveConf());
     try {

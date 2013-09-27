@@ -363,6 +363,9 @@ TOK_ALTERSCHEMA_RENAMECOL;
 TOK_ALTERSCHEMA_CHANGECOL_AFTER_POSITION;
 TOK_ALTERSCHEMA_PROPERTIES;
 TOK_SHOWNODEASSIGNMENT;
+TOK_CREATENODEGROUPASSIGNMENT;
+TOK_DROPNODEGROUPASSIGNMENT;
+TOK_SHOWNODEGROUPASSIGNMENT;
 }
 
 
@@ -479,6 +482,9 @@ ddlStatement
     | createNodeAssignmentStatement
     | dropNodeAssignmentStatement
     | showNodeAssignment
+    | createNodeGroupAssignmentStatement
+    | dropNodeGroupAssignmentStatement
+    | showNodeGroupAssignment
     | createRoleStatement
     | dropRoleStatement
     
@@ -491,26 +497,43 @@ ddlStatement
     
     ;
 //
+
+showNodeGroupAssignment
+@init { msgs.push("show NodeGroupAssignment"); }
+@after { msgs.pop(); }
+    :  KW_SHOW KW_NODEGROUPASSIGNMENT
+     -> ^(TOK_SHOWNODEGROUPASSIGNMENT)
+    ;
+dropNodeGroupAssignmentStatement
+@init { msgs.push("drop NodeGroupAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_DROP KW_NODEGROUPASSIGNMENT LPAREN DBNAME= StringLiteral COMMA NODEGROUP_NAME=StringLiteral RPAREN 
+    -> ^(TOK_DROPNODEGROUPASSIGNMENT $DBNAME $NODEGROUP_NAME)
+    ;
+createNodeGroupAssignmentStatement
+@init { msgs.push("create NodeGroupAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_CREATE KW_NODEGROUPASSIGNMENT LPAREN DBNAME= StringLiteral COMMA NODEGROUP_NAME=StringLiteral RPAREN 
+    -> ^(TOK_CREATENODEGROUPASSIGNMENT $DBNAME $NODEGROUP_NAME)
+    ;       
 showNodeAssignment
 @init { msgs.push("show NodeAssignment"); }
 @after { msgs.pop(); }
     :  KW_SHOW KW_NODEASSIGNMENT
      -> ^(TOK_SHOWNODEASSIGNMENT)
-    ;
-        
+    ;       
 dropNodeAssignmentStatement
 @init { msgs.push("drop NodeAssignmentStatement"); }
 @after { msgs.pop(); }
     : KW_DROP KW_NODEASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA DBNAME= StringLiteral RPAREN 
     -> ^(TOK_DROPNODEASSIGNMENT $NODE_NAME $DBNAME)
-    ;
-    
+    ; 
 createNodeAssignmentStatement
 @init { msgs.push("create NodeAssignmentStatement"); }
 @after { msgs.pop(); }
     : KW_CREATE KW_NODEASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA DBNAME= StringLiteral RPAREN 
     -> ^(TOK_CREATENODEASSIGNMENT $NODE_NAME $DBNAME)
-        ;
+    ;
 showEqRoom
 @init { msgs.push("show EqRoom"); }
 @after { msgs.pop(); }
@@ -535,7 +558,7 @@ createEqRoomStatement
 @after { msgs.pop(); }
     : KW_CREATE KW_EQROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier RPAREN  (KW_COMMENT CMT=StringLiteral)? ( KW_ON GEO_LOC_NAME=StringLiteral)? 
     -> ^(TOK_CREATEEQROOM $EQ_ROOM_NAME $STATUS $CMT? (KW_ON $GEO_LOC_NAME)? )
-        ;
+    ;
         
 showGeoLoc
 @init { msgs.push("show GeoLoc"); }
@@ -3312,6 +3335,7 @@ KW_NODEGROUPS:'NODEGROUPS';
 KW_GEOLOC:'GEOLOC';
 KW_EQROOM:'EQROOM';
 KW_NODEASSIGNMENT:'NODEASSIGNMENT';
+KW_NODEGROUPASSIGNMENT:'NODEGROUPASSIGNMENT';
 
 KW_SCHEMAPROPERTIES:	'SCHEMEPROPERTIES';
 

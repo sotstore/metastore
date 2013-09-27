@@ -78,6 +78,7 @@ import org.apache.hadoop.hive.ql.plan.AddEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.AddGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.AddNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.AddNodeDesc;
+import org.apache.hadoop.hive.ql.plan.AddNodeGroupAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
 import org.apache.hadoop.hive.ql.plan.AddSubpartIndexDesc;
@@ -103,6 +104,7 @@ import org.apache.hadoop.hive.ql.plan.DropGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
+import org.apache.hadoop.hive.ql.plan.DropNodeGroupAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
@@ -150,6 +152,7 @@ import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodeAssignmentDesc;
+import org.apache.hadoop.hive.ql.plan.ShowNodeGroupAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
@@ -574,6 +577,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       analyzeDropNodeAssignment(ast);
       break;
     case HiveParser.TOK_SHOWNODEASSIGNMENT:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
       analyzeShowNodeAssignment(ast);
       break;
     case HiveParser.TOK_CREATENODEGROUP:
@@ -588,6 +592,16 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     case HiveParser.TOK_SHOWNODEGROUPS:
       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
       analyzeShowNodeGroup(ast);
+      break;
+    case HiveParser.TOK_CREATENODEGROUPASSIGNMENT:
+      analyzeAddNodeGroupAssignment(ast);
+      break;
+    case HiveParser.TOK_DROPNODEGROUPASSIGNMENT:
+      analyzeDropNodeGroupAssignment(ast);
+      break;
+    case HiveParser.TOK_SHOWNODEGROUPASSIGNMENT:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowNodeGroupAssignment(ast);
       break;
 
 
@@ -604,7 +618,29 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     }
   }
 
+  private void analyzeShowNodeGroupAssignment(ASTNode ast) {
+    ShowNodeGroupAssignmentDesc showNodeGroupAssignmentDesc = new ShowNodeGroupAssignmentDesc(ctx.getResFile().toString());
+      rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+          showNodeGroupAssignmentDesc), conf));
+    setFetchTask(createFetchTask(showNodeGroupAssignmentDesc.getSchema()));
+  }
 
+  private void analyzeDropNodeGroupAssignment(ASTNode ast) {
+    String dbName = unescapeSQLString(ast.getChild(0).getText());
+    String nodeGroupName = unescapeSQLString(ast.getChild(1).getText());
+    DropNodeGroupAssignmentDesc dropNodeGroupAssignmentDesc = new DropNodeGroupAssignmentDesc(dbName,nodeGroupName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        dropNodeGroupAssignmentDesc), conf));
+
+    }
+
+  private void analyzeAddNodeGroupAssignment(ASTNode ast) {
+    String dbName = unescapeSQLString(ast.getChild(0).getText());
+    String nodeGroupName = unescapeSQLString(ast.getChild(1).getText());
+    AddNodeGroupAssignmentDesc addNodeGroupAssignmentDesc = new AddNodeGroupAssignmentDesc(dbName,nodeGroupName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        addNodeGroupAssignmentDesc), conf));
+    }
 private void analyzeShowNodeGroup(ASTNode ast) {
   ShowNodeGroupDesc showNodeGroupDesc;
   if (ast.getChildCount() == 1) {

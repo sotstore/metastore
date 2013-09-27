@@ -2986,10 +2986,7 @@ public class Hive {
   public List<NodeAssignment> showNodeAssignment() throws HiveException {
     List<NodeAssignment> nats = new ArrayList<NodeAssignment>();
     /*try{
-      List<NodeAssignment> nodeAssignments = getMSC().listEquipRoom();
-      for(EquipRoom eqr : equipRooms){
-        EqRoom er = new EqRoom(eqr.getEqRoomName(),eqr.getComment());
-        ers.add(er);
+      List<NodeAssignment> nodeAssignments = getMSC().
       }
     } catch (Exception e) {
       throw new HiveException(e);
@@ -3192,6 +3189,33 @@ public class Hive {
       throw new HiveException(e);
     }
    }
+
+  public void addNodeGroupAssignment(NodeGroupAssignment nga) throws HiveException {
+      try {
+        //getMSC().addNodeGroupAssignment(nga.getDbName(), nga.getNodeGroupName());
+      } catch (Exception e) {
+        throw new HiveException(e);
+      }
+  }
+
+  public void dropNodeGroupAssignment(NodeGroupAssignment nga) throws HiveException {
+    try {
+      //getMSC().deleteNodeGroupAssignment(nga.getDbName(),nga.getNodeGroupName());
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public List<NodeGroupAssignment> showNodeGroupAssignment() {
+    List<NodeGroupAssignment> ngas = new ArrayList<NodeGroupAssignment>();
+    /*try{
+      List<NodeGroupAssignment> nodeGroupAssignments = getMSC().
+      }
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }*/
+    return ngas;
+  }
 
 
 

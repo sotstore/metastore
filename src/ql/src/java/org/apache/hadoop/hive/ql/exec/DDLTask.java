@@ -107,6 +107,7 @@ import org.apache.hadoop.hive.ql.metadata.HiveMetaStoreChecker;
 import org.apache.hadoop.hive.ql.metadata.HiveStorageHandler;
 import org.apache.hadoop.hive.ql.metadata.InvalidTableException;
 import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
+import org.apache.hadoop.hive.ql.metadata.NodeGroupAssignment;
 import org.apache.hadoop.hive.ql.metadata.NodeGroups;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
@@ -120,6 +121,7 @@ import org.apache.hadoop.hive.ql.plan.AddEqRoomDesc;
 import org.apache.hadoop.hive.ql.plan.AddGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.AddNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.AddNodeDesc;
+import org.apache.hadoop.hive.ql.plan.AddNodeGroupAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
 import org.apache.hadoop.hive.ql.plan.AddSubpartIndexDesc;
@@ -152,6 +154,7 @@ import org.apache.hadoop.hive.ql.plan.DropGeoLocDesc;
 import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
+import org.apache.hadoop.hive.ql.plan.DropNodeGroupAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
@@ -195,6 +198,7 @@ import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodeAssignmentDesc;
+import org.apache.hadoop.hive.ql.plan.ShowNodeGroupAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
@@ -700,6 +704,18 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       ShowNodeGroupDesc showNodeGroupDesc = work.getShowNodeGroupDesc();
       if (null != showNodeGroupDesc) {
         return showNodeGroups(db, showNodeGroupDesc);
+      }
+      AddNodeGroupAssignmentDesc addNodeGroupAssignmentDesc = work.getAddNodeGroupAssignmentDesc();
+      if (null != addNodeGroupAssignmentDesc) {
+        return addNodeGroupAssignment(db, addNodeGroupAssignmentDesc);
+      }
+      DropNodeGroupAssignmentDesc dropNodeGroupAssignmentDesc = work.getDropNodeGroupAssignmentDesc();
+      if (null != dropNodeGroupAssignmentDesc) {
+        return dropNodeGroupAssignment(db, dropNodeGroupAssignmentDesc);
+      }
+      ShowNodeGroupAssignmentDesc showNodeGroupAssignmentDesc = work.getShowNodeGroupAssignmentDesc();
+      if (null != showNodeGroupAssignmentDesc) {
+        return showNodeGroupAssignment(db, showNodeGroupAssignmentDesc);
       }
 
     } catch (InvalidTableException e) {
@@ -5002,11 +5018,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       ((FSDataOutputStream) outStream).close();
       outStream = null;
     } catch (FileNotFoundException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+        formatter.logWarn(outStream, "show EqRoom: " + stringifyException(e),
                           MetaDataFormatter.ERROR);
         return 1;
       } catch (IOException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+        formatter.logWarn(outStream, "show EqRoom: " + stringifyException(e),
                           MetaDataFormatter.ERROR);
         return 1;
     } catch (Exception e) {
@@ -5042,11 +5058,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       ((FSDataOutputStream) outStream).close();
       outStream = null;
     } catch (FileNotFoundException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+        formatter.logWarn(outStream, "show NodeAssignment: " + stringifyException(e),
                           MetaDataFormatter.ERROR);
         return 1;
       } catch (IOException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+        formatter.logWarn(outStream, "show NodeAssignment: " + stringifyException(e),
                           MetaDataFormatter.ERROR);
         return 1;
     } catch (Exception e) {
@@ -5110,5 +5126,43 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     return 0;
   }
 
+  private int addNodeGroupAssignment(Hive db, AddNodeGroupAssignmentDesc addNodeGroupAssignmentDesc)throws HiveException {
+    NodeGroupAssignment nga = new NodeGroupAssignment(
+        addNodeGroupAssignmentDesc.getDbName(),addNodeGroupAssignmentDesc.getNodeGroupName());
+    this.db.addNodeGroupAssignment(nga);
+    return 0;
+  }
 
+  private int dropNodeGroupAssignment(Hive db, DropNodeGroupAssignmentDesc dropNodeGroupAssignmentDesc) throws HiveException {
+    NodeGroupAssignment nga = new NodeGroupAssignment(
+        dropNodeGroupAssignmentDesc.getDbName(),dropNodeGroupAssignmentDesc.getNodeGroupName());
+    this.db.dropNodeGroupAssignment(nga);
+    return 0;
+  }
+
+  private int showNodeGroupAssignment(Hive db, ShowNodeGroupAssignmentDesc showNodeGroupAssignmentDesc) throws HiveException {
+    List<NodeGroupAssignment> nodeGroupAssignments = db.showNodeGroupAssignment();
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showNodeGroupAssignmentDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+      formatter.showNodeGroupAssignment(outStream, nodeGroupAssignments);
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show NodeGroupAssignment: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show NodeGroupAssignment: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
 }
