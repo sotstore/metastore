@@ -589,21 +589,34 @@ service ThriftHiveMetastore extends fb303.FacebookService
 
 //strat off with cry
 
-  bool addEquipRoom(1:EquipRoom er) throws(1:MetaException o1)
-  bool modifyEquipRoom(1:EquipRoom er) throws(1:MetaException o1)
-  bool deleteEquipRoom(1:EquipRoom er) throws(1:MetaException o1)
-  list<EquipRoom> listEquipRoom() throws(1:MetaException o1)
-  
-  GeoLocation getGeoLocationByName(1:string geoLocName) throws (1:MetaException o1)
-
   bool addGeoLocation(1:GeoLocation gl) throws(1:MetaException o1)
   bool modifyGeoLocation(1:GeoLocation gl) throws(1:MetaException o1)
   bool deleteGeoLocation(1:GeoLocation gl) throws(1:MetaException o1)
   list<GeoLocation> listGeoLocation() throws(1:MetaException o1)
   
+  bool addEquipRoom(1:EquipRoom er) throws(1:MetaException o1)
+  bool modifyEquipRoom(1:EquipRoom er) throws(1:MetaException o1)
+  bool deleteEquipRoom(1:EquipRoom er) throws(1:MetaException o1)
+  list<EquipRoom> listEquipRoom() throws(1:MetaException o1)
+  
+  list<GeoLocation> getGeoLocationByName(1:string geoLocName) throws (1:MetaException o1, 2:NoSuchObjectException o2)
+  list<GeoLocation> getGeoLocationByNames(1:list<string> geoLocNames) throws (1:MetaException o1)
+  
   bool addNodeAssignment(1:string nodeName, 2:string dbName) throws(1:MetaException o1, 2:NoSuchObjectException o2)
   bool deleteNodeAssignment(1:string nodeName, 2:string dbName) throws(1:MetaException o1, 2:NoSuchObjectException o2)
-
+  list<Node> listNodes() throws(1:MetaException o1)
+  
+  bool addUserAssignment(1:string roleName, 2:string dbName) throws(1:MetaException o1, 2:NoSuchObjectException o2)
+  bool deleteUserAssignment(1:string roleName, 2:string dbName) throws(1:MetaException o1, 2:NoSuchObjectException o2)
+  list<User> listUsers() throws(1:MetaException o1)
+  
+  bool addRoleAssignment(1:string userName, 2:string dbName) throws(1:MetaException o1, 2:NoSuchObjectException o2)
+  bool deleteRoleAssignment(1:string userName, 2:string dbName) throws(1:MetaException o1, 2:NoSuchObjectException o2)
+  list<Role> listRoles() throws(1:MetaException o1)
+  
+  bool addNodeGroupAssignment (1:NodeGroup ng, 2:string dbName) throws(1:MetaException o1)
+  bool deleteNodeGroupAssignment (1:NodeGroup ng, 2:string dbName) throws(1:MetaException o1)
+  
 //end up with cry
 
   void create_database(1:Database database) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)

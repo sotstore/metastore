@@ -167,31 +167,6 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("drop_subpartition_index_files\n");
   }
 
-  bool addEquipRoom(const EquipRoom& er) {
-    // Your implementation goes here
-    printf("addEquipRoom\n");
-  }
-
-  bool modifyEquipRoom(const EquipRoom& er) {
-    // Your implementation goes here
-    printf("modifyEquipRoom\n");
-  }
-
-  bool deleteEquipRoom(const EquipRoom& er) {
-    // Your implementation goes here
-    printf("deleteEquipRoom\n");
-  }
-
-  void listEquipRoom(std::vector<EquipRoom> & _return) {
-    // Your implementation goes here
-    printf("listEquipRoom\n");
-  }
-
-  void getGeoLocationByName(GeoLocation& _return, const std::string& geoLocName) {
-    // Your implementation goes here
-    printf("getGeoLocationByName\n");
-  }
-
   bool addGeoLocation(const GeoLocation& gl) {
     // Your implementation goes here
     printf("addGeoLocation\n");
@@ -212,6 +187,36 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("listGeoLocation\n");
   }
 
+  bool addEquipRoom(const EquipRoom& er) {
+    // Your implementation goes here
+    printf("addEquipRoom\n");
+  }
+
+  bool modifyEquipRoom(const EquipRoom& er) {
+    // Your implementation goes here
+    printf("modifyEquipRoom\n");
+  }
+
+  bool deleteEquipRoom(const EquipRoom& er) {
+    // Your implementation goes here
+    printf("deleteEquipRoom\n");
+  }
+
+  void listEquipRoom(std::vector<EquipRoom> & _return) {
+    // Your implementation goes here
+    printf("listEquipRoom\n");
+  }
+
+  void getGeoLocationByName(std::vector<GeoLocation> & _return, const std::string& geoLocName) {
+    // Your implementation goes here
+    printf("getGeoLocationByName\n");
+  }
+
+  void getGeoLocationByNames(std::vector<GeoLocation> & _return, const std::vector<std::string> & geoLocNames) {
+    // Your implementation goes here
+    printf("getGeoLocationByNames\n");
+  }
+
   bool addNodeAssignment(const std::string& nodeName, const std::string& dbName) {
     // Your implementation goes here
     printf("addNodeAssignment\n");
@@ -220,6 +225,51 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
   bool deleteNodeAssignment(const std::string& nodeName, const std::string& dbName) {
     // Your implementation goes here
     printf("deleteNodeAssignment\n");
+  }
+
+  void listNodes(std::vector<Node> & _return) {
+    // Your implementation goes here
+    printf("listNodes\n");
+  }
+
+  bool addUserAssignment(const std::string& roleName, const std::string& dbName) {
+    // Your implementation goes here
+    printf("addUserAssignment\n");
+  }
+
+  bool deleteUserAssignment(const std::string& roleName, const std::string& dbName) {
+    // Your implementation goes here
+    printf("deleteUserAssignment\n");
+  }
+
+  void listUsers(std::vector<User> & _return) {
+    // Your implementation goes here
+    printf("listUsers\n");
+  }
+
+  bool addRoleAssignment(const std::string& userName, const std::string& dbName) {
+    // Your implementation goes here
+    printf("addRoleAssignment\n");
+  }
+
+  bool deleteRoleAssignment(const std::string& userName, const std::string& dbName) {
+    // Your implementation goes here
+    printf("deleteRoleAssignment\n");
+  }
+
+  void listRoles(std::vector<Role> & _return) {
+    // Your implementation goes here
+    printf("listRoles\n");
+  }
+
+  bool addNodeGroupAssignment(const NodeGroup& ng, const std::string& dbName) {
+    // Your implementation goes here
+    printf("addNodeGroupAssignment\n");
+  }
+
+  bool deleteNodeGroupAssignment(const NodeGroup& ng, const std::string& dbName) {
+    // Your implementation goes here
+    printf("deleteNodeGroupAssignment\n");
   }
 
   void create_database(const Database& database) {
