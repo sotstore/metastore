@@ -405,7 +405,7 @@ public class MSGFactory {
             params.put("old_column_name",msg.getOld_object_params().get("old_column_name"));
           }
           break;
-      case MSGType.MSG_ALT_TALBE_ALT_COL_TYPE :
+      case MSGType.MSG_ALT_TALBE_ALT_COL_TYPE :       //不需要指明是哪个列吗
             //修改表修改列类型
           MTable alt_col_type_tbl = (MTable)msg.getEventObject();
           params.put("db_name",alt_col_type_tbl.getDatabase().getName());

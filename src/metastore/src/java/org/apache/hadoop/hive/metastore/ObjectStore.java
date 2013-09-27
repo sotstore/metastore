@@ -592,8 +592,9 @@ public class ObjectStore implements RawStore, Configurable {
       pm.makePersistent(mdb);
       committed = commitTransaction();
 
-
-      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALTER_DATABESE,db_id,-1, pm, mdb,null));
+      HashMap<String, Object> params = new HashMap<String, Object>();
+      params.put("param_name", mdb.getParameters().keySet());
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALTER_DATABESE_PARAM,db_id,-1, pm, mdb,params));
     } finally {
       if (!committed) {
         rollbackTransaction();
@@ -1194,6 +1195,9 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       pm.makePersistent(mpi);
       commited = commitTransaction();
+
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(mp.getTable().getDatabase()).toString()));
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_NEW_PARTITION_INDEX,db_id,-1, pm, mpi,null));
     } finally {
       if (!commited) {
         rollbackTransaction();
@@ -1222,6 +1226,9 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       pm.makePersistent(mpi);
       commited = commitTransaction();
+
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(mp.getTable().getDatabase()).toString()));
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_NEW_PARTITION_INDEX,db_id,-1, pm, mpi,null));
     } finally {
       if (!commited) {
         rollbackTransaction();
@@ -1248,6 +1255,9 @@ public class ObjectStore implements RawStore, Configurable {
       MNode mnode = convertToMNode(node);
       pm.makePersistent(mnode);
       commited = commitTransaction();
+
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(mnode).toString()));
+      MetaMsgServer.sendMsg( MSGFactory.generateDDLMsg(MSGType.MSG_NEW_NODE,db_id,-1,pm,mnode,null));
     } finally {
       if (!commited) {
         rollbackTransaction();
@@ -1473,8 +1483,6 @@ public class ObjectStore implements RawStore, Configurable {
       }else{
         LOG.warn("--zjw--getPartitions is null ");
       }
-
-
 
       LOG.info("createTable w/ ID=" + JDOHelper.getObjectId(mtbl));
       PrincipalPrivilegeSet principalPrivs = tbl.getPrivileges();
@@ -3331,6 +3339,9 @@ public class ObjectStore implements RawStore, Configurable {
         pm.deletePersistent(part);
         LOG.debug("--zjw--after dropPartitioncommon cmt ");
       }
+
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(part.getTable().getDatabase()).toString()));
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_PARTITION,db_id,-1,pm,part,null));
       success = commitTransaction();
     } finally {
       if (!success) {
@@ -4035,10 +4046,101 @@ public class ObjectStore implements RawStore, Configurable {
         throw new MetaException("table " + name + " doesn't exist");
       }
 
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(newt.getDatabase()).toString()));
+      HashMap<String, Object> params = new HashMap<String, Object>();
+      //alt table name
+      if(!oldt.getTableName().toLowerCase().equals(newt.getTableName().toLowerCase()))
+      {
+        params.put("old_table_name", oldt.getTableName());
+        MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_TALBE_NAME,db_id,-1, pm, oldt,params));
+      }
+      //del col   可以删除多个列,删除多个时,发送多次消息
+      if(oldt.getSd().getCD().getCols().size() > newt.getSd().getCD().getCols().size())
+      {
+        List<MFieldSchema> oldCols = new ArrayList<MFieldSchema>();
+        oldCols.addAll( oldt.getSd().getCD().getCols());
+        List<MFieldSchema> newCols = new ArrayList<MFieldSchema>();
+        newCols.addAll( newt.getSd().getCD().getCols());
+
+        params.put("db_name", oldt.getDatabase().getName());
+        params.put("table_name", oldt.getTableName());
+
+        oldCols.removeAll(newCols);
+        for(MFieldSchema omfs : oldCols)
+        {
+            params.put("column_name",omfs.getName());
+            MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_TALBE_DEL_COL,db_id,-1, pm, oldt,params));
+
+        }
+      }
+      //add col
+      if(oldt.getSd().getCD().getCols().size() < newt.getSd().getCD().getCols().size())
+      {
+        List<MFieldSchema> oldCols = new ArrayList<MFieldSchema>();
+        oldCols.addAll( oldt.getSd().getCD().getCols());
+        List<MFieldSchema> newCols = new ArrayList<MFieldSchema>();
+        newCols.addAll( newt.getSd().getCD().getCols());
+
+        params.put("db_name", oldt.getDatabase().getName());
+        params.put("table_name", oldt.getTableName());
+
+        newCols.removeAll(oldCols);
+        for(MFieldSchema nmfs : newCols)
+        {
+            params.put("column_name",nmfs.getName());
+            MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_TALBE_ADD_COL,db_id,-1, pm, oldt,params));
+        }
+      }
+      //修改列名，列类型  一次只能修改一个
+      if(oldt.getSd().getCD().getCols().size() == newt.getSd().getCD().getCols().size())
+      {
+        List<MFieldSchema> oldCols = new ArrayList<MFieldSchema>();
+        oldCols.addAll( oldt.getSd().getCD().getCols());
+        List<MFieldSchema> newCols = new ArrayList<MFieldSchema>();
+        newCols.addAll( newt.getSd().getCD().getCols());
+
+        oldCols.removeAll(newt.getSd().getCD().getCols());
+        newCols.removeAll(newt.getSd().getCD().getCols());
+        if(oldCols.size() == 1 && newCols.size() == 1 && !oldCols.get(0).getName().equals(newCols.get(0).getName()))    //说明只有一列是不同的,且是名字不同
+        {
+          params.put("db_name", oldt.getDatabase().getName());
+          params.put("table_name", oldt.getTableName());
+          params.put("column_name",newCols.get(0).getName());
+          params.put("old_column_name", oldCols.get(0).getName());
+          MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_TALBE_ALT_COL_NAME,db_id,-1, pm, oldt,params));
+        }
+        else if(oldCols.size() == 1 && newCols.size() == 1 && !oldCols.get(0).getType().equals(newCols.get(0).getType()))         //修改了列类型
+        {
+          params.put("db_name", oldt.getDatabase().getName());
+          params.put("table_name", oldt.getTableName());
+          params.put("column_name", oldCols.get(0).getName());
+          params.put("column_type",newCols.get(0).getType());
+          params.put("old_column_type", oldCols.get(0).getType());
+          MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_TALBE_ALT_COL_TYPE,db_id,-1, pm, oldt,params));
+
+        }
+      }
+      //alt table param
+      if(!oldt.getParameters().equals(newt.getParameters()))
+      {
+        params.put("db_name", oldt.getDatabase().getName());
+        params.put("table_name", oldt.getTableName());
+        params.put("tbl_param_keys", newt.getParameters().keySet());
+        MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_TABLE_PARAM,db_id,-1, pm, oldt,params));
+      }
+      //MSG_ALT_TALBE_PARTITIONING
+      if(!oldt.getPartitionKeys().equals(newt.getPartitionKeys()))      //要传什么参数呢．．
+      {
+        MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_TALBE_PARTITIONING,db_id,-1, pm, oldt,params));
+      }
+      //MSG_ALT_TALBE_DISTRIBUTE        似乎没有修改过..
+
+
       // For now only alter name, owner, paramters, cols, bucketcols are allowed
       oldt.setTableName(newt.getTableName().toLowerCase());
       oldt.setParameters(newt.getParameters());
       oldt.setOwner(newt.getOwner());
+
       // Fully copy over the contents of the new SD into the old SD,
       // so we don't create an extra SD in the metastore db that has no references.
       copyMSD(newt.getSd(), oldt.getSd());
@@ -4052,6 +4154,9 @@ public class ObjectStore implements RawStore, Configurable {
 
       // commit the changes
       success = commitTransaction();
+
+
+
     } finally {
       if (!success) {
         rollbackTransaction();
@@ -4082,6 +4187,11 @@ public class ObjectStore implements RawStore, Configurable {
 
       // commit the changes
       success = commitTransaction();
+
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(oldi.getOrigTable().getDatabase()).toString()));
+      HashMap<String,Object> params = new HashMap<String,Object>();
+      params.put("param_name", oldi.getParameters().keySet());
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_INDEX_PARAM, db_id, -1, pm, oldi, params));
     } finally {
       if (!success) {
         rollbackTransaction();
@@ -4099,6 +4209,12 @@ public class ObjectStore implements RawStore, Configurable {
     if (oldp == null || newp == null) {
       throw new InvalidObjectException("partition does not exist.");
     }
+
+    long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(oldp.getTable().getDatabase()).toString()));
+    HashMap<String, Object> params = new HashMap<String, Object>();
+    params.put("old_partition_name", oldp.getPartitionName());
+    MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_PARTITION,db_id,-1, pm, oldp,params));
+
     oldp.setValues(newp.getValues());
     oldp.setPartitionName(newp.getPartitionName());
     LOG.info("-----> Set partition name to: " + newp.getPartitionName());
@@ -4402,6 +4518,8 @@ public class ObjectStore implements RawStore, Configurable {
         pm.deletePersistent(index);
       }
       success = commitTransaction();
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(index.getOrigTable().getDatabase()).toString()));
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_INDEX, db_id, -1, pm, index, null));
     } finally {
       if (!success) {
         rollbackTransaction();
@@ -7665,6 +7783,9 @@ public MUser getMUser(String userName) {
         pm.deletePersistent(mnode);
       }
       success = commitTransaction();
+
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(mnode).toString()));
+      MetaMsgServer.sendMsg( MSGFactory.generateDDLMsg(MSGType.MSG_DEL_NODE,db_id,-1,pm,mnode,null));
     } finally {
       if (!success) {
         rollbackTransaction();
@@ -7738,6 +7859,9 @@ public MUser getMUser(String userName) {
         pm.deletePersistent(mpi);
       }
       success = commitTransaction();
+
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(mpi).toString()));
+      MetaMsgServer.sendMsg( MSGFactory.generateDDLMsg(MSGType.MSG_DEL_PARTITION_INDEX,db_id,-1,pm,mpi,null));
     } finally {
       if (!success) {
         rollbackTransaction();
@@ -7758,6 +7882,9 @@ public MUser getMUser(String userName) {
         pm.deletePersistent(mpi);
       }
       success = commitTransaction();
+
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(mpi).toString()));
+      MetaMsgServer.sendMsg( MSGFactory.generateDDLMsg(MSGType.MSG_DEL_PARTITION_INDEX,db_id,-1,pm,mpi,null));
     } finally {
       if (!success) {
         rollbackTransaction();
@@ -8437,6 +8564,8 @@ public MUser getMUser(String userName) {
       pm.makePersistent(mdb);
       commited = commitTransaction();
       success = true;
+
+
     } finally {
       if (!commited) {
         rollbackTransaction();
@@ -8465,6 +8594,8 @@ public MUser getMUser(String userName) {
       pm.deletePersistent(mdb);
       commited = commitTransaction();
       success = true;
+
+
     } finally {
       if (!commited) {
         rollbackTransaction();

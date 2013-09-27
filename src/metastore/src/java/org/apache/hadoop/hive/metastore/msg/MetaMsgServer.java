@@ -60,6 +60,7 @@ public class MetaMsgServer {
     send.release();
   }
 
+  //zy  是不是应该release多个
   public static void sendMsg(List<DDLMsg> msgs) {
     queue.addAll(msgs);
     send.release();
@@ -229,7 +230,8 @@ public class MetaMsgServer {
     if(times <= 0){
       return false;
     }
-
+    //zy
+    //第一次失败,第二次发送成功的话依然返回false把..
     boolean success = false;
     try{
       success = producer.sendMsg(jsonMsg);
