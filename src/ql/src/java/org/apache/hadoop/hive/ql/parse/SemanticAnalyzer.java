@@ -46,6 +46,7 @@ import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.GlobalSchema;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionDefinition;
@@ -121,8 +122,11 @@ import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer.tableSpec.SpecType;
 import org.apache.hadoop.hive.ql.plan.AggregationDesc;
 import org.apache.hadoop.hive.ql.plan.ColumnStatsDesc;
 import org.apache.hadoop.hive.ql.plan.ColumnStatsWork;
+import org.apache.hadoop.hive.ql.plan.CreateSchemaDesc;
+import org.apache.hadoop.hive.ql.plan.CreateSchemaLikeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableLikeDesc;
+import org.apache.hadoop.hive.ql.plan.CreateTableLikeSchemaDesc;
 import org.apache.hadoop.hive.ql.plan.CreateViewDesc;
 import org.apache.hadoop.hive.ql.plan.DDLWork;
 import org.apache.hadoop.hive.ql.plan.DynamicPartitionCtx;
@@ -9058,6 +9062,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       throws SemanticException {
     String tableName = getUnescapedName((ASTNode)ast.getChild(0));
     String likeTableName = null;
+    String likeSchemaName = null;
+    String toDBNameString = null;
     List<FieldSchema> cols = new ArrayList<FieldSchema>();
     List<FieldSchema> partCols = new ArrayList<FieldSchema>();
     List<String> bucketCols = new ArrayList<String>();
@@ -9072,6 +9078,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     final int CREATE_TABLE = 0; // regular CREATE TABLE
     final int CTLT = 1; // CREATE TABLE LIKE ... (CTLT)
     final int CTAS = 2; // CREATE TABLE AS SELECT ... (CTAS)
+    //added bu zjw for v0.2
+    final int CTLS = 3; // create table like schema ...(CTLS)
     int command_type = CREATE_TABLE;
     List<String> skewedColNames = new ArrayList<String>();
     List<List<String>> skewedValues = new ArrayList<List<String>>();
@@ -9084,6 +9092,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 
     //added by zjw
     PartitionDefinition pd = new PartitionDefinition();
+    List<String> nodeGroupNames = null;
 
     LOG.info("Creating table " + tableName + " position="
         + ast.getCharPositionInLine());
@@ -9123,6 +9132,23 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
           command_type = CTLT;
         }
         break;
+      case HiveParser.TOK_LIKESCHEMA:
+        if (child.getChildCount() > 0) {
+          likeSchemaName = getUnescapedName((ASTNode)child.getChild(0));
+          toDBNameString = getUnescapedName((ASTNode)child.getChild(1));
+          if (likeSchemaName != null) {
+            if (command_type == CTAS) {
+              throw new SemanticException(ErrorMsg.CTAS_CTLT_COEXISTENCE
+                  .getMsg());
+            }
+            if (cols.size() != 0) {
+              throw new SemanticException(ErrorMsg.CTLT_COLLST_COEXISTENCE
+                  .getMsg());
+            }
+          }
+          command_type = CTLS;
+        }
+        break;
       case HiveParser.TOK_QUERY: // CTAS
         if (command_type == CTLT) {
           throw new SemanticException(ErrorMsg.CTAS_CTLT_COEXISTENCE.getMsg());
@@ -9160,6 +9186,16 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         List<org.apache.hadoop.hive.metastore.api.Partition> ps = pd.toPartitionList();
         int g=1;
         break;
+        /**
+         * FIXME add filesplit definition
+         */
+//      case HiveParser.tok_fi:
+//        pd.setTableName(tableName);
+//        partCols = analyzePartitionClause((ASTNode) child, pd);
+//
+//        List<org.apache.hadoop.hive.metastore.api.Partition> ps = pd.toPartitionList();
+//        int g=1;
+//        break;
       case HiveParser.TOK_TABLEBUCKETS:
         bucketCols = getColumnNames((ASTNode) child.getChild(0));
         if (child.getChildCount() == 2) {
@@ -9188,6 +9224,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
           readProps((ASTNode) (child.getChild(1).getChild(0)),
               shared.serdeProps);
         }
+      case HiveParser.TOK_TABLEDISTRIBUTION:
+        nodeGroupNames = getNodeGroups(child);
         break;
 
       case HiveParser.TOK_FILEFORMAT_GENERIC:
@@ -9251,6 +9289,11 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       //added by zjw
       crtTblDesc.setPartitions(pd.toPartitionList());
 
+      //FIXME 需要新增nodegroup的子句
+      if(nodeGroupNames != null){
+        crtTblDesc.setNodeGroupNames(nodeGroupNames);
+      }
+
       crtTblDesc.validate();
       // outputs is empty, which means this create table happens in the current
       // database.
@@ -9263,9 +9306,23 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       CreateTableLikeDesc crtTblLikeDesc = new CreateTableLikeDesc(tableName, isExt,
           storageFormat.inputFormat, storageFormat.outputFormat, location,
           shared.serde, shared.serdeProps, ifNotExists, likeTableName);
+      if(nodeGroupNames != null){
+        crtTblLikeDesc.setNodeGroupNames(nodeGroupNames);
+      }
       SessionState.get().setCommandType(HiveOperation.CREATETABLE);
       rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
           crtTblLikeDesc), conf));
+      break;
+    case CTLS: // create table like <tbl_name>
+      CreateTableLikeSchemaDesc crtTblLikeSchemaDesc = new CreateTableLikeSchemaDesc(toDBNameString,tableName, isExt,partCols,
+          storageFormat.inputFormat, storageFormat.outputFormat, location,
+          shared.serde, shared.serdeProps, ifNotExists, likeTableName);
+      if(nodeGroupNames != null){
+        crtTblLikeSchemaDesc.setNodeGroupNames(nodeGroupNames);
+      }
+      SessionState.get().setCommandType(HiveOperation.CREATETABLE);
+      rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+          crtTblLikeSchemaDesc), conf));
       break;
 
     case CTAS: // create table as select
@@ -9302,6 +9359,135 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       throw new SemanticException("Unrecognized command.");
     }
     return null;
+  }
+
+  /**
+   *
+   * @param ast
+   * @param qb
+   * @return
+   * @throws SemanticException
+   */
+  private ASTNode analyzeCreateSchema(ASTNode ast, QB qb)
+      throws SemanticException {
+    String schemaName = getUnescapedName((ASTNode)ast.getChild(0));
+    String likeSchemaName = null;
+    List<FieldSchema> cols = new ArrayList<FieldSchema>();
+    String comment = null;
+
+    Map<String, String> schemaProps = null;
+    RowFormatParams rowFormatParams = new RowFormatParams();
+    boolean ifNotExists = false;
+    boolean isExt = false;
+    ASTNode selectStmt = null;
+    final int CREATE_SCHEMA = 0; // regular CREATE SCHEMA
+    final int CREATE_SCHEMA_LIKE = 1; // CREATE SCHEMA LIKE ...
+    int command_type = CREATE_SCHEMA;
+
+    AnalyzeCreateCommonVars shared = new AnalyzeCreateCommonVars();
+
+    //added by zjw
+    PartitionDefinition pd = new PartitionDefinition();
+
+
+    LOG.info("Creating Schema " + schemaName + " position="
+        + ast.getCharPositionInLine());
+    int numCh = ast.getChildCount();
+
+    /*
+     * Check the 1st-level children and do simple semantic checks: 1) CTLT and
+     * CTAS should not coexists. 2) CTLT or CTAS should not coexists with column
+     * list (target Schema schema). 3) CTAS does not support partitioning (for
+     * now).
+     */
+    for (int num = 1; num < numCh; num++) {
+      ASTNode child = (ASTNode) ast.getChild(num);
+
+      switch (child.getToken().getType()) {
+      case HiveParser.TOK_IFNOTEXISTS:
+        ifNotExists = true;
+        break;
+      case HiveParser.TOK_LIKESCHEMA:
+        if (child.getChildCount() > 0) {
+          likeSchemaName = getUnescapedName((ASTNode)child.getChild(0));
+          if (likeSchemaName != null) {
+            if (cols.size() != 0) {
+              throw new SemanticException(ErrorMsg.CSLS_COLLST_COEXISTENCE
+                  .getMsg());
+            }
+          }
+          command_type = CREATE_SCHEMA_LIKE;
+        }
+        break;
+
+      case HiveParser.TOK_TABCOLLIST:
+        cols = getColumns(child);
+        break;
+      case HiveParser.TOK_TABLECOMMENT:
+        comment = unescapeSQLString(child.getChild(0).getText());
+        break;
+      case HiveParser.TOK_TABLEPROPERTIES:
+        schemaProps = DDLSemanticAnalyzer.getProps((ASTNode) child.getChild(0));
+        break;
+
+      default:
+        assert false;
+      }
+    }
+
+
+    // check for existence of Schema
+    if (ifNotExists) {
+      try {
+        GlobalSchema schema = db.getSchemaByName(schemaName);
+        if (schema != null ) { // Schema exists
+          return null;
+        }
+      } catch (HiveException e) {
+        e.printStackTrace();
+      }
+    }
+
+    // Handle different types of CREATE Schema command
+    CreateSchemaDesc crtSchemaDesc = null;
+    switch (command_type) {
+
+    case CREATE_SCHEMA: // REGULAR CREATE Schema DDL
+      schemaProps = addDefaultProperties(schemaProps);
+
+      crtSchemaDesc = new CreateSchemaDesc(schemaName,  cols, rowFormatParams.fieldDelim, rowFormatParams.fieldEscape,
+          rowFormatParams.collItemDelim, rowFormatParams.mapKeyDelim, rowFormatParams.lineDelim, comment,
+          shared.serdeProps, schemaProps, ifNotExists);
+      crtSchemaDesc.validate();
+      // outputs is empty, which means this create Schema happens in the current
+      // database.
+      SessionState.get().setCommandType(HiveOperation.CREATETABLE);
+      rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+          crtSchemaDesc), conf));
+      break;
+
+    case CREATE_SCHEMA_LIKE: // create Schema like <schema_name>
+      CreateSchemaLikeDesc crtSchemaLikeDesc = new CreateSchemaLikeDesc(schemaName,
+           ifNotExists, likeSchemaName);
+
+      SessionState.get().setCommandType(HiveOperation.CREATETABLE);
+      rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+          crtSchemaLikeDesc), conf));
+      break;
+    default:
+      throw new SemanticException("Unrecognized command.");
+    }
+    return null;
+  }
+
+  private List<String> getNodeGroups(ASTNode ast) {
+    List<String> ngNameList = new ArrayList<String>();
+    int numCh = ast.getChildCount();
+    for (int i = 0; i < numCh; i++) {
+      ASTNode child = (ASTNode) ast.getChild(i);
+      ngNameList.add(unescapeSQLString(child.getText()).toLowerCase());
+    }
+    return ngNameList;
   }
 
   private ASTNode analyzeCreateView(ASTNode ast, QB qb)

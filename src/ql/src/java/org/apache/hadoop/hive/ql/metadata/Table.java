@@ -42,6 +42,7 @@ import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.NodeGroup;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
@@ -971,4 +972,13 @@ public class Table implements Serializable {
     }
     return pis;
   }
+
+  public List<NodeGroup> getNodeGroups() {
+    return tTable.getNodeGroups();
+  }
+
+  public void setNodeGroups(List<NodeGroup> nodeGroups) {
+    tTable.setNodeGroups(nodeGroups);
+  }
+
 };

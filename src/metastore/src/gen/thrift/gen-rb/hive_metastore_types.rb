@@ -676,6 +676,26 @@ class BusiTypeDatacenter
   ::Thrift::Struct.generate_accessors self
 end
 
+class SplitValue
+  include ::Thrift::Struct, ::Thrift::Struct_Union
+  SPLITKEYNAME = 1
+  LEVEL = 2
+  VALUE = 3
+
+  FIELDS = {
+    SPLITKEYNAME => {:type => ::Thrift::Types::STRING, :name => 'splitKeyName'},
+    LEVEL => {:type => ::Thrift::Types::I32, :name => 'level'},
+    VALUE => {:type => ::Thrift::Types::STRING, :name => 'value'}
+  }
+
+  def struct_fields; FIELDS; end
+
+  def validate
+  end
+
+  ::Thrift::Struct.generate_accessors self
+end
+
 class Device
   include ::Thrift::Struct, ::Thrift::Struct_Union
   DEVID = 1
@@ -753,7 +773,7 @@ class SFile
     ALL_RECORD_NR => {:type => ::Thrift::Types::I64, :name => 'all_record_nr'},
     LOCATIONS => {:type => ::Thrift::Types::LIST, :name => 'locations', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFileLocation}},
     LENGTH => {:type => ::Thrift::Types::I64, :name => 'length'},
-    VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRING}}
+    VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SplitValue}}
   }
 
   def struct_fields; FIELDS; end

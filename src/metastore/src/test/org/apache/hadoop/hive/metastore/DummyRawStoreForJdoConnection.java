@@ -53,7 +53,6 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
-import org.apache.hadoop.hive.metastore.api.Schema;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -1017,7 +1016,7 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public Schema getSchema(String schema_name) throws MetaException {
+  public GlobalSchema getSchema(String schema_name) throws MetaException {
     // TODO Auto-generated method stub
     return null;
   }
@@ -1066,7 +1065,7 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public boolean modifyNodeGroup(NodeGroup ng) throws InvalidObjectException, MetaException {
+  public boolean modifyNodeGroup(String ngname,NodeGroup ng) throws InvalidObjectException, MetaException {
     // TODO Auto-generated method stub
     return false;
   }
@@ -1132,6 +1131,12 @@ public class DummyRawStoreForJdoConnection implements RawStore {
       throws InvalidObjectException, NoSuchObjectException, MetaException {
     // TODO Auto-generated method stub
     return false;
+  }
+
+  @Override
+  public List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

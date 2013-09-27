@@ -475,7 +475,7 @@ public abstract class BitSetCheckedAuthorizationProvider extends
       if (input >= 0) {
         throw new AuthorizationException("No privilege '"
             + inputRequiredPriv[input].toString() + "' found for inputs "
-            + hiveObject);
+            + hiveObject + ", for user " + this.getAuthenticator().getUserName());
       }
     }
 
@@ -484,7 +484,7 @@ public abstract class BitSetCheckedAuthorizationProvider extends
       if (output >= 0) {
         throw new AuthorizationException("No privilege '"
             + outputRequiredPriv[output].toString() + "' found for outputs "
-            + hiveObject);
+            + hiveObject + ", for user " + this.getAuthenticator().getUserName());
       }
     }
   }

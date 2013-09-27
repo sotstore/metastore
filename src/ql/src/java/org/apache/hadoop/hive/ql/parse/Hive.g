@@ -336,6 +336,9 @@ TOK_SHOWFILELOCATIONS;
 TOK_STRINGLITERALLIST;
 TOK_TABLEDISTRIBUTION;
 
+TOK_CREATESCHEMA;
+TOK_DROPSCHEMA;
+
 TOK_CREATENODEGROUP;
 TOK_NODEGROUPPROPERTIES;
 TOK_MODIFYNODEGROUP;
@@ -353,6 +356,13 @@ TOK_MODIFYEQROOM;
 TOK_DROPEQROOM;
 TOK_CREATENODEASSIGNMENT;
 TOK_DROPNODEASSIGNMENT;
+TOK_ALTERSCHEMA_RENAME;
+TOK_ALTERSCHEMA_ADDCOLS;
+TOK_ALTERSCHEMA_REPLACECOLS;
+TOK_ALTERSCHEMA_RENAMECOL;
+TOK_ALTERSCHEMA_CHANGECOL_AFTER_POSITION;
+TOK_ALTERSCHEMA_PROPERTIES;
+TOK_SHOWNODEASSIGNMENT;
 }
 
 
@@ -468,7 +478,7 @@ ddlStatement
     | showEqRoom
     | createNodeAssignmentStatement
     | dropNodeAssignmentStatement
-    
+    | showNodeAssignment
     | createRoleStatement
     | dropRoleStatement
     
@@ -476,9 +486,17 @@ ddlStatement
     | modifyNodeGroupStatement
     | dropNodeGroupStatement
     
+    |createSchemaStatement
+    |dropSchemaStatement
+    
     ;
 //
-
+showNodeAssignment
+@init { msgs.push("show NodeAssignment"); }
+@after { msgs.pop(); }
+    :  KW_SHOW KW_NODEASSIGNMENT
+     -> ^(TOK_SHOWNODEASSIGNMENT)
+    ;
         
 dropNodeAssignmentStatement
 @init { msgs.push("drop NodeAssignmentStatement"); }
@@ -572,7 +590,7 @@ storedAsDirs
     : KW_STORED KW_AS KW_DIRECTORIES
     -> ^(TOK_STOREDASDIRS)
     ;
-
+    
 orReplace
 @init { msgs.push("or replace clause"); }
 @after { msgs.pop(); }
@@ -589,8 +607,9 @@ createNodeGroupStatement
         ifNotExists?
         name=Identifier
         nodegroupComment?
-        (KW_WITH KW_DCPROPERTIES nodegroupprops=nodegroupProperties)?
-    -> ^(TOK_CREATENODEGROUP $name ifNotExists?  nodegroupComment? $nodegroupprops?)
+        (KW_WITH KW_DBPROPERTIES nodegroupprops=nodegroupProperties)?
+        (KW_ON KW_NODEPROPERTIES nodeprops=nodeProperties)?
+    -> ^(TOK_CREATENODEGROUP $name ifNotExists?  nodegroupComment? $nodegroupprops? $nodeprops?)
     ;
 
 nodegroupProperties
@@ -599,7 +618,7 @@ nodegroupProperties
     :
       LPAREN nodegroupPropertiesList RPAREN -> ^(TOK_NODEGROUPPROPERTIES nodegroupPropertiesList)
     ;
-
+    
 nodegroupPropertiesList
 @init { msgs.push("nodegroup properties list"); }
 @after { msgs.pop(); }
@@ -610,14 +629,14 @@ nodegroupPropertiesList
 modifyNodeGroupStatement
 @init { msgs.push("modify nodegroup statement"); }
 @after { msgs.pop(); }
-    : KW_USE Identifier
+    : KW_USE KW_NODEGROUP Identifier
     -> ^(TOK_MODIFYNODEGROUP Identifier)
     ;
 
 dropNodeGroupStatement
 @init { msgs.push("drop nodegroup statement"); }
 @after { msgs.pop(); }
-    : KW_DROP (KW_NODEGROUP|KW_SCHEMA) ifExists? Identifier restrictOrCascade?
+    : KW_DROP KW_NODEGROUP ifExists? Identifier restrictOrCascade?
     -> ^(TOK_DROPNODEGROUP Identifier ifExists? restrictOrCascade?)
     ;
 
@@ -745,6 +764,46 @@ databaseComment
     -> ^(TOK_DATABASECOMMENT $comment)
     ;
 
+//reuse table definition fragments
+createSchemaStatement
+@init { msgs.push("create table statement"); }
+@after { msgs.pop(); }
+    : 
+    /*
+    KW_CREATE KW_SCHEMA ifNotExists? name=schemaName
+         (LPAREN columnNameTypeList RPAREN)
+         tableComment?
+         tablePropertiesPrefixed?
+    -> ^(TOK_CREATESCHEMA $name ifNotExists? columnNameTypeList
+         tableComment?
+         tablePropertiesPrefixed?
+        )
+    |
+      KW_CREATE KW_SCHEMA ifNotExists? name=schemaName
+         (like=KW_LIKE likeName=schemaName) tableComment?
+         tablePropertiesPrefixed?
+    -> ^(TOK_CREATESCHEMA $name ifNotExists?
+         TOK_LIKESCHEMA $likeName)
+         tableComment?
+         tablePropertiesPrefixed?
+        )
+     */
+      KW_CREATE KW_SCHEMA ifNotExists? name=schemaName
+         (
+         (like=KW_LIKE likeName=schemaName) 
+         |
+          (LPAREN columnNameTypeList RPAREN)
+          )
+         tableComment?
+         schemaPropertiesPrefixed?
+    -> ^(TOK_CREATESCHEMA $name ifNotExists?
+         ^(TOK_LIKESCHEMA $likeName)?
+         columnNameTypeList?
+         tableComment?
+         schemaPropertiesPrefixed?
+         )
+    ;
+
 createTableStatement
 @init { msgs.push("create table statement"); }
 @after { msgs.pop(); }
@@ -776,16 +835,15 @@ createTableStatement
          selectStatement?
         )
     |KW_CREATE KW_TABLE ifNotExists? 
-      (  like=KW_LIKE likeName=tableName
+      (  like=KW_LIKE KW_SCHEMA likeName=tableName KW_TO dbName=Identifier
          tableLocation?
-       | (LPAREN columnNameTypeList RPAREN)?
          tableComment?
          tablePartition?
          tableDistribution?
          tablePropertiesPrefixed?
       )
     -> ^(TOK_CREATETABLE ifNotExists?
-         ^(TOK_LIKETABLE $likeName?)
+         ^(TOK_LIKESCHEMA $likeName $dbName)
          tableComment?
          tablePartition?
          tableDistribution?
@@ -866,7 +924,12 @@ dropIndexStatement
     : KW_DROP KW_INDEX ifExists? indexName=Identifier KW_ON tab=tableName
     ->^(TOK_DROPINDEX $indexName $tab ifExists?)
     ;
-
+dropSchemaStatement
+@init { msgs.push("drop schema statement"); }
+@after { msgs.pop(); }
+    : KW_DROP KW_SCHEMA ifExists? schemaName -> ^(TOK_DROPSCHEMA schemaName ifExists?)
+    ;
+    
 dropTableStatement
 @init { msgs.push("drop statement"); }
 @after { msgs.pop(); }
@@ -885,9 +948,22 @@ alterStatement
             KW_INDEX! alterIndexStatementSuffix
         |
             KW_DATABASE! alterDatabaseStatementSuffix
+        |
+            KW_SCHEMA! alterSchemaStatementSuffix
         )
     ;
 
+
+alterSchemaStatementSuffix
+@init { msgs.push("alter table statement"); }
+@after { msgs.pop(); }
+    : alterSchemaStatementSuffixRename
+    | alterSchemaStatementSuffixAddCol
+    | alterSchemaStatementSuffixRenameCol
+    | alterSchemaStatementSuffixProperties
+    |alterSchemaStatementChangeColPosition
+    ;
+    
 alterTableStatementSuffix
 @init { msgs.push("alter table statement"); }
 @after { msgs.pop(); }
@@ -1016,6 +1092,13 @@ alterStatementSuffixRename
     : oldName=Identifier KW_RENAME KW_TO newName=Identifier
     -> ^(TOK_ALTERTABLE_RENAME $oldName $newName)
     ;
+    
+alterSchemaStatementSuffixRename   
+@init { msgs.push("rename statement"); }
+@after { msgs.pop(); }
+    : oldName=Identifier KW_RENAME KW_TO newName=Identifier
+    -> ^(TOK_ALTERSCHEMA_RENAME $oldName $newName)
+    ;
 
 alterStatementSuffixAddCol
 @init { msgs.push("add column statement"); }
@@ -1024,7 +1107,14 @@ alterStatementSuffixAddCol
     -> {$add != null}? ^(TOK_ALTERTABLE_ADDCOLS Identifier columnNameTypeList)
     ->                 ^(TOK_ALTERTABLE_REPLACECOLS Identifier columnNameTypeList)
     ;
-
+alterSchemaStatementSuffixAddCol
+@init { msgs.push("add column statement"); }
+@after { msgs.pop(); }
+    : Identifier (add=KW_ADD | replace=KW_REPLACE) KW_COLUMNS LPAREN columnNameTypeList RPAREN
+    -> {$add != null}? ^(TOK_ALTERSCHEMA_ADDCOLS Identifier columnNameTypeList)
+    ->                 ^(TOK_ALTERSCHEMA_REPLACECOLS Identifier columnNameTypeList)
+    ;
+    
 alterStatementSuffixRenameCol
 @init { msgs.push("rename column name"); }
 @after { msgs.pop(); }
@@ -1032,10 +1122,23 @@ alterStatementSuffixRenameCol
     ->^(TOK_ALTERTABLE_RENAMECOL Identifier $oldName $newName colType $comment? alterStatementChangeColPosition?)
     ;
 
+alterSchemaStatementSuffixRenameCol
+@init { msgs.push("rename column name"); }
+@after { msgs.pop(); }
+    : Identifier KW_CHANGE KW_COLUMN? oldName=Identifier newName=Identifier colType (KW_COMMENT comment=StringLiteral)? alterStatementChangeColPosition?
+    ->^(TOK_ALTERSCHEMA_RENAMECOL Identifier $oldName $newName colType $comment? alterStatementChangeColPosition?)
+    ;
+    
 alterStatementChangeColPosition
     : first=KW_FIRST|KW_AFTER afterCol=Identifier
     ->{$first != null}? ^(TOK_ALTERTABLE_CHANGECOL_AFTER_POSITION )
     -> ^(TOK_ALTERTABLE_CHANGECOL_AFTER_POSITION $afterCol)
+    ;
+    
+alterSchemaStatementChangeColPosition
+    : first=KW_FIRST|KW_AFTER afterCol=Identifier
+    ->{$first != null}? ^(TOK_ALTERSCHEMA_CHANGECOL_AFTER_POSITION )
+    -> ^(TOK_ALTERSCHEMA_CHANGECOL_AFTER_POSITION $afterCol)
     ;
 
 //add 2-level  partition operations
@@ -1130,6 +1233,12 @@ alterStatementSuffixProperties
 @after { msgs.pop(); }
     : name=Identifier KW_SET KW_TBLPROPERTIES tableProperties
     -> ^(TOK_ALTERTABLE_PROPERTIES $name tableProperties)
+    ;
+alterSchemaStatementSuffixProperties
+@init { msgs.push("alter properties statement"); }
+@after { msgs.pop(); }
+    : name=Identifier KW_SET KW_SCHEMAPROPERTIES tableProperties
+    -> ^(TOK_ALTERSCHEMA_PROPERTIES $name tableProperties)
     ;
 
 alterViewSuffixProperties
@@ -1813,6 +1922,13 @@ tablePropertiesPrefixed
         KW_TBLPROPERTIES! tableProperties
     ;
 
+ schemaPropertiesPrefixed
+@init { msgs.push("schema properties with prefix"); }
+@after { msgs.pop(); }
+    :
+        KW_SCHEMAPROPERTIES! tableProperties
+    ;
+
 tableProperties
 @init { msgs.push("table properties"); }
 @after { msgs.pop(); }
@@ -2429,6 +2545,13 @@ tableName
 @after { msgs.pop(); }
     :(dc=Identifier DOT)? (db=Identifier DOT)? tab=Identifier
     -> ^(TOK_TABNAME $dc? $db? $tab)
+    ;
+    
+schemaName
+@init { msgs.push("schema name"); }
+@after { msgs.pop(); }
+    :schema=Identifier
+    -> ^(TOK_TABNAME $schema)
     ;
 
 viewName
@@ -3186,9 +3309,13 @@ KW_FILES:'FILES';
 KW_FILELOCATIONS:'FILELOCATIONS';
 KW_NODEGROUP:'NODEGROUP';
 KW_NODEGROUPS:'NODEGROUPS';
+KW_NGPROPERTIES:'NGPROPERTIES';
 KW_GEOLOC:'GEOLOC';
 KW_EQROOM:'EQROOM';
 KW_NODEASSIGNMENT:'NODEASSIGNMENT';
+
+KW_SCHEMAPROPERTIES:	'SCHEMEPROPERTIES';
+
 // Operators
 // NOTE: if you add a new function/operator, add it to sysFuncNames so that describe function _FUNC_ will work.
 

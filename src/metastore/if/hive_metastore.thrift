@@ -323,6 +323,12 @@ struct BusiTypeDatacenter {
   2: Database db,         // Database 
 }
 
+struct SplitValue {
+  1: string splitKeyName,
+  2: i32    level,
+  3: string value,
+}
+
 struct Device {
   1: string devid,
   2: i32    prop,
@@ -352,7 +358,7 @@ struct SFile {
   8: i64	all_record_nr,
   9: list<SFileLocation> locations,
   10: i64    length,
-  11: list<string> values,
+  11: list<SplitValue> values,
 }
 
 struct SFileRef {
@@ -630,6 +636,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   // sd.serdeInfo.serializationLib (SerDe class name eg org.apache.hadoop.hive.serde.simple_meta.MetadataTypedColumnsetSerDe
   // * See notes on DDL_TIME
   void create_table(1:Table tbl) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3, 4:NoSuchObjectException o4)
+  void create_table_by_user(1:Table tbl, 2:User user) throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3, 4:NoSuchObjectException o4)
   void create_table_with_environment_context(1:Table tbl,
       2:EnvironmentContext environment_context)
       throws (1:AlreadyExistsException o1,
@@ -896,7 +903,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   void cancel_delegation_token(1:string token_str_form) throws (1:MetaException o1)
   
   // method for file operations
-  SFile create_file(1:string node_name, 2:i32 repnr, 3:string db_name, 4:string table_name, 5:list<string> values) throws (1:FileOperationException o1)
+  SFile create_file(1:string node_name, 2:i32 repnr, 3:string db_name, 4:string table_name, 5:list<SplitValue> values) throws (1:FileOperationException o1)
   
   i32 close_file(1:SFile file) throws (1:FileOperationException o1, 2:MetaException o2)
   
@@ -945,13 +952,15 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   bool migrate2_stage2(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string from_db, 5:string to_db, 6:string to_nas_devid) throws (1:MetaException o1)
   
-  string getMP(1:string node_name, 2:string devid) throws (1:MetaException o1) 
+  string getMP(1:string node_name, 2:string devid) throws (1:MetaException o1)
+  
+  i64 getSessionId() throws (1:MetaException o1) 
   
   bool createSchema(1:GlobalSchema schema) throws (1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
-  bool modifySchema(1:GlobalSchema schema) throws (1:MetaException o1)
+  bool modifySchema(1:string schemaName,2:GlobalSchema schema) throws (1:MetaException o1)
   bool deleteSchema(1:string schemaName) throws (1:MetaException o1)
   list<GlobalSchema> listSchemas() throws (1:MetaException o1)
-  GlobalSchema getSchemaByName(1:string schemaName) throws (1:MetaException o1)
+  GlobalSchema getSchemaByName(1:string schemaName) throws (1:NoSuchObjectException o1,2:MetaException o2)
   
   list<NodeGroup> getTableNodeGroups(1:string dbName,2:string tabName) throws (1:MetaException o1)
   list<SFile> getTableNodeFiles(1:string dbName,2:string tabName,3:string nodeName)  throws (1:MetaException o1)
@@ -960,15 +969,18 @@ service ThriftHiveMetastore extends fb303.FacebookService
   list<SFile> filterTableFiles(1:string dbName,2:string tabName,3:list<string> values)  throws (1:MetaException o1)
   
   bool addNodeGroup(1:NodeGroup ng) throws (1:AlreadyExistsException o1,2:MetaException o2)
-  bool modifyNodeGroup (1:NodeGroup ng) throws (1:MetaException o1)
+  bool modifyNodeGroup (1:string schemaName,2:NodeGroup ng) throws (1:MetaException o1)
   bool deleteNodeGroup (1:NodeGroup ng) throws (1:MetaException o1)
   list<NodeGroup> listNodeGroups() throws (1:MetaException o1)
   list<NodeGroup> listDBNodeGroups(1:string dbName) throws (1:MetaException o1)
+  list<NodeGroup> listNodeGroupByNames(1:list<string> ngNames) throws (1:MetaException o1 )
   
   bool addTableNodeDist(1:string db,2:string tab,3:list<string> ng)  throws (1:MetaException o1)
   bool deleteTableNodeDist(1:string db,2:string tab,3:list<string> ng) throws (1:MetaException o1)
   list<NodeGroup> listTableNodeDists (1:string dbName,2:string tabName) throws (1:MetaException o1)
   
+  bool assiginSchematoDB(1:string dbName, 2:string schemaName,3:list<FieldSchema> fileSplitKeys,
+      4:list<FieldSchema> part_keys,5:list<NodeGroup> ngs) throws (1:InvalidObjectException o1, 2:NoSuchObjectException o2, 3:MetaException o3)
   
 }
 

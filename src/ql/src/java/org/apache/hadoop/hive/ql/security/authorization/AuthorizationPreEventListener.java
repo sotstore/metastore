@@ -26,6 +26,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler.MSSessionState;
+import org.apache.hadoop.hive.metastore.HiveMetaStoreServerContext;
+import org.apache.hadoop.hive.metastore.HiveMetaStoreServerEventHandler;
 import org.apache.hadoop.hive.metastore.MetaStorePreEventListener;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.TableType;
@@ -133,6 +135,15 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
   @Override
   public void onEvent(PreEventContext context) throws MetaException, NoSuchObjectException,
       InvalidOperationException {
+
+    MSSessionState msss = new MSSessionState();
+    HiveMetaStoreServerContext serverContext = HiveMetaStoreServerEventHandler.getServerContext(msss.getSessionId());
+    if (!serverContext.isAuthenticated()) {
+      throw new MetaException("Current Session has NOT been authenticated yet, please call authenticate() on this connection.");
+    } else {
+      msss.setUserName(serverContext.getUserName());
+      LOG.info("-----------> onEvent: session " + msss.getSessionId() + " set userName to " + msss.getUserName());
+    }
 
     authenticator.setMetaStoreHandler(context.getHandler());
     authorizer.setMetaStoreHandler(context.getHandler());

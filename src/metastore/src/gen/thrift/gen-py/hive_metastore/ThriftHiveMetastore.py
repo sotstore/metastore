@@ -398,6 +398,14 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
+  def create_table_by_user(self, tbl, user):
+    """
+    Parameters:
+     - tbl
+     - user
+    """
+    pass
+
   def create_table_with_environment_context(self, tbl, environment_context):
     """
     Parameters:
@@ -1178,6 +1186,9 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
+  def getSessionId(self, ):
+    pass
+
   def createSchema(self, schema):
     """
     Parameters:
@@ -1185,9 +1196,10 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
-  def modifySchema(self, schema):
+  def modifySchema(self, schemaName, schema):
     """
     Parameters:
+     - schemaName
      - schema
     """
     pass
@@ -1251,9 +1263,10 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
-  def modifyNodeGroup(self, ng):
+  def modifyNodeGroup(self, schemaName, ng):
     """
     Parameters:
+     - schemaName
      - ng
     """
     pass
@@ -1272,6 +1285,13 @@ class Iface(fb303.FacebookService.Iface):
     """
     Parameters:
      - dbName
+    """
+    pass
+
+  def listNodeGroupByNames(self, ngNames):
+    """
+    Parameters:
+     - ngNames
     """
     pass
 
@@ -1298,6 +1318,17 @@ class Iface(fb303.FacebookService.Iface):
     Parameters:
      - dbName
      - tabName
+    """
+    pass
+
+  def assiginSchematoDB(self, dbName, schemaName, fileSplitKeys, part_keys, ngs):
+    """
+    Parameters:
+     - dbName
+     - schemaName
+     - fileSplitKeys
+     - part_keys
+     - ngs
     """
     pass
 
@@ -3067,6 +3098,44 @@ class Client(fb303.FacebookService.Client, Iface):
       self._iprot.readMessageEnd()
       raise x
     result = create_table_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.o1 is not None:
+      raise result.o1
+    if result.o2 is not None:
+      raise result.o2
+    if result.o3 is not None:
+      raise result.o3
+    if result.o4 is not None:
+      raise result.o4
+    return
+
+  def create_table_by_user(self, tbl, user):
+    """
+    Parameters:
+     - tbl
+     - user
+    """
+    self.send_create_table_by_user(tbl, user)
+    self.recv_create_table_by_user()
+
+  def send_create_table_by_user(self, tbl, user):
+    self._oprot.writeMessageBegin('create_table_by_user', TMessageType.CALL, self._seqid)
+    args = create_table_by_user_args()
+    args.tbl = tbl
+    args.user = user
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_create_table_by_user(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = create_table_by_user_result()
     result.read(self._iprot)
     self._iprot.readMessageEnd()
     if result.o1 is not None:
@@ -6488,6 +6557,33 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getMP failed: unknown result");
 
+  def getSessionId(self, ):
+    self.send_getSessionId()
+    return self.recv_getSessionId()
+
+  def send_getSessionId(self, ):
+    self._oprot.writeMessageBegin('getSessionId', TMessageType.CALL, self._seqid)
+    args = getSessionId_args()
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_getSessionId(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = getSessionId_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "getSessionId failed: unknown result");
+
   def createSchema(self, schema):
     """
     Parameters:
@@ -6524,17 +6620,19 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o3
     raise TApplicationException(TApplicationException.MISSING_RESULT, "createSchema failed: unknown result");
 
-  def modifySchema(self, schema):
+  def modifySchema(self, schemaName, schema):
     """
     Parameters:
+     - schemaName
      - schema
     """
-    self.send_modifySchema(schema)
+    self.send_modifySchema(schemaName, schema)
     return self.recv_modifySchema()
 
-  def send_modifySchema(self, schema):
+  def send_modifySchema(self, schemaName, schema):
     self._oprot.writeMessageBegin('modifySchema', TMessageType.CALL, self._seqid)
     args = modifySchema_args()
+    args.schemaName = schemaName
     args.schema = schema
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
@@ -6645,6 +6743,8 @@ class Client(fb303.FacebookService.Client, Iface):
       return result.success
     if result.o1 is not None:
       raise result.o1
+    if result.o2 is not None:
+      raise result.o2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getSchemaByName failed: unknown result");
 
   def getTableNodeGroups(self, dbName, tabName):
@@ -6823,17 +6923,19 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "addNodeGroup failed: unknown result");
 
-  def modifyNodeGroup(self, ng):
+  def modifyNodeGroup(self, schemaName, ng):
     """
     Parameters:
+     - schemaName
      - ng
     """
-    self.send_modifyNodeGroup(ng)
+    self.send_modifyNodeGroup(schemaName, ng)
     return self.recv_modifyNodeGroup()
 
-  def send_modifyNodeGroup(self, ng):
+  def send_modifyNodeGroup(self, schemaName, ng):
     self._oprot.writeMessageBegin('modifyNodeGroup', TMessageType.CALL, self._seqid)
     args = modifyNodeGroup_args()
+    args.schemaName = schemaName
     args.ng = ng
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
@@ -6946,6 +7048,38 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "listDBNodeGroups failed: unknown result");
 
+  def listNodeGroupByNames(self, ngNames):
+    """
+    Parameters:
+     - ngNames
+    """
+    self.send_listNodeGroupByNames(ngNames)
+    return self.recv_listNodeGroupByNames()
+
+  def send_listNodeGroupByNames(self, ngNames):
+    self._oprot.writeMessageBegin('listNodeGroupByNames', TMessageType.CALL, self._seqid)
+    args = listNodeGroupByNames_args()
+    args.ngNames = ngNames
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_listNodeGroupByNames(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = listNodeGroupByNames_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "listNodeGroupByNames failed: unknown result");
+
   def addTableNodeDist(self, db, tab, ng):
     """
     Parameters:
@@ -7052,6 +7186,50 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "listTableNodeDists failed: unknown result");
 
+  def assiginSchematoDB(self, dbName, schemaName, fileSplitKeys, part_keys, ngs):
+    """
+    Parameters:
+     - dbName
+     - schemaName
+     - fileSplitKeys
+     - part_keys
+     - ngs
+    """
+    self.send_assiginSchematoDB(dbName, schemaName, fileSplitKeys, part_keys, ngs)
+    return self.recv_assiginSchematoDB()
+
+  def send_assiginSchematoDB(self, dbName, schemaName, fileSplitKeys, part_keys, ngs):
+    self._oprot.writeMessageBegin('assiginSchematoDB', TMessageType.CALL, self._seqid)
+    args = assiginSchematoDB_args()
+    args.dbName = dbName
+    args.schemaName = schemaName
+    args.fileSplitKeys = fileSplitKeys
+    args.part_keys = part_keys
+    args.ngs = ngs
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_assiginSchematoDB(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = assiginSchematoDB_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.o1 is not None:
+      raise result.o1
+    if result.o2 is not None:
+      raise result.o2
+    if result.o3 is not None:
+      raise result.o3
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "assiginSchematoDB failed: unknown result");
+
 
 class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
   def __init__(self, handler):
@@ -7109,6 +7287,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["get_fields"] = Processor.process_get_fields
     self._processMap["get_schema"] = Processor.process_get_schema
     self._processMap["create_table"] = Processor.process_create_table
+    self._processMap["create_table_by_user"] = Processor.process_create_table_by_user
     self._processMap["create_table_with_environment_context"] = Processor.process_create_table_with_environment_context
     self._processMap["drop_table"] = Processor.process_drop_table
     self._processMap["get_tables"] = Processor.process_get_tables
@@ -7203,6 +7382,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["migrate2_stage1"] = Processor.process_migrate2_stage1
     self._processMap["migrate2_stage2"] = Processor.process_migrate2_stage2
     self._processMap["getMP"] = Processor.process_getMP
+    self._processMap["getSessionId"] = Processor.process_getSessionId
     self._processMap["createSchema"] = Processor.process_createSchema
     self._processMap["modifySchema"] = Processor.process_modifySchema
     self._processMap["deleteSchema"] = Processor.process_deleteSchema
@@ -7217,9 +7397,11 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["deleteNodeGroup"] = Processor.process_deleteNodeGroup
     self._processMap["listNodeGroups"] = Processor.process_listNodeGroups
     self._processMap["listDBNodeGroups"] = Processor.process_listDBNodeGroups
+    self._processMap["listNodeGroupByNames"] = Processor.process_listNodeGroupByNames
     self._processMap["addTableNodeDist"] = Processor.process_addTableNodeDist
     self._processMap["deleteTableNodeDist"] = Processor.process_deleteTableNodeDist
     self._processMap["listTableNodeDists"] = Processor.process_listTableNodeDists
+    self._processMap["assiginSchematoDB"] = Processor.process_assiginSchematoDB
 
   def process(self, iprot, oprot):
     (name, type, seqid) = iprot.readMessageBegin()
@@ -8024,6 +8206,26 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     except NoSuchObjectException as o4:
       result.o4 = o4
     oprot.writeMessageBegin("create_table", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_create_table_by_user(self, seqid, iprot, oprot):
+    args = create_table_by_user_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = create_table_by_user_result()
+    try:
+      self._handler.create_table_by_user(args.tbl, args.user)
+    except AlreadyExistsException as o1:
+      result.o1 = o1
+    except InvalidObjectException as o2:
+      result.o2 = o2
+    except MetaException as o3:
+      result.o3 = o3
+    except NoSuchObjectException as o4:
+      result.o4 = o4
+    oprot.writeMessageBegin("create_table_by_user", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -9508,6 +9710,20 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
+  def process_getSessionId(self, seqid, iprot, oprot):
+    args = getSessionId_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = getSessionId_result()
+    try:
+      result.success = self._handler.getSessionId()
+    except MetaException as o1:
+      result.o1 = o1
+    oprot.writeMessageBegin("getSessionId", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
   def process_createSchema(self, seqid, iprot, oprot):
     args = createSchema_args()
     args.read(iprot)
@@ -9532,7 +9748,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     iprot.readMessageEnd()
     result = modifySchema_result()
     try:
-      result.success = self._handler.modifySchema(args.schema)
+      result.success = self._handler.modifySchema(args.schemaName, args.schema)
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("modifySchema", TMessageType.REPLY, seqid)
@@ -9575,8 +9791,10 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     result = getSchemaByName_result()
     try:
       result.success = self._handler.getSchemaByName(args.schemaName)
-    except MetaException as o1:
+    except NoSuchObjectException as o1:
       result.o1 = o1
+    except MetaException as o2:
+      result.o2 = o2
     oprot.writeMessageBegin("getSchemaByName", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
@@ -9660,7 +9878,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     iprot.readMessageEnd()
     result = modifyNodeGroup_result()
     try:
-      result.success = self._handler.modifyNodeGroup(args.ng)
+      result.success = self._handler.modifyNodeGroup(args.schemaName, args.ng)
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("modifyNodeGroup", TMessageType.REPLY, seqid)
@@ -9710,6 +9928,20 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
+  def process_listNodeGroupByNames(self, seqid, iprot, oprot):
+    args = listNodeGroupByNames_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = listNodeGroupByNames_result()
+    try:
+      result.success = self._handler.listNodeGroupByNames(args.ngNames)
+    except MetaException as o1:
+      result.o1 = o1
+    oprot.writeMessageBegin("listNodeGroupByNames", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
   def process_addTableNodeDist(self, seqid, iprot, oprot):
     args = addTableNodeDist_args()
     args.read(iprot)
@@ -9748,6 +9980,24 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("listTableNodeDists", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_assiginSchematoDB(self, seqid, iprot, oprot):
+    args = assiginSchematoDB_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = assiginSchematoDB_result()
+    try:
+      result.success = self._handler.assiginSchematoDB(args.dbName, args.schemaName, args.fileSplitKeys, args.part_keys, args.ngs)
+    except InvalidObjectException as o1:
+      result.o1 = o1
+    except NoSuchObjectException as o2:
+      result.o2 = o2
+    except MetaException as o3:
+      result.o3 = o3
+    oprot.writeMessageBegin("assiginSchematoDB", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -17568,6 +17818,180 @@ class create_table_result:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
     oprot.writeStructBegin('create_table_result')
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
+      self.o2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o3 is not None:
+      oprot.writeFieldBegin('o3', TType.STRUCT, 3)
+      self.o3.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o4 is not None:
+      oprot.writeFieldBegin('o4', TType.STRUCT, 4)
+      self.o4.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class create_table_by_user_args:
+  """
+  Attributes:
+   - tbl
+   - user
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRUCT, 'tbl', (Table, Table.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'user', (User, User.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, tbl=None, user=None,):
+    self.tbl = tbl
+    self.user = user
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRUCT:
+          self.tbl = Table()
+          self.tbl.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.user = User()
+          self.user.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('create_table_by_user_args')
+    if self.tbl is not None:
+      oprot.writeFieldBegin('tbl', TType.STRUCT, 1)
+      self.tbl.write(oprot)
+      oprot.writeFieldEnd()
+    if self.user is not None:
+      oprot.writeFieldBegin('user', TType.STRUCT, 2)
+      self.user.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class create_table_by_user_result:
+  """
+  Attributes:
+   - o1
+   - o2
+   - o3
+   - o4
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRUCT, 'o1', (AlreadyExistsException, AlreadyExistsException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (InvalidObjectException, InvalidObjectException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'o3', (MetaException, MetaException.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'o4', (NoSuchObjectException, NoSuchObjectException.thrift_spec), None, ), # 4
+  )
+
+  def __init__(self, o1=None, o2=None, o3=None, o4=None,):
+    self.o1 = o1
+    self.o2 = o2
+    self.o3 = o3
+    self.o4 = o4
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = AlreadyExistsException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = InvalidObjectException()
+          self.o2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.o3 = MetaException()
+          self.o3.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.o4 = NoSuchObjectException()
+          self.o4.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('create_table_by_user_result')
     if self.o1 is not None:
       oprot.writeFieldBegin('o1', TType.STRUCT, 1)
       self.o1.write(oprot)
@@ -29294,7 +29718,7 @@ class create_file_args:
     (2, TType.I32, 'repnr', None, None, ), # 2
     (3, TType.STRING, 'db_name', None, None, ), # 3
     (4, TType.STRING, 'table_name', None, None, ), # 4
-    (5, TType.LIST, 'values', (TType.STRING,None), None, ), # 5
+    (5, TType.LIST, 'values', (TType.STRUCT,(SplitValue, SplitValue.thrift_spec)), None, ), # 5
   )
 
   def __init__(self, node_name=None, repnr=None, db_name=None, table_name=None, values=None,):
@@ -29338,7 +29762,8 @@ class create_file_args:
           self.values = []
           (_etype809, _size806) = iprot.readListBegin()
           for _i810 in xrange(_size806):
-            _elem811 = iprot.readString();
+            _elem811 = SplitValue()
+            _elem811.read(iprot)
             self.values.append(_elem811)
           iprot.readListEnd()
         else:
@@ -29371,9 +29796,9 @@ class create_file_args:
       oprot.writeFieldEnd()
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 5)
-      oprot.writeListBegin(TType.STRING, len(self.values))
+      oprot.writeListBegin(TType.STRUCT, len(self.values))
       for iter812 in self.values:
-        oprot.writeString(iter812)
+        iter812.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -33085,6 +33510,120 @@ class getMP_result:
   def __ne__(self, other):
     return not (self == other)
 
+class getSessionId_args:
+
+  thrift_spec = (
+  )
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getSessionId_args')
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getSessionId_result:
+  """
+  Attributes:
+   - success
+   - o1
+  """
+
+  thrift_spec = (
+    (0, TType.I64, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, o1=None,):
+    self.success = success
+    self.o1 = o1
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.I64:
+          self.success = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getSessionId_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.I64, 0)
+      oprot.writeI64(self.success)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class createSchema_args:
   """
   Attributes:
@@ -33247,15 +33786,18 @@ class createSchema_result:
 class modifySchema_args:
   """
   Attributes:
+   - schemaName
    - schema
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'schema', (GlobalSchema, GlobalSchema.thrift_spec), None, ), # 1
+    (1, TType.STRING, 'schemaName', None, None, ), # 1
+    (2, TType.STRUCT, 'schema', (GlobalSchema, GlobalSchema.thrift_spec), None, ), # 2
   )
 
-  def __init__(self, schema=None,):
+  def __init__(self, schemaName=None, schema=None,):
+    self.schemaName = schemaName
     self.schema = schema
 
   def read(self, iprot):
@@ -33268,6 +33810,11 @@ class modifySchema_args:
       if ftype == TType.STOP:
         break
       if fid == 1:
+        if ftype == TType.STRING:
+          self.schemaName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
         if ftype == TType.STRUCT:
           self.schema = GlobalSchema()
           self.schema.read(iprot)
@@ -33283,8 +33830,12 @@ class modifySchema_args:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
     oprot.writeStructBegin('modifySchema_args')
+    if self.schemaName is not None:
+      oprot.writeFieldBegin('schemaName', TType.STRING, 1)
+      oprot.writeString(self.schemaName)
+      oprot.writeFieldEnd()
     if self.schema is not None:
-      oprot.writeFieldBegin('schema', TType.STRUCT, 1)
+      oprot.writeFieldBegin('schema', TType.STRUCT, 2)
       self.schema.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -33697,16 +34248,19 @@ class getSchemaByName_result:
   Attributes:
    - success
    - o1
+   - o2
   """
 
   thrift_spec = (
     (0, TType.STRUCT, 'success', (GlobalSchema, GlobalSchema.thrift_spec), None, ), # 0
-    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'o1', (NoSuchObjectException, NoSuchObjectException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (MetaException, MetaException.thrift_spec), None, ), # 2
   )
 
-  def __init__(self, success=None, o1=None,):
+  def __init__(self, success=None, o1=None, o2=None,):
     self.success = success
     self.o1 = o1
+    self.o2 = o2
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -33725,8 +34279,14 @@ class getSchemaByName_result:
           iprot.skip(ftype)
       elif fid == 1:
         if ftype == TType.STRUCT:
-          self.o1 = MetaException()
+          self.o1 = NoSuchObjectException()
           self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = MetaException()
+          self.o2.read(iprot)
         else:
           iprot.skip(ftype)
       else:
@@ -33746,6 +34306,10 @@ class getSchemaByName_result:
     if self.o1 is not None:
       oprot.writeFieldBegin('o1', TType.STRUCT, 1)
       self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
+      self.o2.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -34570,15 +35134,18 @@ class addNodeGroup_result:
 class modifyNodeGroup_args:
   """
   Attributes:
+   - schemaName
    - ng
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'ng', (NodeGroup, NodeGroup.thrift_spec), None, ), # 1
+    (1, TType.STRING, 'schemaName', None, None, ), # 1
+    (2, TType.STRUCT, 'ng', (NodeGroup, NodeGroup.thrift_spec), None, ), # 2
   )
 
-  def __init__(self, ng=None,):
+  def __init__(self, schemaName=None, ng=None,):
+    self.schemaName = schemaName
     self.ng = ng
 
   def read(self, iprot):
@@ -34591,6 +35158,11 @@ class modifyNodeGroup_args:
       if ftype == TType.STOP:
         break
       if fid == 1:
+        if ftype == TType.STRING:
+          self.schemaName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
         if ftype == TType.STRUCT:
           self.ng = NodeGroup()
           self.ng.read(iprot)
@@ -34606,8 +35178,12 @@ class modifyNodeGroup_args:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
     oprot.writeStructBegin('modifyNodeGroup_args')
+    if self.schemaName is not None:
+      oprot.writeFieldBegin('schemaName', TType.STRING, 1)
+      oprot.writeString(self.schemaName)
+      oprot.writeFieldEnd()
     if self.ng is not None:
-      oprot.writeFieldBegin('ng', TType.STRUCT, 1)
+      oprot.writeFieldBegin('ng', TType.STRUCT, 2)
       self.ng.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -35097,6 +35673,155 @@ class listDBNodeGroups_result:
   def __ne__(self, other):
     return not (self == other)
 
+class listNodeGroupByNames_args:
+  """
+  Attributes:
+   - ngNames
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.LIST, 'ngNames', (TType.STRING,None), None, ), # 1
+  )
+
+  def __init__(self, ngNames=None,):
+    self.ngNames = ngNames
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.LIST:
+          self.ngNames = []
+          (_etype951, _size948) = iprot.readListBegin()
+          for _i952 in xrange(_size948):
+            _elem953 = iprot.readString();
+            self.ngNames.append(_elem953)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('listNodeGroupByNames_args')
+    if self.ngNames is not None:
+      oprot.writeFieldBegin('ngNames', TType.LIST, 1)
+      oprot.writeListBegin(TType.STRING, len(self.ngNames))
+      for iter954 in self.ngNames:
+        oprot.writeString(iter954)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class listNodeGroupByNames_result:
+  """
+  Attributes:
+   - success
+   - o1
+  """
+
+  thrift_spec = (
+    (0, TType.LIST, 'success', (TType.STRUCT,(NodeGroup, NodeGroup.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, o1=None,):
+    self.success = success
+    self.o1 = o1
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype958, _size955) = iprot.readListBegin()
+          for _i959 in xrange(_size955):
+            _elem960 = NodeGroup()
+            _elem960.read(iprot)
+            self.success.append(_elem960)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('listNodeGroupByNames_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
+      for iter961 in self.success:
+        iter961.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class addTableNodeDist_args:
   """
   Attributes:
@@ -35139,10 +35864,10 @@ class addTableNodeDist_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.ng = []
-          (_etype951, _size948) = iprot.readListBegin()
-          for _i952 in xrange(_size948):
-            _elem953 = iprot.readString();
-            self.ng.append(_elem953)
+          (_etype965, _size962) = iprot.readListBegin()
+          for _i966 in xrange(_size962):
+            _elem967 = iprot.readString();
+            self.ng.append(_elem967)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -35167,8 +35892,8 @@ class addTableNodeDist_args:
     if self.ng is not None:
       oprot.writeFieldBegin('ng', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.ng))
-      for iter954 in self.ng:
-        oprot.writeString(iter954)
+      for iter968 in self.ng:
+        oprot.writeString(iter968)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -35303,10 +36028,10 @@ class deleteTableNodeDist_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.ng = []
-          (_etype958, _size955) = iprot.readListBegin()
-          for _i959 in xrange(_size955):
-            _elem960 = iprot.readString();
-            self.ng.append(_elem960)
+          (_etype972, _size969) = iprot.readListBegin()
+          for _i973 in xrange(_size969):
+            _elem974 = iprot.readString();
+            self.ng.append(_elem974)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -35331,8 +36056,8 @@ class deleteTableNodeDist_args:
     if self.ng is not None:
       oprot.writeFieldBegin('ng', TType.LIST, 3)
       oprot.writeListBegin(TType.STRING, len(self.ng))
-      for iter961 in self.ng:
-        oprot.writeString(iter961)
+      for iter975 in self.ng:
+        oprot.writeString(iter975)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -35525,11 +36250,11 @@ class listTableNodeDists_result:
       if fid == 0:
         if ftype == TType.LIST:
           self.success = []
-          (_etype965, _size962) = iprot.readListBegin()
-          for _i966 in xrange(_size962):
-            _elem967 = NodeGroup()
-            _elem967.read(iprot)
-            self.success.append(_elem967)
+          (_etype979, _size976) = iprot.readListBegin()
+          for _i980 in xrange(_size976):
+            _elem981 = NodeGroup()
+            _elem981.read(iprot)
+            self.success.append(_elem981)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -35552,13 +36277,246 @@ class listTableNodeDists_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
       oprot.writeListBegin(TType.STRUCT, len(self.success))
-      for iter968 in self.success:
-        iter968.write(oprot)
+      for iter982 in self.success:
+        iter982.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.o1 is not None:
       oprot.writeFieldBegin('o1', TType.STRUCT, 1)
       self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class assiginSchematoDB_args:
+  """
+  Attributes:
+   - dbName
+   - schemaName
+   - fileSplitKeys
+   - part_keys
+   - ngs
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'dbName', None, None, ), # 1
+    (2, TType.STRING, 'schemaName', None, None, ), # 2
+    (3, TType.LIST, 'fileSplitKeys', (TType.STRUCT,(FieldSchema, FieldSchema.thrift_spec)), None, ), # 3
+    (4, TType.LIST, 'part_keys', (TType.STRUCT,(FieldSchema, FieldSchema.thrift_spec)), None, ), # 4
+    (5, TType.LIST, 'ngs', (TType.STRUCT,(NodeGroup, NodeGroup.thrift_spec)), None, ), # 5
+  )
+
+  def __init__(self, dbName=None, schemaName=None, fileSplitKeys=None, part_keys=None, ngs=None,):
+    self.dbName = dbName
+    self.schemaName = schemaName
+    self.fileSplitKeys = fileSplitKeys
+    self.part_keys = part_keys
+    self.ngs = ngs
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.dbName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.schemaName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.LIST:
+          self.fileSplitKeys = []
+          (_etype986, _size983) = iprot.readListBegin()
+          for _i987 in xrange(_size983):
+            _elem988 = FieldSchema()
+            _elem988.read(iprot)
+            self.fileSplitKeys.append(_elem988)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.LIST:
+          self.part_keys = []
+          (_etype992, _size989) = iprot.readListBegin()
+          for _i993 in xrange(_size989):
+            _elem994 = FieldSchema()
+            _elem994.read(iprot)
+            self.part_keys.append(_elem994)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.LIST:
+          self.ngs = []
+          (_etype998, _size995) = iprot.readListBegin()
+          for _i999 in xrange(_size995):
+            _elem1000 = NodeGroup()
+            _elem1000.read(iprot)
+            self.ngs.append(_elem1000)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('assiginSchematoDB_args')
+    if self.dbName is not None:
+      oprot.writeFieldBegin('dbName', TType.STRING, 1)
+      oprot.writeString(self.dbName)
+      oprot.writeFieldEnd()
+    if self.schemaName is not None:
+      oprot.writeFieldBegin('schemaName', TType.STRING, 2)
+      oprot.writeString(self.schemaName)
+      oprot.writeFieldEnd()
+    if self.fileSplitKeys is not None:
+      oprot.writeFieldBegin('fileSplitKeys', TType.LIST, 3)
+      oprot.writeListBegin(TType.STRUCT, len(self.fileSplitKeys))
+      for iter1001 in self.fileSplitKeys:
+        iter1001.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.part_keys is not None:
+      oprot.writeFieldBegin('part_keys', TType.LIST, 4)
+      oprot.writeListBegin(TType.STRUCT, len(self.part_keys))
+      for iter1002 in self.part_keys:
+        iter1002.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.ngs is not None:
+      oprot.writeFieldBegin('ngs', TType.LIST, 5)
+      oprot.writeListBegin(TType.STRUCT, len(self.ngs))
+      for iter1003 in self.ngs:
+        iter1003.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class assiginSchematoDB_result:
+  """
+  Attributes:
+   - success
+   - o1
+   - o2
+   - o3
+  """
+
+  thrift_spec = (
+    (0, TType.BOOL, 'success', None, None, ), # 0
+    (1, TType.STRUCT, 'o1', (InvalidObjectException, InvalidObjectException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'o2', (NoSuchObjectException, NoSuchObjectException.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'o3', (MetaException, MetaException.thrift_spec), None, ), # 3
+  )
+
+  def __init__(self, success=None, o1=None, o2=None, o3=None,):
+    self.success = success
+    self.o1 = o1
+    self.o2 = o2
+    self.o3 = o3
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.BOOL:
+          self.success = iprot.readBool();
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = InvalidObjectException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.o2 = NoSuchObjectException()
+          self.o2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.o3 = MetaException()
+          self.o3.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('assiginSchematoDB_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.BOOL, 0)
+      oprot.writeBool(self.success)
+      oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o2 is not None:
+      oprot.writeFieldBegin('o2', TType.STRUCT, 2)
+      self.o2.write(oprot)
+      oprot.writeFieldEnd()
+    if self.o3 is not None:
+      oprot.writeFieldBegin('o3', TType.STRUCT, 3)
+      self.o3.write(oprot)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

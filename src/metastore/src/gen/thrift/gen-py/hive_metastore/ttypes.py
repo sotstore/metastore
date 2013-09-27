@@ -3154,6 +3154,90 @@ class BusiTypeDatacenter:
   def __ne__(self, other):
     return not (self == other)
 
+class SplitValue:
+  """
+  Attributes:
+   - splitKeyName
+   - level
+   - value
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'splitKeyName', None, None, ), # 1
+    (2, TType.I32, 'level', None, None, ), # 2
+    (3, TType.STRING, 'value', None, None, ), # 3
+  )
+
+  def __init__(self, splitKeyName=None, level=None, value=None,):
+    self.splitKeyName = splitKeyName
+    self.level = level
+    self.value = value
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.splitKeyName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.I32:
+          self.level = iprot.readI32();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRING:
+          self.value = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('SplitValue')
+    if self.splitKeyName is not None:
+      oprot.writeFieldBegin('splitKeyName', TType.STRING, 1)
+      oprot.writeString(self.splitKeyName)
+      oprot.writeFieldEnd()
+    if self.level is not None:
+      oprot.writeFieldBegin('level', TType.I32, 2)
+      oprot.writeI32(self.level)
+      oprot.writeFieldEnd()
+    if self.value is not None:
+      oprot.writeFieldBegin('value', TType.STRING, 3)
+      oprot.writeString(self.value)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class Device:
   """
   Attributes:
@@ -3422,7 +3506,7 @@ class SFile:
     (8, TType.I64, 'all_record_nr', None, None, ), # 8
     (9, TType.LIST, 'locations', (TType.STRUCT,(SFileLocation, SFileLocation.thrift_spec)), None, ), # 9
     (10, TType.I64, 'length', None, None, ), # 10
-    (11, TType.LIST, 'values', (TType.STRING,None), None, ), # 11
+    (11, TType.LIST, 'values', (TType.STRUCT,(SplitValue, SplitValue.thrift_spec)), None, ), # 11
   )
 
   def __init__(self, fid=None, dbName=None, tableName=None, store_status=None, rep_nr=None, digest=None, record_nr=None, all_record_nr=None, locations=None, length=None, values=None,):
@@ -3508,7 +3592,8 @@ class SFile:
           self.values = []
           (_etype276, _size273) = iprot.readListBegin()
           for _i277 in xrange(_size273):
-            _elem278 = iprot.readString();
+            _elem278 = SplitValue()
+            _elem278.read(iprot)
             self.values.append(_elem278)
           iprot.readListEnd()
         else:
@@ -3568,9 +3653,9 @@ class SFile:
       oprot.writeFieldEnd()
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 11)
-      oprot.writeListBegin(TType.STRING, len(self.values))
+      oprot.writeListBegin(TType.STRUCT, len(self.values))
       for iter280 in self.values:
-        oprot.writeString(iter280)
+        iter280.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()

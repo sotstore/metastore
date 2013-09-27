@@ -3653,6 +3653,94 @@ void swap(BusiTypeDatacenter &a, BusiTypeDatacenter &b) {
   swap(a.__isset, b.__isset);
 }
 
+const char* SplitValue::ascii_fingerprint = "70563A0628F75DF9555F4D24690B1E26";
+const uint8_t SplitValue::binary_fingerprint[16] = {0x70,0x56,0x3A,0x06,0x28,0xF7,0x5D,0xF9,0x55,0x5F,0x4D,0x24,0x69,0x0B,0x1E,0x26};
+
+uint32_t SplitValue::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->splitKeyName);
+          this->__isset.splitKeyName = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->level);
+          this->__isset.level = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 3:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->value);
+          this->__isset.value = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t SplitValue::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("SplitValue");
+
+  xfer += oprot->writeFieldBegin("splitKeyName", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString(this->splitKeyName);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("level", ::apache::thrift::protocol::T_I32, 2);
+  xfer += oprot->writeI32(this->level);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("value", ::apache::thrift::protocol::T_STRING, 3);
+  xfer += oprot->writeString(this->value);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+void swap(SplitValue &a, SplitValue &b) {
+  using ::std::swap;
+  swap(a.splitKeyName, b.splitKeyName);
+  swap(a.level, b.level);
+  swap(a.value, b.value);
+  swap(a.__isset, b.__isset);
+}
+
 const char* Device::ascii_fingerprint = "2A8D2B57C3E20FF7D0F9FCA97EECB292";
 const uint8_t Device::binary_fingerprint[16] = {0x2A,0x8D,0x2B,0x57,0xC3,0xE2,0x0F,0xF7,0xD0,0xF9,0xFC,0xA9,0x7E,0xEC,0xB2,0x92};
 
@@ -3907,8 +3995,8 @@ void swap(SFileLocation &a, SFileLocation &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* SFile::ascii_fingerprint = "69291681D9E8A39CBA63E2B3E0433D05";
-const uint8_t SFile::binary_fingerprint[16] = {0x69,0x29,0x16,0x81,0xD9,0xE8,0xA3,0x9C,0xBA,0x63,0xE2,0xB3,0xE0,0x43,0x3D,0x05};
+const char* SFile::ascii_fingerprint = "74D4B54F2BB87CDE697FD7A565CEE102";
+const uint8_t SFile::binary_fingerprint[16] = {0x74,0xD4,0xB5,0x4F,0x2B,0xB8,0x7C,0xDE,0x69,0x7F,0xD7,0xA5,0x65,0xCE,0xE1,0x02};
 
 uint32_t SFile::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -4033,7 +4121,7 @@ uint32_t SFile::read(::apache::thrift::protocol::TProtocol* iprot) {
             uint32_t _i245;
             for (_i245 = 0; _i245 < _size241; ++_i245)
             {
-              xfer += iprot->readString(this->values[_i245]);
+              xfer += this->values[_i245].read(iprot);
             }
             xfer += iprot->readListEnd();
           }
@@ -4108,11 +4196,11 @@ uint32_t SFile::write(::apache::thrift::protocol::TProtocol* oprot) const {
 
   xfer += oprot->writeFieldBegin("values", ::apache::thrift::protocol::T_LIST, 11);
   {
-    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRING, static_cast<uint32_t>(this->values.size()));
-    std::vector<std::string> ::const_iterator _iter247;
+    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->values.size()));
+    std::vector<SplitValue> ::const_iterator _iter247;
     for (_iter247 = this->values.begin(); _iter247 != this->values.end(); ++_iter247)
     {
-      xfer += oprot->writeString((*_iter247));
+      xfer += (*_iter247).write(oprot);
     }
     xfer += oprot->writeListEnd();
   }
@@ -4139,8 +4227,8 @@ void swap(SFile &a, SFile &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* SFileRef::ascii_fingerprint = "06B03ED0CDD9D9AD685E5CAD063E5DBA";
-const uint8_t SFileRef::binary_fingerprint[16] = {0x06,0xB0,0x3E,0xD0,0xCD,0xD9,0xD9,0xAD,0x68,0x5E,0x5C,0xAD,0x06,0x3E,0x5D,0xBA};
+const char* SFileRef::ascii_fingerprint = "22C310E7699000A110311B3C5387D7D9";
+const uint8_t SFileRef::binary_fingerprint[16] = {0x22,0xC3,0x10,0xE7,0x69,0x90,0x00,0xA1,0x10,0x31,0x1B,0x3C,0x53,0x87,0xD7,0xD9};
 
 uint32_t SFileRef::read(::apache::thrift::protocol::TProtocol* iprot) {
 

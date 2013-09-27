@@ -99,9 +99,9 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
-import org.apache.hadoop.hive.metastore.api.Schema;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
+import org.apache.hadoop.hive.metastore.api.SplitValue;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.StringColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
@@ -140,6 +140,7 @@ import org.apache.hadoop.hive.metastore.model.MRole;
 import org.apache.hadoop.hive.metastore.model.MRoleMap;
 import org.apache.hadoop.hive.metastore.model.MSchema;
 import org.apache.hadoop.hive.metastore.model.MSerDeInfo;
+import org.apache.hadoop.hive.metastore.model.MSplitValue;
 import org.apache.hadoop.hive.metastore.model.MStorageDescriptor;
 import org.apache.hadoop.hive.metastore.model.MStringList;
 import org.apache.hadoop.hive.metastore.model.MTable;
@@ -2461,8 +2462,14 @@ public class ObjectStore implements RawStore, Configurable {
         dbName = mf.getTable().getDatabase().getName();
       }
     }
+    List<SplitValue> values = new ArrayList<SplitValue>();
+    if (mf.getValues() != null) {
+      for (MSplitValue msv : mf.getValues()) {
+        values.add(new SplitValue(msv.getPkname(), msv.getLevel(), msv.getValue()));
+      }
+    }
     return new SFile(mf.getFid(), dbName, tableName, mf.getStore_status(), mf.getRep_nr(),
-        mf.getDigest(), mf.getRecord_nr(), mf.getAll_record_nr(), null, mf.getLength(), mf.getValues());
+        mf.getDigest(), mf.getRecord_nr(), mf.getAll_record_nr(), null, mf.getLength(), values);
   }
 
   private List<SFileLocation> convertToSFileLocation(List<MFileLocation> mfl) throws MetaException {
@@ -2554,9 +2561,15 @@ public class ObjectStore implements RawStore, Configurable {
         throw new InvalidObjectException("Invalid db or table name.");
       }
     }
+    List<MSplitValue> values = new ArrayList<MSplitValue>();
+    if (file.getValuesSize() > 0) {
+      for (SplitValue sv : file.getValues()) {
+        values.add(new MSplitValue(sv.getSplitKeyName(), sv.getLevel(), sv.getValue()));
+      }
+    }
 
     return new MFile(file.getFid(), mt, file.getStore_status(), file.getRep_nr(),
-        file.getDigest(), file.getRecord_nr(), file.getAll_record_nr(), file.getLength(), file.getValues());
+        file.getDigest(), file.getRecord_nr(), file.getAll_record_nr(), file.getLength(), values);
   }
 
   private MFileLocation convertToMFileLocation(SFileLocation location) {
@@ -8390,24 +8403,15 @@ public MUser getMUser(String userName) {
       return false;
     }
   }
-
   @Override
   public boolean modifyGeoLocation(GeoLocation gl) throws MetaException {
 
     boolean success = false;
     boolean committed = false;
-    if (gl != null) {
-      gl.setGeoLocName(gl.getGeoLocName());
-      gl.setNation(gl.getNation());
-      gl.setProvince(gl.getProvince());
-      gl.setCity(gl.getCity());
-      gl.setDist(gl.getDist());
-    } else {
-      return success;
-    }
     try {
       openTransaction();
-      pm.makePersistent(gl);
+      MGeoLocation mgl = convertToMGeoLocation(gl);
+      pm.makePersistent(mgl);
       committed = commitTransaction();
     } finally {
       if (!committed) {
@@ -8423,12 +8427,13 @@ public MUser getMUser(String userName) {
     boolean success = false;
     try {
       openTransaction();
-      MGeoLocation mgl = new MGeoLocation();
-      mgl.setGeoLocName(gl.getGeoLocName());
-      mgl.setNation(gl.getNation());
-      mgl.setProvince(gl.getProvince());
-      mgl.setCity(gl.getCity());
-      mgl.setDist(gl.getDist());
+      MGeoLocation mgl = convertToMGeoLocation(gl);
+//      MGeoLocation mgl = new MGeoLocation();
+//      mgl.setGeoLocName(gl.getGeoLocName());
+//      mgl.setNation(gl.getNation());
+//      mgl.setProvince(gl.getProvince());
+//      mgl.setCity(gl.getCity());
+//      mgl.setDist(gl.getDist());
       if (mgl != null) {
         pm.deletePersistent(mgl);
       }
@@ -8465,16 +8470,10 @@ public MUser getMUser(String userName) {
   }
 
   @Override
-  public Schema getSchema(String schema_name) throws MetaException {
-    MSchema mSchema = null;
-    try {
-      mSchema =  this.getMSchema(schema_name);
-    } catch (NoSuchObjectException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+  public GlobalSchema getSchema(String schema_name) throws NoSuchObjectException,MetaException {
+    MSchema mSchema =  this.getMSchema(schema_name);
 
-    Schema schema = new Schema();
+    GlobalSchema schema = convertToSchema(mSchema);
 
     return schema;
   }
@@ -8491,7 +8490,7 @@ public MUser getMUser(String userName) {
       if(mSchema.getSd().getCD().getCols() != null){//增加业务类型查询支持
         List<MBusiTypeColumn> bcs = new ArrayList<MBusiTypeColumn>();
 
-        //@FIXME
+        //FIXME 修改业务视图
 //        createBusiTypeCol(mSchema, bcs);
 
         if(!bcs.isEmpty()){
@@ -8512,7 +8511,7 @@ public MUser getMUser(String userName) {
 
       LOG.info("createSchema w/ ID=" + JDOHelper.getObjectId(mSchema));
 
-      //@FIXME
+      //FIXME 修改权限
 //      PrincipalPrivilegeSet principalPrivs = schema.getPrivileges();
 //      List<Object> toPersistPrivObjs = new ArrayList<Object>();
 //      if (principalPrivs != null) {
@@ -8616,8 +8615,9 @@ public MUser getMUser(String userName) {
       query.declareParameters("java.lang.String geoLocName");
 //      gl =  (GeoLocation) query.execute(geoLocName);
       query.setUnique(true);//设置返回的结果是唯一的
-      MGeoLocation result=(MGeoLocation)query.execute(geoLocName);
-      gl = convertToGeoLocation(result);
+      MGeoLocation mgl=(MGeoLocation)query.execute(geoLocName);
+      LOG.info("++++++++++++++++++++++++MGeoLocation" + mgl.getGeoLocName());
+      gl = convertToGeoLocation(mgl);
       committed = commitTransaction();
     } finally {
       if (!committed) {
@@ -8817,7 +8817,7 @@ public MUser getMUser(String userName) {
 //          pm.deletePersistentAll(partColGrants);
 //        }
 
-        //@FIXME 删除业务列和相关视图
+        //FIXME 删除业务列和相关视图
 
         preDropStorageDescriptor(schema.getSd());
         // then remove the table
@@ -8860,6 +8860,17 @@ public MUser getMUser(String userName) {
       }
     }
     return schemas;
+  }
+
+  private GlobalSchema convertToSchema(MSchema mschema) throws MetaException {
+    GlobalSchema schema = null;
+    if(mschema != null) {
+        schema = new GlobalSchema(mschema.getSchemaName(), mschema.getOwner(),
+            mschema.getCreateTime(), mschema.getLastAccessTime(), mschema.getRetention(),
+            convertToStorageDescriptor(mschema.getSd()), mschema.getParameters(),
+            mschema.getViewOriginalText(), mschema.getViewExpandedText(), mschema.getSchemaType());
+    }
+    return schema;
   }
 
   private List<GlobalSchema> convertToSchemas(List<MSchema> mschemas) throws MetaException {
@@ -8914,12 +8925,24 @@ public MUser getMUser(String userName) {
   }
 
   @Override
-  public boolean modifyNodeGroup(NodeGroup ng) throws InvalidObjectException, MetaException {
+  public boolean modifyNodeGroup(String ngName,NodeGroup ng) throws InvalidObjectException, MetaException {
     boolean success = false;
     boolean commited = false;
     try {
+      List<String> ngNames = new ArrayList<String>();
+      ngNames.add(ngName);
+      List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
+      if (mngs == null) {
+        throw new MetaException("NodeGroup " + ngName+" does not exist.");
+      }else if(mngs.size() != 1){
+        throw new MetaException("Duplicated NodeGroup " + ngName+" exist.");
+      }
+
       openTransaction();
-      MNodeGroup mng = convertToMNodeGroup(ng);
+      MNodeGroup new_mng = convertToMNodeGroup(ng);
+
+      MNodeGroup mng = mngs.get(0);
+      mng.setMNodeGroup(new_mng);
 
       pm.makePersistent(mng);
       commited = commitTransaction();
@@ -8937,13 +8960,13 @@ public MUser getMUser(String userName) {
     boolean success = false;
     boolean commited = false;
     try {
-      openTransaction();
       List<String> ngNames = new ArrayList<String>();
       ngNames.add(ng.getNode_group_name());
       List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
       if (mngs == null) {
         throw new MetaException("NodeGroup " + ng.getNode_group_name()+" does not exist.");
       }
+      openTransaction();
 
       pm.deletePersistentAll(mngs);// watch here
       commited = commitTransaction();
@@ -9145,6 +9168,12 @@ public MUser getMUser(String userName) {
   public List<NodeGroup> listTableNodeDists(String dbName, String tabName) throws MetaException {
     Table tbl = this.getTable(dbName, tabName);
     return tbl.getNodeGroups();
+  }
+
+  @Override
+  public List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws MetaException {
+    List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
+    return convertToNodeGroups(mngs);
   }
 
 }

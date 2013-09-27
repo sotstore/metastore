@@ -19,6 +19,7 @@
 package org.apache.hadoop.hive.ql.plan;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,6 +38,7 @@ public class CreateTableLikeDesc extends DDLDesc implements Serializable {
   String location;
   boolean ifNotExists;
   String likeTableName;
+  List<String> nodeGroupNames;
 
   public CreateTableLikeDesc() {
   }
@@ -150,5 +152,15 @@ public class CreateTableLikeDesc extends DDLDesc implements Serializable {
   public void setLikeTableName(String likeTableName) {
     this.likeTableName = likeTableName;
   }
+
+  public List<String> getNodeGroupNames() {
+    return nodeGroupNames;
+  }
+
+  public void setNodeGroupNames(List<String> nodeGroupNames) {
+    this.nodeGroupNames = nodeGroupNames;
+  }
+
+
 
 }

@@ -76,6 +76,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '   get_fields(string db_name, string table_name)'
   print '   get_schema(string db_name, string table_name)'
   print '  void create_table(Table tbl)'
+  print '  void create_table_by_user(Table tbl, User user)'
   print '  void create_table_with_environment_context(Table tbl, EnvironmentContext environment_context)'
   print '  void drop_table(string dbname, string name, bool deleteData)'
   print '   get_tables(string db_name, string pattern)'
@@ -170,8 +171,9 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '   migrate2_stage1(string dbName, string tableName,  partNames, string to_db)'
   print '  bool migrate2_stage2(string dbName, string tableName,  partNames, string from_db, string to_db, string to_nas_devid)'
   print '  string getMP(string node_name, string devid)'
+  print '  i64 getSessionId()'
   print '  bool createSchema(GlobalSchema schema)'
-  print '  bool modifySchema(GlobalSchema schema)'
+  print '  bool modifySchema(string schemaName, GlobalSchema schema)'
   print '  bool deleteSchema(string schemaName)'
   print '   listSchemas()'
   print '  GlobalSchema getSchemaByName(string schemaName)'
@@ -180,13 +182,15 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '   listTableFiles(string dbName, string tabName, i16 max_num)'
   print '   filterTableFiles(string dbName, string tabName,  values)'
   print '  bool addNodeGroup(NodeGroup ng)'
-  print '  bool modifyNodeGroup(NodeGroup ng)'
+  print '  bool modifyNodeGroup(string schemaName, NodeGroup ng)'
   print '  bool deleteNodeGroup(NodeGroup ng)'
   print '   listNodeGroups()'
   print '   listDBNodeGroups(string dbName)'
+  print '   listNodeGroupByNames( ngNames)'
   print '  bool addTableNodeDist(string db, string tab,  ng)'
   print '  bool deleteTableNodeDist(string db, string tab,  ng)'
   print '   listTableNodeDists(string dbName, string tabName)'
+  print '  bool assiginSchematoDB(string dbName, string schemaName,  fileSplitKeys,  part_keys,  ngs)'
   print ''
   sys.exit(0)
 
@@ -555,6 +559,12 @@ elif cmd == 'create_table':
     print 'create_table requires 1 args'
     sys.exit(1)
   pp.pprint(client.create_table(eval(args[0]),))
+
+elif cmd == 'create_table_by_user':
+  if len(args) != 2:
+    print 'create_table_by_user requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.create_table_by_user(eval(args[0]),eval(args[1]),))
 
 elif cmd == 'create_table_with_environment_context':
   if len(args) != 2:
@@ -1120,6 +1130,12 @@ elif cmd == 'getMP':
     sys.exit(1)
   pp.pprint(client.getMP(args[0],args[1],))
 
+elif cmd == 'getSessionId':
+  if len(args) != 0:
+    print 'getSessionId requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.getSessionId())
+
 elif cmd == 'createSchema':
   if len(args) != 1:
     print 'createSchema requires 1 args'
@@ -1127,10 +1143,10 @@ elif cmd == 'createSchema':
   pp.pprint(client.createSchema(eval(args[0]),))
 
 elif cmd == 'modifySchema':
-  if len(args) != 1:
-    print 'modifySchema requires 1 args'
+  if len(args) != 2:
+    print 'modifySchema requires 2 args'
     sys.exit(1)
-  pp.pprint(client.modifySchema(eval(args[0]),))
+  pp.pprint(client.modifySchema(args[0],eval(args[1]),))
 
 elif cmd == 'deleteSchema':
   if len(args) != 1:
@@ -1181,10 +1197,10 @@ elif cmd == 'addNodeGroup':
   pp.pprint(client.addNodeGroup(eval(args[0]),))
 
 elif cmd == 'modifyNodeGroup':
-  if len(args) != 1:
-    print 'modifyNodeGroup requires 1 args'
+  if len(args) != 2:
+    print 'modifyNodeGroup requires 2 args'
     sys.exit(1)
-  pp.pprint(client.modifyNodeGroup(eval(args[0]),))
+  pp.pprint(client.modifyNodeGroup(args[0],eval(args[1]),))
 
 elif cmd == 'deleteNodeGroup':
   if len(args) != 1:
@@ -1204,6 +1220,12 @@ elif cmd == 'listDBNodeGroups':
     sys.exit(1)
   pp.pprint(client.listDBNodeGroups(args[0],))
 
+elif cmd == 'listNodeGroupByNames':
+  if len(args) != 1:
+    print 'listNodeGroupByNames requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.listNodeGroupByNames(eval(args[0]),))
+
 elif cmd == 'addTableNodeDist':
   if len(args) != 3:
     print 'addTableNodeDist requires 3 args'
@@ -1221,6 +1243,12 @@ elif cmd == 'listTableNodeDists':
     print 'listTableNodeDists requires 2 args'
     sys.exit(1)
   pp.pprint(client.listTableNodeDists(args[0],args[1],))
+
+elif cmd == 'assiginSchematoDB':
+  if len(args) != 5:
+    print 'assiginSchematoDB requires 5 args'
+    sys.exit(1)
+  pp.pprint(client.assiginSchematoDB(args[0],args[1],eval(args[2]),eval(args[3]),eval(args[4]),))
 
 else:
   print 'Unrecognized method %s' % cmd

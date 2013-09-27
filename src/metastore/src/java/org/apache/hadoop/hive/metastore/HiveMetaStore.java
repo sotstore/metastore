@@ -102,6 +102,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.SplitValue;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
@@ -227,6 +228,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
               return null;
             }
           };
+      private static final ThreadLocal<Long> threadLocalSessionId =
+          new ThreadLocal<Long>() {
+            @Override
+            protected synchronized Long initialValue() {
+              return new Long(0);
+            }
+          };
 
           public String getUserName() {
             String userName = threadLocalUserName.get();
@@ -240,6 +248,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
           public void setUserName(String userName) {
             threadLocalUserName.set(userName);
+          }
+
+          public Long getSessionId() {
+            return threadLocalSessionId.get();
+          }
+
+          public void setSessionid(long value) {
+            threadLocalSessionId.set(value);
           }
     };
 
@@ -1229,6 +1245,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
+    public void create_table_by_user(final Table tbl, final User user) throws AlreadyExistsException,
+        MetaException, InvalidObjectException {
+      MSSessionState mss = new MSSessionState();
+      msss.setUserName(user.getUserName());
+      create_table(tbl);
+    }
+
+    @Override
     public void create_table_with_environment_context(final Table table,
         final EnvironmentContext envContext)
         throws AlreadyExistsException, MetaException, InvalidObjectException {
@@ -1274,7 +1298,18 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     private boolean is_schema_exists(RawStore ms, String schema_name)
         throws MetaException {
-      return (ms.getSchema(schema_name) != null);
+      boolean isExist = false;
+      try {
+        GlobalSchema gSchema = ms.getSchema(schema_name);
+        if (gSchema!= null) {
+          isExist = true;
+        }
+      } catch (NoSuchObjectException e) {
+
+      }
+
+
+      return isExist;
     }
 
     private void drop_table_core(final RawStore ms, final String dbname, final String name,
@@ -4295,6 +4330,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return groupNames;
     }
 
+    @Override
     public Device create_device(String devid, int prop, String node_name) throws MetaException, TException {
       DeviceInfo di = new DeviceInfo();
       Node node = null;
@@ -4308,12 +4344,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return d;
     }
 
+    @Override
     public boolean del_device(String devid) throws MetaException, TException {
       return getMS().delDevice(devid);
     }
 
     @Override
-    public SFile create_file(String node_name, int repnr, String db_name, String table_name, List<String> values)
+    public SFile create_file(String node_name, int repnr, String db_name, String table_name, List<SplitValue> values)
         throws FileOperationException, TException {
       // TODO: if repnr less than 1, we should increase it to replicate to BACKUP-STORE
       if (repnr <= 1) {
@@ -4324,7 +4361,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return create_file(flp, node_name, repnr, db_name, table_name, values);
     }
 
-    private SFile create_file_wo_location(int repnr, String dbName, String tableName, List<String> values)
+    private SFile create_file_wo_location(int repnr, String dbName, String tableName, List<SplitValue> values)
       throws FileOperationException, TException {
 
       SFile cfile = new SFile(0, dbName, tableName, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
@@ -4338,7 +4375,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return cfile;
     }
 
-    private SFile create_file(FileLocatingPolicy flp, String node_name, int repnr, String db_name, String table_name, List<String> values)
+    private SFile create_file(FileLocatingPolicy flp, String node_name, int repnr, String db_name, String table_name, List<SplitValue> values)
         throws FileOperationException, TException {
 
       if (node_name == null) {
@@ -4857,6 +4894,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public String getDMStatus() throws MetaException, TException {
+      LOG.info("--------> GOT SessionId: " + msss.getSessionId());
       if (dm != null) {
         return dm.getDMStatus();
       }
@@ -5073,7 +5111,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       throws NoSuchObjectException, MetaException, TException {
         incrementCounter("user_authentication");
 
-        Boolean ret = null;
+        Boolean ret = false;
         try {
           ret = getMS().authentication(user_name, passwd);
         } catch (NoSuchObjectException e) {
@@ -5081,6 +5119,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         } catch (MetaException e) {
           throw e;
         }
+    if (ret) {
+      HiveMetaStoreServerContext serverContext = HiveMetaStoreServerEventHandler.getServerContext(msss.getSessionId());
+      serverContext.setUserName(user_name);
+      serverContext.setAuthenticated(true);
+    }
     return ret;
   }
    //added by liulichao
@@ -5754,19 +5797,16 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public GlobalSchema getSchemaByName(String schemaName) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getMS().getSchema(schemaName);
     }
 
     @Override
-    public boolean modifySchema(GlobalSchema schema) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+    public boolean modifySchema(String schemaName,GlobalSchema schema) throws MetaException, TException {
+      return getMS().modifySchema(schemaName, schema);
     }
     @Override
     public boolean deleteSchema(String schemaName) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+      return getMS().deleteSchema(schemaName);
     }
 
 
@@ -5797,59 +5837,51 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public boolean addNodeGroup(NodeGroup ng) throws AlreadyExistsException,MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+      return getMS().addNodeGroup(ng);
     }
 
     @Override
-    public boolean modifyNodeGroup(NodeGroup ng) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+    public boolean modifyNodeGroup(String ngName,NodeGroup ng) throws MetaException, TException {
+      return getMS().modifyNodeGroup(ngName,ng);
     }
 
     @Override
     public boolean deleteNodeGroup(NodeGroup ng) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+      return getMS().deleteNodeGroup(ng);
     }
 
     @Override
     public List<NodeGroup> listNodeGroups() throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getMS().listNodeGroups();
     }
 
     @Override
     public List<NodeGroup> listDBNodeGroups(String dbName) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getMS().listDBNodeGroups(dbName);
     }
 
     @Override
     public boolean addTableNodeDist(String db, String tab, List<String> ng) throws MetaException,
         TException {
-      // TODO Auto-generated method stub
-      return false;
+      return getMS().addTableNodeDist(db, tab, ng);
     }
 
     @Override
     public boolean deleteTableNodeDist(String db, String tab, List<String> ng)
         throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+      return getMS().deleteTableNodeDist(db, tab, ng);
     }
 
     @Override
     public List<NodeGroup> listTableNodeDists(String dbName, String tabName) throws MetaException,
         TException {
       // TODO Auto-generated method stub
-      return null;
+      return getMS().listTableNodeDists(dbName, tabName);
     }
 
     @Override
     public List<GlobalSchema> listSchemas() throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      return getMS().listSchemas();
     }
 
     @Override
@@ -5863,6 +5895,25 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public void update_attribution(Database db) throws NoSuchObjectException,
         InvalidOperationException, MetaException, TException {
       getMS().alterDatabase(db.getName(), db);
+    }
+
+    @Override
+    public boolean assiginSchematoDB(String dbName, String schemaName,
+        List<FieldSchema> fileSplitKeys, List<FieldSchema> part_keys, List<NodeGroup> ngs)
+        throws InvalidObjectException, NoSuchObjectException, MetaException, TException {
+
+      return getMS().assiginSchematoDB(dbName, schemaName, fileSplitKeys, part_keys, ngs);
+    }
+
+    @Override
+    public List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws MetaException,
+        TException {
+      return getMS().listNodeGroupByNames(ngNames) ;
+    }
+
+    @Override
+    public long getSessionId() throws MetaException, TException {
+      return msss.getSessionId();
     }
 
   }
@@ -6129,6 +6180,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       HMSHandler.LOG.info("Options.maxWorkerThreads = "
           + maxWorkerThreads);
       HMSHandler.LOG.info("TCP keepalive = " + tcpKeepAlive);
+
+      HiveMetaStoreServerEventHandler eventHandler = new HiveMetaStoreServerEventHandler();
+      tServer.setServerEventHandler(eventHandler);
 
       tServer.serve();
     } catch (Throwable x) {

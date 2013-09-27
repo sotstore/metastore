@@ -51,7 +51,6 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
-import org.apache.hadoop.hive.metastore.api.Schema;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -586,7 +585,7 @@ public interface RawStore extends Configurable {
 
   public abstract List<String> listUsersNames(String dbName) throws MetaException;
 
-  public abstract Schema getSchema(String schema_name)throws MetaException;
+  public abstract GlobalSchema getSchema(String schema_name)throws NoSuchObjectException,MetaException;
 
   public abstract  boolean modifySchema(String schemaName,GlobalSchema schema) throws InvalidObjectException, MetaException;
   //修改表模式
@@ -600,7 +599,7 @@ public interface RawStore extends Configurable {
   public abstract  boolean addNodeGroup(NodeGroup ng) throws InvalidObjectException, MetaException;
   //新增节点组
 
-  public abstract  boolean modifyNodeGroup(NodeGroup ng) throws InvalidObjectException, MetaException;
+  public abstract  boolean modifyNodeGroup(String ngName,NodeGroup ng) throws InvalidObjectException, MetaException;
   //修改节点组
 
   public abstract  boolean deleteNodeGroup(NodeGroup ng) throws  MetaException;
@@ -635,7 +634,9 @@ public interface RawStore extends Configurable {
   public abstract List<SFile> filterTableFiles(String dbName, String tableName, List<String> values)
       throws MetaException;
 
-  public boolean assiginSchematoDB(String dbName, String schemaName, List<FieldSchema> fileSplitKeys, List<FieldSchema> part_keys,
+  public abstract boolean assiginSchematoDB(String dbName, String schemaName, List<FieldSchema> fileSplitKeys, List<FieldSchema> part_keys,
       List<NodeGroup> ngs) throws InvalidObjectException,NoSuchObjectException, MetaException;
+
+  public abstract List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws  MetaException;
 
 }

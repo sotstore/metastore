@@ -287,6 +287,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("create_table\n");
   }
 
+  void create_table_by_user(const Table& tbl, const User& user) {
+    // Your implementation goes here
+    printf("create_table_by_user\n");
+  }
+
   void create_table_with_environment_context(const Table& tbl, const EnvironmentContext& environment_context) {
     // Your implementation goes here
     printf("create_table_with_environment_context\n");
@@ -632,7 +637,7 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("cancel_delegation_token\n");
   }
 
-  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<std::string> & values) {
+  void create_file(SFile& _return, const std::string& node_name, const int32_t repnr, const std::string& db_name, const std::string& table_name, const std::vector<SplitValue> & values) {
     // Your implementation goes here
     printf("create_file\n");
   }
@@ -757,12 +762,17 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("getMP\n");
   }
 
+  int64_t getSessionId() {
+    // Your implementation goes here
+    printf("getSessionId\n");
+  }
+
   bool createSchema(const GlobalSchema& schema) {
     // Your implementation goes here
     printf("createSchema\n");
   }
 
-  bool modifySchema(const GlobalSchema& schema) {
+  bool modifySchema(const std::string& schemaName, const GlobalSchema& schema) {
     // Your implementation goes here
     printf("modifySchema\n");
   }
@@ -807,7 +817,7 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("addNodeGroup\n");
   }
 
-  bool modifyNodeGroup(const NodeGroup& ng) {
+  bool modifyNodeGroup(const std::string& schemaName, const NodeGroup& ng) {
     // Your implementation goes here
     printf("modifyNodeGroup\n");
   }
@@ -827,6 +837,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("listDBNodeGroups\n");
   }
 
+  void listNodeGroupByNames(std::vector<NodeGroup> & _return, const std::vector<std::string> & ngNames) {
+    // Your implementation goes here
+    printf("listNodeGroupByNames\n");
+  }
+
   bool addTableNodeDist(const std::string& db, const std::string& tab, const std::vector<std::string> & ng) {
     // Your implementation goes here
     printf("addTableNodeDist\n");
@@ -840,6 +855,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
   void listTableNodeDists(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName) {
     // Your implementation goes here
     printf("listTableNodeDists\n");
+  }
+
+  bool assiginSchematoDB(const std::string& dbName, const std::string& schemaName, const std::vector<FieldSchema> & fileSplitKeys, const std::vector<FieldSchema> & part_keys, const std::vector<NodeGroup> & ngs) {
+    // Your implementation goes here
+    printf("assiginSchematoDB\n");
   }
 
 };

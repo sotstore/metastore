@@ -4900,6 +4900,118 @@ class BusiTypeDatacenter {
 
 }
 
+class SplitValue {
+  static $_TSPEC;
+
+  public $splitKeyName = null;
+  public $level = null;
+  public $value = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'splitKeyName',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'level',
+          'type' => TType::I32,
+          ),
+        3 => array(
+          'var' => 'value',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['splitKeyName'])) {
+        $this->splitKeyName = $vals['splitKeyName'];
+      }
+      if (isset($vals['level'])) {
+        $this->level = $vals['level'];
+      }
+      if (isset($vals['value'])) {
+        $this->value = $vals['value'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'SplitValue';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->splitKeyName);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->level);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->value);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('SplitValue');
+    if ($this->splitKeyName !== null) {
+      $xfer += $output->writeFieldBegin('splitKeyName', TType::STRING, 1);
+      $xfer += $output->writeString($this->splitKeyName);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->level !== null) {
+      $xfer += $output->writeFieldBegin('level', TType::I32, 2);
+      $xfer += $output->writeI32($this->level);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->value !== null) {
+      $xfer += $output->writeFieldBegin('value', TType::STRING, 3);
+      $xfer += $output->writeString($this->value);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
 class Device {
   static $_TSPEC;
 
@@ -5310,9 +5422,10 @@ class SFile {
         11 => array(
           'var' => 'values',
           'type' => TType::LST,
-          'etype' => TType::STRING,
+          'etype' => TType::STRUCT,
           'elem' => array(
-            'type' => TType::STRING,
+            'type' => TType::STRUCT,
+            'class' => '\metastore\SplitValue',
             ),
           ),
         );
@@ -5463,7 +5576,8 @@ class SFile {
             for ($_i278 = 0; $_i278 < $_size274; ++$_i278)
             {
               $elem279 = null;
-              $xfer += $input->readString($elem279);
+              $elem279 = new \metastore\SplitValue();
+              $xfer += $elem279->read($input);
               $this->values []= $elem279;
             }
             $xfer += $input->readListEnd();
@@ -5552,11 +5666,11 @@ class SFile {
       }
       $xfer += $output->writeFieldBegin('values', TType::LST, 11);
       {
-        $output->writeListBegin(TType::STRING, count($this->values));
+        $output->writeListBegin(TType::STRUCT, count($this->values));
         {
           foreach ($this->values as $iter281)
           {
-            $xfer += $output->writeString($iter281);
+            $xfer += $iter281->write($output);
           }
         }
         $output->writeListEnd();
