@@ -4877,16 +4877,16 @@ public boolean authentication(String userName, String passwd)
     if (nameCheck == null) {
       //LOG.debug("用户 " + userName + " 不存在！");
       LOG.debug("User " + userName + " doesnt exist！");
-      return false;
+      auth = false;
     } else if (nameCheck.getPasswd().equals(passwd)){
       auth = true;
     } else {
       //LOG.debug("用户名或密码错误！");
       LOG.debug("User or password error!"+nameCheck.getPasswd()+", "+passwd);
-      return false;
+      auth = false;
     }
-
   } finally {
+    commitTransaction();
   }
   return auth;
 }
