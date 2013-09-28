@@ -38,7 +38,8 @@ struct Version {
 struct FieldSchema {
   1: string name, // name of the field
   2: string type, // type of the field. primitive types defined above, specify list<TYPE_NAME>, map<TYPE_NAME, TYPE_NAME> for lists & maps
-  3: string comment
+  3: string comment,
+  4: optional i64	version,
 }
 
 
@@ -327,6 +328,7 @@ struct SplitValue {
   1: string splitKeyName,
   2: i32    level,
   3: string value,
+  4: i64	verison,
 }
 
 struct Device {

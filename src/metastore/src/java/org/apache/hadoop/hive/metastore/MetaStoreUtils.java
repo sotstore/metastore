@@ -1083,4 +1083,32 @@ public class MetaStoreUtils {
     }
   }
 
+  public static long getCurrentPartRuleVersion(Table tbl) {
+    long version = 0;
+
+    if (tbl.getPartitionKeysSize() > 0) {
+      for (FieldSchema fs : tbl.getPartitionKeys()) {
+        if (fs.getVersion() > version) {
+          version = fs.getVersion();
+        }
+      }
+    }
+
+    return version;
+  }
+
+  public static long getCurrentFileSplitRuleVersion(Table tbl) {
+    long version = 0;
+
+    if (tbl.getFileSplitKeysSize() > 0) {
+      for (FieldSchema fs : tbl.getFileSplitKeys()) {
+        if (fs.getVersion() > version) {
+          version = fs.getVersion();
+        }
+      }
+    }
+
+    return version;
+  }
+
 }

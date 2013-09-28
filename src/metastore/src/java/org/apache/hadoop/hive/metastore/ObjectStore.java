@@ -157,6 +157,7 @@ import org.apache.hadoop.hive.metastore.msg.MetaMsgServer;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree.ANTLRNoCaseStringStream;
 import org.apache.hadoop.hive.metastore.parser.FilterLexer;
 import org.apache.hadoop.hive.metastore.parser.FilterParser;
+import org.apache.hadoop.hive.metastore.tools.MetaUtil;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.thrift.TException;
 
@@ -684,7 +685,7 @@ public class ObjectStore implements RawStore, Configurable {
     if (type.getFields() != null) {
       for (FieldSchema field : type.getFields()) {
         fields.add(new MFieldSchema(field.getName(), field.getType(), field
-            .getComment()));
+            .getComment(), field.getVersion()));
       }
     }
     return new MType(type.getName(), type.getType1(), type.getType2(), fields);
@@ -2457,7 +2458,7 @@ public class ObjectStore implements RawStore, Configurable {
     List<SplitValue> values = new ArrayList<SplitValue>();
     if (mf.getValues() != null) {
       for (MSplitValue msv : mf.getValues()) {
-        values.add(new SplitValue(msv.getPkname(), msv.getLevel(), msv.getValue()));
+        values.add(new SplitValue(msv.getPkname(), msv.getLevel(), msv.getValue(), msv.getVersion()));
       }
     }
     return new SFile(mf.getFid(), dbName, tableName, mf.getStore_status(), mf.getRep_nr(),
@@ -2555,8 +2556,29 @@ public class ObjectStore implements RawStore, Configurable {
     }
     List<MSplitValue> values = new ArrayList<MSplitValue>();
     if (file.getValuesSize() > 0) {
+      long version = -1;
+
+      if (mt == null || mt.getFileSplitKeys() == null || mt.getFileSplitKeys().size() == 0) {
+        throw new InvalidObjectException("This file does not belong to any TABLE or table contains NONE file split keys, you should not set SplitValues!");
+      }
       for (SplitValue sv : file.getValues()) {
-        values.add(new MSplitValue(sv.getSplitKeyName(), sv.getLevel(), sv.getValue()));
+        values.add(new MSplitValue(sv.getSplitKeyName(), sv.getLevel(), sv.getValue(), sv.getVerison()));
+        if (version == -1) {
+          version = sv.getVerison();
+        }
+      }
+      //  we must check whether the values are valid.
+      boolean ok = false;
+
+      if (version != -1) {
+        for (MFieldSchema mfs : mt.getFileSplitKeys()) {
+          if (mfs.getVersion() == version) {
+            ok = true;
+          }
+        }
+      }
+      if (!ok) {
+        throw new InvalidObjectException("This file contains invalid SPLIT KEYS version: " + version);
       }
     }
 
@@ -2664,8 +2686,9 @@ public class ObjectStore implements RawStore, Configurable {
     if (keys != null) {
       mkeys = new ArrayList<MFieldSchema>(keys.size());
       for (FieldSchema part : keys) {
+        // FIXME: set version to ZERO initially
         mkeys.add(new MFieldSchema(part.getName().toLowerCase(),
-            part.getType(), part.getComment()));
+            part.getType(), part.getComment(), 0));
       }
     }
     return mkeys;
@@ -2676,6 +2699,7 @@ public class ObjectStore implements RawStore, Configurable {
     if (key != null) {
       key = new FieldSchema(mkey.getName().toLowerCase(),
           mkey.getType(), mkey.getComment());
+      key.setVersion(mkey.getVersion());
     }
     return key;
   }
@@ -2685,8 +2709,10 @@ public class ObjectStore implements RawStore, Configurable {
     if (mkeys != null) {
       keys = new ArrayList<FieldSchema>(mkeys.size());
       for (MFieldSchema part : mkeys) {
-        keys.add(new FieldSchema(part.getName(), part.getType(), part
-            .getComment()));
+        FieldSchema fs = new FieldSchema(part.getName(), part.getType(), part
+            .getComment());
+        fs.setVersion(part.getVersion());
+        keys.add(fs);
       }
     }
     return keys;
@@ -4057,7 +4083,46 @@ public class ObjectStore implements RawStore, Configurable {
       copyMSD(newt.getSd(), oldt.getSd());
       oldt.setDatabase(newt.getDatabase());
       oldt.setRetention(newt.getRetention());
-      oldt.setPartitionKeys(newt.getPartitionKeys());
+      // !NOTE: append new partition keys to old partition key list with new version
+      List<MFieldSchema> newFS = new ArrayList<MFieldSchema>();
+      long cur_version = 0;
+
+      if (oldt.getPartitionKeys() != null) {
+        for (MFieldSchema mfs : oldt.getPartitionKeys()) {
+          if (mfs.getVersion() > cur_version) {
+            cur_version = mfs.getVersion();
+            newFS.add(mfs);
+          }
+        }
+      }
+      cur_version++;
+      if (newt.getPartitionKeys() != null) {
+        for (MFieldSchema mfs : newt.getPartitionKeys()) {
+          mfs.setVersion(cur_version);
+          newFS.add(mfs);
+        }
+      }
+      oldt.setPartitionKeys(newFS);
+      // !NOTE: append new file split keys to old file split key list with new version
+      newFS.clear();
+      cur_version = 0;
+      if (oldt.getFileSplitKeys() != null) {
+        for (MFieldSchema mfs : oldt.getFileSplitKeys()) {
+          if (mfs.getVersion() > cur_version) {
+            cur_version = mfs.getVersion();
+            newFS.add(mfs);
+          }
+        }
+      }
+      cur_version++;
+      if (newt.getFileSplitKeys() != null) {
+        for (MFieldSchema mfs : newt.getFileSplitKeys()) {
+          mfs.setVersion(cur_version);
+          newFS.add(mfs);
+        }
+      }
+      oldt.setFileSplitKeys(newFS);
+
       oldt.setTableType(newt.getTableType());
       oldt.setLastAccessTime(newt.getLastAccessTime());
       oldt.setViewOriginalText(newt.getViewOriginalText());
@@ -8550,8 +8615,7 @@ public MUser getMUser(String userName) {
       oldmt.setLastAccessTime(mSchema.getLastAccessTime());
       oldmt.setViewOriginalText(mSchema.getViewOriginalText());
       oldmt.setViewExpandedText(mSchema.getViewExpandedText());
-      //FIXME: enable the following line on next commit!
-      //oldmt.setGroupDistribute(MetaUtil.CollectionToHashSet(convertToMNodeGroups(ngs)));
+      oldmt.setGroupDistribute(MetaUtil.CollectionToHashSet(convertToMNodeGroups(ngs)));
 
       // commit the changes
       success = commitTransaction();

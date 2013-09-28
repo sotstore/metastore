@@ -6,13 +6,13 @@ public class MSplitValue {
   private String pkname;
   private int level;
   private String value;
+  private long version;
 
-  public MSplitValue() {}
-
-  public MSplitValue(String pkname, int level, String value) {
+  public MSplitValue(String pkname, int level, String value, long version) {
     this.setPkname(pkname);
     this.setLevel(level);
     this.setValue(value);
+    this.setVersion(version);
   }
 
   public int getLevel() {
@@ -37,5 +37,13 @@ public class MSplitValue {
 
   public void setPkname(String pkname) {
     this.pkname = pkname;
+  }
+
+  public long getVersion() {
+    return version;
+  }
+
+  public void setVersion(long version) {
+    this.version = version;
   }
 }

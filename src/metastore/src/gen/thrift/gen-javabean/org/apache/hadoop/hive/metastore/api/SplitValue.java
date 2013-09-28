@@ -37,6 +37,7 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
   private static final org.apache.thrift.protocol.TField SPLIT_KEY_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("splitKeyName", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField LEVEL_FIELD_DESC = new org.apache.thrift.protocol.TField("level", org.apache.thrift.protocol.TType.I32, (short)2);
   private static final org.apache.thrift.protocol.TField VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("value", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField VERISON_FIELD_DESC = new org.apache.thrift.protocol.TField("verison", org.apache.thrift.protocol.TType.I64, (short)4);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,12 +48,14 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
   private String splitKeyName; // required
   private int level; // required
   private String value; // required
+  private long verison; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     SPLIT_KEY_NAME((short)1, "splitKeyName"),
     LEVEL((short)2, "level"),
-    VALUE((short)3, "value");
+    VALUE((short)3, "value"),
+    VERISON((short)4, "verison");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -73,6 +76,8 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
           return LEVEL;
         case 3: // VALUE
           return VALUE;
+        case 4: // VERISON
+          return VERISON;
         default:
           return null;
       }
@@ -114,6 +119,7 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
 
   // isset id assignments
   private static final int __LEVEL_ISSET_ID = 0;
+  private static final int __VERISON_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -124,6 +130,8 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.VALUE, new org.apache.thrift.meta_data.FieldMetaData("value", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.VERISON, new org.apache.thrift.meta_data.FieldMetaData("verison", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(SplitValue.class, metaDataMap);
   }
@@ -134,13 +142,16 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
   public SplitValue(
     String splitKeyName,
     int level,
-    String value)
+    String value,
+    long verison)
   {
     this();
     this.splitKeyName = splitKeyName;
     this.level = level;
     setLevelIsSet(true);
     this.value = value;
+    this.verison = verison;
+    setVerisonIsSet(true);
   }
 
   /**
@@ -155,6 +166,7 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
     if (other.isSetValue()) {
       this.value = other.value;
     }
+    this.verison = other.verison;
   }
 
   public SplitValue deepCopy() {
@@ -167,6 +179,8 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
     setLevelIsSet(false);
     this.level = 0;
     this.value = null;
+    setVerisonIsSet(false);
+    this.verison = 0;
   }
 
   public String getSplitKeyName() {
@@ -237,6 +251,28 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
     }
   }
 
+  public long getVerison() {
+    return this.verison;
+  }
+
+  public void setVerison(long verison) {
+    this.verison = verison;
+    setVerisonIsSet(true);
+  }
+
+  public void unsetVerison() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __VERISON_ISSET_ID);
+  }
+
+  /** Returns true if field verison is set (has been assigned a value) and false otherwise */
+  public boolean isSetVerison() {
+    return EncodingUtils.testBit(__isset_bitfield, __VERISON_ISSET_ID);
+  }
+
+  public void setVerisonIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __VERISON_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case SPLIT_KEY_NAME:
@@ -263,6 +299,14 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
       }
       break;
 
+    case VERISON:
+      if (value == null) {
+        unsetVerison();
+      } else {
+        setVerison((Long)value);
+      }
+      break;
+
     }
   }
 
@@ -276,6 +320,9 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
 
     case VALUE:
       return getValue();
+
+    case VERISON:
+      return Long.valueOf(getVerison());
 
     }
     throw new IllegalStateException();
@@ -294,6 +341,8 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
       return isSetLevel();
     case VALUE:
       return isSetValue();
+    case VERISON:
+      return isSetVerison();
     }
     throw new IllegalStateException();
   }
@@ -338,6 +387,15 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
         return false;
     }
 
+    boolean this_present_verison = true;
+    boolean that_present_verison = true;
+    if (this_present_verison || that_present_verison) {
+      if (!(this_present_verison && that_present_verison))
+        return false;
+      if (this.verison != that.verison)
+        return false;
+    }
+
     return true;
   }
 
@@ -359,6 +417,11 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
     builder.append(present_value);
     if (present_value)
       builder.append(value);
+
+    boolean present_verison = true;
+    builder.append(present_verison);
+    if (present_verison)
+      builder.append(verison);
 
     return builder.toHashCode();
   }
@@ -401,6 +464,16 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetVerison()).compareTo(typedOther.isSetVerison());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetVerison()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.verison, typedOther.verison);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -439,6 +512,10 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
     } else {
       sb.append(this.value);
     }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("verison:");
+    sb.append(this.verison);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -509,6 +586,14 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 4: // VERISON
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.verison = iprot.readI64();
+              struct.setVerisonIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -535,6 +620,9 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
         oprot.writeString(struct.value);
         oprot.writeFieldEnd();
       }
+      oprot.writeFieldBegin(VERISON_FIELD_DESC);
+      oprot.writeI64(struct.verison);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -562,7 +650,10 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
       if (struct.isSetValue()) {
         optionals.set(2);
       }
-      oprot.writeBitSet(optionals, 3);
+      if (struct.isSetVerison()) {
+        optionals.set(3);
+      }
+      oprot.writeBitSet(optionals, 4);
       if (struct.isSetSplitKeyName()) {
         oprot.writeString(struct.splitKeyName);
       }
@@ -572,12 +663,15 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
       if (struct.isSetValue()) {
         oprot.writeString(struct.value);
       }
+      if (struct.isSetVerison()) {
+        oprot.writeI64(struct.verison);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, SplitValue struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(4);
       if (incoming.get(0)) {
         struct.splitKeyName = iprot.readString();
         struct.setSplitKeyNameIsSet(true);
@@ -589,6 +683,10 @@ public class SplitValue implements org.apache.thrift.TBase<SplitValue, SplitValu
       if (incoming.get(2)) {
         struct.value = iprot.readString();
         struct.setValueIsSet(true);
+      }
+      if (incoming.get(3)) {
+        struct.verison = iprot.readI64();
+        struct.setVerisonIsSet(true);
       }
     }
   }

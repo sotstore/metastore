@@ -4349,9 +4349,31 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return getMS().delDevice(devid);
     }
 
+    public boolean fileSplitValuesCheck(List<SplitValue> values) {
+      long version = -1;
+
+      if (values == null || values.size() <= 0) {
+        return true;
+      }
+
+      for (SplitValue sv : values) {
+        if (version == -1) {
+          version = sv.getVerison();
+        }
+        if (version != sv.getVerison()) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
     @Override
     public SFile create_file(String node_name, int repnr, String db_name, String table_name, List<SplitValue> values)
         throws FileOperationException, TException {
+      if (!fileSplitValuesCheck(values)) {
+        throw new FileOperationException("Invalid File Split Values: inconsistent version among values?", FOFailReason.INVALID_FILE);
+      }
       // TODO: if repnr less than 1, we should increase it to replicate to BACKUP-STORE
       if (repnr <= 1) {
         repnr++;
@@ -4364,6 +4386,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     private SFile create_file_wo_location(int repnr, String dbName, String tableName, List<SplitValue> values)
       throws FileOperationException, TException {
 
+      if (!fileSplitValuesCheck(values)) {
+        throw new FileOperationException("Invalid File Split Values: inconsistent version among values?", FOFailReason.INVALID_FILE);
+      }
       SFile cfile = new SFile(0, dbName, tableName, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
           "SFILE_DEFAULT_X", 0, 0, null, 0, values);
       getMS().createFile(cfile);
@@ -4446,6 +4471,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         } while (true);
       } catch (IOException e) {
         throw new FileOperationException("System might in Safe Mode, please wait ... {" + e + "}", FOFailReason.SAFEMODE);
+      } catch (InvalidObjectException e) {
+        throw new FileOperationException("Internal error: " + e.getMessage(), FOFailReason.INVALID_FILE);
       }
 
       return cfile;

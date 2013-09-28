@@ -334,6 +334,7 @@ class FieldSchema:
    - name
    - type
    - comment
+   - version
   """
 
   thrift_spec = (
@@ -341,12 +342,14 @@ class FieldSchema:
     (1, TType.STRING, 'name', None, None, ), # 1
     (2, TType.STRING, 'type', None, None, ), # 2
     (3, TType.STRING, 'comment', None, None, ), # 3
+    (4, TType.I64, 'version', None, None, ), # 4
   )
 
-  def __init__(self, name=None, type=None, comment=None,):
+  def __init__(self, name=None, type=None, comment=None, version=None,):
     self.name = name
     self.type = type
     self.comment = comment
+    self.version = version
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -372,6 +375,11 @@ class FieldSchema:
           self.comment = iprot.readString();
         else:
           iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.I64:
+          self.version = iprot.readI64();
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -393,6 +401,10 @@ class FieldSchema:
     if self.comment is not None:
       oprot.writeFieldBegin('comment', TType.STRING, 3)
       oprot.writeString(self.comment)
+      oprot.writeFieldEnd()
+    if self.version is not None:
+      oprot.writeFieldBegin('version', TType.I64, 4)
+      oprot.writeI64(self.version)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -3160,6 +3172,7 @@ class SplitValue:
    - splitKeyName
    - level
    - value
+   - verison
   """
 
   thrift_spec = (
@@ -3167,12 +3180,14 @@ class SplitValue:
     (1, TType.STRING, 'splitKeyName', None, None, ), # 1
     (2, TType.I32, 'level', None, None, ), # 2
     (3, TType.STRING, 'value', None, None, ), # 3
+    (4, TType.I64, 'verison', None, None, ), # 4
   )
 
-  def __init__(self, splitKeyName=None, level=None, value=None,):
+  def __init__(self, splitKeyName=None, level=None, value=None, verison=None,):
     self.splitKeyName = splitKeyName
     self.level = level
     self.value = value
+    self.verison = verison
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -3198,6 +3213,11 @@ class SplitValue:
           self.value = iprot.readString();
         else:
           iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.I64:
+          self.verison = iprot.readI64();
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -3219,6 +3239,10 @@ class SplitValue:
     if self.value is not None:
       oprot.writeFieldBegin('value', TType.STRING, 3)
       oprot.writeString(self.value)
+      oprot.writeFieldEnd()
+    if self.verison is not None:
+      oprot.writeFieldBegin('verison', TType.I64, 4)
+      oprot.writeI64(self.verison)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

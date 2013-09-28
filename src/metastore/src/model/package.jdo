@@ -250,6 +250,7 @@
           <primary-key name="FILE_KEY_PK">
             <column name="TBL_ID"/>
             <column name="PKEY_NAME"/>
+            <column name="VERSION"/>
           </primary-key>	
           <column name="TBL_ID"/>
         </join>
@@ -260,6 +261,9 @@
               </field>
             <field name="type">
               <column name="PKEY_TYPE" length="767" jdbc-type="VARCHAR" allows-null="false"/>
+            </field>
+            <field name="version">
+              <column name="VERSION"/>
             </field>
             <field name="comment" >
               <column name="PKEY_COMMENT" length="4000" jdbc-type="VARCHAR" allows-null="true"/>
@@ -1245,6 +1249,7 @@
           <primary-key name="FILE_KEY_VALS_PK">
             <column name="FILE_ID"/>
             <column name="PKEY_NAME"/>
+            <column name="VERSION"/>
           </primary-key>
           <column name="FILE_ID"/>
         </join>
@@ -1256,6 +1261,9 @@
           	<field name="level">
           	  <column name="LEVEL"/>
           	</field>
+          	<field name="version">
+              <column name="VERSION"/>
+            </field>
           	<field name="value">
           	  <column name="VALUE" length="4000" jdbc-type="VARCHAR"/>
           	</field>

@@ -29,6 +29,7 @@ public class MFieldSchema {
   private String name;
   private String type;
   private String comment;
+  private long version;
 
   public MFieldSchema() {}
 
@@ -37,10 +38,11 @@ public class MFieldSchema {
    * @param name
    * @param type
    */
-  public MFieldSchema(String name, String type, String comment) {
+  public MFieldSchema(String name, String type, String comment, long version) {
     this.comment = comment;
     this.name = name;
     this.type = type;
+    this.setVersion(version);
   }
 
   /**
@@ -78,6 +80,14 @@ public class MFieldSchema {
    */
   public void setType(String field) {
     this.type = field;
+  }
+
+  public long getVersion() {
+    return version;
+  }
+
+  public void setVersion(long version) {
+    this.version = version;
   }
 
 
