@@ -2027,7 +2027,7 @@ public boolean authentication(String user_name, String passwd)
   }
 
   @Override
-  public List<GeoLocation> getGeoLocationByName(String geoLocName) throws MetaException, TException {
+  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException, TException {
     return client.getGeoLocationByName("geoLocName");
   }
 

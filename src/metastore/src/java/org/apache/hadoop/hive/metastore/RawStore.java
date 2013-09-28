@@ -641,7 +641,7 @@ public interface RawStore extends Configurable {
    * @throws MetaException
    */
 
-  public abstract List<GeoLocation> getGeoLocationByName(String geoLocName) throws MetaException;
+  public abstract GeoLocation getGeoLocationByName(String geoLocName) throws MetaException;
 
   public abstract List<GeoLocation> getGeoLocationByNames(List<String> geoLocNames) throws MetaException;
 

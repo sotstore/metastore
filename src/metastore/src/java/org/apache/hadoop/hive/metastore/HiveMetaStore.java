@@ -5686,7 +5686,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public List<GeoLocation> getGeoLocationByName(String geoLocName) throws MetaException,
+    public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException,
         TException {
       LOG.info("++++++++++++++++++++++++++++++before getGeoLocationByName");
       return getMS().getGeoLocationByName(geoLocName);

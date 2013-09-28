@@ -53,7 +53,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual bool modifyEquipRoom(const EquipRoom& er) = 0;
   virtual bool deleteEquipRoom(const EquipRoom& er) = 0;
   virtual void listEquipRoom(std::vector<EquipRoom> & _return) = 0;
-  virtual void getGeoLocationByName(std::vector<GeoLocation> & _return, const std::string& geoLocName) = 0;
+  virtual void getGeoLocationByName(GeoLocation& _return, const std::string& geoLocName) = 0;
   virtual void getGeoLocationByNames(std::vector<GeoLocation> & _return, const std::vector<std::string> & geoLocNames) = 0;
   virtual bool addNodeAssignment(const std::string& nodeName, const std::string& dbName) = 0;
   virtual bool deleteNodeAssignment(const std::string& nodeName, const std::string& dbName) = 0;
@@ -354,7 +354,7 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void listEquipRoom(std::vector<EquipRoom> & /* _return */) {
     return;
   }
-  void getGeoLocationByName(std::vector<GeoLocation> & /* _return */, const std::string& /* geoLocName */) {
+  void getGeoLocationByName(GeoLocation& /* _return */, const std::string& /* geoLocName */) {
     return;
   }
   void getGeoLocationByNames(std::vector<GeoLocation> & /* _return */, const std::vector<std::string> & /* geoLocNames */) {
@@ -5480,13 +5480,13 @@ class ThriftHiveMetastore_getGeoLocationByName_result {
 
   virtual ~ThriftHiveMetastore_getGeoLocationByName_result() throw() {}
 
-  std::vector<GeoLocation>  success;
+  GeoLocation success;
   MetaException o1;
   NoSuchObjectException o2;
 
   _ThriftHiveMetastore_getGeoLocationByName_result__isset __isset;
 
-  void __set_success(const std::vector<GeoLocation> & val) {
+  void __set_success(const GeoLocation& val) {
     success = val;
   }
 
@@ -5532,7 +5532,7 @@ class ThriftHiveMetastore_getGeoLocationByName_presult {
 
   virtual ~ThriftHiveMetastore_getGeoLocationByName_presult() throw() {}
 
-  std::vector<GeoLocation> * success;
+  GeoLocation* success;
   MetaException o1;
   NoSuchObjectException o2;
 
@@ -24459,9 +24459,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void listEquipRoom(std::vector<EquipRoom> & _return);
   void send_listEquipRoom();
   void recv_listEquipRoom(std::vector<EquipRoom> & _return);
-  void getGeoLocationByName(std::vector<GeoLocation> & _return, const std::string& geoLocName);
+  void getGeoLocationByName(GeoLocation& _return, const std::string& geoLocName);
   void send_getGeoLocationByName(const std::string& geoLocName);
-  void recv_getGeoLocationByName(std::vector<GeoLocation> & _return);
+  void recv_getGeoLocationByName(GeoLocation& _return);
   void getGeoLocationByNames(std::vector<GeoLocation> & _return, const std::vector<std::string> & geoLocNames);
   void send_getGeoLocationByNames(const std::vector<std::string> & geoLocNames);
   void recv_getGeoLocationByNames(std::vector<GeoLocation> & _return);
@@ -25625,7 +25625,7 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return;
   }
 
-  void getGeoLocationByName(std::vector<GeoLocation> & _return, const std::string& geoLocName) {
+  void getGeoLocationByName(GeoLocation& _return, const std::string& geoLocName) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {

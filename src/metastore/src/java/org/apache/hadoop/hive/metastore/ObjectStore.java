@@ -9012,8 +9012,8 @@ public MUser getMUser(String userName) {
   }
 
   @Override
-  public List<GeoLocation> getGeoLocationByName(String geoLocName) throws MetaException {
-    List<GeoLocation> gls = new ArrayList<GeoLocation>();
+  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException {
+//    List<GeoLocation> gls = new ArrayList<GeoLocation>();
     GeoLocation gl = null;
     boolean committed = false;
     try {
@@ -9026,14 +9026,13 @@ public MUser getMUser(String userName) {
       MGeoLocation mgl=(MGeoLocation)query.execute(geoLocName);
       LOG.info("++++++++++++++++++++++++++++++MGeoLocation" + mgl.getGeoLocName());
       gl = convertToGeoLocation(mgl);
-      gls.add(gl);
       committed = commitTransaction();
     } finally {
       if (!committed) {
         rollbackTransaction();
       }
     }
-    return gls;
+    return gl;
   }
 
   private GeoLocation convertToGeoLocation(MGeoLocation mgl) {

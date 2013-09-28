@@ -599,7 +599,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   bool deleteEquipRoom(1:EquipRoom er) throws(1:MetaException o1)
   list<EquipRoom> listEquipRoom() throws(1:MetaException o1)
   
-  list<GeoLocation> getGeoLocationByName(1:string geoLocName) throws (1:MetaException o1, 2:NoSuchObjectException o2)
+  GeoLocation getGeoLocationByName(1:string geoLocName) throws (1:MetaException o1, 2:NoSuchObjectException o2)
   list<GeoLocation> getGeoLocationByNames(1:list<string> geoLocNames) throws (1:MetaException o1)
   
   bool addNodeAssignment(1:string nodeName, 2:string dbName) throws(1:MetaException o1, 2:NoSuchObjectException o2)

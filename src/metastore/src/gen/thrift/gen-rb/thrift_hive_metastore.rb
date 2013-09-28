@@ -6484,7 +6484,7 @@ module ThriftHiveMetastore
     O2 = 2
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::GeoLocation}},
+      SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::GeoLocation},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException},
       O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::NoSuchObjectException}
     }

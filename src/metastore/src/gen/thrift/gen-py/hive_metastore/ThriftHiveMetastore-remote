@@ -60,7 +60,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  bool modifyEquipRoom(EquipRoom er)'
   print '  bool deleteEquipRoom(EquipRoom er)'
   print '   listEquipRoom()'
-  print '   getGeoLocationByName(string geoLocName)'
+  print '  GeoLocation getGeoLocationByName(string geoLocName)'
   print '   getGeoLocationByNames( geoLocNames)'
   print '  bool addNodeAssignment(string nodeName, string dbName)'
   print '  bool deleteNodeAssignment(string nodeName, string dbName)'

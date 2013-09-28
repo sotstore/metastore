@@ -1225,7 +1225,7 @@ public interface IMetaStoreClient {
 
   public List<NodeGroup> listNodeGroups(List<String> ngNames) throws MetaException, TException;
 
-  public List<GeoLocation> getGeoLocationByName(String geoLocName) throws MetaException, TException;
+  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException, TException;
 
   public List<GeoLocation> getGeoLocationByNames(List<String> geoLocNames) throws MetaException, TException;
 
