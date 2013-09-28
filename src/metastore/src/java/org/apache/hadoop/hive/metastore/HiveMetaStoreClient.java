@@ -89,6 +89,7 @@ import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.model.MetaStoreConst;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -2026,7 +2027,7 @@ public boolean authentication(String user_name, String passwd)
   }
 
   @Override
-  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException, TException {
+  public List<GeoLocation> getGeoLocationByName(String geoLocName) throws MetaException, TException {
     return client.getGeoLocationByName("geoLocName");
   }
 
@@ -2054,26 +2055,22 @@ public boolean authentication(String user_name, String passwd)
   @Override
   public boolean createSchema(GlobalSchema schema) throws AlreadyExistsException,
       InvalidObjectException, MetaException, TException {
-    // TODO Auto-generated method stub
     return client.createSchema(schema);
   }
 
   @Override
   public boolean modifySchema(String schemaName, GlobalSchema schema) throws MetaException,
       TException {
-    // TODO Auto-generated method stub
     return client.modifySchema(schemaName, schema);
   }
 
   @Override
   public boolean deleteSchema(String schemaName) throws MetaException, TException {
-    // TODO Auto-generated method stub
     return client.deleteSchema(schemaName);
   }
 
   @Override
   public List<GlobalSchema> listSchemas() throws MetaException, TException {
-    // TODO Auto-generated method stub
     return client.listSchemas();
   }
 
@@ -2086,73 +2083,62 @@ public boolean authentication(String user_name, String passwd)
   @Override
   public List<NodeGroup> getTableNodeGroups(String dbName, String tabName) throws MetaException,
       TException {
-    // TODO Auto-generated method stub
     return client.getTableNodeGroups(dbName, tabName);
   }
 
   @Override
   public List<SFile> listTableFiles(String dbName, String tabName, short max_num)
       throws MetaException, TException {
-    // TODO Auto-generated method stub
     return client.listTableFiles(dbName, tabName, max_num);
   }
 
   @Override
   public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values)
       throws MetaException, TException {
-    // TODO Auto-generated method stub
     return client.filterTableFiles(dbName, tabName, values);
   }
 
   @Override
   public boolean addNodeGroup(NodeGroup ng) throws AlreadyExistsException, MetaException,
       TException {
-    // TODO Auto-generated method stub
     return client.addNodeGroup(ng);
   }
 
   @Override
   public boolean modifyNodeGroup(String schemaName, NodeGroup ng) throws MetaException, TException {
-    // TODO Auto-generated method stub
     return client.modifyNodeGroup(schemaName, ng);
   }
 
   @Override
   public boolean deleteNodeGroup(NodeGroup ng) throws MetaException, TException {
-    // TODO Auto-generated method stub
     return client.deleteNodeGroup(ng);
   }
 
   @Override
   public List<NodeGroup> listNodeGroups() throws MetaException, TException {
-    // TODO Auto-generated method stub
     return client.listNodeGroups();
   }
 
   @Override
   public List<NodeGroup> listDBNodeGroups(String dbName) throws MetaException, TException {
-    // TODO Auto-generated method stub
     return client.listDBNodeGroups(dbName);
   }
 
   @Override
   public boolean addTableNodeDist(String db, String tab, List<String> ng) throws MetaException,
       TException {
-    // TODO Auto-generated method stub
     return client.addTableNodeDist(db, tab, ng);
   }
 
   @Override
   public boolean deleteTableNodeDist(String db, String tab, List<String> ng) throws MetaException,
       TException {
-    // TODO Auto-generated method stub
     return client.deleteTableNodeDist(db, tab, ng);
   }
 
   @Override
   public List<NodeGroup> listTableNodeDists(String dbName, String tabName) throws MetaException,
       TException {
-    // TODO Auto-generated method stub
     return client.listTableNodeDists(dbName, tabName);
   }
 
@@ -2160,14 +2146,69 @@ public boolean authentication(String user_name, String passwd)
   public boolean assiginSchematoDB(String dbName, String schemaName,
       List<FieldSchema> fileSplitKeys, List<FieldSchema> part_keys, List<NodeGroup> ngs)
       throws InvalidObjectException, NoSuchObjectException, MetaException, TException {
-    // TODO Auto-generated method stub
     return client.assiginSchematoDB(dbName, schemaName, fileSplitKeys, part_keys, ngs);
   }
 
   @Override
   public List<NodeGroup> listNodeGroups(List<String> ngNames) throws MetaException, TException {
-    // TODO Auto-generated method stub
     return client.listNodeGroupByNames(ngNames);
+  }
+
+  @Override
+  public List<GeoLocation> getGeoLocationByNames(List<String> geoLocNames) throws MetaException,
+      TException {
+    return client.getGeoLocationByNames(geoLocNames);
+  }
+
+  @Override
+  public List<Node> listNodes() throws MetaException, TException {
+    return client.listNodes();
+  }
+
+  @Override
+  public boolean addUserAssignment(String userName, String dbName) throws MetaException,
+      NoSuchObjectException, TException {
+    return client.addUserAssignment(userName, dbName);
+  }
+
+  @Override
+  public boolean deleteUserAssignment(String userName, String dbName) throws MetaException,
+      NoSuchObjectException, TException {
+    return client.deleteUserAssignment(userName, dbName);
+  }
+
+  @Override
+  public List<User> listUsers() throws MetaException, TException {
+    return client.listUsers();
+  }
+
+  @Override
+  public boolean addRoleAssignment(String roleName, String dbName) throws MetaException,
+      NoSuchObjectException, TException {
+    return client.addRoleAssignment(roleName, dbName);
+  }
+
+  @Override
+  public boolean deleteRoleAssignment(String roleName, String dbName) throws MetaException,
+      NoSuchObjectException, TException {
+    return client.deleteRoleAssignment(roleName, dbName);
+  }
+
+  @Override
+  public List<Role> listRoles() throws MetaException, TException {
+    return client.listRoles();
+  }
+
+  @Override
+  public boolean addNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException,
+      NoSuchObjectException, TException {
+    return client.addNodeGroupAssignment(ng, dbName);
+  }
+
+  @Override
+  public boolean deleteNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException,
+      NoSuchObjectException, TException {
+    return client.deleteNodeGroupAssignment(ng, dbName);
   }
 
 }

@@ -8148,7 +8148,7 @@ public MUser getMUser(String userName) {
   }
 
 /**
- * cry
+ * Cry
  */
 
   @Override
@@ -8950,7 +8950,7 @@ public MUser getMUser(String userName) {
   }
 
 /**
- * cry...............................
+ * Cry ------ NodeAssignment,UserAssignment,RoleAssignment
  */
 
   @Override
@@ -8963,8 +8963,8 @@ public MUser getMUser(String userName) {
       MDatabase mdb = this.getMDatabase(dbName);
       MNode mnd = this.getMNode(nodeName);
       Set<MNode> nodes = mdb.getNodes();
-      if (mdb.getNodes() == null) {
-        throw new MetaException("this" + nodeName + "does not exist");
+      if (mdb.getNodes() != null) {
+        throw new MetaException("this" + nodeName + "already exists!");
       }
       nodes = new HashSet<MNode>();
       nodes.add(mnd);
@@ -8992,8 +8992,8 @@ public MUser getMUser(String userName) {
       MDatabase mdb = this.getMDatabase(dbName);
       MNode mnd = this.getMNode(nodeName);
       Set<MNode> nodes = mdb.getNodes();
-      if (mdb.getNodes() == null) {
-        throw new MetaException("this" + nodeName + "does not exist");
+      if (mdb.getNodes() != null) {
+        throw new MetaException("this" + nodeName + "already exists!");
       }
       nodes = new HashSet<MNode>();
       nodes.add(mnd);
@@ -9130,41 +9130,177 @@ public MUser getMUser(String userName) {
   @Override
   public boolean addUserAssignment(String userName, String dbName) throws MetaException,
       NoSuchObjectException {
-    // TODO Auto-generated method stub
-    return false;
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MUser muser = this.getMUser(userName);
+      if (mdb.getUsers() != null) {
+        throw new MetaException("this" + userName + "already exists！");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+      List<MUser> musers  = new ArrayList<MUser>();
+      musers.add(muser);
+      muser.getDbs().add(mdb);
+      pm.makePersistent(mdb);
+      pm.makePersistent(muser);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
   }
 
   @Override
   public boolean deleteUserAssignment(String userName, String dbName) throws MetaException,
       NoSuchObjectException {
-    // TODO Auto-generated method stub
-    return false;
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MUser muser = this.getMUser(userName);
+      if (mdb.getUsers() != null) {
+        throw new MetaException("this" + userName + "already exists！");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+      List<MUser> musers  = new ArrayList<MUser>();
+      musers.add(muser);
+      muser.getDbs().add(mdb);
+      pm.deletePersistent(mdb);
+      pm.deletePersistent(muser);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
   }
 
   @Override
   public List<User> listUsers() throws MetaException {
-    // TODO Auto-generated method stub
-    return null;
+    List<User> users = null;
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MUser.class);
+      List<MUser> musers = (List<MUser>) query.execute();
+      pm.retrieveAll(musers);
+
+      success = commitTransaction();
+      users = this.convertToUsers(musers);
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return users;
+  }
+
+  private List<User> convertToUsers(List<MUser> musers) {
+    List<User> users = null;
+    if(musers != null) {
+      users = new ArrayList<User>();
+      for(MUser muser : musers){
+        User user = new User(muser.getUserName(),muser.getPasswd(),muser.getCreateTime(),muser.getOwnerName());
+        users.add(user);
+      }
+    }
+    return users;
   }
 
   @Override
   public boolean addRoleAssignment(String roleName, String dbName) throws MetaException,
       NoSuchObjectException {
-    // TODO Auto-generated method stub
-    return false;
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MRole mrole = this.getMRole(roleName);
+      if (mdb.getRoles() != null) {
+        throw new MetaException("this" + roleName + "already exists！");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+      List<MRole> mroles  = new ArrayList<MRole>();
+      mroles.add(mrole);
+      mrole.getDbs().add(mdb);
+      pm.makePersistent(mdb);
+      pm.makePersistent(mrole);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
   }
 
   @Override
   public boolean deleteRoleAssignment(String roleName, String dbName) throws MetaException,
       NoSuchObjectException {
-    // TODO Auto-generated method stub
-    return false;
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MRole mrole = this.getMRole(roleName);
+      if (mdb.getRoles() != null) {
+        throw new MetaException("this" + roleName + "already exists！");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+      List<MRole> mroles  = new ArrayList<MRole>();
+      mroles.add(mrole);
+      mrole.getDbs().add(mdb);
+      pm.deletePersistent(mdb);
+      pm.deletePersistent(mrole);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
   }
 
   @Override
   public List<Role> listRoles() throws MetaException {
-    // TODO Auto-generated method stub
-    return null;
+    List<Role> roles = null;
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MRole.class);
+      List<MRole> mroles = (List<MRole>) query.execute();
+      pm.retrieveAll(mroles);
+
+      success = commitTransaction();
+      roles = this.convertToRoles(mroles);
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return roles;
+  }
+
+  private List<Role> convertToRoles(List<MRole> mroles) {
+    List<Role> roles = null;
+    if(mroles != null) {
+      roles = new ArrayList<Role>();
+      for(MRole mrole : mroles){
+        Role role = new Role(mrole.getRoleName(),mrole.getCreateTime(),mrole.getOwnerName());
+        roles.add(role);
+      }
+    }
+    return roles;
   }
 
   @Override

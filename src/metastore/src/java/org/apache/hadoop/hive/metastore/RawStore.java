@@ -633,12 +633,18 @@ public interface RawStore extends Configurable {
 
   public abstract List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws  MetaException;
 
-  //根据名找对象
+  /**
+   * 根据名找对象,节点归属，用户归属，角色归属的增删查！！！
+   * @author
+   * @param geoLocName
+   * @return
+   * @throws MetaException
+   */
+
   public abstract List<GeoLocation> getGeoLocationByName(String geoLocName) throws MetaException;
 
   public abstract List<GeoLocation> getGeoLocationByNames(List<String> geoLocNames) throws MetaException;
 
-  //节点归属，用户归属，角色归属的增删查！！！
   public abstract boolean addNodeAssignment(String nodename, String dbname) throws MetaException, NoSuchObjectException;
 
   public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException;
