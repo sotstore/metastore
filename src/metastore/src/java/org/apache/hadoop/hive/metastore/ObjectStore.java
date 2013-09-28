@@ -4705,7 +4705,7 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       MUser nameCheck = this.getMUser(userName);
       if (nameCheck != null) {
-        LOG.info("User "+ userName +" already exists！");
+        LOG.info("User "+ userName +" already exists!");
         return false;
       }
         int now = (int)(System.currentTimeMillis()/1000);
@@ -4776,7 +4776,7 @@ public class ObjectStore implements RawStore, Configurable {
         pm.deletePersistent(mUser);
       } else {
         //LOG.debug("用户" + userName + "不存在！");
-        LOG.debug("User " + userName + " doesnt exist！");
+        LOG.debug("User " + userName + " doesnt exist!");
         return false;
       }
       success = commitTransaction();
@@ -4797,7 +4797,7 @@ public boolean modifyUser(User user) throws MetaException,
     openTransaction();
     MUser nameCheck = this.getMUser(user.getUserName());
     if (nameCheck == null) {
-      LOG.debug("User " + user.getUserName() + " doesnt exist！");
+      LOG.debug("User " + user.getUserName() + " doesnt exist!");
       return false;
     }
     nameCheck.setPasswd(user.getPassword());
@@ -4876,7 +4876,7 @@ public boolean authentication(String userName, String passwd)
     MUser nameCheck = this.getMUser(userName);
     if (nameCheck == null) {
       //LOG.debug("用户 " + userName + " 不存在！");
-      LOG.debug("User " + userName + " doesnt exist！");
+      LOG.debug("User " + userName + " doesnt exist");
       auth = false;
     } else if (nameCheck.getPasswd().equals(passwd)){
       auth = true;
