@@ -49,7 +49,9 @@ import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
 import org.apache.hadoop.hive.ql.metadata.NodeGroupAssignment;
 import org.apache.hadoop.hive.ql.metadata.NodeGroups;
 import org.apache.hadoop.hive.ql.metadata.Partition;
+import org.apache.hadoop.hive.ql.metadata.RoleAssignment;
 import org.apache.hadoop.hive.ql.metadata.Table;
+import org.apache.hadoop.hive.ql.metadata.UserAssignment;
 import org.apache.hadoop.hive.ql.session.SessionState.LogHelper;
 import org.apache.hadoop.hive.shims.ShimLoader;
 
@@ -684,7 +686,7 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
 
     @Override
     public void showNodeGroupAssignment(DataOutputStream outStream,
-        List<NodeGroupAssignment> nodeGroupAssignments) throws HiveException {
+      List<NodeGroupAssignment> nodeGroupAssignments) throws HiveException {
       try {
         for (NodeGroupAssignment nag : nodeGroupAssignments) {
             outStream.writeBytes(nag.getDbName());
@@ -692,9 +694,41 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
             outStream.writeBytes(nag.getNodeGroupName());
             outStream.write(terminator);
           }
-    } catch (IOException e) {
-        throw new HiveException(e);
+      } catch (IOException e) {
+          throw new HiveException(e);
+      }
     }
+
+    @Override
+    public void showRoleAssignment(DataOutputStream outStream, List<RoleAssignment> roleAssignments)
+        throws HiveException {
+        try {
+          for (RoleAssignment ra : roleAssignments) {
+              outStream.writeBytes(ra.getDbName());
+              outStream.write(terminator);
+              outStream.writeBytes(ra.getRoleName());
+              outStream.write(terminator);
+            }
+        } catch (IOException e) {
+            throw new HiveException(e);
+        }
+
+    }
+
+    @Override
+    public void showUserAssignment(DataOutputStream outStream, List<UserAssignment> userAssignments)
+        throws HiveException {
+        try {
+          for (UserAssignment ua : userAssignments) {
+              outStream.writeBytes(ua.getDbName());
+              outStream.write(terminator);
+              outStream.writeBytes(ua.getUserName());
+              outStream.write(terminator);
+            }
+        } catch (IOException e) {
+            throw new HiveException(e);
+        }
+
     }
 
 }

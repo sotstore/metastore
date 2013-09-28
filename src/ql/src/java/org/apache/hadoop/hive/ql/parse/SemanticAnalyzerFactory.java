@@ -263,6 +263,12 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_CREATENODEGROUPASSIGNMENT:
       case HiveParser.TOK_DROPNODEGROUPASSIGNMENT:
       case HiveParser.TOK_SHOWNODEGROUPASSIGNMENT:
+      case HiveParser.TOK_CREATEUSERASSIGNMENT:
+      case HiveParser.TOK_DROPUSERASSIGNMENT:
+      case HiveParser.TOK_SHOWUSERASSIGNMENT:
+      case HiveParser.TOK_CREATEROLEASSIGNMENT:
+      case HiveParser.TOK_DROPROLEASSIGNMENT:
+      case HiveParser.TOK_SHOWROLEASSIGNMENT:
 
 
 

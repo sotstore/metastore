@@ -3206,7 +3206,7 @@ public class Hive {
     }
   }
 
-  public List<NodeGroupAssignment> showNodeGroupAssignment() {
+  public List<NodeGroupAssignment> showNodeGroupAssignment() throws HiveException {
     List<NodeGroupAssignment> ngas = new ArrayList<NodeGroupAssignment>();
     /*try{
       List<NodeGroupAssignment> nodeGroupAssignments = getMSC().
@@ -3217,6 +3217,58 @@ public class Hive {
     return ngas;
   }
 
+  public void addRoleAssignment(RoleAssignment ra) throws HiveException {
+    try {
+      //getMSC().addRoleAssignment(ra.getDbName(), ra.getRoleName());
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
 
+  public void dropRoleAssignment(RoleAssignment ra) throws HiveException {
+    try {
+      //getMSC().deleteRoleAssignment(ra.getDbName(),ra.getRoleName());
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public List<RoleAssignment> showRoleAssignment() throws HiveException {
+    List<RoleAssignment> ras = new ArrayList<RoleAssignment>();
+    /*try{
+      List<RoleAssignment> roleAssignments = getMSC().
+      }
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }*/
+    return ras;
+  }
+
+  public void addUserAssignment(UserAssignment ua) throws HiveException {
+    try {
+      //getMSC().addUserAssignment(ua.getDbName(), ua.getUserName());
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public void dropUserAssignment(UserAssignment ua) throws HiveException {
+      try {
+        //getMSC().deleteUserAssignment(ua.getDbName(),ua.getUserName());
+      } catch (Exception e) {
+        throw new HiveException(e);
+      }
+  }
+
+  public List<UserAssignment> showUserAssignment() throws HiveException {
+    List<UserAssignment> uas = new ArrayList<UserAssignment>();
+    /*try{
+      List<UserAssignment> userAssignments = getMSC().
+      }
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }*/
+    return uas;
+  }
 
 };

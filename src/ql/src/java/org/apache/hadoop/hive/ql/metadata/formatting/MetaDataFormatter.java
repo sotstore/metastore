@@ -39,7 +39,9 @@ import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
 import org.apache.hadoop.hive.ql.metadata.NodeGroupAssignment;
 import org.apache.hadoop.hive.ql.metadata.NodeGroups;
 import org.apache.hadoop.hive.ql.metadata.Partition;
+import org.apache.hadoop.hive.ql.metadata.RoleAssignment;
 import org.apache.hadoop.hive.ql.metadata.Table;
+import org.apache.hadoop.hive.ql.metadata.UserAssignment;
 import org.apache.hadoop.hive.ql.session.SessionState.LogHelper;
 
 /**
@@ -177,6 +179,10 @@ public interface MetaDataFormatter {
 
     public void showNodeGroupAssignment(DataOutputStream outStream,
         List<NodeGroupAssignment> nodeGroupAssignment) throws HiveException;
+
+    public void showRoleAssignment(DataOutputStream outStream, List<RoleAssignment> roleAssignments) throws HiveException;
+
+    public void showUserAssignment(DataOutputStream outStream, List<UserAssignment> userAssignments) throws HiveException;
 
 
 }

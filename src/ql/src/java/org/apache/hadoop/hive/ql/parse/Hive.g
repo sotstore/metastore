@@ -366,6 +366,13 @@ TOK_SHOWNODEASSIGNMENT;
 TOK_CREATENODEGROUPASSIGNMENT;
 TOK_DROPNODEGROUPASSIGNMENT;
 TOK_SHOWNODEGROUPASSIGNMENT;
+TOK_CREATEUSERASSIGNMENT;
+TOK_DROPUSERASSIGNMENT;
+TOK_SHOWUSERASSIGNMENT;
+TOK_CREATEROLEASSIGNMENT;
+TOK_DROPROLEASSIGNMENT;
+TOK_SHOWROLEASSIGNMENT;
+
 }
 
 
@@ -487,6 +494,12 @@ ddlStatement
     | showNodeGroupAssignment
     | createRoleStatement
     | dropRoleStatement
+    | createUserAssignmentStatement
+    | dropUserAssignmentStatement
+    | showUserAssignment
+    | createRoleAssignmentStatement
+    | dropRoleAssignmentStatement
+    | showRoleAssignment
     
     | createNodeGroupStatement
     | modifyNodeGroupStatement
@@ -498,6 +511,42 @@ ddlStatement
     ;
 //
 
+showRoleAssignment
+@init { msgs.push("show RoleAssignment"); }
+@after { msgs.pop(); }
+    :  KW_SHOW KW_ROLEASSIGNMENT
+     -> ^(TOK_SHOWROLEASSIGNMENT)
+    ;
+dropRoleAssignmentStatement
+@init { msgs.push("drop RoleAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_DROP KW_ROLEASSIGNMENT LPAREN DBNAME= StringLiteral COMMA ROLE_NAME=StringLiteral RPAREN 
+    -> ^(TOK_DROPROLEASSIGNMENT $DBNAME $ROLE_NAME)
+    ;
+createRoleAssignmentStatement
+@init { msgs.push("create RoleAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_CREATE KW_ROLEASSIGNMENT LPAREN DBNAME= StringLiteral COMMA ROLE_NAME=StringLiteral RPAREN 
+    -> ^(TOK_CREATEROLEASSIGNMENT $DBNAME $ROLE_NAME)
+    ;       
+showUserAssignment
+@init { msgs.push("show UserAssignment"); }
+@after { msgs.pop(); }
+    :  KW_SHOW KW_USERASSIGNMENT
+     -> ^(TOK_SHOWUSERASSIGNMENT)
+    ;
+dropUserAssignmentStatement
+@init { msgs.push("drop UserAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_DROP KW_USERASSIGNMENT LPAREN DBNAME= StringLiteral COMMA USER_NAME=StringLiteral RPAREN 
+    -> ^(TOK_DROPUSERASSIGNMENT $DBNAME $USER_NAME)
+    ;
+createUserAssignmentStatement
+@init { msgs.push("create UserAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_CREATE KW_USERASSIGNMENT LPAREN DBNAME= StringLiteral COMMA USER_NAME=StringLiteral RPAREN 
+    -> ^(TOK_CREATEUSERASSIGNMENT $DBNAME $USER_NAME)
+    ;       
 showNodeGroupAssignment
 @init { msgs.push("show NodeGroupAssignment"); }
 @after { msgs.pop(); }
@@ -3336,7 +3385,8 @@ KW_GEOLOC:'GEOLOC';
 KW_EQROOM:'EQROOM';
 KW_NODEASSIGNMENT:'NODEASSIGNMENT';
 KW_NODEGROUPASSIGNMENT:'NODEGROUPASSIGNMENT';
-
+KW_USERASSIGNMENT:'USERASSIGNMENT';	
+KW_ROLEASSIGNMENT:'ROLEASSIGNMENT';
 KW_SCHEMAPROPERTIES:	'SCHEMEPROPERTIES';
 
 // Operators

@@ -81,8 +81,10 @@ import org.apache.hadoop.hive.ql.plan.AddNodeDesc;
 import org.apache.hadoop.hive.ql.plan.AddNodeGroupAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
+import org.apache.hadoop.hive.ql.plan.AddRoleAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.AddSubpartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AddSubpartitionDesc;
+import org.apache.hadoop.hive.ql.plan.AddUserAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.AlterDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.AlterDatawareHouseDesc;
 import org.apache.hadoop.hive.ql.plan.AlterIndexDesc;
@@ -108,9 +110,11 @@ import org.apache.hadoop.hive.ql.plan.DropNodeGroupAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.DropNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
+import org.apache.hadoop.hive.ql.plan.DropRoleAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.DropSubpartIndexDesc;
 import org.apache.hadoop.hive.ql.plan.DropSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.DropTableDesc;
+import org.apache.hadoop.hive.ql.plan.DropUserAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.FetchWork;
 import org.apache.hadoop.hive.ql.plan.GrantDesc;
 import org.apache.hadoop.hive.ql.plan.GrantRevokeRoleDDL;
@@ -157,10 +161,12 @@ import org.apache.hadoop.hive.ql.plan.ShowNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
 import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
+import org.apache.hadoop.hive.ql.plan.ShowRoleAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.ShowSubpartitionDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTableStatusDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
+import org.apache.hadoop.hive.ql.plan.ShowUserAssignmentDesc;
 import org.apache.hadoop.hive.ql.plan.StatsWork;
 import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.TableDesc;
@@ -437,24 +443,24 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     case HiveParser.TOK_ALTERTABLE_SKEWED:
       analyzeAltertableSkewedby(ast);
       break;
-    //added by liulichao for authentification and authorization, begin.
+    // added by liulichao for authentification and authorization, begin.
     case HiveParser.TOK_CREATEUSER:
-        analyzeCreateUser(ast);
-    break;
+      analyzeCreateUser(ast);
+      break;
     case HiveParser.TOK_AUTHENTICATION:
-        analyzeAuthenticateUser(ast);
-    break;
+      analyzeAuthenticateUser(ast);
+      break;
     case HiveParser.TOK_DROPUSER:
-        analyzeDropUser(ast);
-    break;
+      analyzeDropUser(ast);
+      break;
     case HiveParser.TOK_SHOW_USERNAMES:
-        ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
-        analyzeShowUserName(ast);
-    break;
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowUserName(ast);
+      break;
     case HiveParser.TOK_CHANGE_PWD:
-        analyzeChangePassword(ast);
-    break;
-    //added by liulichao for authentification and authorization, end.
+      analyzeChangePassword(ast);
+      break;
+    // added by liulichao for authentification and authorization, end.
     // added by zjw for additional DDL
 
     case HiveParser.TOK_ADDNODE:
@@ -554,9 +560,9 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       analyzeModifyGeoLoc(ast);
       break;
     case HiveParser.TOK_SHOWGEOLOC:
-       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
-       analyzeShowGeoLoc(ast);
-       break;
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowGeoLoc(ast);
+      break;
     case HiveParser.TOK_CREATEEQROOM:
       analyzeAddEqRoom(ast);
       break;
@@ -603,6 +609,26 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
       analyzeShowNodeGroupAssignment(ast);
       break;
+    case HiveParser.TOK_CREATEUSERASSIGNMENT:
+      analyzeAddUserAssignment(ast);
+      break;
+    case HiveParser.TOK_DROPUSERASSIGNMENT:
+      analyzeDropUserAssignment(ast);
+      break;
+    case HiveParser.TOK_SHOWUSERASSIGNMENT:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowUserAssignment(ast);
+      break;
+    case HiveParser.TOK_CREATEROLEASSIGNMENT:
+      analyzeAddRoleAssignment(ast);
+      break;
+    case HiveParser.TOK_DROPROLEASSIGNMENT:
+      analyzeDropRoleAssignment(ast);
+      break;
+    case HiveParser.TOK_SHOWROLEASSIGNMENT:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowRoleAssignment(ast);
+      break;
 
 
     case HiveParser.TOK_DROPSCHEMA:
@@ -618,138 +644,197 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     }
   }
 
+  private void analyzeShowRoleAssignment(ASTNode ast) {
+    ShowRoleAssignmentDesc showRoleAssignmentDesc = new ShowRoleAssignmentDesc(ctx
+        .getResFile().toString());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showRoleAssignmentDesc), conf));
+    setFetchTask(createFetchTask(showRoleAssignmentDesc.getSchema()));
+  }
+
+  private void analyzeDropRoleAssignment(ASTNode ast) {
+    String dbName = unescapeSQLString(ast.getChild(0).getText());
+    String roleName = unescapeSQLString(ast.getChild(1).getText());
+    DropRoleAssignmentDesc dropRoleAssignmentDesc = new DropRoleAssignmentDesc(
+        dbName, roleName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        dropRoleAssignmentDesc), conf));
+
+  }
+
+  private void analyzeAddRoleAssignment(ASTNode ast) {
+    String dbName = unescapeSQLString(ast.getChild(0).getText());
+    String roleName = unescapeSQLString(ast.getChild(1).getText());
+    AddRoleAssignmentDesc addRoleAssignmentDesc = new AddRoleAssignmentDesc(dbName,
+        roleName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        addRoleAssignmentDesc), conf));
+  }
+
+  private void analyzeShowUserAssignment(ASTNode ast) {
+    ShowUserAssignmentDesc showUserAssignmentDesc = new ShowUserAssignmentDesc(ctx
+        .getResFile().toString());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showUserAssignmentDesc), conf));
+    setFetchTask(createFetchTask(showUserAssignmentDesc.getSchema()));
+  }
+
+  private void analyzeDropUserAssignment(ASTNode ast) {
+    String dbName = unescapeSQLString(ast.getChild(0).getText());
+    String userName = unescapeSQLString(ast.getChild(1).getText());
+    DropUserAssignmentDesc dropUserAssignmentDesc = new DropUserAssignmentDesc(
+        dbName, userName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        dropUserAssignmentDesc), conf));
+
+  }
+
+  private void analyzeAddUserAssignment(ASTNode ast) {
+    String dbName = unescapeSQLString(ast.getChild(0).getText());
+    String userName = unescapeSQLString(ast.getChild(1).getText());
+    AddUserAssignmentDesc addUserAssignmentDesc = new AddUserAssignmentDesc(dbName,
+        userName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        addUserAssignmentDesc), conf));
+  }
+
   private void analyzeShowNodeGroupAssignment(ASTNode ast) {
-    ShowNodeGroupAssignmentDesc showNodeGroupAssignmentDesc = new ShowNodeGroupAssignmentDesc(ctx.getResFile().toString());
-      rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
-          showNodeGroupAssignmentDesc), conf));
+    ShowNodeGroupAssignmentDesc showNodeGroupAssignmentDesc = new ShowNodeGroupAssignmentDesc(ctx
+        .getResFile().toString());
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        showNodeGroupAssignmentDesc), conf));
     setFetchTask(createFetchTask(showNodeGroupAssignmentDesc.getSchema()));
   }
 
   private void analyzeDropNodeGroupAssignment(ASTNode ast) {
     String dbName = unescapeSQLString(ast.getChild(0).getText());
     String nodeGroupName = unescapeSQLString(ast.getChild(1).getText());
-    DropNodeGroupAssignmentDesc dropNodeGroupAssignmentDesc = new DropNodeGroupAssignmentDesc(dbName,nodeGroupName);
+    DropNodeGroupAssignmentDesc dropNodeGroupAssignmentDesc = new DropNodeGroupAssignmentDesc(
+        dbName, nodeGroupName);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         dropNodeGroupAssignmentDesc), conf));
 
-    }
+  }
 
   private void analyzeAddNodeGroupAssignment(ASTNode ast) {
     String dbName = unescapeSQLString(ast.getChild(0).getText());
     String nodeGroupName = unescapeSQLString(ast.getChild(1).getText());
-    AddNodeGroupAssignmentDesc addNodeGroupAssignmentDesc = new AddNodeGroupAssignmentDesc(dbName,nodeGroupName);
+    AddNodeGroupAssignmentDesc addNodeGroupAssignmentDesc = new AddNodeGroupAssignmentDesc(dbName,
+        nodeGroupName);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         addNodeGroupAssignmentDesc), conf));
+  }
+
+  private void analyzeShowNodeGroup(ASTNode ast) {
+    ShowNodeGroupDesc showNodeGroupDesc;
+    if (ast.getChildCount() == 1) {
+      String ng_name = unescapeIdentifier(ast.getChild(0).getText());
+      showNodeGroupDesc = new ShowNodeGroupDesc(ctx.getResFile(), ng_name);
+      showNodeGroupDesc.setNg_name(ng_name);
+    } else {
+      showNodeGroupDesc = new ShowNodeGroupDesc(ctx.getResFile());
     }
-private void analyzeShowNodeGroup(ASTNode ast) {
-  ShowNodeGroupDesc showNodeGroupDesc;
-  if (ast.getChildCount() == 1) {
-   String ng_name = unescapeIdentifier(ast.getChild(0).getText());
-   showNodeGroupDesc = new ShowNodeGroupDesc(ctx.getResFile(),ng_name);
-   showNodeGroupDesc.setNg_name(ng_name);
-  } else {
-    showNodeGroupDesc = new ShowNodeGroupDesc(ctx.getResFile());
-  }
-  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), showNodeGroupDesc), conf));
-  setFetchTask(createFetchTask(showNodeGroupDesc.getSchema()));
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), showNodeGroupDesc), conf));
+    setFetchTask(createFetchTask(showNodeGroupDesc.getSchema()));
   }
 
-private void analyzeModifyNodeGroup(ASTNode ast) {
-  String nodeGroupName = unescapeIdentifier(ast.getChild(0).getText());
-  ModifyNodeGroupDesc modifyNodeGroupDesc = new ModifyNodeGroupDesc(nodeGroupName);
-  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
-      modifyNodeGroupDesc), conf));
+  private void analyzeModifyNodeGroup(ASTNode ast) {
+    String nodeGroupName = unescapeIdentifier(ast.getChild(0).getText());
+    ModifyNodeGroupDesc modifyNodeGroupDesc = new ModifyNodeGroupDesc(nodeGroupName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        modifyNodeGroupDesc), conf));
   }
 
-private void analyzeDropNodeGroup(ASTNode ast) {
-  String nodeGroupName = unescapeIdentifier(ast.getChild(0).getText());
-  boolean ifExists = false;
-  boolean ifCascade = false;
+  private void analyzeDropNodeGroup(ASTNode ast) {
+    String nodeGroupName = unescapeIdentifier(ast.getChild(0).getText());
+    boolean ifExists = false;
+    boolean ifCascade = false;
 
-  if (null != ast.getFirstChildWithType(HiveParser.TOK_IFEXISTS)) {
-    ifExists = true;
-  }
-
-  if (null != ast.getFirstChildWithType(HiveParser.TOK_CASCADE)) {
-    ifCascade = true;
-  }
-
-  DropNodeGroupDesc dropNodeGroupDesc = new DropNodeGroupDesc(nodeGroupName, ifExists, ifCascade);
-  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), dropNodeGroupDesc), conf));
-
-}
-
-private void analyzeCreateNodeGroup(ASTNode ast) throws SemanticException {
-  String nodeGroupName = unescapeIdentifier(ast.getChild(0).getText());
-  boolean ifNotExists = false;
-  String nodeGroupcomment = null;
-  Map<String, String> nodeGroupProps = null;
-  Set<String> nodes = null;
-
-  for (int i = 1; i < ast.getChildCount(); i++) {
-    ASTNode childNode = (ASTNode) ast.getChild(i);
-    switch (childNode.getToken().getType()) {
-    case HiveParser.TOK_IFNOTEXISTS:
-      ifNotExists = true;
-      break;
-    case HiveParser.TOK_NODEGROUPCOMMENT:
-      nodeGroupcomment = unescapeSQLString(childNode.getChild(0).getText());
-      break;
-    case HiveParser.TOK_NODEGROUPPROPERTIES:
-      nodeGroupProps = DDLSemanticAnalyzer.getProps((ASTNode) childNode.getChild(0));
-      break;
-    case HiveParser.TOK_STRINGLITERALLIST:
-      nodes = DDLSemanticAnalyzer.getNodes((ASTNode) childNode.getChild(0));
-      break;
-    default:
-      throw new SemanticException("Unrecognized token in CREATE NODEGROUP statement");
+    if (null != ast.getFirstChildWithType(HiveParser.TOK_IFEXISTS)) {
+      ifExists = true;
     }
-  }
 
- CreateNodeGroupDesc createNodeGroupDesc =
-      new CreateNodeGroupDesc(nodeGroupName, nodeGroupcomment, ifNotExists, nodes);
-  if (nodeGroupProps != null) {
-    createNodeGroupDesc.setNodeGroupProps(nodeGroupProps);
-  }
+    if (null != ast.getFirstChildWithType(HiveParser.TOK_CASCADE)) {
+      ifCascade = true;
+    }
 
-  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
-      createNodeGroupDesc), conf));
+    DropNodeGroupDesc dropNodeGroupDesc = new DropNodeGroupDesc(nodeGroupName, ifExists, ifCascade);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), dropNodeGroupDesc), conf));
 
   }
 
+  private void analyzeCreateNodeGroup(ASTNode ast) throws SemanticException {
+    String nodeGroupName = unescapeIdentifier(ast.getChild(0).getText());
+    boolean ifNotExists = false;
+    String nodeGroupcomment = null;
+    Map<String, String> nodeGroupProps = null;
+    Set<String> nodes = null;
 
-static Set<String> getNodes(ASTNode node) {
-  HashSet<String> setNode = new HashSet<String>();
-  readNodes(node, setNode);
-  return setNode;
-}
+    for (int i = 1; i < ast.getChildCount(); i++) {
+      ASTNode childNode = (ASTNode) ast.getChild(i);
+      switch (childNode.getToken().getType()) {
+      case HiveParser.TOK_IFNOTEXISTS:
+        ifNotExists = true;
+        break;
+      case HiveParser.TOK_NODEGROUPCOMMENT:
+        nodeGroupcomment = unescapeSQLString(childNode.getChild(0).getText());
+        break;
+      case HiveParser.TOK_NODEGROUPPROPERTIES:
+        nodeGroupProps = DDLSemanticAnalyzer.getProps((ASTNode) childNode.getChild(0));
+        break;
+      case HiveParser.TOK_STRINGLITERALLIST:
+        nodes = DDLSemanticAnalyzer.getNodes((ASTNode) childNode.getChild(0));
+        break;
+      default:
+        throw new SemanticException("Unrecognized token in CREATE NODEGROUP statement");
+      }
+    }
 
-private void analyzeShowNodeAssignment(ASTNode ast) {
-  ShowNodeAssignmentDesc showNodeAssignmentDesc = new ShowNodeAssignmentDesc(ctx.getResFile().toString());
+    CreateNodeGroupDesc createNodeGroupDesc =
+        new CreateNodeGroupDesc(nodeGroupName, nodeGroupcomment, ifNotExists, nodes);
+    if (nodeGroupProps != null) {
+      createNodeGroupDesc.setNodeGroupProps(nodeGroupProps);
+    }
+
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        createNodeGroupDesc), conf));
+
+  }
+
+
+  static Set<String> getNodes(ASTNode node) {
+    HashSet<String> setNode = new HashSet<String>();
+    readNodes(node, setNode);
+    return setNode;
+  }
+
+  private void analyzeShowNodeAssignment(ASTNode ast) {
+    ShowNodeAssignmentDesc showNodeAssignmentDesc = new ShowNodeAssignmentDesc(ctx.getResFile()
+        .toString());
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         showNodeAssignmentDesc), conf));
-  setFetchTask(createFetchTask(showNodeAssignmentDesc.getSchema()));
-}
+    setFetchTask(createFetchTask(showNodeAssignmentDesc.getSchema()));
+  }
 
-private void analyzeDropNodeAssignment(ASTNode ast) {
-  String nodeName = unescapeSQLString((ast.getChild(0).getText()));
-  String dbName = unescapeSQLString((ast.getChild(1).getText()));
-  DropNodeAssignmentDesc dropNodeAssignmentDesc = new DropNodeAssignmentDesc(nodeName,dbName);
-  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
-      dropNodeAssignmentDesc), conf));
+  private void analyzeDropNodeAssignment(ASTNode ast) {
+    String nodeName = unescapeSQLString((ast.getChild(0).getText()));
+    String dbName = unescapeSQLString((ast.getChild(1).getText()));
+    DropNodeAssignmentDesc dropNodeAssignmentDesc = new DropNodeAssignmentDesc(nodeName, dbName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        dropNodeAssignmentDesc), conf));
 
   }
 
-private void analyzeAddNodeAssignment(ASTNode ast) {
-  String nodeName = unescapeSQLString(ast.getChild(0).getText());
-  String dbName = unescapeSQLString(ast.getChild(1).getText());
-  AddNodeAssignmentDesc addNodeAssignmentDesc = new AddNodeAssignmentDesc(nodeName,dbName);
-  rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
-      addNodeAssignmentDesc), conf));
+  private void analyzeAddNodeAssignment(ASTNode ast) {
+    String nodeName = unescapeSQLString(ast.getChild(0).getText());
+    String dbName = unescapeSQLString(ast.getChild(1).getText());
+    AddNodeAssignmentDesc addNodeAssignmentDesc = new AddNodeAssignmentDesc(nodeName, dbName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        addNodeAssignmentDesc), conf));
   }
 
-//added by liulichao
-private void analyzeChangePassword(ASTNode ast) {
+  // added by liulichao
+  private void analyzeChangePassword(ASTNode ast) {
     String userName = null;
     String passwd = null;
 
@@ -763,47 +848,47 @@ private void analyzeChangePassword(ASTNode ast) {
       passwd = unescapeIdentifier(ast.getChild(1).getText());
       LOG.info("getChildCount=2");
     } else {
-      //can't be here, do nothing.
+      // can't be here, do nothing.
       LOG.info("getChildCount=*");
     }
 
-    for(int i = 0; i < ast.getChildCount(); i++) {
-      LOG.info("child(i)="+ast.getChild(0).getText());
+    for (int i = 0; i < ast.getChildCount(); i++) {
+      LOG.info("child(i)=" + ast.getChild(0).getText());
     }
 
     UserDDLDesc chgUserPwdDesc = new UserDDLDesc(userName, passwd,
         UserDDLDesc.UserOperation.CHANGE_PWD);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         chgUserPwdDesc), conf));
-}
+  }
 
-private void analyzeShowUserName(ASTNode ast) {
+  private void analyzeShowUserName(ASTNode ast) {
     UserDDLDesc showUserNamesDesc = new UserDDLDesc(null,
         UserDDLDesc.UserOperation.SHOW_USER_NAME, ctx.getResFile().toString());
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         showUserNamesDesc), conf));
 
     setFetchTask(createFetchTask(showUserNamesDesc.getSchema()));
-}
+  }
 
-private void analyzeDropUser(ASTNode ast) {
+  private void analyzeDropUser(ASTNode ast) {
     String userName = unescapeIdentifier(ast.getChild(0).getText());
     UserDDLDesc dropUserDesc = new UserDDLDesc(userName,
         UserDDLDesc.UserOperation.DROP_USER);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         dropUserDesc), conf));
-}
+  }
 
-private void analyzeAuthenticateUser(ASTNode ast) {
+  private void analyzeAuthenticateUser(ASTNode ast) {
     String userName = unescapeIdentifier(ast.getChild(0).getText());
     String passwd = unescapeIdentifier(ast.getChild(1).getText());
     UserDDLDesc authUserDesc = new UserDDLDesc(userName, passwd,
         UserDDLDesc.UserOperation.AUTH_USER);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         authUserDesc), conf));
-}
+  }
 
-private void analyzeCreateUser(ASTNode ast) {
+  private void analyzeCreateUser(ASTNode ast) {
     LOG.info("DDL.analyzeCreateUser");
     String userName = unescapeIdentifier(ast.getChild(0).getText());
     String passwd = unescapeIdentifier(ast.getChild(1).getText());
@@ -818,8 +903,9 @@ private void analyzeCreateUser(ASTNode ast) {
         UserDDLDesc.UserOperation.CREATE_USER);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         createUserDesc), conf));
-}
-//added by liulichao
+  }
+
+  // added by liulichao
 
   private void analyzeShowEqRoom(ASTNode ast) {
     ShowEqRoomDesc showEqRoomDesc = new ShowEqRoomDesc(ctx.getResFile().toString());
@@ -828,27 +914,28 @@ private void analyzeCreateUser(ASTNode ast) {
     setFetchTask(createFetchTask(showEqRoomDesc.getSchema()));
   }
 
-  private void analyzeModifyEqRoom(ASTNode ast)  throws SemanticException{
+  private void analyzeModifyEqRoom(ASTNode ast) throws SemanticException {
 
     String eqRoomName = null;
     String status = null;
     String geoLocName = null;
     String comment = null;
-    if(ast.getChildCount() >= 2){
+    if (ast.getChildCount() >= 2) {
       eqRoomName = unescapeSQLString((ast.getChild(0).getText()));
       status = unescapeIdentifier((ast.getChild(1).getText()));
-      if(ast.getChildCount() >= 3){
+      if (ast.getChildCount() >= 3) {
         geoLocName = unescapeSQLString((ast.getChild(2).getText()));
       }
-      if(ast.getChildCount() == 5){
+      if (ast.getChildCount() == 5) {
         comment = unescapeSQLString(ast.getChild(4).getText());
-      }else{
+      } else {
         throw new SemanticException("Not valid augument number for modifying equipment room.");
       }
-      ModifyEqRoomDesc modifyEqRoomDesc = new ModifyEqRoomDesc(eqRoomName,status,comment,geoLocName);
+      ModifyEqRoomDesc modifyEqRoomDesc = new ModifyEqRoomDesc(eqRoomName, status, comment,
+          geoLocName);
       rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
           modifyEqRoomDesc), conf));
-    }else{
+    } else {
       throw new SemanticException("Not valid augument number for modifying equipment room.");
     }
   }
@@ -865,26 +952,26 @@ private void analyzeCreateUser(ASTNode ast) {
     String status = null;
     String geoLocName = null;
     String comment = null;
-    if(ast.getChildCount() >= 2){
+    if (ast.getChildCount() >= 2) {
       eqRoomName = unescapeSQLString((ast.getChild(0).getText()));
       status = unescapeIdentifier((ast.getChild(1).getText()));
-      if(ast.getChildCount() >= 3){
+      if (ast.getChildCount() >= 3) {
         comment = unescapeSQLString(ast.getChild(2).getText());
       }
-      if(ast.getChildCount() == 5){
+      if (ast.getChildCount() == 5) {
         geoLocName = unescapeSQLString((ast.getChild(4).getText()));
-      }else{
+      } else {
         throw new SemanticException("Not valid augument number for adding equipment room.");
       }
-      AddEqRoomDesc addEqRoomDesc = new AddEqRoomDesc(eqRoomName,status,comment,geoLocName);
+      AddEqRoomDesc addEqRoomDesc = new AddEqRoomDesc(eqRoomName, status, comment, geoLocName);
       rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
           addEqRoomDesc), conf));
-    }else{
+    } else {
       throw new SemanticException("Not valid augument number for adding equipment room.");
     }
   }
 
-  private void analyzeShowGeoLoc(ASTNode ast)  throws SemanticException {
+  private void analyzeShowGeoLoc(ASTNode ast) throws SemanticException {
     ShowGeoLocDesc showGeoLocDesc = new ShowGeoLocDesc(ctx.getResFile().toString());
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         showGeoLocDesc), conf));
@@ -898,7 +985,8 @@ private void analyzeCreateUser(ASTNode ast) {
     String province = unescapeSQLString(ast.getChild(2).getText()).toLowerCase();
     String city = unescapeSQLString(ast.getChild(3).getText()).toLowerCase();
     String dist = unescapeSQLString(ast.getChild(4).getText()).toLowerCase();
-    ModifyGeoLocDesc modifyGeoLocDesc = new ModifyGeoLocDesc(geoLocName,nation,province,city,dist);
+    ModifyGeoLocDesc modifyGeoLocDesc = new ModifyGeoLocDesc(geoLocName, nation, province, city,
+        dist);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         modifyGeoLocDesc), conf));
   }
@@ -916,7 +1004,7 @@ private void analyzeCreateUser(ASTNode ast) {
     String province = unescapeSQLString(ast.getChild(2).getText());
     String city = unescapeSQLString(ast.getChild(3).getText());
     String dist = unescapeSQLString(ast.getChild(4).getText());
-    AddGeoLocDesc addGeoLocDesc = new AddGeoLocDesc(geoLocName,nation,province,city,dist);
+    AddGeoLocDesc addGeoLocDesc = new AddGeoLocDesc(geoLocName, nation, province, city, dist);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         addGeoLocDesc), conf));
   }
@@ -925,19 +1013,20 @@ private void analyzeCreateUser(ASTNode ast) {
     String tabName = null;
     String part_name = null;
     Table tab = null;
-    if(ast.getChildCount() ==2){
-      if(ast.getChildCount() ==2){
+    if (ast.getChildCount() == 2) {
+      if (ast.getChildCount() == 2) {
         part_name = unescapeSQLString(ast.getChild(0).getText());
         tabName = unescapeIdentifier(ast.getChild(1).getChild(0).getText());
-        LOG.info("---zjw--part_name:"+part_name+"--tabName:"+tabName);
+        LOG.info("---zjw--part_name:" + part_name + "--tabName:" + tabName);
         tab = validateAndGetTable(tabName);
-        if(tab == null){
-          throw new SemanticException("table:"+tabName+" is not exist!");
+        if (tab == null) {
+          throw new SemanticException("table:" + tabName + " is not exist!");
         }
       }
     }
 
-    ShowFileLocationsDesc showFileLocationsDesc = new ShowFileLocationsDesc(ctx.getResFile().toString(),tab,part_name);
+    ShowFileLocationsDesc showFileLocationsDesc = new ShowFileLocationsDesc(ctx.getResFile()
+        .toString(), tab, part_name);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         showFileLocationsDesc), conf));
     setFetchTask(createFetchTask(showFileLocationsDesc.getSchema()));
@@ -948,19 +1037,19 @@ private void analyzeCreateUser(ASTNode ast) {
     String tabName = null;
     String part_name = null;
     Table tab = null;
-    LOG.info("---zjw--ast:"+ast.toStringTree());
-    if(ast.getChildCount() ==2){
+    LOG.info("---zjw--ast:" + ast.toStringTree());
+    if (ast.getChildCount() == 2) {
       part_name = unescapeSQLString(ast.getChild(0).getText());
       tabName = unescapeIdentifier(ast.getChild(1).getChild(0).getText());
-      LOG.info("---zjw--part_name:"+part_name+"--tabName:"+tabName);
+      LOG.info("---zjw--part_name:" + part_name + "--tabName:" + tabName);
       tab = validateAndGetTable(tabName);
-      if(tab == null){
-        throw new SemanticException("table:"+tabName+" is not exist!");
+      if (tab == null) {
+        throw new SemanticException("table:" + tabName + " is not exist!");
       }
-    }else{
+    } else {
       throw new SemanticException("table or partition is not identified!");
     }
-    ShowFilesDesc showFilesDesc = new ShowFilesDesc(ctx.getResFile().toString(),tab,part_name);
+    ShowFilesDesc showFilesDesc = new ShowFilesDesc(ctx.getResFile().toString(), tab, part_name);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         showFilesDesc), conf));
     setFetchTask(createFetchTask(showFilesDesc.getSchema()));
@@ -977,13 +1066,13 @@ private void analyzeCreateUser(ASTNode ast) {
   private void analyzeCreateBusiType(ASTNode ast) throws SemanticException {
     String tabName = null;
     CreateBusitypeDesc createBusitypeDesc = null;
-    LOG.info("---zjw--ast:"+ast.toStringTree());
-    if(ast.getChildCount() ==2){
+    LOG.info("---zjw--ast:" + ast.toStringTree());
+    if (ast.getChildCount() == 2) {
       String busi_name = unescapeIdentifier(ast.getChild(0).getText());
       String comment = unescapeIdentifier(ast.getChild(1).getChild(0).getText());
-      createBusitypeDesc = new CreateBusitypeDesc(busi_name,comment);
+      createBusitypeDesc = new CreateBusitypeDesc(busi_name, comment);
 
-    }else{
+    } else {
       String busi_name = unescapeIdentifier(ast.getChild(0).getText());
       createBusitypeDesc = new CreateBusitypeDesc(busi_name);
     }
@@ -1009,64 +1098,68 @@ private void analyzeCreateUser(ASTNode ast) {
   }
 
   private void analyzeShowPartitionKeys(ASTNode ast) throws SemanticException {
-    ASTNode tabTree = (ASTNode)ast.getChild(0);
+    ASTNode tabTree = (ASTNode) ast.getChild(0);
     String tabName = null;
     Table tab = null;
-    if(tabTree.getChildCount() ==2){
+    if (tabTree.getChildCount() == 2) {
       String dbName = unescapeIdentifier(tabTree.getChild(0).getText());
       tabName = unescapeIdentifier(tabTree.getChild(1).getText());
-      tab = validateAndGetTable(dbName,tabName);
-    }else{
+      tab = validateAndGetTable(dbName, tabName);
+    } else {
       tabName = unescapeIdentifier(tabTree.getChild(0).getText());
       tab = validateAndGetTable(tabName);
     }
 
-    LOG.info("---zjw-- in analyzeShowPartitionKeys, tablename="+tabName);
-    if(tab == null){
-      throw new SemanticException("table:"+tabName+" is not exist!");
+    LOG.info("---zjw-- in analyzeShowPartitionKeys, tablename=" + tabName);
+    if (tab == null) {
+      throw new SemanticException("table:" + tabName + " is not exist!");
     }
-    ShowPartitionKeysDesc showPartitionKeysDesc = new ShowPartitionKeysDesc(ctx.getResFile().toString(),tabName,tab.getDbName());
+    ShowPartitionKeysDesc showPartitionKeysDesc = new ShowPartitionKeysDesc(ctx.getResFile()
+        .toString(), tabName, tab.getDbName());
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         showPartitionKeysDesc), conf));
     setFetchTask(createFetchTask(showPartitionKeysDesc.getSchema()));
   }
 
   private void analyzeShowSubpartitions(ASTNode ast) throws SemanticException {
-//    String partName = unescapeIdentifier(ast.getChild(0).getText());
+    // String partName = unescapeIdentifier(ast.getChild(0).getText());
     String partName = unescapeSQLString(ast.getChild(0).getText());
-    ASTNode tabTree = (ASTNode)ast.getChild(1);
+    ASTNode tabTree = (ASTNode) ast.getChild(1);
     String tabName = null;
     Table tab = null;
-    if(tabTree.getChildCount() ==2){
+    if (tabTree.getChildCount() == 2) {
       String dbName = unescapeIdentifier(tabTree.getChild(0).getText());
       tabName = unescapeIdentifier(tabTree.getChild(1).getText());
-      tab = validateAndGetTable(dbName,tabName);
-    }else{
+      tab = validateAndGetTable(dbName, tabName);
+    } else {
       tabName = unescapeIdentifier(tabTree.getChild(0).getText());
       tab = validateAndGetTable(tabName);
     }
 
-    LOG.info("---zjw-- in analyzeShowSubpartitions, part_name:"+partName+",tablename="+tabName);
-    if(tab == null){
-      throw new SemanticException("table:"+tabName+" is not exist!");
+    LOG.info("---zjw-- in analyzeShowSubpartitions, part_name:" + partName + ",tablename="
+        + tabName);
+    if (tab == null) {
+      throw new SemanticException("table:" + tabName + " is not exist!");
     }
-    ShowSubpartitionDesc showSubpartitionDesc = new ShowSubpartitionDesc(ctx.getResFile().toString(),partName,tabName,tab.getDbName());
+    ShowSubpartitionDesc showSubpartitionDesc = new ShowSubpartitionDesc(ctx.getResFile()
+        .toString(), partName, tabName, tab.getDbName());
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         showSubpartitionDesc), conf));
     setFetchTask(createFetchTask(showSubpartitionDesc.getSchema()));
   }
 
   /**
-   * KW_ALTER KW_DW  KW_DIRECT LPAREN dwNo=Number COMMA sql=StringLiteral RPAREN
-       -> ^(TOK_ALTER_DW $dwNo $sql)
+   * KW_ALTER KW_DW KW_DIRECT LPAREN dwNo=Number COMMA sql=StringLiteral RPAREN
+   * -> ^(TOK_ALTER_DW $dwNo $sql)
+   *
    * @param ast
-  */
+   */
   private void analyzeAlterDatawareHouse(ASTNode ast) {
-    LOG.debug("----zjw --analyzeAlterDatawareHouse ast:"+ast.toStringTree());
+    LOG.debug("----zjw --analyzeAlterDatawareHouse ast:" + ast.toStringTree());
     String dwNum = unescapeIdentifier(ast.getChild(0).getText());
     int dn = Integer.parseInt(dwNum);
     String sql = unescapeIdentifier(ast.getChild(1).getText());
-    AlterDatawareHouseDesc alterDatawareHouseDesc = new AlterDatawareHouseDesc(dn,sql);
+    AlterDatawareHouseDesc alterDatawareHouseDesc = new AlterDatawareHouseDesc(dn, sql);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         alterDatawareHouseDesc), conf));
   }
@@ -1076,7 +1169,7 @@ private void analyzeCreateUser(ASTNode ast) {
     String status_str = unescapeIdentifier(ast.getChild(1).getText());
     Integer status = Integer.parseInt(status_str);
     String ip = unescapeIdentifier(ast.getChild(2).getText());
-    ModifyNodeDesc modifyNodeDesc = new ModifyNodeDesc(nodeName,status,ip);
+    ModifyNodeDesc modifyNodeDesc = new ModifyNodeDesc(nodeName, status, ip);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         modifyNodeDesc), conf));
 
@@ -1095,7 +1188,7 @@ private void analyzeCreateUser(ASTNode ast) {
     String status_str = unescapeIdentifier(ast.getChild(1).getText());
     Integer status = Integer.parseInt(status_str);
     String ip = unescapeIdentifier(ast.getChild(2).getText());
-    AddNodeDesc addNodeDesc = new AddNodeDesc(nodeName,status,ip);
+    AddNodeDesc addNodeDesc = new AddNodeDesc(nodeName, status, ip);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         addNodeDesc), conf));
 
@@ -1105,12 +1198,13 @@ private void analyzeCreateUser(ASTNode ast) {
     String tblName = getUnescapedName((ASTNode) ast.getChild(0));
     String indexName = getUnescapedName((ASTNode) ast.getChild(1));
     Table tab = this.validateAndGetTable(tblName);
-    Index idx = this.validateAndGetIndex(tblName,indexName);
+    Index idx = this.validateAndGetIndex(tblName, indexName);
 
     List<Long> fids = new ArrayList<Long>();
-    String subpartitionName = unescapeIdentifier(((ASTNode)ast.getChild(1)).getText());
+    String subpartitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
 
-    ModifySubpartIndexDropFileDesc modifySubpartIndexDropFileDesc = new ModifySubpartIndexDropFileDesc(tab.getDbName(),tblName,subpartitionName, indexName ,fids);
+    ModifySubpartIndexDropFileDesc modifySubpartIndexDropFileDesc = new ModifySubpartIndexDropFileDesc(
+        tab.getDbName(), tblName, subpartitionName, indexName, fids);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         modifySubpartIndexDropFileDesc), conf));
   }
@@ -1119,12 +1213,13 @@ private void analyzeCreateUser(ASTNode ast) {
     String tblName = getUnescapedName((ASTNode) ast.getChild(0));
     String indexName = getUnescapedName((ASTNode) ast.getChild(1));
     Table tab = this.validateAndGetTable(tblName);
-    Index idx = this.validateAndGetIndex(tblName,indexName);
+    Index idx = this.validateAndGetIndex(tblName, indexName);
 
     List<Long> fids = new ArrayList<Long>();
     ASTNode child = (ASTNode) ast.getChild(1);
-    String partitionName = unescapeIdentifier(((ASTNode)ast.getChild(1)).getText());
-    ModifyPartIndexDropFileDesc modifyPartIndexDropFileDesc = new ModifyPartIndexDropFileDesc(tab.getDbName(),tblName,partitionName, indexName ,fids);
+    String partitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
+    ModifyPartIndexDropFileDesc modifyPartIndexDropFileDesc = new ModifyPartIndexDropFileDesc(
+        tab.getDbName(), tblName, partitionName, indexName, fids);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         modifyPartIndexDropFileDesc), conf));
   }
@@ -1133,11 +1228,12 @@ private void analyzeCreateUser(ASTNode ast) {
     String tblName = getUnescapedName((ASTNode) ast.getChild(0));
     String indexName = getUnescapedName((ASTNode) ast.getChild(1));
     Table tab = this.validateAndGetTable(tblName);
-    Index idx = this.validateAndGetIndex(tblName,indexName);
+    Index idx = this.validateAndGetIndex(tblName, indexName);
 
     List<Long> fids = new ArrayList<Long>();
     String subpartitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
-    ModifySubpartIndexAddFileDesc modifySubpartIndexAddFileDesc = new ModifySubpartIndexAddFileDesc(tab.getDbName(),tblName,subpartitionName, indexName ,fids);
+    ModifySubpartIndexAddFileDesc modifySubpartIndexAddFileDesc = new ModifySubpartIndexAddFileDesc(
+        tab.getDbName(), tblName, subpartitionName, indexName, fids);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         modifySubpartIndexAddFileDesc), conf));
   }
@@ -1146,11 +1242,12 @@ private void analyzeCreateUser(ASTNode ast) {
     String tblName = getUnescapedName((ASTNode) ast.getChild(0));
     String indexName = getUnescapedName((ASTNode) ast.getChild(1));
     Table tab = this.validateAndGetTable(tblName);
-    Index idx = this.validateAndGetIndex(tblName,indexName);
+    Index idx = this.validateAndGetIndex(tblName, indexName);
 
     List<Long> fids = new ArrayList<Long>();
     String partitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
-    ModifyPartIndexAddFileDesc modifyPartIndexAddFileDesc = new ModifyPartIndexAddFileDesc(tab.getDbName(),tblName,partitionName, indexName ,fids);
+    ModifyPartIndexAddFileDesc modifyPartIndexAddFileDesc = new ModifyPartIndexAddFileDesc(
+        tab.getDbName(), tblName, partitionName, indexName, fids);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         modifyPartIndexAddFileDesc), conf));
   }
@@ -1159,10 +1256,11 @@ private void analyzeCreateUser(ASTNode ast) {
     String tblName = getUnescapedName((ASTNode) ast.getChild(0));
     String indexName = getUnescapedName((ASTNode) ast.getChild(1));
     Table tab = this.validateAndGetTable(tblName);
-    Index idx = this.validateAndGetIndex(tblName,indexName);
+    Index idx = this.validateAndGetIndex(tblName, indexName);
 
     String subpartitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
-    AddSubpartIndexDesc addSubpartIndexsDesc = new AddSubpartIndexDesc(tab.getDbName(),tblName,subpartitionName, indexName  );
+    AddSubpartIndexDesc addSubpartIndexsDesc = new AddSubpartIndexDesc(tab.getDbName(), tblName,
+        subpartitionName, indexName);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         addSubpartIndexsDesc), conf));
   }
@@ -1171,10 +1269,11 @@ private void analyzeCreateUser(ASTNode ast) {
     String tblName = getUnescapedName((ASTNode) ast.getChild(0));
     String indexName = getUnescapedName((ASTNode) ast.getChild(1));
     Table tab = this.validateAndGetTable(tblName);
-    Index idx = this.validateAndGetIndex(tblName,indexName);
+    Index idx = this.validateAndGetIndex(tblName, indexName);
 
     String partitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
-    AddPartIndexDesc addPartIndexsDesc = new AddPartIndexDesc(tab.getDbName(),tblName,partitionName, indexName  );
+    AddPartIndexDesc addPartIndexsDesc = new AddPartIndexDesc(tab.getDbName(), tblName,
+        partitionName, indexName);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         addPartIndexsDesc), conf));
   }
@@ -1183,10 +1282,11 @@ private void analyzeCreateUser(ASTNode ast) {
     String tblName = getUnescapedName((ASTNode) ast.getChild(0));
     String indexName = getUnescapedName((ASTNode) ast.getChild(1));
     Table tab = this.validateAndGetTable(tblName);
-    Index idx = this.validateAndGetIndex(tblName,indexName);
+    Index idx = this.validateAndGetIndex(tblName, indexName);
 
     String subpartitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
-    DropSubpartIndexDesc dropSubpartIndexsDesc = new DropSubpartIndexDesc(tab.getDbName(),tblName,subpartitionName, indexName  );
+    DropSubpartIndexDesc dropSubpartIndexsDesc = new DropSubpartIndexDesc(tab.getDbName(), tblName,
+        subpartitionName, indexName);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         dropSubpartIndexsDesc), conf));
   }
@@ -1195,11 +1295,12 @@ private void analyzeCreateUser(ASTNode ast) {
     String tblName = getUnescapedName((ASTNode) ast.getChild(0));
     String indexName = getUnescapedName((ASTNode) ast.getChild(1));
     Table tab = this.validateAndGetTable(tblName);
-    Index idx = this.validateAndGetIndex(tblName,indexName);
+    Index idx = this.validateAndGetIndex(tblName, indexName);
 
     String partitionName = unescapeIdentifier(((ASTNode) ast.getChild(1)).getText());
 
-    DropPartIndexDesc dropPartIndexsDesc = new DropPartIndexDesc(tab.getDbName(),tblName,partitionName, indexName  );
+    DropPartIndexDesc dropPartIndexsDesc = new DropPartIndexDesc(tab.getDbName(), tblName,
+        partitionName, indexName);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         dropPartIndexsDesc), conf));
   }
@@ -1215,7 +1316,8 @@ private void analyzeCreateUser(ASTNode ast) {
     Long id = Long.parseLong(id_str);
     fids.add(id);
 
-    ModifySubpartitionDropFileDesc modifySubpartitionDropFileDesc = new ModifySubpartitionDropFileDesc(tab.getDbName(), tblName ,subpartitionName , fids);
+    ModifySubpartitionDropFileDesc modifySubpartitionDropFileDesc = new ModifySubpartitionDropFileDesc(
+        tab.getDbName(), tblName, subpartitionName, fids);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         modifySubpartitionDropFileDesc), conf));
   }
@@ -1231,7 +1333,8 @@ private void analyzeCreateUser(ASTNode ast) {
     Long id = Long.parseLong(id_str);
     fids.add(id);
 
-    ModifySubpartitionAddFileDesc modifySubpartitionAddFileDesc = new ModifySubpartitionAddFileDesc(tab.getDbName(), tblName ,subpartitionName , fids);
+    ModifySubpartitionAddFileDesc modifySubpartitionAddFileDesc = new ModifySubpartitionAddFileDesc(
+        tab.getDbName(), tblName, subpartitionName, fids);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         modifySubpartitionAddFileDesc), conf));
   }
@@ -1247,7 +1350,8 @@ private void analyzeCreateUser(ASTNode ast) {
     Long id = Long.parseLong(id_str);
     fids.add(id);
 
-    ModifyPartitionDropFileDesc modifyPartitionDropFileDesc = new ModifyPartitionDropFileDesc(tab.getDbName(), tblName ,partitionName , fids);
+    ModifyPartitionDropFileDesc modifyPartitionDropFileDesc = new ModifyPartitionDropFileDesc(
+        tab.getDbName(), tblName, partitionName, fids);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         modifyPartitionDropFileDesc), conf));
   }
@@ -1263,7 +1367,8 @@ private void analyzeCreateUser(ASTNode ast) {
     Long id = Long.parseLong(id_str);
     fids.add(id);
 
-    ModifyPartitionAddFileDesc modifyPartitionAddFileDesc = new ModifyPartitionAddFileDesc(tab.getDbName(), tblName ,partitionName , fids);
+    ModifyPartitionAddFileDesc modifyPartitionAddFileDesc = new ModifyPartitionAddFileDesc(
+        tab.getDbName(), tblName, partitionName, fids);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         modifyPartitionAddFileDesc), conf));
   }
@@ -1275,25 +1380,35 @@ private void analyzeCreateUser(ASTNode ast) {
 
 
     List<PartitionInfo> pis = tab.getPartitionInfo();
-    if( pis != null && pis.size() > 0){
-      if(pis.get(0).getP_type() != PartitionType.interval){
-        throw new SemanticException("Add subpartition operation only supprots interval subpartition.");
+    if (pis != null && pis.size() > 0) {
+      if (pis.get(0).getP_type() != PartitionType.interval) {
+        throw new SemanticException(
+            "Add subpartition operation only supprots interval subpartition.");
       }
     }
 
-    ASTNode child = (ASTNode) ast.getChild(1);//interval 增加分区的格式为 alter table tab1 add subpartition ( subpartition p1 values(UNIX_TIMESTAMP('2013-05-20 22:23:00')) )
+    ASTNode child = (ASTNode) ast.getChild(1);// interval 增加分区的格式为 alter table tab1 add subpartition
+                                              // ( subpartition p1 values(UNIX_TIMESTAMP('2013-05-20
+                                              // 22:23:00')) )
     List<PartitionDefinition> pds = getPartitionDef(child, null);
 
 
-    List<AddSubpartitionDesc> addSubpartDescs = new ArrayList<AddSubpartitionDesc> ();
-    for(PartitionDefinition pd : pds){
-      Map<String, String> subpartSpec = new LinkedHashMap<String, String>();//subpartition values
-      subpartSpec.put(pis.get(0).getP_col(), PartitionFactory.arrayToJson(pd.getValues()));//set partition values,which can be extracted from ast parser
+    List<AddSubpartitionDesc> addSubpartDescs = new ArrayList<AddSubpartitionDesc>();
+    for (PartitionDefinition pd : pds) {
+      Map<String, String> subpartSpec = new LinkedHashMap<String, String>();// subpartition values
+      subpartSpec.put(pis.get(0).getP_col(), PartitionFactory.arrayToJson(pd.getValues()));// set
+                                                                                           // partition
+                                                                                           // values,which
+                                                                                           // can be
+                                                                                           // extracted
+                                                                                           // from
+                                                                                           // ast
+                                                                                           // parser
       AddSubpartitionDesc addsubpartitionDesc = new AddSubpartitionDesc(tab.getDbName(), tblName,
           pd.getPart_name(), subpartSpec, null, null);
       addSubpartDescs.add(addsubpartitionDesc);
     }
-    for(AddSubpartitionDesc addsubpartitionDesc: addSubpartDescs){
+    for (AddSubpartitionDesc addsubpartitionDesc : addSubpartDescs) {
       rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
           addsubpartitionDesc), conf));
     }
@@ -1320,40 +1435,43 @@ private void analyzeCreateUser(ASTNode ast) {
 
     List<PartitionInfo> pis = tab.getPartitionInfo();
     PartitionDefinition global_sub_pd = null;
-    if( pis != null && pis.size() > 0){
-      if(pis.get(0).getP_type() != PartitionType.interval){
+    if (pis != null && pis.size() > 0) {
+      if (pis.get(0).getP_type() != PartitionType.interval) {
         throw new SemanticException("Add partition operation only supprots interval partition.");
       }
-      if(pis.size() == 2 ){
+      if (pis.size() == 2) {
         LOG.warn("---zjw --in anaylzeDDL,1-level part");
         global_sub_pd = new PartitionDefinition();
         global_sub_pd.setPi(pis.get(1));
         global_sub_pd.setDbName(tab.getDbName());
         global_sub_pd.setTableName(tblName);
-        global_sub_pd.getPi().setP_level(2);//设为2级分区
-        PartitionFactory.createSubPartition(tab.getPartCols(),global_sub_pd,false,null);
-      }else{
+        global_sub_pd.getPi().setP_level(2);// 设为2级分区
+        PartitionFactory.createSubPartition(tab.getPartCols(), global_sub_pd, false, null);
+      } else {
         LOG.warn("---zjw --in anaylzeDDL,2-level part");
       }
     }
 
-   ASTNode child = (ASTNode) ast.getChild(1);//interval 增加分区的格式为 alter table tab1 add partition ( partition p1 values(UNIX_TIMESTAMP('2013-05-20 22:23:00')) )
-   List<PartitionDefinition> pds = getPartitionDef(child, global_sub_pd);
+    ASTNode child = (ASTNode) ast.getChild(1);// interval 增加分区的格式为 alter table tab1 add partition (
+                                              // partition p1 values(UNIX_TIMESTAMP('2013-05-20
+                                              // 22:23:00')) )
+    List<PartitionDefinition> pds = getPartitionDef(child, global_sub_pd);
 
 
 
-   List<AddPartitionDesc> addPartDescs = new ArrayList<AddPartitionDesc> ();
+    List<AddPartitionDesc> addPartDescs = new ArrayList<AddPartitionDesc>();
 
-    for(PartitionDefinition pd : pds){
+    for (PartitionDefinition pd : pds) {
       Map<String, String> partSpec = new LinkedHashMap<String, String>();
-      partSpec.put(pis.get(0).getP_col(), pd.getValues().get(0));//set partition values,which can be extracted from ast parser
+      partSpec.put(pis.get(0).getP_col(), pd.getValues().get(0));// set partition values,which can
+                                                                 // be extracted from ast parser
       AddPartitionDesc addPartitionDesc = new AddPartitionDesc(tab.getDbName(), tblName,
           pd.getPart_name(), partSpec, null, null);
       addPartDescs.add(addPartitionDesc);
 
-      LOG.warn("---zjw --in anaylzeDDL,create part partname:"+pd.getPart_name());
+      LOG.warn("---zjw --in anaylzeDDL,create part partname:" + pd.getPart_name());
     }
-    for(AddPartitionDesc addPartitionDesc: addPartDescs){
+    for (AddPartitionDesc addPartitionDesc : addPartDescs) {
       rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
           addPartitionDesc), conf));
     }
@@ -1365,18 +1483,20 @@ private void analyzeCreateUser(ASTNode ast) {
     Table tab = this.validateAndGetTable(tblName);
 
     List<PartitionInfo> pis = tab.getPartitionInfo();
-    if( pis != null && pis.size() == 2){
-      if(pis.get(1).getP_type() != PartitionType.interval){
+    if (pis != null && pis.size() == 2) {
+      if (pis.get(1).getP_type() != PartitionType.interval) {
         throw new SemanticException("Drop subpartition operation only supprots interval partition.");
       }
-    }else{
-      throw new SemanticException("Drop subpartition operation invalid, table:"+tblName+" does not hava subpartitions");
+    } else {
+      throw new SemanticException("Drop subpartition operation invalid, table:" + tblName
+          + " does not hava subpartitions");
     }
 
-//  ASTNode child = (ASTNode) ast.getChild(1);
-  String subpartitionName = unescapeIdentifier(ast.getChild(1).getText());
+    // ASTNode child = (ASTNode) ast.getChild(1);
+    String subpartitionName = unescapeIdentifier(ast.getChild(1).getText());
 
-    DropSubpartitionDesc dropSubpartitionDesc = new DropSubpartitionDesc(tab.getDbName(), tblName, subpartitionName);
+    DropSubpartitionDesc dropSubpartitionDesc = new DropSubpartitionDesc(tab.getDbName(), tblName,
+        subpartitionName);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         dropSubpartitionDesc), conf));
 
@@ -1387,24 +1507,26 @@ private void analyzeCreateUser(ASTNode ast) {
     Table tab = this.validateAndGetTable(tblName);
 
     List<PartitionInfo> pis = tab.getPartitionInfo();
-    if( pis != null && pis.size() > 0){
-      if(pis.get(0).getP_type() != PartitionType.interval){
+    if (pis != null && pis.size() > 0) {
+      if (pis.get(0).getP_type() != PartitionType.interval) {
         throw new SemanticException("Drop partition operation only supprots interval partition.");
       }
-    }else{
-      throw new SemanticException("Drop partition operation invalid, table:"+tblName+" does not hava partitions");
+    } else {
+      throw new SemanticException("Drop partition operation invalid, table:" + tblName
+          + " does not hava partitions");
     }
 
-//    ASTNode child = (ASTNode) ast.getChild(1);
+    // ASTNode child = (ASTNode) ast.getChild(1);
     String partitionName = unescapeIdentifier(ast.getChild(1).getText());
-//    LOG.info("---zjw--drop partitionName:"+partitionName);
-    DropPartitionDesc dropPartitionDesc = new DropPartitionDesc(tab.getDbName(), tblName, partitionName);
+    // LOG.info("---zjw--drop partitionName:"+partitionName);
+    DropPartitionDesc dropPartitionDesc = new DropPartitionDesc(tab.getDbName(), tblName,
+        partitionName);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         dropPartitionDesc), conf));
 
   }
 
-  private Table validateAndGetTable(String tblName) throws SemanticException{
+  private Table validateAndGetTable(String tblName) throws SemanticException {
     boolean isView = false;
     Table tab = null;
     try {
@@ -1419,7 +1541,7 @@ private void analyzeCreateUser(ASTNode ast) {
     return tab;
   }
 
-  private Table validateAndGetTable(String dbName,String tblName) throws SemanticException{
+  private Table validateAndGetTable(String dbName, String tblName) throws SemanticException {
     boolean isView = false;
     Table tab = null;
     try {
@@ -1434,7 +1556,8 @@ private void analyzeCreateUser(ASTNode ast) {
     return tab;
   }
 
-  private Index validateAndGetIndex(String baseTableName,String indexName) throws SemanticException{
+  private Index validateAndGetIndex(String baseTableName, String indexName)
+      throws SemanticException {
     Index idx = null;
     try {
       idx = db.getIndex(baseTableName, indexName);
@@ -1789,7 +1912,9 @@ private void analyzeCreateUser(ASTNode ast) {
   }
 
   /**
-   *modified by zjw,added 6XX lucene/bloolfilter index, and store index_type instead of handler class
+   * modified by zjw,added 6XX lucene/bloolfilter index, and store index_type instead of handler
+   * class
+   *
    * @param ast
    * @throws SemanticException
    */
@@ -1799,13 +1924,14 @@ private void analyzeCreateUser(ASTNode ast) {
     String tableName = getUnescapedName((ASTNode) ast.getChild(2));
     List<String> indexedCols = getColumnNames((ASTNode) ast.getChild(3));
 
-    //modified by zjw,added 6XX lucene/bloolfilter index, and store index_type instead of handler class
+    // modified by zjw,added 6XX lucene/bloolfilter index, and store index_type instead of handler
+    // class
     IndexType indexType = HiveIndex.getIndexType(typeName);
     if (indexType != null) {
-      LOG.warn("--zjw--index_type:"+typeName);
+      LOG.warn("--zjw--index_type:" + typeName);
       typeName = indexType.getHandlerClsName();
     } else {
-      LOG.warn("--zjw--did not find index_type:"+typeName);
+      LOG.warn("--zjw--did not find index_type:" + typeName);
       try {
         Class.forName(typeName);
       } catch (Exception e) {
@@ -2451,11 +2577,11 @@ private void analyzeCreateUser(ASTNode ast) {
         return ast.getText();
       } else if (ast.getChildCount() == 2) {
         return getFullyQualifiedName((ASTNode) ast.getChild(0)) + "."
-        + getFullyQualifiedName((ASTNode) ast.getChild(1));
+            + getFullyQualifiedName((ASTNode) ast.getChild(1));
       } else if (ast.getChildCount() == 3) {
         return getFullyQualifiedName((ASTNode) ast.getChild(0)) + "."
-        + getFullyQualifiedName((ASTNode) ast.getChild(1)) + "."
-        + getFullyQualifiedName((ASTNode) ast.getChild(2));
+            + getFullyQualifiedName((ASTNode) ast.getChild(1)) + "."
+            + getFullyQualifiedName((ASTNode) ast.getChild(2));
       } else {
         return null;
       }
@@ -2469,11 +2595,11 @@ private void analyzeCreateUser(ASTNode ast) {
       // DESCRIBE table.column
       // DECRIBE table column
       String tableName = null;
-      if(qualifiedName.split("\\.").length <3){
-          tableName = qualifiedName.substring(0,
-          qualifiedName.indexOf('.') == -1 ?
-          qualifiedName.length() : qualifiedName.indexOf('.'));
-      }else{
+      if (qualifiedName.split("\\.").length < 3) {
+        tableName = qualifiedName.substring(0,
+            qualifiedName.indexOf('.') == -1 ?
+                qualifiedName.length() : qualifiedName.indexOf('.'));
+      } else {
         tableName = qualifiedName;
       }
       try {
@@ -2507,9 +2633,9 @@ private void analyzeCreateUser(ASTNode ast) {
       // first try the first component of the DOT separated name
       if (ast.getChildCount() >= 2) {
         dbName = fullyQualifiedName.substring(0,
-          fullyQualifiedName.indexOf('.') == -1 ?
-          fullyQualifiedName.length() :
-          fullyQualifiedName.indexOf('.'));
+            fullyQualifiedName.indexOf('.') == -1 ?
+                fullyQualifiedName.length() :
+                fullyQualifiedName.indexOf('.'));
         try {
           // if the database name is not valid
           // it is table.column
@@ -2530,7 +2656,7 @@ private void analyzeCreateUser(ASTNode ast) {
 
     // get Table Name
     static public String getTableName(Hive db, ASTNode ast)
-      throws SemanticException {
+        throws SemanticException {
       String tableName = null;
       String fullyQualifiedName = getFullyQualifiedName(ast);
 
@@ -2549,17 +2675,18 @@ private void analyzeCreateUser(ASTNode ast) {
         // invalid syntax exception
         if (ast.getChildCount() == 2) {
 
-          //added by zjw,replace by dc.db.table
+          // added by zjw,replace by dc.db.table
           /**************************************************************/
           return tableName = fullyQualifiedName;
 
           /**************************************************************/
-          //throw new SemanticException(ErrorMsg.INVALID_TABLE_OR_COLUMN.getMsg(fullyQualifiedName));
+          // throw new
+          // SemanticException(ErrorMsg.INVALID_TABLE_OR_COLUMN.getMsg(fullyQualifiedName));
         } else {
           // if DESCRIBE database.table column
           // return database.table as tableName
           tableName = fullyQualifiedName.substring(0,
-            fullyQualifiedName.lastIndexOf('.'));
+              fullyQualifiedName.lastIndexOf('.'));
         }
       } else if (fullyQualifiedName.split(delimiter).length == 2) {
         // if DESCRIBE database.table
@@ -2576,11 +2703,11 @@ private void analyzeCreateUser(ASTNode ast) {
 
     // get column path
     static public String getColPath(
-      Hive db,
-      ASTNode parentAst,
-      ASTNode ast,
-      String tableName,
-      Map<String, String> partSpec) {
+        Hive db,
+        ASTNode parentAst,
+        ASTNode ast,
+        String tableName,
+        Map<String, String> partSpec) {
 
       // if parent has two children
       // it could be DESCRIBE table key
@@ -2606,7 +2733,7 @@ private void analyzeCreateUser(ASTNode ast) {
         // if DESCRIBE database.table column
         // return table.column as column path
         return tableName.substring(
-          tableName.indexOf(".") + 1, tableName.length());
+            tableName.indexOf(".") + 1, tableName.length());
       }
 
       // in other cases, column path is the same as tableName
@@ -2615,7 +2742,7 @@ private void analyzeCreateUser(ASTNode ast) {
 
     // get partition metadata
     static public Map<String, String> getPartitionSpec(Hive db, ASTNode ast, String tableName)
-      throws SemanticException {
+        throws SemanticException {
       // if ast has two children
       // it could be DESCRIBE table key
       // or DESCRIBE table partition
@@ -2733,14 +2860,14 @@ private void analyzeCreateUser(ASTNode ast) {
     ASTNode tableTypeExpr = (ASTNode) ast.getChild(0);
 
     String qualifiedName =
-      QualifiedNameUtil.getFullyQualifiedName((ASTNode) tableTypeExpr.getChild(0));
+        QualifiedNameUtil.getFullyQualifiedName((ASTNode) tableTypeExpr.getChild(0));
     String tableName =
-      QualifiedNameUtil.getTableName(db, (ASTNode)(tableTypeExpr.getChild(0)));
+        QualifiedNameUtil.getTableName(db, (ASTNode) (tableTypeExpr.getChild(0)));
     String dbName =
-      QualifiedNameUtil.getDBName(db, (ASTNode)(tableTypeExpr.getChild(0)));
+        QualifiedNameUtil.getDBName(db, (ASTNode) (tableTypeExpr.getChild(0)));
 
     Map<String, String> partSpec =
-      QualifiedNameUtil.getPartitionSpec(db, tableTypeExpr, tableName);
+        QualifiedNameUtil.getPartitionSpec(db, tableTypeExpr, tableName);
 
     String colPath = QualifiedNameUtil.getColPath(
         db, tableTypeExpr, (ASTNode) tableTypeExpr.getChild(0), qualifiedName, partSpec);
@@ -2755,7 +2882,7 @@ private void analyzeCreateUser(ASTNode ast) {
     }
 
     DescTableDesc descTblDesc = new DescTableDesc(
-      ctx.getResFile(), tableName, partSpec, colPath);
+        ctx.getResFile(), tableName, partSpec, colPath);
 
     if (ast.getChildCount() == 2) {
       int descOptions = ast.getChild(1).getType();
@@ -2827,7 +2954,7 @@ private void analyzeCreateUser(ASTNode ast) {
 
   private void analyzeShowCreateTable(ASTNode ast) throws SemanticException {
     ShowCreateTableDesc showCreateTblDesc;
-    String tableName = getUnescapedName((ASTNode)ast.getChild(0));
+    String tableName = getUnescapedName((ASTNode) ast.getChild(0));
     showCreateTblDesc = new ShowCreateTableDesc(tableName, ctx.getResFile().toString());
     try {
       Table tab = db.getTable(tableName, true);
@@ -3066,7 +3193,7 @@ private void analyzeCreateUser(ASTNode ast) {
         if (child.getType() == HiveParser.TOK_TABTYPE) {
           ASTNode tableTypeExpr = (ASTNode) child;
           tableName =
-            QualifiedNameUtil.getFullyQualifiedName((ASTNode) tableTypeExpr.getChild(0));
+              QualifiedNameUtil.getFullyQualifiedName((ASTNode) tableTypeExpr.getChild(0));
           // get partition metadata if partition specified
           if (tableTypeExpr.getChildCount() == 2) {
             ASTNode partspec = (ASTNode) tableTypeExpr.getChild(1);
@@ -3847,7 +3974,7 @@ private void analyzeCreateUser(ASTNode ast) {
    */
   private void handleAlterTableDisableStoredAsDirs(String tableName, Table tab)
       throws SemanticException {
-  List<String> skewedColNames = tab.getSkewedColNames();
+    List<String> skewedColNames = tab.getSkewedColNames();
     List<List<String>> skewedColValues = tab.getSkewedColValues();
     if ((skewedColNames == null) || (skewedColNames.size() == 0) || (skewedColValues == null)
         || (skewedColValues.size() == 0)) {
@@ -3862,6 +3989,7 @@ private void analyzeCreateUser(ASTNode ast) {
 
   /**
    * Process "alter table <name> skewed by .. on .. stored as directories
+   *
    * @param ast
    * @param tableName
    * @param tab
@@ -4020,31 +4148,31 @@ private void analyzeCreateUser(ASTNode ast) {
    */
   private boolean isConstant(ASTNode node) {
     boolean result = false;
-    switch(node.getToken().getType()) {
-      case HiveParser.Number:
-        result = true;
-        break;
-      case HiveParser.StringLiteral:
-        result = true;
-        break;
-      case HiveParser.BigintLiteral:
-        result = true;
-        break;
-      case HiveParser.SmallintLiteral:
-        result = true;
-        break;
-      case HiveParser.TinyintLiteral:
-        result = true;
-        break;
-      case HiveParser.CharSetName:
-        result = true;
-        break;
-      case HiveParser.KW_TRUE:
-      case HiveParser.KW_FALSE:
-        result = true;
-        break;
-      default:
-          break;
+    switch (node.getToken().getType()) {
+    case HiveParser.Number:
+      result = true;
+      break;
+    case HiveParser.StringLiteral:
+      result = true;
+      break;
+    case HiveParser.BigintLiteral:
+      result = true;
+      break;
+    case HiveParser.SmallintLiteral:
+      result = true;
+      break;
+    case HiveParser.TinyintLiteral:
+      result = true;
+      break;
+    case HiveParser.CharSetName:
+      result = true;
+      break;
+    case HiveParser.KW_TRUE:
+    case HiveParser.KW_FALSE:
+      result = true;
+      break;
+    default:
+      break;
     }
     return result;
   }

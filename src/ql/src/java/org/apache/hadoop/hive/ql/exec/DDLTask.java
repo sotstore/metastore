@@ -110,107 +110,17 @@ import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
 import org.apache.hadoop.hive.ql.metadata.NodeGroupAssignment;
 import org.apache.hadoop.hive.ql.metadata.NodeGroups;
 import org.apache.hadoop.hive.ql.metadata.Partition;
+import org.apache.hadoop.hive.ql.metadata.RoleAssignment;
 import org.apache.hadoop.hive.ql.metadata.Table;
+import org.apache.hadoop.hive.ql.metadata.UserAssignment;
 import org.apache.hadoop.hive.ql.metadata.formatting.JsonMetaDataFormatter;
 import org.apache.hadoop.hive.ql.metadata.formatting.MetaDataFormatUtils;
 import org.apache.hadoop.hive.ql.metadata.formatting.MetaDataFormatter;
 import org.apache.hadoop.hive.ql.metadata.formatting.TextMetaDataFormatter;
 import org.apache.hadoop.hive.ql.parse.AlterTablePartMergeFilesDesc;
 import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
-import org.apache.hadoop.hive.ql.plan.AddEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.AddGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.AddNodeAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.AddNodeDesc;
-import org.apache.hadoop.hive.ql.plan.AddNodeGroupAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.AddPartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
-import org.apache.hadoop.hive.ql.plan.AddSubpartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.AddSubpartitionDesc;
-import org.apache.hadoop.hive.ql.plan.AlterDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.AlterDatawareHouseDesc;
-import org.apache.hadoop.hive.ql.plan.AlterIndexDesc;
-import org.apache.hadoop.hive.ql.plan.AlterTableDesc;
+import org.apache.hadoop.hive.ql.plan.*;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
-import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
-import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
-import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
-import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
-import org.apache.hadoop.hive.ql.plan.CreateNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.CreateSchemaDesc;
-import org.apache.hadoop.hive.ql.plan.CreateSchemaLikeDesc;
-import org.apache.hadoop.hive.ql.plan.CreateTableDesc;
-import org.apache.hadoop.hive.ql.plan.CreateTableLikeDesc;
-import org.apache.hadoop.hive.ql.plan.CreateTableLikeSchemaDesc;
-import org.apache.hadoop.hive.ql.plan.CreateViewDesc;
-import org.apache.hadoop.hive.ql.plan.DDLWork;
-import org.apache.hadoop.hive.ql.plan.DescDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.DescFunctionDesc;
-import org.apache.hadoop.hive.ql.plan.DescTableDesc;
-import org.apache.hadoop.hive.ql.plan.DropDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.DropDatacenterDesc;
-import org.apache.hadoop.hive.ql.plan.DropEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.DropGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeGroupAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
-import org.apache.hadoop.hive.ql.plan.DropSubpartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.DropSubpartitionDesc;
-import org.apache.hadoop.hive.ql.plan.DropTableDesc;
-import org.apache.hadoop.hive.ql.plan.GrantDesc;
-import org.apache.hadoop.hive.ql.plan.GrantRevokeRoleDDL;
-import org.apache.hadoop.hive.ql.plan.LockTableDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyNodeDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartIndexAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartIndexDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartitionAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartitionDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartitionAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartitionDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.MsckDesc;
-import org.apache.hadoop.hive.ql.plan.PartitionSpec;
-import org.apache.hadoop.hive.ql.plan.PrincipalDesc;
-import org.apache.hadoop.hive.ql.plan.PrivilegeDesc;
-import org.apache.hadoop.hive.ql.plan.PrivilegeObjectDesc;
-import org.apache.hadoop.hive.ql.plan.RenamePartitionDesc;
-import org.apache.hadoop.hive.ql.plan.RevokeDesc;
-import org.apache.hadoop.hive.ql.plan.RoleDDLDesc;
-import org.apache.hadoop.hive.ql.plan.ShowBusitypesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowColumnsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowCreateTableDesc;
-import org.apache.hadoop.hive.ql.plan.ShowDatabasesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowDatacentersDesc;
-import org.apache.hadoop.hive.ql.plan.ShowEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.ShowFileLocationsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowFilesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowFunctionsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
-import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodeAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodeGroupAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
-import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowSubpartitionDesc;
-import org.apache.hadoop.hive.ql.plan.ShowTableStatusDesc;
-import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
-import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.SwitchDatacenterDesc;
-import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
-import org.apache.hadoop.hive.ql.plan.UserDDLDesc;
 import org.apache.hadoop.hive.ql.plan.api.StageType;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
 import org.apache.hadoop.hive.ql.session.SessionState;
@@ -717,6 +627,30 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       if (null != showNodeGroupAssignmentDesc) {
         return showNodeGroupAssignment(db, showNodeGroupAssignmentDesc);
       }
+      AddUserAssignmentDesc addUserAssignmentDesc = work.getAddUserAssignmentDesc();
+      if (null != addUserAssignmentDesc) {
+        return addUserAssignment(db, addUserAssignmentDesc);
+      }
+      DropUserAssignmentDesc dropUserAssignmentDesc = work.getDropUserAssignmentDesc();
+      if (null != dropUserAssignmentDesc) {
+        return dropUserAssignment(db, dropUserAssignmentDesc);
+      }
+      ShowUserAssignmentDesc showUserAssignmentDesc = work.getShowUserAssignmentDesc();
+      if (null != showUserAssignmentDesc) {
+        return showUserAssignment(db, showUserAssignmentDesc);
+      }
+      AddRoleAssignmentDesc addRoleAssignmentDesc = work.getAddRoleAssignmentDesc();
+      if (null != addRoleAssignmentDesc) {
+        return addRoleAssignment(db, addRoleAssignmentDesc);
+      }
+      DropRoleAssignmentDesc dropRoleAssignmentDesc = work.getDropRoleAssignmentDesc();
+      if (null != dropRoleAssignmentDesc) {
+        return dropRoleAssignment(db, dropRoleAssignmentDesc);
+      }
+      ShowRoleAssignmentDesc showRoleAssignmentDesc = work.getShowRoleAssignmentDesc();
+      if (null != showRoleAssignmentDesc) {
+        return showRoleAssignment(db, showRoleAssignmentDesc);
+      }
 
     } catch (InvalidTableException e) {
       formatter.consoleError(console, "Table " + e.getTableName() + " does not exist",
@@ -747,6 +681,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     assert false;
     return 0;
   }
+
 
 
 
@@ -5165,4 +5100,86 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     }
     return 0;
   }
+
+
+  private int showRoleAssignment(Hive db, ShowRoleAssignmentDesc showRoleAssignmentDesc) throws HiveException {
+    List<RoleAssignment> roleAssignments = db.showRoleAssignment();
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showRoleAssignmentDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+      formatter.showRoleAssignment(outStream, roleAssignments);
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show RoleAssignment: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show RoleAssignment: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+  private int dropRoleAssignment(Hive db, DropRoleAssignmentDesc dropRoleAssignmentDesc) throws HiveException {
+    RoleAssignment ra = new RoleAssignment(
+        dropRoleAssignmentDesc.getDbName(),dropRoleAssignmentDesc.getRoleName());
+    this.db.dropRoleAssignment(ra);
+    return 0;
+  }
+
+  private int addRoleAssignment(Hive db, AddRoleAssignmentDesc addRoleAssignmentDesc) throws HiveException {
+    RoleAssignment ra = new RoleAssignment(
+        addRoleAssignmentDesc.getDbName(),addRoleAssignmentDesc.getRoleName());
+    this.db.addRoleAssignment(ra);
+    return 0;
+  }
+
+  private int showUserAssignment(Hive db, ShowUserAssignmentDesc showUserAssignmentDesc) throws HiveException {
+    List<UserAssignment> userAssignments = db.showUserAssignment();
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showUserAssignmentDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+      formatter.showUserAssignment(outStream, userAssignments);
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show UserAssignment: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show UserAssignment: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+  private int dropUserAssignment(Hive db, DropUserAssignmentDesc dropUserAssignmentDesc) throws HiveException {
+    UserAssignment ua = new UserAssignment(
+        dropUserAssignmentDesc.getDbName(),dropUserAssignmentDesc.getUserName());
+    this.db.dropUserAssignment(ua);
+    return 0;
+  }
+
+  private int addUserAssignment(Hive db, AddUserAssignmentDesc addUserAssignmentDesc) throws HiveException {
+    UserAssignment ua = new UserAssignment(
+        addUserAssignmentDesc.getDbName(),addUserAssignmentDesc.getUserName());
+    this.db.addUserAssignment(ua);
+    return 0;
+  }
+
 }

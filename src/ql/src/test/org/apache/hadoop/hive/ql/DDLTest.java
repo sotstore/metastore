@@ -24,9 +24,17 @@ public class DDLTest {
     //String sql = "DROP NODEASSIGNMENT('aaa','qw')";
     //String sql = "show NODEASSIGNMENT";
 
-    String sql = "create nodeGroupAssignment('a','b')";
+    //String sql = "create nodeGroupAssignment('a','b')";
     //String sql = "DROP nodeGroupAssignment('a','b')";
     //String sql = "show nodeGroupAssignment";
+
+    //String sql = "create userAssignment('a','b')";
+    //String sql = "drop userAssignment('a','b')";
+    //String sql = "show userAssignment";
+
+    //String sql = "create roleAssignment('a','b')";
+    //String sql = "drop roleAssignment('a','b')";
+    String sql = "show roleAssignment";
 
     Driver dr = new Driver(new HiveConf());
     try {
@@ -36,7 +44,6 @@ public class DDLTest {
       e.printStackTrace();
     }
     dr.compile(sql);
-
   }
 
 }
