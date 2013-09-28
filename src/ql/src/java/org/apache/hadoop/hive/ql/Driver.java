@@ -483,7 +483,7 @@ public class Driver implements CommandProcessor {
 
       if (HiveConf.getBoolVar(conf,
           //HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED)) {
-          HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED) 
+          HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED)
           && !ss.getAuthenticator().getUserName().equals(rootName)) {//added by liulichao, the root user doesn't need to be checked.
         try {
           perfLogger.PerfLogBegin(LOG, PerfLogger.DO_AUTHORIZATION);
@@ -501,6 +501,7 @@ public class Driver implements CommandProcessor {
 
       return 0;
     } catch (Exception e) {
+      LOG.error(e,e);
       ErrorMsg error = ErrorMsg.getErrorMsg(e.getMessage());
       errorMessage = "FAILED: " + e.getClass().getSimpleName();
       if (error != ErrorMsg.GENERIC_ERROR) {

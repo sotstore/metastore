@@ -534,7 +534,7 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       schema_name = schema_name.toLowerCase().trim();
-      Query query = pm.newQuery(MSchema.class, "name == schema_name");
+      Query query = pm.newQuery(MSchema.class, "schemaName == schema_name");
       query.declareParameters("java.lang.String schema_name");
       query.setUnique(true);
       mSchema = (MSchema) query.execute(schema_name);
@@ -8422,6 +8422,7 @@ public MUser getMUser(String userName) {
     boolean commited = false;
 
     try {
+      LOG.info("in obj createSchema");
       openTransaction();
       MSchema mSchema = convertToMSchema(schema);
       boolean make_schema = false;

@@ -140,6 +140,15 @@ public class DDLWork implements Serializable {
   private DropNodeGroupDesc dropNodeGroupDesc;
   private ModifyNodeGroupDesc modifyNodeGroupDesc;
   private ShowNodeGroupDesc showNodeGroupDesc;
+  private AddNodeGroupAssignmentDesc addNodeGroupAssignmentDesc;
+  private DropNodeGroupAssignmentDesc dropNodeGroupAssignmentDesc;
+  private ShowNodeGroupAssignmentDesc showNodeGroupAssignmentDesc;
+  private AddUserAssignmentDesc addUserAssignmentDesc;
+  private DropUserAssignmentDesc dropUserAssignmentDesc;
+  private ShowUserAssignmentDesc showUserAssignmentDesc;
+  private ShowRoleAssignmentDesc showRoleAssignmentDesc;
+  private AddRoleAssignmentDesc addRoleAssignmentDesc;
+  private DropRoleAssignmentDesc dropRoleAssignmentDesc;
 
 
   public DDLWork() {
@@ -792,6 +801,59 @@ public class DDLWork implements Serializable {
       ShowNodeGroupDesc showNodeGroupDesc) {
     this(inputs, outputs);
     this.showNodeGroupDesc = showNodeGroupDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      AddNodeGroupAssignmentDesc addNodeGroupAssignmentDesc) {
+    this(inputs, outputs);
+    this.addNodeGroupAssignmentDesc = addNodeGroupAssignmentDesc;
+    }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DropNodeGroupAssignmentDesc dropNodeGroupAssignmentDesc) {
+    this(inputs, outputs);
+    this.dropNodeGroupAssignmentDesc = dropNodeGroupAssignmentDesc;
+    }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowNodeGroupAssignmentDesc showNodeGroupAssignmentDesc) {
+    this(inputs, outputs);
+    this.showNodeGroupAssignmentDesc = showNodeGroupAssignmentDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      AddUserAssignmentDesc addUserAssignmentDesc) {
+    this(inputs, outputs);
+    this.addUserAssignmentDesc = addUserAssignmentDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DropUserAssignmentDesc dropUserAssignmentDesc) {
+    this(inputs, outputs);
+    this.dropUserAssignmentDesc = dropUserAssignmentDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowUserAssignmentDesc showUserAssignmentDesc) {
+    this(inputs, outputs);
+    this.showUserAssignmentDesc = showUserAssignmentDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowRoleAssignmentDesc showRoleAssignmentDesc) {
+    this(inputs, outputs);
+    this.showRoleAssignmentDesc = showRoleAssignmentDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      AddRoleAssignmentDesc addRoleAssignmentDesc) {
+
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DropRoleAssignmentDesc dropRoleAssignmentDesc) {
+    this(inputs, outputs);
+    this.dropRoleAssignmentDesc = dropRoleAssignmentDesc;
   }
 
   /**
@@ -1750,6 +1812,78 @@ public class DDLWork implements Serializable {
 
   public void setShowNodeGroupDesc(ShowNodeGroupDesc showNodeGroupDesc) {
     this.showNodeGroupDesc = showNodeGroupDesc;
+  }
+
+  public AddNodeGroupAssignmentDesc getAddNodeGroupAssignmentDesc() {
+    return addNodeGroupAssignmentDesc;
+  }
+
+  public void setAddNodeGroupAssignmentDesc(AddNodeGroupAssignmentDesc addNodeGroupAssignmentDesc) {
+    this.addNodeGroupAssignmentDesc = addNodeGroupAssignmentDesc;
+  }
+
+  public DropNodeGroupAssignmentDesc getDropNodeGroupAssignmentDesc() {
+    return dropNodeGroupAssignmentDesc;
+  }
+
+  public void setDropNodeGroupAssignmentDesc(DropNodeGroupAssignmentDesc dropNodeGroupAssignmentDesc) {
+    this.dropNodeGroupAssignmentDesc = dropNodeGroupAssignmentDesc;
+  }
+
+  public ShowNodeGroupAssignmentDesc getShowNodeGroupAssignmentDesc() {
+    return showNodeGroupAssignmentDesc;
+  }
+
+  public void setShowNodeGroupAssignmentDesc(ShowNodeGroupAssignmentDesc showNodeGroupAssignmentDesc) {
+    this.showNodeGroupAssignmentDesc = showNodeGroupAssignmentDesc;
+  }
+
+  public AddUserAssignmentDesc getAddUserAssignmentDesc() {
+    return addUserAssignmentDesc;
+  }
+
+  public void setAddUserAssignmentDesc(AddUserAssignmentDesc addUserAssignmentDesc) {
+    this.addUserAssignmentDesc = addUserAssignmentDesc;
+  }
+
+  public DropUserAssignmentDesc getDropUserAssignmentDesc() {
+    return dropUserAssignmentDesc;
+  }
+
+  public void setDropUserAssignmentDesc(DropUserAssignmentDesc dropUserAssignmentDesc) {
+    this.dropUserAssignmentDesc = dropUserAssignmentDesc;
+  }
+
+  public ShowUserAssignmentDesc getShowUserAssignmentDesc() {
+    return showUserAssignmentDesc;
+  }
+
+  public void setShowUserAssignmentDesc(ShowUserAssignmentDesc showUserAssignmentDesc) {
+    this.showUserAssignmentDesc = showUserAssignmentDesc;
+  }
+
+  public ShowRoleAssignmentDesc getShowRoleAssignmentDesc() {
+    return showRoleAssignmentDesc;
+  }
+
+  public void setShowRoleAssignmentDesc(ShowRoleAssignmentDesc showRoleAssignmentDesc) {
+    this.showRoleAssignmentDesc = showRoleAssignmentDesc;
+  }
+
+  public AddRoleAssignmentDesc getAddRoleAssignmentDesc() {
+    return addRoleAssignmentDesc;
+  }
+
+  public void setAddRoleAssignmentDesc(AddRoleAssignmentDesc addRoleAssignmentDesc) {
+    this.addRoleAssignmentDesc = addRoleAssignmentDesc;
+  }
+
+  public DropRoleAssignmentDesc getDropRoleAssignmentDesc() {
+    return dropRoleAssignmentDesc;
+  }
+
+  public void setDropRoleAssignmentDesc(DropRoleAssignmentDesc dropRoleAssignmentDesc) {
+    this.dropRoleAssignmentDesc = dropRoleAssignmentDesc;
   }
 
 }

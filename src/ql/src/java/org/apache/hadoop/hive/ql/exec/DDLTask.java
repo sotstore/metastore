@@ -107,36 +107,28 @@ import org.apache.hadoop.hive.ql.metadata.HiveMetaStoreChecker;
 import org.apache.hadoop.hive.ql.metadata.HiveStorageHandler;
 import org.apache.hadoop.hive.ql.metadata.InvalidTableException;
 import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
+import org.apache.hadoop.hive.ql.metadata.NodeGroupAssignment;
 import org.apache.hadoop.hive.ql.metadata.NodeGroups;
 import org.apache.hadoop.hive.ql.metadata.Partition;
+import org.apache.hadoop.hive.ql.metadata.RoleAssignment;
 import org.apache.hadoop.hive.ql.metadata.Table;
+import org.apache.hadoop.hive.ql.metadata.UserAssignment;
 import org.apache.hadoop.hive.ql.metadata.formatting.JsonMetaDataFormatter;
 import org.apache.hadoop.hive.ql.metadata.formatting.MetaDataFormatUtils;
 import org.apache.hadoop.hive.ql.metadata.formatting.MetaDataFormatter;
 import org.apache.hadoop.hive.ql.metadata.formatting.TextMetaDataFormatter;
 import org.apache.hadoop.hive.ql.parse.AlterTablePartMergeFilesDesc;
 import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
-import org.apache.hadoop.hive.ql.plan.AddEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.AddGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.AddNodeAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.AddNodeDesc;
-import org.apache.hadoop.hive.ql.plan.AddPartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
-import org.apache.hadoop.hive.ql.plan.AddSubpartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.AddSubpartitionDesc;
-import org.apache.hadoop.hive.ql.plan.AlterDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.AlterDatawareHouseDesc;
-import org.apache.hadoop.hive.ql.plan.AlterIndexDesc;
-import org.apache.hadoop.hive.ql.plan.AlterTableDesc;
+import org.apache.hadoop.hive.ql.plan.*;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
 import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
+import org.apache.hadoop.hive.ql.plan.CreateNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.CreateSchemaDesc;
 import org.apache.hadoop.hive.ql.plan.CreateSchemaLikeDesc;
-import org.apache.hadoop.hive.ql.plan.CreateNodeGroupDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableLikeDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableLikeSchemaDesc;
@@ -676,6 +668,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       if (crtSchemaDesc != null) {
         return crtSchemaDesc(db, crtSchemaDesc);
       }
+      org.mortbay.log.Log.info("crtSchemaDesc is null");
 
       CreateTableLikeSchemaDesc crtTblLikeSchemaDesc = work.getCrtTblLikeSchemaDesc();
       if (crtTblLikeSchemaDesc != null) {
@@ -696,6 +689,46 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       ModifyNodeGroupDesc modifyNodeGroupDesc = work.getModifyNodeGroupDesc();
       if (null != modifyNodeGroupDesc) {
         return modifyNodeGroup(db, modifyNodeGroupDesc);
+      }
+      ShowNodeGroupDesc showNodeGroupDesc = work.getShowNodeGroupDesc();
+      if (null != showNodeGroupDesc) {
+        return showNodeGroups(db, showNodeGroupDesc);
+      }
+      AddNodeGroupAssignmentDesc addNodeGroupAssignmentDesc = work.getAddNodeGroupAssignmentDesc();
+      if (null != addNodeGroupAssignmentDesc) {
+        return addNodeGroupAssignment(db, addNodeGroupAssignmentDesc);
+      }
+      DropNodeGroupAssignmentDesc dropNodeGroupAssignmentDesc = work.getDropNodeGroupAssignmentDesc();
+      if (null != dropNodeGroupAssignmentDesc) {
+        return dropNodeGroupAssignment(db, dropNodeGroupAssignmentDesc);
+      }
+      ShowNodeGroupAssignmentDesc showNodeGroupAssignmentDesc = work.getShowNodeGroupAssignmentDesc();
+      if (null != showNodeGroupAssignmentDesc) {
+        return showNodeGroupAssignment(db, showNodeGroupAssignmentDesc);
+      }
+      AddUserAssignmentDesc addUserAssignmentDesc = work.getAddUserAssignmentDesc();
+      if (null != addUserAssignmentDesc) {
+        return addUserAssignment(db, addUserAssignmentDesc);
+      }
+      DropUserAssignmentDesc dropUserAssignmentDesc = work.getDropUserAssignmentDesc();
+      if (null != dropUserAssignmentDesc) {
+        return dropUserAssignment(db, dropUserAssignmentDesc);
+      }
+      ShowUserAssignmentDesc showUserAssignmentDesc = work.getShowUserAssignmentDesc();
+      if (null != showUserAssignmentDesc) {
+        return showUserAssignment(db, showUserAssignmentDesc);
+      }
+      AddRoleAssignmentDesc addRoleAssignmentDesc = work.getAddRoleAssignmentDesc();
+      if (null != addRoleAssignmentDesc) {
+        return addRoleAssignment(db, addRoleAssignmentDesc);
+      }
+      DropRoleAssignmentDesc dropRoleAssignmentDesc = work.getDropRoleAssignmentDesc();
+      if (null != dropRoleAssignmentDesc) {
+        return dropRoleAssignment(db, dropRoleAssignmentDesc);
+      }
+      ShowRoleAssignmentDesc showRoleAssignmentDesc = work.getShowRoleAssignmentDesc();
+      if (null != showRoleAssignmentDesc) {
+        return showRoleAssignment(db, showRoleAssignmentDesc);
       }
 
     } catch (InvalidTableException e) {
@@ -727,6 +760,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     assert false;
     return 0;
   }
+
 
 
 
@@ -885,13 +919,16 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     // long as it in the first
     // 'n' columns where 'n' is the length of the bucketed columns.
 
+    LOG.info("before generic");
     int rc = setGenericSchemaAttributes(schema);
     if (rc != 0) {
       return rc;
     }
+    LOG.info("before createSchema");
 
     // create the table
     boolean success = db.createSchema(schema.getTschema());
+    LOG.info("after createSchema");
     if(success) {
       return 0;
     } else {
@@ -4867,6 +4904,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       //tbl.setOwner(conf.getUser());
       schema.setOwner(SessionState.get().getUser());       //added by liulichao,2013-05-15
     } catch (Exception e) {
+      LOG.error("Unable to get current user:");
       formatter.consoleError(console,
                              "Unable to get current user: " + e.getMessage(),
                              stringifyException(e),
@@ -4998,11 +5036,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       ((FSDataOutputStream) outStream).close();
       outStream = null;
     } catch (FileNotFoundException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+        formatter.logWarn(outStream, "show EqRoom: " + stringifyException(e),
                           MetaDataFormatter.ERROR);
         return 1;
       } catch (IOException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+        formatter.logWarn(outStream, "show EqRoom: " + stringifyException(e),
                           MetaDataFormatter.ERROR);
         return 1;
     } catch (Exception e) {
@@ -5038,11 +5076,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       ((FSDataOutputStream) outStream).close();
       outStream = null;
     } catch (FileNotFoundException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+        formatter.logWarn(outStream, "show NodeAssignment: " + stringifyException(e),
                           MetaDataFormatter.ERROR);
         return 1;
       } catch (IOException e) {
-        formatter.logWarn(outStream, "show SFileLocation: " + stringifyException(e),
+        formatter.logWarn(outStream, "show NodeAssignment: " + stringifyException(e),
                           MetaDataFormatter.ERROR);
         return 1;
     } catch (Exception e) {
@@ -5072,13 +5110,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   }
 
   private int showNodeGroups(Hive db, ShowNodeGroupDesc showNodeGroupDesc) throws HiveException {
-    // get the databases for the desired pattern - populate the output stream
-    List<String> nodeGroups = null;
+    List<NodeGroups> nodeGroups = null;
     if(showNodeGroupDesc.getNg_name() != null && !"".equals(showNodeGroupDesc.getNg_name())){
-      nodeGroups = db.getAllDatabases(showNodeGroupDesc.getNg_name());
-
+      nodeGroups = db.getAllNodeGroups(showNodeGroupDesc.getNg_name());
     } else{
-      nodeGroups = db.getAllDatabases();
+      nodeGroups = db.getAllNodeGroups();
     }
     LOG.info("results : " + nodeGroups.size());
 
@@ -5093,11 +5129,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       ((FSDataOutputStream) outStream).close();
       outStream = null;
     } catch (FileNotFoundException e) {
-      formatter.logWarn(outStream, "show databases: " + stringifyException(e),
+      formatter.logWarn(outStream, "show nodeGroups: " + stringifyException(e),
                         formatter.ERROR);
       return 1;
     } catch (IOException e) {
-      formatter.logWarn(outStream, "show databases: " + stringifyException(e),
+      formatter.logWarn(outStream, "show nodeGroups: " + stringifyException(e),
                         formatter.ERROR);
       return 1;
     } catch (Exception e) {
@@ -5108,5 +5144,125 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     return 0;
   }
 
+  private int addNodeGroupAssignment(Hive db, AddNodeGroupAssignmentDesc addNodeGroupAssignmentDesc)throws HiveException {
+    NodeGroupAssignment nga = new NodeGroupAssignment(
+        addNodeGroupAssignmentDesc.getDbName(),addNodeGroupAssignmentDesc.getNodeGroupName());
+    this.db.addNodeGroupAssignment(nga);
+    return 0;
+  }
+
+  private int dropNodeGroupAssignment(Hive db, DropNodeGroupAssignmentDesc dropNodeGroupAssignmentDesc) throws HiveException {
+    NodeGroupAssignment nga = new NodeGroupAssignment(
+        dropNodeGroupAssignmentDesc.getDbName(),dropNodeGroupAssignmentDesc.getNodeGroupName());
+    this.db.dropNodeGroupAssignment(nga);
+    return 0;
+  }
+
+  private int showNodeGroupAssignment(Hive db, ShowNodeGroupAssignmentDesc showNodeGroupAssignmentDesc) throws HiveException {
+    List<NodeGroupAssignment> nodeGroupAssignments = db.showNodeGroupAssignment();
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showNodeGroupAssignmentDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+      formatter.showNodeGroupAssignment(outStream, nodeGroupAssignments);
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show NodeGroupAssignment: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show NodeGroupAssignment: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+
+  private int showRoleAssignment(Hive db, ShowRoleAssignmentDesc showRoleAssignmentDesc) throws HiveException {
+    List<RoleAssignment> roleAssignments = db.showRoleAssignment();
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showRoleAssignmentDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+      formatter.showRoleAssignment(outStream, roleAssignments);
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show RoleAssignment: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show RoleAssignment: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+  private int dropRoleAssignment(Hive db, DropRoleAssignmentDesc dropRoleAssignmentDesc) throws HiveException {
+    RoleAssignment ra = new RoleAssignment(
+        dropRoleAssignmentDesc.getDbName(),dropRoleAssignmentDesc.getRoleName());
+    this.db.dropRoleAssignment(ra);
+    return 0;
+  }
+
+  private int addRoleAssignment(Hive db, AddRoleAssignmentDesc addRoleAssignmentDesc) throws HiveException {
+    RoleAssignment ra = new RoleAssignment(
+        addRoleAssignmentDesc.getDbName(),addRoleAssignmentDesc.getRoleName());
+    this.db.addRoleAssignment(ra);
+    return 0;
+  }
+
+  private int showUserAssignment(Hive db, ShowUserAssignmentDesc showUserAssignmentDesc) throws HiveException {
+    List<UserAssignment> userAssignments = db.showUserAssignment();
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showUserAssignmentDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+      formatter.showUserAssignment(outStream, userAssignments);
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show UserAssignment: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show UserAssignment: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+  private int dropUserAssignment(Hive db, DropUserAssignmentDesc dropUserAssignmentDesc) throws HiveException {
+    UserAssignment ua = new UserAssignment(
+        dropUserAssignmentDesc.getDbName(),dropUserAssignmentDesc.getUserName());
+    this.db.dropUserAssignment(ua);
+    return 0;
+  }
+
+  private int addUserAssignment(Hive db, AddUserAssignmentDesc addUserAssignmentDesc) throws HiveException {
+    UserAssignment ua = new UserAssignment(
+        addUserAssignmentDesc.getDbName(),addUserAssignmentDesc.getUserName());
+    this.db.addUserAssignment(ua);
+    return 0;
+  }
 
 }

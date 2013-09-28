@@ -20,6 +20,8 @@ package org.apache.hadoop.hive.ql.parse;
 
 import java.util.HashMap;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
 import org.apache.hadoop.hive.ql.session.SessionState;
@@ -29,6 +31,7 @@ import org.apache.hadoop.hive.ql.session.SessionState;
  *
  */
 public final class SemanticAnalyzerFactory {
+  private static Log log = LogFactory.getLog(SemanticAnalyzerFactory.class);
 
   static HashMap<Integer, HiveOperation> commandType = new HashMap<Integer, HiveOperation>();
   static HashMap<Integer, HiveOperation[]> tablePartitionCommandType = new HashMap<Integer, HiveOperation[]>();
@@ -260,6 +263,15 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_NODEPROPLIST:
       case HiveParser.TOK_NODERPROPERTIES:
       case HiveParser.TOK_STRINGLITERALLIST:
+      case HiveParser.TOK_CREATENODEGROUPASSIGNMENT:
+      case HiveParser.TOK_DROPNODEGROUPASSIGNMENT:
+      case HiveParser.TOK_SHOWNODEGROUPASSIGNMENT:
+      case HiveParser.TOK_CREATEUSERASSIGNMENT:
+      case HiveParser.TOK_DROPUSERASSIGNMENT:
+      case HiveParser.TOK_SHOWUSERASSIGNMENT:
+      case HiveParser.TOK_CREATEROLEASSIGNMENT:
+      case HiveParser.TOK_DROPROLEASSIGNMENT:
+      case HiveParser.TOK_SHOWROLEASSIGNMENT:
 
 
 
@@ -283,6 +295,7 @@ public final class SemanticAnalyzerFactory {
         return new ColumnStatsSemanticAnalyzer(conf, tree);
 
       default:
+        log.info("---zjw--default");
         return new SemanticAnalyzer(conf);
       }
     }
