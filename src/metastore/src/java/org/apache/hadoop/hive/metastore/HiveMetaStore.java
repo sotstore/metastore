@@ -5718,6 +5718,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public boolean createSchema(GlobalSchema schema) throws AlreadyExistsException,
         InvalidObjectException, MetaException, TException {
 
+      if(schema.getSd().getCols() != null){
+        LOG.info("---zjw--"+schema);
+        for(FieldSchema fs : schema.getSd().getCols()){
+          LOG.info("---zjw--"+fs.getName() + fs.getType());
+        }
+      }
       if (!MetaStoreUtils.validateName(schema.getSchemaName())
           || !MetaStoreUtils.validateColNames(schema.getSd().getCols())
           || !MetaStoreUtils.validateSkewedColNames(

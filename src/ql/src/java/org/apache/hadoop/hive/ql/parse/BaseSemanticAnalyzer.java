@@ -77,7 +77,7 @@ public abstract class BaseSemanticAnalyzer {
   protected List<Task<? extends Serializable>> rootTasks;
   protected FetchTask fetchTask;
   protected final Log LOG;
-  private static Log zlog = LogFactory.getLog(BaseSemanticAnalyzer.class.getName());
+  public static Log zlog = LogFactory.getLog(BaseSemanticAnalyzer.class.getName());
   protected final LogHelper console;
 
   protected Context ctx;

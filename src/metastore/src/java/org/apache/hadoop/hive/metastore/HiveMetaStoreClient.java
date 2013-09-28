@@ -2024,6 +2024,7 @@ public boolean authentication(String user_name, String passwd)
   public boolean createSchema(GlobalSchema schema) throws AlreadyExistsException,
       InvalidObjectException, MetaException, TException {
     // TODO Auto-generated method stub
+    LOG.info("2 createSchema");
     return client.createSchema(schema);
   }
 

@@ -139,6 +139,7 @@ public class GlobalSchema implements Serializable {
 
     org.apache.hadoop.hive.metastore.api.GlobalSchema t = new org.apache.hadoop.hive.metastore.api.GlobalSchema();
     {
+      t.setSchemaName(tableName);
       t.setSd(sd);
       t.setParameters(new HashMap<String, String>());
       t.setSchemaType(TableType.MANAGED_TABLE.toString());
