@@ -5717,7 +5717,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public boolean deleteGeoLocation(GeoLocation gl) throws MetaException, TException {
-      getMS().deleteGeoLocation(gl);
+      try{
+        LOG.info("++++++++++++++++++++++++++++++before deleteGeoLocation");
+        getMS().deleteGeoLocation(gl);
+        LOG.info("++++++++++++++++++++++++++++++after deleteGeoLocation");
+      }catch(Exception e){
+        LOG.error("++++++++++++++++++++++++++++++Error deleteGeoLocation");
+        LOG.error(e,e);
+      }
       return true;
     }
 
@@ -5729,6 +5736,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException,
         TException {
+      LOG.info("++++++++++++++++++++++++++++++before getGeoLocationByName");
       return getMS().getGeoLocationByName(geoLocName);
     }
 
@@ -5947,6 +5955,63 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public long getSessionId() throws MetaException, TException {
       return msss.getSessionId();
+    }
+
+    @Override
+    public List<GeoLocation> getGeoLocationByNames(List<String> geoLocNames) throws MetaException,
+        TException {
+      return getMS().getGeoLocationByNames(geoLocNames);
+    }
+
+    @Override
+    public List<Node> listNodes() throws MetaException, TException {
+      return getMS().listNodes();
+    }
+
+    @Override
+    public boolean addUserAssignment(String roleName, String dbName) throws MetaException,
+        NoSuchObjectException, TException {
+      return getMS().addUserAssignment(roleName,dbName);
+    }
+
+    @Override
+    public boolean deleteUserAssignment(String roleName, String dbName) throws MetaException,
+        NoSuchObjectException, TException {
+      return getMS().deleteUserAssignment(roleName,dbName);
+    }
+
+    @Override
+    public List<User> listUsers() throws MetaException, TException {
+      return getMS().listUsers();
+    }
+
+    @Override
+    public boolean addRoleAssignment(String userName, String dbName) throws MetaException,
+        NoSuchObjectException, TException {
+      return getMS().addRoleAssignment(userName,dbName);
+    }
+
+    @Override
+    public boolean deleteRoleAssignment(String userName, String dbName) throws MetaException,
+        NoSuchObjectException, TException {
+      return getMS().deleteRoleAssignment(userName,dbName);
+    }
+
+    @Override
+    public List<Role> listRoles() throws MetaException, TException {
+      return getMS().listRoles();
+    }
+
+    @Override
+    public boolean addNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException,
+        TException {
+      return getMS().addNodeGroupAssignment(ng,dbName);
+    }
+
+    @Override
+    public boolean deleteNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException,
+        TException {
+      return getMS().deleteNodeGroupAssignment(ng,dbName);
     }
 
   }

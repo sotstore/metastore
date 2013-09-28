@@ -52,17 +52,27 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  bool add_subpartition_index_files(Index index, Subpartition subpart,  file,  originfid)'
   print '   get_subpartition_index_files(Index index, Subpartition subpart)'
   print '  bool drop_subpartition_index_files(Index index, Subpartition subpart,  file)'
+  print '  bool addGeoLocation(GeoLocation gl)'
+  print '  bool modifyGeoLocation(GeoLocation gl)'
+  print '  bool deleteGeoLocation(GeoLocation gl)'
+  print '   listGeoLocation()'
   print '  bool addEquipRoom(EquipRoom er)'
   print '  bool modifyEquipRoom(EquipRoom er)'
   print '  bool deleteEquipRoom(EquipRoom er)'
   print '   listEquipRoom()'
   print '  GeoLocation getGeoLocationByName(string geoLocName)'
-  print '  bool addGeoLocation(GeoLocation gl)'
-  print '  bool modifyGeoLocation(GeoLocation gl)'
-  print '  bool deleteGeoLocation(GeoLocation gl)'
-  print '   listGeoLocation()'
+  print '   getGeoLocationByNames( geoLocNames)'
   print '  bool addNodeAssignment(string nodeName, string dbName)'
   print '  bool deleteNodeAssignment(string nodeName, string dbName)'
+  print '   listNodes()'
+  print '  bool addUserAssignment(string roleName, string dbName)'
+  print '  bool deleteUserAssignment(string roleName, string dbName)'
+  print '   listUsers()'
+  print '  bool addRoleAssignment(string userName, string dbName)'
+  print '  bool deleteRoleAssignment(string userName, string dbName)'
+  print '   listRoles()'
+  print '  bool addNodeGroupAssignment(NodeGroup ng, string dbName)'
+  print '  bool deleteNodeGroupAssignment(NodeGroup ng, string dbName)'
   print '  void create_database(Database database)'
   print '  Database get_database(string name)'
   print '  void drop_database(string name, bool deleteData, bool cascade)'
@@ -416,6 +426,30 @@ elif cmd == 'drop_subpartition_index_files':
     sys.exit(1)
   pp.pprint(client.drop_subpartition_index_files(eval(args[0]),eval(args[1]),eval(args[2]),))
 
+elif cmd == 'addGeoLocation':
+  if len(args) != 1:
+    print 'addGeoLocation requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.addGeoLocation(eval(args[0]),))
+
+elif cmd == 'modifyGeoLocation':
+  if len(args) != 1:
+    print 'modifyGeoLocation requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.modifyGeoLocation(eval(args[0]),))
+
+elif cmd == 'deleteGeoLocation':
+  if len(args) != 1:
+    print 'deleteGeoLocation requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.deleteGeoLocation(eval(args[0]),))
+
+elif cmd == 'listGeoLocation':
+  if len(args) != 0:
+    print 'listGeoLocation requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.listGeoLocation())
+
 elif cmd == 'addEquipRoom':
   if len(args) != 1:
     print 'addEquipRoom requires 1 args'
@@ -446,29 +480,11 @@ elif cmd == 'getGeoLocationByName':
     sys.exit(1)
   pp.pprint(client.getGeoLocationByName(args[0],))
 
-elif cmd == 'addGeoLocation':
+elif cmd == 'getGeoLocationByNames':
   if len(args) != 1:
-    print 'addGeoLocation requires 1 args'
+    print 'getGeoLocationByNames requires 1 args'
     sys.exit(1)
-  pp.pprint(client.addGeoLocation(eval(args[0]),))
-
-elif cmd == 'modifyGeoLocation':
-  if len(args) != 1:
-    print 'modifyGeoLocation requires 1 args'
-    sys.exit(1)
-  pp.pprint(client.modifyGeoLocation(eval(args[0]),))
-
-elif cmd == 'deleteGeoLocation':
-  if len(args) != 1:
-    print 'deleteGeoLocation requires 1 args'
-    sys.exit(1)
-  pp.pprint(client.deleteGeoLocation(eval(args[0]),))
-
-elif cmd == 'listGeoLocation':
-  if len(args) != 0:
-    print 'listGeoLocation requires 0 args'
-    sys.exit(1)
-  pp.pprint(client.listGeoLocation())
+  pp.pprint(client.getGeoLocationByNames(eval(args[0]),))
 
 elif cmd == 'addNodeAssignment':
   if len(args) != 2:
@@ -481,6 +497,60 @@ elif cmd == 'deleteNodeAssignment':
     print 'deleteNodeAssignment requires 2 args'
     sys.exit(1)
   pp.pprint(client.deleteNodeAssignment(args[0],args[1],))
+
+elif cmd == 'listNodes':
+  if len(args) != 0:
+    print 'listNodes requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.listNodes())
+
+elif cmd == 'addUserAssignment':
+  if len(args) != 2:
+    print 'addUserAssignment requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.addUserAssignment(args[0],args[1],))
+
+elif cmd == 'deleteUserAssignment':
+  if len(args) != 2:
+    print 'deleteUserAssignment requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.deleteUserAssignment(args[0],args[1],))
+
+elif cmd == 'listUsers':
+  if len(args) != 0:
+    print 'listUsers requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.listUsers())
+
+elif cmd == 'addRoleAssignment':
+  if len(args) != 2:
+    print 'addRoleAssignment requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.addRoleAssignment(args[0],args[1],))
+
+elif cmd == 'deleteRoleAssignment':
+  if len(args) != 2:
+    print 'deleteRoleAssignment requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.deleteRoleAssignment(args[0],args[1],))
+
+elif cmd == 'listRoles':
+  if len(args) != 0:
+    print 'listRoles requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.listRoles())
+
+elif cmd == 'addNodeGroupAssignment':
+  if len(args) != 2:
+    print 'addNodeGroupAssignment requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.addNodeGroupAssignment(eval(args[0]),args[1],))
+
+elif cmd == 'deleteNodeGroupAssignment':
+  if len(args) != 2:
+    print 'deleteNodeGroupAssignment requires 2 args'
+    sys.exit(1)
+  pp.pprint(client.deleteNodeGroupAssignment(eval(args[0]),args[1],))
 
 elif cmd == 'create_database':
   if len(args) != 1:

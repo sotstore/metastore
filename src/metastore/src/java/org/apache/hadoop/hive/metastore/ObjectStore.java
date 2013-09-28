@@ -8213,7 +8213,7 @@ public MUser getMUser(String userName) {
   }
 
 /**
- * cry
+ * Cry
  */
 
   @Override
@@ -8366,12 +8366,6 @@ public MUser getMUser(String userName) {
     try {
       openTransaction();
       MGeoLocation mgl = convertToMGeoLocation(gl);
-//      MGeoLocation mgl = new MGeoLocation();
-//      mgl.setGeoLocName(gl.getGeoLocName());
-//      mgl.setNation(gl.getNation());
-//      mgl.setProvince(gl.getProvince());
-//      mgl.setCity(gl.getCity());
-//      mgl.setDist(gl.getDist());
       if (mgl != null) {
         pm.deletePersistent(mgl);
       }
@@ -8477,96 +8471,6 @@ public MUser getMUser(String userName) {
     }
 
 
-  }
-
-/*
- * cry
- */
-  @Override
-  public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException {
-    boolean success = false;
-    boolean commited = false;
-    try {
-      openTransaction();
-      MDatabase mdb = this.getMDatabase(dbName);
-      MNode mnd = this.getMNode(nodeName);
-      Set<MNode> nodes = mdb.getNodes();
-      if (mdb.getNodes() == null) {
-        throw new MetaException("this"+nodeName+"does not exist");
-      }
-      nodes = new HashSet<MNode>();
-      nodes.add(mnd);
-      mnd.getDbs().add(mdb);
-      int now = (int)(System.currentTimeMillis()/1000);
-      pm.makePersistent(mnd);
-      pm.makePersistent(mdb);
-      commited = commitTransaction();
-      success = true;
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      }
-    }
-    return success;
-  }
-
-  @Override
-  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException {
-    boolean success = false;
-    boolean commited = false;
-    try {
-      openTransaction();
-      MDatabase mdb = this.getMDatabase(dbName);
-      MNode mnd = this.getMNode(nodeName);
-      Set<MNode> nodes = mdb.getNodes();
-      if (mdb.getNodes() == null) {
-        throw new MetaException("this"+nodeName+"does not exist");
-      }
-      nodes = new HashSet<MNode>();
-      nodes.add(mnd);
-      mnd.getDbs().add(mdb);
-      int now = (int)(System.currentTimeMillis()/1000);
-      pm.deletePersistent(mnd);
-      pm.deletePersistent(mdb);
-      commited = commitTransaction();
-      success = true;
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      }
-    }
-    return success;
-  }
-
-  @Override
-  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException {
-
-    GeoLocation gl = null;
-    boolean committed = false;
-    try {
-      openTransaction();//创建并开始一个事务
-      Query query = pm.newQuery(MGeoLocation.class);//设置这个query作用的范围，即查询的是那个表或记录集
-      query.setFilter("geoLocName == \"geoLocName\"");
-      query.declareParameters("java.lang.String geoLocName");
-//      gl =  (GeoLocation) query.execute(geoLocName);
-      query.setUnique(true);//设置返回的结果是唯一的
-      MGeoLocation mgl=(MGeoLocation)query.execute(geoLocName);
-      LOG.info("++++++++++++++++++++++++MGeoLocation" + mgl.getGeoLocName());
-      gl = convertToGeoLocation(mgl);
-      committed = commitTransaction();
-    } finally {
-      if (!committed) {
-        rollbackTransaction();
-      }
-    }
-    return gl;
-
-  }
-  private GeoLocation convertToGeoLocation(MGeoLocation mgl) {
-    if (mgl == null) {
-      return null;
-    }
-    return new GeoLocation(mgl.getGeoLocName(),mgl.getNation(),mgl.getProvince(),mgl.getCity(),mgl.getDist());
   }
 
   /**
@@ -9115,6 +9019,373 @@ public MUser getMUser(String userName) {
       return null;
     }
     return convertToNodeGroups(mngs);
+  }
+
+/**
+ * Cry ------ NodeAssignment,UserAssignment,RoleAssignment
+ */
+
+  @Override
+  public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MNode mnd = this.getMNode(nodeName);
+      Set<MNode> nodes = mdb.getNodes();
+      if (mdb.getNodes() != null) {
+        throw new MetaException("this" + nodeName + "already exists!");
+      }
+      nodes = new HashSet<MNode>();
+      nodes.add(mnd);
+      mnd.getDbs().add(mdb);
+      int now = (int) (System.currentTimeMillis() / 1000);
+      pm.makePersistent(mnd);
+      pm.makePersistent(mdb);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MNode mnd = this.getMNode(nodeName);
+      Set<MNode> nodes = mdb.getNodes();
+      if (mdb.getNodes() != null) {
+        throw new MetaException("this" + nodeName + "already exists!");
+      }
+      nodes = new HashSet<MNode>();
+      nodes.add(mnd);
+      mnd.getDbs().add(mdb);
+      int now = (int) (System.currentTimeMillis() / 1000);
+      pm.deletePersistent(mnd);
+      pm.deletePersistent(mdb);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException {
+//    List<GeoLocation> gls = new ArrayList<GeoLocation>();
+    GeoLocation gl = null;
+    boolean committed = false;
+    try {
+      openTransaction();//创建并开始一个事务
+      Query query = pm.newQuery(MGeoLocation.class);//设置这个query作用的范围，即查询的是那个表或记录集
+      query.setFilter("geoLocName == \"geoLocName\"");
+      query.declareParameters("java.lang.String geoLocName");
+//      gl =  (GeoLocation) query.execute(geoLocName);
+//      query.setUnique(true);//设置返回的结果是唯一的
+      MGeoLocation mgl=(MGeoLocation)query.execute(geoLocName);
+      LOG.info("++++++++++++++++++++++++++++++MGeoLocation" + mgl.getGeoLocName());
+      gl = convertToGeoLocation(mgl);
+      committed = commitTransaction();
+    } finally {
+      if (!committed) {
+        rollbackTransaction();
+      }
+    }
+    return gl;
+  }
+
+  private GeoLocation convertToGeoLocation(MGeoLocation mgl) {
+    if (mgl == null) {
+      return null;
+    }
+    return new GeoLocation(mgl.getGeoLocName(),mgl.getNation(),mgl.getProvince(),mgl.getCity(),mgl.getDist());
+  }
+
+  @Override
+  public List<GeoLocation> getGeoLocationByNames(List<String> geoLocNames) throws MetaException {
+    List<MGeoLocation> mgls = getMGeoLocationByNames(geoLocNames);
+    return convertToGeoLocations(mgls);
+  }
+
+  private List<MGeoLocation> getMGeoLocationByNames(List<String> geoLocNames) throws MetaException {
+    boolean success = false;
+    List<MGeoLocation> results = new ArrayList<MGeoLocation>();
+    try {
+      openTransaction();
+      StringBuilder sb = new StringBuilder(
+          "(");
+      int n = 0;
+      Map<String, String> params = new HashMap<String, String>();
+      for (Iterator<String> itr = geoLocNames.iterator(); itr.hasNext();) {
+        String pn = "p" + n;
+        n++;
+        String part = itr.next();
+        params.put(pn, part);
+        sb.append("geoLocName == ").append(pn);
+        sb.append(" || ");
+      }
+      sb.setLength(sb.length() - 4);
+      sb.append(')');
+      Query query = pm.newQuery(MGeoLocation.class, sb.toString());
+      String parameterDeclaration = makeParameterDeclarationString(params);
+      query.declareParameters(parameterDeclaration);
+      query.setOrdering("geoLocName ascending");
+      results = (List<MGeoLocation>) query.executeWithMap(params);
+      query.closeAll();
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return results;
+  }
+
+  private List<GeoLocation> convertToGeoLocations(Collection<MGeoLocation> mgls) {
+    List<GeoLocation> gls = null;
+    if(mgls != null) {
+      gls = new ArrayList<GeoLocation>();
+      for(MGeoLocation mgl : mgls){
+        GeoLocation gl = new GeoLocation(mgl.getGeoLocName(),mgl.getNation(),mgl.getProvince(),mgl.getCity(),mgl.getDist());
+        gls.add(gl);
+      }
+    }
+    return gls;
+  }
+
+  @Override
+  public List<Node> listNodes() throws MetaException {
+    List<Node> nds = null;
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MNode.class);
+      List<MNode> mnds = (List<MNode>) query.execute();
+      pm.retrieveAll(mnds);
+
+      success = commitTransaction();
+      nds = this.convertToNodes(mnds);
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return nds;
+  }
+
+  private List<Node> convertToNodes(List<MNode> mnds) {
+    List<Node> nds = null;
+    if(mnds != null) {
+      nds = new ArrayList<Node>();
+      for(MNode mnd : mnds){
+        Node nd = new Node(mnd.getNode_name(), mnd.getIPList(), mnd.getStatus());
+        nds.add(nd);
+      }
+    }
+    return nds;
+  }
+
+  @Override
+  public boolean addUserAssignment(String userName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MUser muser = this.getMUser(userName);
+      if (mdb.getUsers() != null) {
+        throw new MetaException("this" + userName + "already exists！");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+      List<MUser> musers  = new ArrayList<MUser>();
+      musers.add(muser);
+      muser.getDbs().add(mdb);
+      pm.makePersistent(mdb);
+      pm.makePersistent(muser);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public boolean deleteUserAssignment(String userName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MUser muser = this.getMUser(userName);
+      if (mdb.getUsers() != null) {
+        throw new MetaException("this" + userName + "already exists！");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+      List<MUser> musers  = new ArrayList<MUser>();
+      musers.add(muser);
+      muser.getDbs().add(mdb);
+      pm.deletePersistent(mdb);
+      pm.deletePersistent(muser);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public List<User> listUsers() throws MetaException {
+    List<User> users = null;
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MUser.class);
+      List<MUser> musers = (List<MUser>) query.execute();
+      pm.retrieveAll(musers);
+
+      success = commitTransaction();
+      users = this.convertToUsers(musers);
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return users;
+  }
+
+  private List<User> convertToUsers(List<MUser> musers) {
+    List<User> users = null;
+    if(musers != null) {
+      users = new ArrayList<User>();
+      for(MUser muser : musers){
+        User user = new User(muser.getUserName(),muser.getPasswd(),muser.getCreateTime(),muser.getOwnerName());
+        users.add(user);
+      }
+    }
+    return users;
+  }
+
+  @Override
+  public boolean addRoleAssignment(String roleName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MRole mrole = this.getMRole(roleName);
+      if (mdb.getRoles() != null) {
+        throw new MetaException("this" + roleName + "already exists！");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+      List<MRole> mroles  = new ArrayList<MRole>();
+      mroles.add(mrole);
+      mrole.getDbs().add(mdb);
+      pm.makePersistent(mdb);
+      pm.makePersistent(mrole);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public boolean deleteRoleAssignment(String roleName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MRole mrole = this.getMRole(roleName);
+      if (mdb.getRoles() != null) {
+        throw new MetaException("this" + roleName + "already exists！");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+      List<MRole> mroles  = new ArrayList<MRole>();
+      mroles.add(mrole);
+      mrole.getDbs().add(mdb);
+      pm.deletePersistent(mdb);
+      pm.deletePersistent(mrole);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public List<Role> listRoles() throws MetaException {
+    List<Role> roles = null;
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MRole.class);
+      List<MRole> mroles = (List<MRole>) query.execute();
+      pm.retrieveAll(mroles);
+
+      success = commitTransaction();
+      roles = this.convertToRoles(mroles);
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return roles;
+  }
+
+  private List<Role> convertToRoles(List<MRole> mroles) {
+    List<Role> roles = null;
+    if(mroles != null) {
+      roles = new ArrayList<Role>();
+      for(MRole mrole : mroles){
+        Role role = new Role(mrole.getRoleName(),mrole.getCreateTime(),mrole.getOwnerName());
+        roles.add(role);
+      }
+    }
+    return roles;
+  }
+
+  @Override
+  public boolean addNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException,
+      NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean deleteNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException,
+      NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
   }
 
 }

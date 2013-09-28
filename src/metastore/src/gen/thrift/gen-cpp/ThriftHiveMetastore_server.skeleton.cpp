@@ -167,6 +167,26 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("drop_subpartition_index_files\n");
   }
 
+  bool addGeoLocation(const GeoLocation& gl) {
+    // Your implementation goes here
+    printf("addGeoLocation\n");
+  }
+
+  bool modifyGeoLocation(const GeoLocation& gl) {
+    // Your implementation goes here
+    printf("modifyGeoLocation\n");
+  }
+
+  bool deleteGeoLocation(const GeoLocation& gl) {
+    // Your implementation goes here
+    printf("deleteGeoLocation\n");
+  }
+
+  void listGeoLocation(std::vector<GeoLocation> & _return) {
+    // Your implementation goes here
+    printf("listGeoLocation\n");
+  }
+
   bool addEquipRoom(const EquipRoom& er) {
     // Your implementation goes here
     printf("addEquipRoom\n");
@@ -192,24 +212,9 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("getGeoLocationByName\n");
   }
 
-  bool addGeoLocation(const GeoLocation& gl) {
+  void getGeoLocationByNames(std::vector<GeoLocation> & _return, const std::vector<std::string> & geoLocNames) {
     // Your implementation goes here
-    printf("addGeoLocation\n");
-  }
-
-  bool modifyGeoLocation(const GeoLocation& gl) {
-    // Your implementation goes here
-    printf("modifyGeoLocation\n");
-  }
-
-  bool deleteGeoLocation(const GeoLocation& gl) {
-    // Your implementation goes here
-    printf("deleteGeoLocation\n");
-  }
-
-  void listGeoLocation(std::vector<GeoLocation> & _return) {
-    // Your implementation goes here
-    printf("listGeoLocation\n");
+    printf("getGeoLocationByNames\n");
   }
 
   bool addNodeAssignment(const std::string& nodeName, const std::string& dbName) {
@@ -220,6 +225,51 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
   bool deleteNodeAssignment(const std::string& nodeName, const std::string& dbName) {
     // Your implementation goes here
     printf("deleteNodeAssignment\n");
+  }
+
+  void listNodes(std::vector<Node> & _return) {
+    // Your implementation goes here
+    printf("listNodes\n");
+  }
+
+  bool addUserAssignment(const std::string& roleName, const std::string& dbName) {
+    // Your implementation goes here
+    printf("addUserAssignment\n");
+  }
+
+  bool deleteUserAssignment(const std::string& roleName, const std::string& dbName) {
+    // Your implementation goes here
+    printf("deleteUserAssignment\n");
+  }
+
+  void listUsers(std::vector<User> & _return) {
+    // Your implementation goes here
+    printf("listUsers\n");
+  }
+
+  bool addRoleAssignment(const std::string& userName, const std::string& dbName) {
+    // Your implementation goes here
+    printf("addRoleAssignment\n");
+  }
+
+  bool deleteRoleAssignment(const std::string& userName, const std::string& dbName) {
+    // Your implementation goes here
+    printf("deleteRoleAssignment\n");
+  }
+
+  void listRoles(std::vector<Role> & _return) {
+    // Your implementation goes here
+    printf("listRoles\n");
+  }
+
+  bool addNodeGroupAssignment(const NodeGroup& ng, const std::string& dbName) {
+    // Your implementation goes here
+    printf("addNodeGroupAssignment\n");
+  }
+
+  bool deleteNodeGroupAssignment(const NodeGroup& ng, const std::string& dbName) {
+    // Your implementation goes here
+    printf("deleteNodeGroupAssignment\n");
   }
 
   void create_database(const Database& database) {
