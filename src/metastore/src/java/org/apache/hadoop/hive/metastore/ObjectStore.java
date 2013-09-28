@@ -8989,6 +8989,10 @@ public MUser getMUser(String userName) {
 
   private List<MNodeGroup> getMNodeGroupByNames(List<String> ngs)throws MetaException {
     boolean success = false;
+
+    if(ngs == null || ngs.isEmpty()){
+      return null;
+    }
     List<MNodeGroup> results = new ArrayList<MNodeGroup>();
 
     try {
@@ -9107,6 +9111,9 @@ public MUser getMUser(String userName) {
   @Override
   public List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws MetaException {
     List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
+    if(mngs == null ||mngs.isEmpty()){
+      return null;
+    }
     return convertToNodeGroups(mngs);
   }
 

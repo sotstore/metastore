@@ -814,7 +814,10 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
       tbl.setFields(schema.getCols());
       tbl.setPartCols(crtTblLikeSchemaDesc.getPartCols());
-      tbl.setNodeGroups(db.listNodeGroups(crtTblLikeSchemaDesc.getNodeGroupNames()));
+      if(crtTblLikeSchemaDesc.getNodeGroupNames() != null
+          && !crtTblLikeSchemaDesc.getNodeGroupNames().isEmpty()) {
+        tbl.setNodeGroups(db.listNodeGroups(crtTblLikeSchemaDesc.getNodeGroupNames()));
+      }
 
       if (crtTblLikeSchemaDesc.getLocation() != null) {
         tbl.setDataLocation(new Path(crtTblLikeSchemaDesc.getLocation()).toUri());
