@@ -589,7 +589,7 @@ public class ObjectStore implements RawStore, Configurable {
       mdb.setParameters(db.getParameters());
       openTransaction();
       pm.retrieve(mdb);
-      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(db).toString()));
+      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(mdb).toString()));
       pm.makePersistent(mdb);
       committed = commitTransaction();
 
@@ -1257,8 +1257,7 @@ public class ObjectStore implements RawStore, Configurable {
       pm.makePersistent(mnode);
       commited = commitTransaction();
 
-      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(mnode).toString()));
-      MetaMsgServer.sendMsg( MSGFactory.generateDDLMsg(MSGType.MSG_NEW_NODE,db_id,-1,pm,mnode,null));
+      MetaMsgServer.sendMsg( MSGFactory.generateDDLMsg(MSGType.MSG_NEW_NODE,-1,-1,pm,mnode,null));
     } finally {
       if (!commited) {
         rollbackTransaction();
@@ -4144,6 +4143,7 @@ public class ObjectStore implements RawStore, Configurable {
       //MSG_ALT_TALBE_PARTITIONING
       if(!oldt.getPartitionKeys().equals(newt.getPartitionKeys()))      //要传什么参数呢．．
       {
+        params.put("old_table_name", oldt.getTableName());
         MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_TALBE_PARTITIONING,db_id,-1, pm, oldt,params));
       }
       //MSG_ALT_TALBE_DISTRIBUTE        似乎没有修改过..
@@ -4532,7 +4532,9 @@ public class ObjectStore implements RawStore, Configurable {
       }
       success = commitTransaction();
       long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(index.getOrigTable().getDatabase()).toString()));
-      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_INDEX, db_id, -1, pm, index, null));
+      HashMap<String,Object> params = new HashMap<String,Object>();
+      params.put("index_name", indexName);
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_INDEX, db_id, -1, pm, index, params));
     } finally {
       if (!success) {
         rollbackTransaction();
@@ -7797,8 +7799,7 @@ public MUser getMUser(String userName) {
       }
       success = commitTransaction();
 
-      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(mnode).toString()));
-      MetaMsgServer.sendMsg( MSGFactory.generateDDLMsg(MSGType.MSG_DEL_NODE,db_id,-1,pm,mnode,null));
+      MetaMsgServer.sendMsg( MSGFactory.generateDDLMsg(MSGType.MSG_DEL_NODE,-1,-1,pm,mnode,null));
     } finally {
       if (!success) {
         rollbackTransaction();
@@ -8915,6 +8916,7 @@ public MUser getMUser(String userName) {
 
       pm.makePersistent(mng);
       commited = commitTransaction();
+      MetaMsgServer.sendMsg( MSGFactory.generateDDLMsg(MSGType.MSG_NEW_NODEGROUP,-1,-1,pm,mng,null));
       success = true;
     } finally {
       if (!commited) {
@@ -8947,6 +8949,11 @@ public MUser getMUser(String userName) {
       pm.makePersistent(mng);
       commited = commitTransaction();
       success = true;
+
+      HashMap<String,Object> params = new HashMap<String,Object>();
+      params.put("old_nodegroup_name", ngName);
+      params.put("nodegroup_name", mng.getNode_group_name());
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_MODIFY_NODEGROUP, -1, -1, pm, mng, params));
     } finally {
       if (!commited) {
         rollbackTransaction();
@@ -8971,6 +8978,10 @@ public MUser getMUser(String userName) {
       pm.deletePersistentAll(mngs);// watch here
       commited = commitTransaction();
       success = true;
+
+      HashMap<String,Object> params = new HashMap<String,Object>();
+      params.put("nodegroup_name", ng.getNode_group_name());
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_NODEGROUP, -1, -1, pm, mngs, params));
     } finally {
       if (!commited) {
         rollbackTransaction();
