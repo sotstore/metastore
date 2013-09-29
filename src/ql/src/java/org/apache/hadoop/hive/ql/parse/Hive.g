@@ -1551,7 +1551,7 @@ analyzeStatement
 showStatement
 @init { msgs.push("show statement"); }
 @after { msgs.pop(); }
-    : KW_SHOW (KW_DATABASES|KW_SCHEMAS) (dc_name=Identifier )?  (KW_LIKE  showStmtIdentifier)? -> ^(TOK_SHOWDATABASES $dc_name? (KW_LIKE showStmtIdentifier)?)
+    : KW_SHOW KW_DATABASES (dc_name=Identifier )?  (KW_LIKE  showStmtIdentifier)? -> ^(TOK_SHOWDATABASES $dc_name? (KW_LIKE showStmtIdentifier)?)
     | KW_SHOW KW_NODEGROUPS showStmtIdentifier?  -> ^(TOK_SHOWNODEGROUPS showStmtIdentifier?)
     | KW_SHOW KW_SCHEMAS showStmtIdentifier?  -> ^(TOK_SHOWSCHEMAS showStmtIdentifier?)
     | KW_SHOW KW_BUSITYPES  -> ^(TOK_SHOWBUSITYPES )

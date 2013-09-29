@@ -121,84 +121,6 @@ import org.apache.hadoop.hive.ql.parse.AlterTablePartMergeFilesDesc;
 import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
 import org.apache.hadoop.hive.ql.plan.*;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
-import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
-import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
-import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.CreateDatacenterDesc;
-import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
-import org.apache.hadoop.hive.ql.plan.CreateNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.CreateSchemaDesc;
-import org.apache.hadoop.hive.ql.plan.CreateSchemaLikeDesc;
-import org.apache.hadoop.hive.ql.plan.CreateTableDesc;
-import org.apache.hadoop.hive.ql.plan.CreateTableLikeDesc;
-import org.apache.hadoop.hive.ql.plan.CreateTableLikeSchemaDesc;
-import org.apache.hadoop.hive.ql.plan.CreateViewDesc;
-import org.apache.hadoop.hive.ql.plan.DDLWork;
-import org.apache.hadoop.hive.ql.plan.DescDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.DescFunctionDesc;
-import org.apache.hadoop.hive.ql.plan.DescTableDesc;
-import org.apache.hadoop.hive.ql.plan.DropDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.DropDatacenterDesc;
-import org.apache.hadoop.hive.ql.plan.DropEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.DropGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
-import org.apache.hadoop.hive.ql.plan.DropSubpartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.DropSubpartitionDesc;
-import org.apache.hadoop.hive.ql.plan.DropTableDesc;
-import org.apache.hadoop.hive.ql.plan.GrantDesc;
-import org.apache.hadoop.hive.ql.plan.GrantRevokeRoleDDL;
-import org.apache.hadoop.hive.ql.plan.LockTableDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyNodeDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartIndexAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartIndexDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartitionAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartitionDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartitionAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartitionDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.MsckDesc;
-import org.apache.hadoop.hive.ql.plan.PartitionSpec;
-import org.apache.hadoop.hive.ql.plan.PrincipalDesc;
-import org.apache.hadoop.hive.ql.plan.PrivilegeDesc;
-import org.apache.hadoop.hive.ql.plan.PrivilegeObjectDesc;
-import org.apache.hadoop.hive.ql.plan.RenamePartitionDesc;
-import org.apache.hadoop.hive.ql.plan.RevokeDesc;
-import org.apache.hadoop.hive.ql.plan.RoleDDLDesc;
-import org.apache.hadoop.hive.ql.plan.ShowBusitypesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowColumnsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowCreateTableDesc;
-import org.apache.hadoop.hive.ql.plan.ShowDatabasesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowDatacentersDesc;
-import org.apache.hadoop.hive.ql.plan.ShowEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.ShowFileLocationsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowFilesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowFunctionsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
-import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodeAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
-import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowSubpartitionDesc;
-import org.apache.hadoop.hive.ql.plan.ShowTableStatusDesc;
-import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
-import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.SwitchDatacenterDesc;
-import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
-import org.apache.hadoop.hive.ql.plan.UserDDLDesc;
 import org.apache.hadoop.hive.ql.plan.api.StageType;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
 import org.apache.hadoop.hive.ql.session.SessionState;
@@ -730,6 +652,19 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       if (null != showRoleAssignmentDesc) {
         return showRoleAssignment(db, showRoleAssignmentDesc);
       }
+      DropSchemaDesc dropSchemaDesc = work.getDropSchemaDesc();
+      if (null != dropSchemaDesc) {
+        return dropSchema(db, dropSchemaDesc);
+      }
+      DescSchemaDesc descSchemaDesc = work.getDescSchemaDesc();
+      if (null != descSchemaDesc) {
+        return descSchema(db, descSchemaDesc);
+      }
+      ShowSchemaDesc showSchemaDesc = work.getShowSchemaDesc();
+      if (null != showSchemaDesc) {
+        return showSchema(db, showSchemaDesc);
+      }
+
 
     } catch (InvalidTableException e) {
       formatter.consoleError(console, "Table " + e.getTableName() + " does not exist",
@@ -760,6 +695,8 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     assert false;
     return 0;
   }
+
+
 
 
 
@@ -5268,4 +5205,80 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     return 0;
   }
 
+  private int showSchema(Hive db, ShowSchemaDesc showSchemaDesc) throws HiveException {
+    List<GlobalSchema> globalSchemas = db.showGlobalSchema();
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showSchemaDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+      formatter.showGlobalSchema(outStream, globalSchemas);
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show globalSchemas: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show globalSchemas: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+  private int descSchema(Hive db, DescSchemaDesc descSchemaDesc) throws HiveException {
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(descSchemaDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      org.apache.hadoop.hive.metastore.api.GlobalSchema gs= db.getSchemaByName(descSchemaDesc.getSchemaName());
+
+      if (gs == null) {
+          formatter.error(outStream,
+                          "No such schema: " + descSchemaDesc.getSchemaName(),
+                          formatter.MISSING);
+      } else {
+          Map<String, String> params = null;
+            params = gs.getParameters();
+
+
+
+          formatter.showSchemaDescription(outStream,
+                                            gs.getSchemaName(),
+                                            gs.getSd().getCols(),
+                                            params);
+      }
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+      formatter.logWarn(outStream,
+                        "describe database: " + stringifyException(e),
+                        formatter.ERROR);
+      return 1;
+    } catch (IOException e) {
+      formatter.logWarn(outStream,
+                        "describe database: " + stringifyException(e),
+                        formatter.ERROR);
+      return 1;
+    } catch (Exception e) {
+      throw new HiveException(e.toString());
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+  private int dropSchema(Hive db, DropSchemaDesc dropSchemaDesc) throws HiveException {
+    GlobalSchema  schema = new GlobalSchema();
+    schema.setSchemaName(dropSchemaDesc.getSchemaName());
+    this.db.dropSchema(schema);
+    return 0;
+  }
 }

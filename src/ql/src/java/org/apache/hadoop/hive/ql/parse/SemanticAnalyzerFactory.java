@@ -272,6 +272,8 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_CREATEROLEASSIGNMENT:
       case HiveParser.TOK_DROPROLEASSIGNMENT:
       case HiveParser.TOK_SHOWROLEASSIGNMENT:
+      case HiveParser.TOK_SHOWSCHEMAS:
+      case HiveParser.TOK_DESCSCHEMA:
 
 
 

@@ -43,6 +43,7 @@ import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.metadata.EqRoom;
 import org.apache.hadoop.hive.ql.metadata.GeoLoc;
+import org.apache.hadoop.hive.ql.metadata.GlobalSchema;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
@@ -578,6 +579,21 @@ public class JsonMetaDataFormatter implements MetaDataFormatter {
     @Override
     public void showUserAssignment(DataOutputStream outStream, List<UserAssignment> userAssignments)
         throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void showGlobalSchema(DataOutputStream outStream, List<GlobalSchema> globalSchemas)
+        throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
+
+    @Override
+    public void showSchemaDescription(DataOutputStream outStream, String schemaName,
+        List<FieldSchema> cols, Map<String, String> params) throws HiveException {
       // TODO Auto-generated method stub
 
     }

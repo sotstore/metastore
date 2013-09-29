@@ -33,6 +33,7 @@ import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.metadata.EqRoom;
 import org.apache.hadoop.hive.ql.metadata.GeoLoc;
+import org.apache.hadoop.hive.ql.metadata.GlobalSchema;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
@@ -183,6 +184,11 @@ public interface MetaDataFormatter {
     public void showRoleAssignment(DataOutputStream outStream, List<RoleAssignment> roleAssignments) throws HiveException;
 
     public void showUserAssignment(DataOutputStream outStream, List<UserAssignment> userAssignments) throws HiveException;
+
+    public void showGlobalSchema(DataOutputStream outStream, List<GlobalSchema> globalSchemas) throws HiveException;
+
+    public void showSchemaDescription(DataOutputStream outStream, String schemaName,
+        List<FieldSchema> cols, Map<String, String> params)throws HiveException;;
 
 
 }
