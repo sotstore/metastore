@@ -481,6 +481,70 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'drop_subpartition_index_files failed: unknown result')
     end
 
+    def addGeoLocation(gl)
+      send_addGeoLocation(gl)
+      return recv_addGeoLocation()
+    end
+
+    def send_addGeoLocation(gl)
+      send_message('addGeoLocation', AddGeoLocation_args, :gl => gl)
+    end
+
+    def recv_addGeoLocation()
+      result = receive_message(AddGeoLocation_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addGeoLocation failed: unknown result')
+    end
+
+    def modifyGeoLocation(gl)
+      send_modifyGeoLocation(gl)
+      return recv_modifyGeoLocation()
+    end
+
+    def send_modifyGeoLocation(gl)
+      send_message('modifyGeoLocation', ModifyGeoLocation_args, :gl => gl)
+    end
+
+    def recv_modifyGeoLocation()
+      result = receive_message(ModifyGeoLocation_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'modifyGeoLocation failed: unknown result')
+    end
+
+    def deleteGeoLocation(gl)
+      send_deleteGeoLocation(gl)
+      return recv_deleteGeoLocation()
+    end
+
+    def send_deleteGeoLocation(gl)
+      send_message('deleteGeoLocation', DeleteGeoLocation_args, :gl => gl)
+    end
+
+    def recv_deleteGeoLocation()
+      result = receive_message(DeleteGeoLocation_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteGeoLocation failed: unknown result')
+    end
+
+    def listGeoLocation()
+      send_listGeoLocation()
+      return recv_listGeoLocation()
+    end
+
+    def send_listGeoLocation()
+      send_message('listGeoLocation', ListGeoLocation_args)
+    end
+
+    def recv_listGeoLocation()
+      result = receive_message(ListGeoLocation_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listGeoLocation failed: unknown result')
+    end
+
     def addEquipRoom(er)
       send_addEquipRoom(er)
       return recv_addEquipRoom()
@@ -558,71 +622,24 @@ module ThriftHiveMetastore
       result = receive_message(GetGeoLocationByName_result)
       return result.success unless result.success.nil?
       raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getGeoLocationByName failed: unknown result')
     end
 
-    def addGeoLocation(gl)
-      send_addGeoLocation(gl)
-      return recv_addGeoLocation()
+    def getGeoLocationByNames(geoLocNames)
+      send_getGeoLocationByNames(geoLocNames)
+      return recv_getGeoLocationByNames()
     end
 
-    def send_addGeoLocation(gl)
-      send_message('addGeoLocation', AddGeoLocation_args, :gl => gl)
+    def send_getGeoLocationByNames(geoLocNames)
+      send_message('getGeoLocationByNames', GetGeoLocationByNames_args, :geoLocNames => geoLocNames)
     end
 
-    def recv_addGeoLocation()
-      result = receive_message(AddGeoLocation_result)
+    def recv_getGeoLocationByNames()
+      result = receive_message(GetGeoLocationByNames_result)
       return result.success unless result.success.nil?
       raise result.o1 unless result.o1.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addGeoLocation failed: unknown result')
-    end
-
-    def modifyGeoLocation(gl)
-      send_modifyGeoLocation(gl)
-      return recv_modifyGeoLocation()
-    end
-
-    def send_modifyGeoLocation(gl)
-      send_message('modifyGeoLocation', ModifyGeoLocation_args, :gl => gl)
-    end
-
-    def recv_modifyGeoLocation()
-      result = receive_message(ModifyGeoLocation_result)
-      return result.success unless result.success.nil?
-      raise result.o1 unless result.o1.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'modifyGeoLocation failed: unknown result')
-    end
-
-    def deleteGeoLocation(gl)
-      send_deleteGeoLocation(gl)
-      return recv_deleteGeoLocation()
-    end
-
-    def send_deleteGeoLocation(gl)
-      send_message('deleteGeoLocation', DeleteGeoLocation_args, :gl => gl)
-    end
-
-    def recv_deleteGeoLocation()
-      result = receive_message(DeleteGeoLocation_result)
-      return result.success unless result.success.nil?
-      raise result.o1 unless result.o1.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteGeoLocation failed: unknown result')
-    end
-
-    def listGeoLocation()
-      send_listGeoLocation()
-      return recv_listGeoLocation()
-    end
-
-    def send_listGeoLocation()
-      send_message('listGeoLocation', ListGeoLocation_args)
-    end
-
-    def recv_listGeoLocation()
-      result = receive_message(ListGeoLocation_result)
-      return result.success unless result.success.nil?
-      raise result.o1 unless result.o1.nil?
-      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listGeoLocation failed: unknown result')
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getGeoLocationByNames failed: unknown result')
     end
 
     def addNodeAssignment(nodeName, dbName)
@@ -657,6 +674,154 @@ module ThriftHiveMetastore
       raise result.o1 unless result.o1.nil?
       raise result.o2 unless result.o2.nil?
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteNodeAssignment failed: unknown result')
+    end
+
+    def listNodes()
+      send_listNodes()
+      return recv_listNodes()
+    end
+
+    def send_listNodes()
+      send_message('listNodes', ListNodes_args)
+    end
+
+    def recv_listNodes()
+      result = receive_message(ListNodes_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listNodes failed: unknown result')
+    end
+
+    def addUserAssignment(roleName, dbName)
+      send_addUserAssignment(roleName, dbName)
+      return recv_addUserAssignment()
+    end
+
+    def send_addUserAssignment(roleName, dbName)
+      send_message('addUserAssignment', AddUserAssignment_args, :roleName => roleName, :dbName => dbName)
+    end
+
+    def recv_addUserAssignment()
+      result = receive_message(AddUserAssignment_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addUserAssignment failed: unknown result')
+    end
+
+    def deleteUserAssignment(roleName, dbName)
+      send_deleteUserAssignment(roleName, dbName)
+      return recv_deleteUserAssignment()
+    end
+
+    def send_deleteUserAssignment(roleName, dbName)
+      send_message('deleteUserAssignment', DeleteUserAssignment_args, :roleName => roleName, :dbName => dbName)
+    end
+
+    def recv_deleteUserAssignment()
+      result = receive_message(DeleteUserAssignment_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteUserAssignment failed: unknown result')
+    end
+
+    def listUsers()
+      send_listUsers()
+      return recv_listUsers()
+    end
+
+    def send_listUsers()
+      send_message('listUsers', ListUsers_args)
+    end
+
+    def recv_listUsers()
+      result = receive_message(ListUsers_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listUsers failed: unknown result')
+    end
+
+    def addRoleAssignment(userName, dbName)
+      send_addRoleAssignment(userName, dbName)
+      return recv_addRoleAssignment()
+    end
+
+    def send_addRoleAssignment(userName, dbName)
+      send_message('addRoleAssignment', AddRoleAssignment_args, :userName => userName, :dbName => dbName)
+    end
+
+    def recv_addRoleAssignment()
+      result = receive_message(AddRoleAssignment_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addRoleAssignment failed: unknown result')
+    end
+
+    def deleteRoleAssignment(userName, dbName)
+      send_deleteRoleAssignment(userName, dbName)
+      return recv_deleteRoleAssignment()
+    end
+
+    def send_deleteRoleAssignment(userName, dbName)
+      send_message('deleteRoleAssignment', DeleteRoleAssignment_args, :userName => userName, :dbName => dbName)
+    end
+
+    def recv_deleteRoleAssignment()
+      result = receive_message(DeleteRoleAssignment_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise result.o2 unless result.o2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteRoleAssignment failed: unknown result')
+    end
+
+    def listRoles()
+      send_listRoles()
+      return recv_listRoles()
+    end
+
+    def send_listRoles()
+      send_message('listRoles', ListRoles_args)
+    end
+
+    def recv_listRoles()
+      result = receive_message(ListRoles_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listRoles failed: unknown result')
+    end
+
+    def addNodeGroupAssignment(ng, dbName)
+      send_addNodeGroupAssignment(ng, dbName)
+      return recv_addNodeGroupAssignment()
+    end
+
+    def send_addNodeGroupAssignment(ng, dbName)
+      send_message('addNodeGroupAssignment', AddNodeGroupAssignment_args, :ng => ng, :dbName => dbName)
+    end
+
+    def recv_addNodeGroupAssignment()
+      result = receive_message(AddNodeGroupAssignment_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'addNodeGroupAssignment failed: unknown result')
+    end
+
+    def deleteNodeGroupAssignment(ng, dbName)
+      send_deleteNodeGroupAssignment(ng, dbName)
+      return recv_deleteNodeGroupAssignment()
+    end
+
+    def send_deleteNodeGroupAssignment(ng, dbName)
+      send_message('deleteNodeGroupAssignment', DeleteNodeGroupAssignment_args, :ng => ng, :dbName => dbName)
+    end
+
+    def recv_deleteNodeGroupAssignment()
+      result = receive_message(DeleteNodeGroupAssignment_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteNodeGroupAssignment failed: unknown result')
     end
 
     def create_database(database)
@@ -3129,6 +3294,50 @@ module ThriftHiveMetastore
       write_result(result, oprot, 'drop_subpartition_index_files', seqid)
     end
 
+    def process_addGeoLocation(seqid, iprot, oprot)
+      args = read_args(iprot, AddGeoLocation_args)
+      result = AddGeoLocation_result.new()
+      begin
+        result.success = @handler.addGeoLocation(args.gl)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'addGeoLocation', seqid)
+    end
+
+    def process_modifyGeoLocation(seqid, iprot, oprot)
+      args = read_args(iprot, ModifyGeoLocation_args)
+      result = ModifyGeoLocation_result.new()
+      begin
+        result.success = @handler.modifyGeoLocation(args.gl)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'modifyGeoLocation', seqid)
+    end
+
+    def process_deleteGeoLocation(seqid, iprot, oprot)
+      args = read_args(iprot, DeleteGeoLocation_args)
+      result = DeleteGeoLocation_result.new()
+      begin
+        result.success = @handler.deleteGeoLocation(args.gl)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'deleteGeoLocation', seqid)
+    end
+
+    def process_listGeoLocation(seqid, iprot, oprot)
+      args = read_args(iprot, ListGeoLocation_args)
+      result = ListGeoLocation_result.new()
+      begin
+        result.success = @handler.listGeoLocation()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'listGeoLocation', seqid)
+    end
+
     def process_addEquipRoom(seqid, iprot, oprot)
       args = read_args(iprot, AddEquipRoom_args)
       result = AddEquipRoom_result.new()
@@ -3180,52 +3389,21 @@ module ThriftHiveMetastore
         result.success = @handler.getGeoLocationByName(args.geoLocName)
       rescue ::MetaException => o1
         result.o1 = o1
+      rescue ::NoSuchObjectException => o2
+        result.o2 = o2
       end
       write_result(result, oprot, 'getGeoLocationByName', seqid)
     end
 
-    def process_addGeoLocation(seqid, iprot, oprot)
-      args = read_args(iprot, AddGeoLocation_args)
-      result = AddGeoLocation_result.new()
+    def process_getGeoLocationByNames(seqid, iprot, oprot)
+      args = read_args(iprot, GetGeoLocationByNames_args)
+      result = GetGeoLocationByNames_result.new()
       begin
-        result.success = @handler.addGeoLocation(args.gl)
+        result.success = @handler.getGeoLocationByNames(args.geoLocNames)
       rescue ::MetaException => o1
         result.o1 = o1
       end
-      write_result(result, oprot, 'addGeoLocation', seqid)
-    end
-
-    def process_modifyGeoLocation(seqid, iprot, oprot)
-      args = read_args(iprot, ModifyGeoLocation_args)
-      result = ModifyGeoLocation_result.new()
-      begin
-        result.success = @handler.modifyGeoLocation(args.gl)
-      rescue ::MetaException => o1
-        result.o1 = o1
-      end
-      write_result(result, oprot, 'modifyGeoLocation', seqid)
-    end
-
-    def process_deleteGeoLocation(seqid, iprot, oprot)
-      args = read_args(iprot, DeleteGeoLocation_args)
-      result = DeleteGeoLocation_result.new()
-      begin
-        result.success = @handler.deleteGeoLocation(args.gl)
-      rescue ::MetaException => o1
-        result.o1 = o1
-      end
-      write_result(result, oprot, 'deleteGeoLocation', seqid)
-    end
-
-    def process_listGeoLocation(seqid, iprot, oprot)
-      args = read_args(iprot, ListGeoLocation_args)
-      result = ListGeoLocation_result.new()
-      begin
-        result.success = @handler.listGeoLocation()
-      rescue ::MetaException => o1
-        result.o1 = o1
-      end
-      write_result(result, oprot, 'listGeoLocation', seqid)
+      write_result(result, oprot, 'getGeoLocationByNames', seqid)
     end
 
     def process_addNodeAssignment(seqid, iprot, oprot)
@@ -3252,6 +3430,113 @@ module ThriftHiveMetastore
         result.o2 = o2
       end
       write_result(result, oprot, 'deleteNodeAssignment', seqid)
+    end
+
+    def process_listNodes(seqid, iprot, oprot)
+      args = read_args(iprot, ListNodes_args)
+      result = ListNodes_result.new()
+      begin
+        result.success = @handler.listNodes()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'listNodes', seqid)
+    end
+
+    def process_addUserAssignment(seqid, iprot, oprot)
+      args = read_args(iprot, AddUserAssignment_args)
+      result = AddUserAssignment_result.new()
+      begin
+        result.success = @handler.addUserAssignment(args.roleName, args.dbName)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      rescue ::NoSuchObjectException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'addUserAssignment', seqid)
+    end
+
+    def process_deleteUserAssignment(seqid, iprot, oprot)
+      args = read_args(iprot, DeleteUserAssignment_args)
+      result = DeleteUserAssignment_result.new()
+      begin
+        result.success = @handler.deleteUserAssignment(args.roleName, args.dbName)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      rescue ::NoSuchObjectException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'deleteUserAssignment', seqid)
+    end
+
+    def process_listUsers(seqid, iprot, oprot)
+      args = read_args(iprot, ListUsers_args)
+      result = ListUsers_result.new()
+      begin
+        result.success = @handler.listUsers()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'listUsers', seqid)
+    end
+
+    def process_addRoleAssignment(seqid, iprot, oprot)
+      args = read_args(iprot, AddRoleAssignment_args)
+      result = AddRoleAssignment_result.new()
+      begin
+        result.success = @handler.addRoleAssignment(args.userName, args.dbName)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      rescue ::NoSuchObjectException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'addRoleAssignment', seqid)
+    end
+
+    def process_deleteRoleAssignment(seqid, iprot, oprot)
+      args = read_args(iprot, DeleteRoleAssignment_args)
+      result = DeleteRoleAssignment_result.new()
+      begin
+        result.success = @handler.deleteRoleAssignment(args.userName, args.dbName)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      rescue ::NoSuchObjectException => o2
+        result.o2 = o2
+      end
+      write_result(result, oprot, 'deleteRoleAssignment', seqid)
+    end
+
+    def process_listRoles(seqid, iprot, oprot)
+      args = read_args(iprot, ListRoles_args)
+      result = ListRoles_result.new()
+      begin
+        result.success = @handler.listRoles()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'listRoles', seqid)
+    end
+
+    def process_addNodeGroupAssignment(seqid, iprot, oprot)
+      args = read_args(iprot, AddNodeGroupAssignment_args)
+      result = AddNodeGroupAssignment_result.new()
+      begin
+        result.success = @handler.addNodeGroupAssignment(args.ng, args.dbName)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'addNodeGroupAssignment', seqid)
+    end
+
+    def process_deleteNodeGroupAssignment(seqid, iprot, oprot)
+      args = read_args(iprot, DeleteNodeGroupAssignment_args)
+      result = DeleteNodeGroupAssignment_result.new()
+      begin
+        result.success = @handler.deleteNodeGroupAssignment(args.ng, args.dbName)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'deleteNodeGroupAssignment', seqid)
     end
 
     def process_create_database(seqid, iprot, oprot)
@@ -5933,6 +6218,141 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
+  class AddGeoLocation_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    GL = 1
+
+    FIELDS = {
+      GL => {:type => ::Thrift::Types::STRUCT, :name => 'gl', :class => ::GeoLocation}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddGeoLocation_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ModifyGeoLocation_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    GL = 1
+
+    FIELDS = {
+      GL => {:type => ::Thrift::Types::STRUCT, :name => 'gl', :class => ::GeoLocation}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ModifyGeoLocation_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteGeoLocation_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    GL = 1
+
+    FIELDS = {
+      GL => {:type => ::Thrift::Types::STRUCT, :name => 'gl', :class => ::GeoLocation}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteGeoLocation_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListGeoLocation_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListGeoLocation_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::GeoLocation}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
   class AddEquipRoom_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
     ER = 1
@@ -6088,10 +6508,12 @@ module ThriftHiveMetastore
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1
+    O2 = 2
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::GeoLocation},
-      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::NoSuchObjectException}
     }
 
     def struct_fields; FIELDS; end
@@ -6102,12 +6524,12 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class AddGeoLocation_args
+  class GetGeoLocationByNames_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
-    GL = 1
+    GEOLOCNAMES = 1
 
     FIELDS = {
-      GL => {:type => ::Thrift::Types::STRUCT, :name => 'gl', :class => ::GeoLocation}
+      GEOLOCNAMES => {:type => ::Thrift::Types::LIST, :name => 'geoLocNames', :element => {:type => ::Thrift::Types::STRING}}
     }
 
     def struct_fields; FIELDS; end
@@ -6118,108 +6540,7 @@ module ThriftHiveMetastore
     ::Thrift::Struct.generate_accessors self
   end
 
-  class AddGeoLocation_result
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-    SUCCESS = 0
-    O1 = 1
-
-    FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
-  class ModifyGeoLocation_args
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-    GL = 1
-
-    FIELDS = {
-      GL => {:type => ::Thrift::Types::STRUCT, :name => 'gl', :class => ::GeoLocation}
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
-  class ModifyGeoLocation_result
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-    SUCCESS = 0
-    O1 = 1
-
-    FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
-  class DeleteGeoLocation_args
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-    GL = 1
-
-    FIELDS = {
-      GL => {:type => ::Thrift::Types::STRUCT, :name => 'gl', :class => ::GeoLocation}
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
-  class DeleteGeoLocation_result
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-    SUCCESS = 0
-    O1 = 1
-
-    FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
-      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
-  class ListGeoLocation_args
-    include ::Thrift::Struct, ::Thrift::Struct_Union
-
-    FIELDS = {
-
-    }
-
-    def struct_fields; FIELDS; end
-
-    def validate
-    end
-
-    ::Thrift::Struct.generate_accessors self
-  end
-
-  class ListGeoLocation_result
+  class GetGeoLocationByNames_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1
@@ -6303,6 +6624,329 @@ module ThriftHiveMetastore
       SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException},
       O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::NoSuchObjectException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListNodes_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListNodes_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Node}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddUserAssignment_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    ROLENAME = 1
+    DBNAME = 2
+
+    FIELDS = {
+      ROLENAME => {:type => ::Thrift::Types::STRING, :name => 'roleName'},
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddUserAssignment_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::NoSuchObjectException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteUserAssignment_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    ROLENAME = 1
+    DBNAME = 2
+
+    FIELDS = {
+      ROLENAME => {:type => ::Thrift::Types::STRING, :name => 'roleName'},
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteUserAssignment_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::NoSuchObjectException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListUsers_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListUsers_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::User}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddRoleAssignment_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    USERNAME = 1
+    DBNAME = 2
+
+    FIELDS = {
+      USERNAME => {:type => ::Thrift::Types::STRING, :name => 'userName'},
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddRoleAssignment_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::NoSuchObjectException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteRoleAssignment_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    USERNAME = 1
+    DBNAME = 2
+
+    FIELDS = {
+      USERNAME => {:type => ::Thrift::Types::STRING, :name => 'userName'},
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteRoleAssignment_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+    O2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException},
+      O2 => {:type => ::Thrift::Types::STRUCT, :name => 'o2', :class => ::NoSuchObjectException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListRoles_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListRoles_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Role}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddNodeGroupAssignment_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NG = 1
+    DBNAME = 2
+
+    FIELDS = {
+      NG => {:type => ::Thrift::Types::STRUCT, :name => 'ng', :class => ::NodeGroup},
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class AddNodeGroupAssignment_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteNodeGroupAssignment_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    NG = 1
+    DBNAME = 2
+
+    FIELDS = {
+      NG => {:type => ::Thrift::Types::STRUCT, :name => 'ng', :class => ::NodeGroup},
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DeleteNodeGroupAssignment_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
     def struct_fields; FIELDS; end

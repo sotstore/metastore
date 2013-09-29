@@ -77,7 +77,7 @@ public abstract class BaseSemanticAnalyzer {
   protected List<Task<? extends Serializable>> rootTasks;
   protected FetchTask fetchTask;
   protected final Log LOG;
-  private static Log zlog = LogFactory.getLog(BaseSemanticAnalyzer.class.getName());
+  public static Log zlog = LogFactory.getLog(BaseSemanticAnalyzer.class.getName());
   protected final LogHelper console;
 
   protected Context ctx;
@@ -416,8 +416,7 @@ public abstract class BaseSemanticAnalyzer {
   public static void readNodes(
       ASTNode node, Set<String> setNode) {
       for (int nodeChild = 0; nodeChild < node.getChildCount(); nodeChild++) {
-        String value = unescapeSQLString(node.getChild(nodeChild).getChild(0)
-            .getText());
+        String value = unescapeSQLString(node.getChild(nodeChild).getText());
         setNode.add(value);
       }
   }

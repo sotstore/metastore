@@ -37,6 +37,7 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
   private static final org.apache.thrift.protocol.TField NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("name", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("type", org.apache.thrift.protocol.TType.STRING, (short)2);
   private static final org.apache.thrift.protocol.TField COMMENT_FIELD_DESC = new org.apache.thrift.protocol.TField("comment", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField VERSION_FIELD_DESC = new org.apache.thrift.protocol.TField("version", org.apache.thrift.protocol.TType.I64, (short)4);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,12 +48,14 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
   private String name; // required
   private String type; // required
   private String comment; // required
+  private long version; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     NAME((short)1, "name"),
     TYPE((short)2, "type"),
-    COMMENT((short)3, "comment");
+    COMMENT((short)3, "comment"),
+    VERSION((short)4, "version");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -73,6 +76,8 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
           return TYPE;
         case 3: // COMMENT
           return COMMENT;
+        case 4: // VERSION
+          return VERSION;
         default:
           return null;
       }
@@ -113,6 +118,9 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
   }
 
   // isset id assignments
+  private static final int __VERSION_ISSET_ID = 0;
+  private byte __isset_bitfield = 0;
+  private _Fields optionals[] = {_Fields.VERSION};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -122,6 +130,8 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.COMMENT, new org.apache.thrift.meta_data.FieldMetaData("comment", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.VERSION, new org.apache.thrift.meta_data.FieldMetaData("version", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FieldSchema.class, metaDataMap);
   }
@@ -144,6 +154,7 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
    * Performs a deep copy on <i>other</i>.
    */
   public FieldSchema(FieldSchema other) {
+    __isset_bitfield = other.__isset_bitfield;
     if (other.isSetName()) {
       this.name = other.name;
     }
@@ -153,6 +164,7 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
     if (other.isSetComment()) {
       this.comment = other.comment;
     }
+    this.version = other.version;
   }
 
   public FieldSchema deepCopy() {
@@ -164,6 +176,8 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
     this.name = null;
     this.type = null;
     this.comment = null;
+    setVersionIsSet(false);
+    this.version = 0;
   }
 
   public String getName() {
@@ -235,6 +249,28 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
     }
   }
 
+  public long getVersion() {
+    return this.version;
+  }
+
+  public void setVersion(long version) {
+    this.version = version;
+    setVersionIsSet(true);
+  }
+
+  public void unsetVersion() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __VERSION_ISSET_ID);
+  }
+
+  /** Returns true if field version is set (has been assigned a value) and false otherwise */
+  public boolean isSetVersion() {
+    return EncodingUtils.testBit(__isset_bitfield, __VERSION_ISSET_ID);
+  }
+
+  public void setVersionIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __VERSION_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case NAME:
@@ -261,6 +297,14 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
       }
       break;
 
+    case VERSION:
+      if (value == null) {
+        unsetVersion();
+      } else {
+        setVersion((Long)value);
+      }
+      break;
+
     }
   }
 
@@ -274,6 +318,9 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
 
     case COMMENT:
       return getComment();
+
+    case VERSION:
+      return Long.valueOf(getVersion());
 
     }
     throw new IllegalStateException();
@@ -292,6 +339,8 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
       return isSetType();
     case COMMENT:
       return isSetComment();
+    case VERSION:
+      return isSetVersion();
     }
     throw new IllegalStateException();
   }
@@ -336,6 +385,15 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
         return false;
     }
 
+    boolean this_present_version = true && this.isSetVersion();
+    boolean that_present_version = true && that.isSetVersion();
+    if (this_present_version || that_present_version) {
+      if (!(this_present_version && that_present_version))
+        return false;
+      if (this.version != that.version)
+        return false;
+    }
+
     return true;
   }
 
@@ -357,6 +415,11 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
     builder.append(present_comment);
     if (present_comment)
       builder.append(comment);
+
+    boolean present_version = true && (isSetVersion());
+    builder.append(present_version);
+    if (present_version)
+      builder.append(version);
 
     return builder.toHashCode();
   }
@@ -395,6 +458,16 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
     }
     if (isSetComment()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.comment, typedOther.comment);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetVersion()).compareTo(typedOther.isSetVersion());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetVersion()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.version, typedOther.version);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -442,6 +515,12 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
       sb.append(this.comment);
     }
     first = false;
+    if (isSetVersion()) {
+      if (!first) sb.append(", ");
+      sb.append("version:");
+      sb.append(this.version);
+      first = false;
+    }
     sb.append(")");
     return sb.toString();
   }
@@ -461,6 +540,8 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
 
   private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
     try {
+      // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+      __isset_bitfield = 0;
       read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
     } catch (org.apache.thrift.TException te) {
       throw new java.io.IOException(te);
@@ -509,6 +590,14 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 4: // VERSION
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.version = iprot.readI64();
+              struct.setVersionIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -535,6 +624,11 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
       if (struct.comment != null) {
         oprot.writeFieldBegin(COMMENT_FIELD_DESC);
         oprot.writeString(struct.comment);
+        oprot.writeFieldEnd();
+      }
+      if (struct.isSetVersion()) {
+        oprot.writeFieldBegin(VERSION_FIELD_DESC);
+        oprot.writeI64(struct.version);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -564,7 +658,10 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
       if (struct.isSetComment()) {
         optionals.set(2);
       }
-      oprot.writeBitSet(optionals, 3);
+      if (struct.isSetVersion()) {
+        optionals.set(3);
+      }
+      oprot.writeBitSet(optionals, 4);
       if (struct.isSetName()) {
         oprot.writeString(struct.name);
       }
@@ -574,12 +671,15 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
       if (struct.isSetComment()) {
         oprot.writeString(struct.comment);
       }
+      if (struct.isSetVersion()) {
+        oprot.writeI64(struct.version);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, FieldSchema struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(4);
       if (incoming.get(0)) {
         struct.name = iprot.readString();
         struct.setNameIsSet(true);
@@ -591,6 +691,10 @@ public class FieldSchema implements org.apache.thrift.TBase<FieldSchema, FieldSc
       if (incoming.get(2)) {
         struct.comment = iprot.readString();
         struct.setCommentIsSet(true);
+      }
+      if (incoming.get(3)) {
+        struct.version = iprot.readI64();
+        struct.setVersionIsSet(true);
       }
     }
   }

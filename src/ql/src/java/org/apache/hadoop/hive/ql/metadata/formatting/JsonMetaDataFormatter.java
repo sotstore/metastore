@@ -46,8 +46,12 @@ import org.apache.hadoop.hive.ql.metadata.GeoLoc;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
+import org.apache.hadoop.hive.ql.metadata.NodeGroupAssignment;
+import org.apache.hadoop.hive.ql.metadata.NodeGroups;
 import org.apache.hadoop.hive.ql.metadata.Partition;
+import org.apache.hadoop.hive.ql.metadata.RoleAssignment;
 import org.apache.hadoop.hive.ql.metadata.Table;
+import org.apache.hadoop.hive.ql.metadata.UserAssignment;
 import org.apache.hadoop.hive.ql.session.SessionState.LogHelper;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -551,7 +555,28 @@ public class JsonMetaDataFormatter implements MetaDataFormatter {
     }
 
     @Override
-    public void showNodeGroups(DataOutputStream outStream, List<String> nodeGroups)
+    public void showNodeGroups(DataOutputStream outStream, List<NodeGroups> nodeGroups)
+        throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void showNodeGroupAssignment(DataOutputStream outStream,
+        List<NodeGroupAssignment> nodeGroupAssignment) throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void showRoleAssignment(DataOutputStream outStream, List<RoleAssignment> roleAssignments)
+        throws HiveException {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void showUserAssignment(DataOutputStream outStream, List<UserAssignment> userAssignments)
         throws HiveException {
       // TODO Auto-generated method stub
 

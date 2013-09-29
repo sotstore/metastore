@@ -174,19 +174,20 @@ class Version {
 void swap(Version &a, Version &b);
 
 typedef struct _FieldSchema__isset {
-  _FieldSchema__isset() : name(false), type(false), comment(false) {}
+  _FieldSchema__isset() : name(false), type(false), comment(false), version(false) {}
   bool name;
   bool type;
   bool comment;
+  bool version;
 } _FieldSchema__isset;
 
 class FieldSchema {
  public:
 
-  static const char* ascii_fingerprint; // = "AB879940BD15B6B25691265F7384B271";
-  static const uint8_t binary_fingerprint[16]; // = {0xAB,0x87,0x99,0x40,0xBD,0x15,0xB6,0xB2,0x56,0x91,0x26,0x5F,0x73,0x84,0xB2,0x71};
+  static const char* ascii_fingerprint; // = "1B53D3FAC5A5CFD45E7E867DA6314FAB";
+  static const uint8_t binary_fingerprint[16]; // = {0x1B,0x53,0xD3,0xFA,0xC5,0xA5,0xCF,0xD4,0x5E,0x7E,0x86,0x7D,0xA6,0x31,0x4F,0xAB};
 
-  FieldSchema() : name(), type(), comment() {
+  FieldSchema() : name(), type(), comment(), version(0) {
   }
 
   virtual ~FieldSchema() throw() {}
@@ -194,6 +195,7 @@ class FieldSchema {
   std::string name;
   std::string type;
   std::string comment;
+  int64_t version;
 
   _FieldSchema__isset __isset;
 
@@ -209,6 +211,11 @@ class FieldSchema {
     comment = val;
   }
 
+  void __set_version(const int64_t val) {
+    version = val;
+    __isset.version = true;
+  }
+
   bool operator == (const FieldSchema & rhs) const
   {
     if (!(name == rhs.name))
@@ -216,6 +223,10 @@ class FieldSchema {
     if (!(type == rhs.type))
       return false;
     if (!(comment == rhs.comment))
+      return false;
+    if (__isset.version != rhs.__isset.version)
+      return false;
+    else if (__isset.version && !(version == rhs.version))
       return false;
     return true;
   }
@@ -243,8 +254,8 @@ typedef struct _Type__isset {
 class Type {
  public:
 
-  static const char* ascii_fingerprint; // = "20DF02DE523C27F7066C7BD4D9120842";
-  static const uint8_t binary_fingerprint[16]; // = {0x20,0xDF,0x02,0xDE,0x52,0x3C,0x27,0xF7,0x06,0x6C,0x7B,0xD4,0xD9,0x12,0x08,0x42};
+  static const char* ascii_fingerprint; // = "29EF6A23B5200F7867A886B32E338605";
+  static const uint8_t binary_fingerprint[16]; // = {0x29,0xEF,0x6A,0x23,0xB5,0x20,0x0F,0x78,0x67,0xA8,0x86,0xB3,0x2E,0x33,0x86,0x05};
 
   Type() : name(), type1(), type2() {
   }
@@ -1145,8 +1156,8 @@ typedef struct _StorageDescriptor__isset {
 class StorageDescriptor {
  public:
 
-  static const char* ascii_fingerprint; // = "CA8C9AA5FE4C32643757D8639CEF0CD7";
-  static const uint8_t binary_fingerprint[16]; // = {0xCA,0x8C,0x9A,0xA5,0xFE,0x4C,0x32,0x64,0x37,0x57,0xD8,0x63,0x9C,0xEF,0x0C,0xD7};
+  static const char* ascii_fingerprint; // = "3345F7499CCEE403945059A63592A00D";
+  static const uint8_t binary_fingerprint[16]; // = {0x33,0x45,0xF7,0x49,0x9C,0xCE,0xE4,0x03,0x94,0x50,0x59,0xA6,0x35,0x92,0xA0,0x0D};
 
   StorageDescriptor() : location(), inputFormat(), outputFormat(), compressed(0), numBuckets(0), storedAsSubDirectories(0) {
   }
@@ -1281,8 +1292,8 @@ typedef struct _Subpartition__isset {
 class Subpartition {
  public:
 
-  static const char* ascii_fingerprint; // = "5E14B7D697E9830C2EBE14229B67F381";
-  static const uint8_t binary_fingerprint[16]; // = {0x5E,0x14,0xB7,0xD6,0x97,0xE9,0x83,0x0C,0x2E,0xBE,0x14,0x22,0x9B,0x67,0xF3,0x81};
+  static const char* ascii_fingerprint; // = "7480A1CF039EAE14C6BD666DB7657BD7";
+  static const uint8_t binary_fingerprint[16]; // = {0x74,0x80,0xA1,0xCF,0x03,0x9E,0xAE,0x14,0xC6,0xBD,0x66,0x6D,0xB7,0x65,0x7B,0xD7};
 
   Subpartition() : dbName(), tableName(), createTime(0), lastAccessTime(0), partitionName(), version(0) {
   }
@@ -1414,8 +1425,8 @@ typedef struct _Partition__isset {
 class Partition {
  public:
 
-  static const char* ascii_fingerprint; // = "D84F7D1325F7F2EFEF519502732AE04A";
-  static const uint8_t binary_fingerprint[16]; // = {0xD8,0x4F,0x7D,0x13,0x25,0xF7,0xF2,0xEF,0xEF,0x51,0x95,0x02,0x73,0x2A,0xE0,0x4A};
+  static const char* ascii_fingerprint; // = "AC293B9C276BEF35347F3EA3BAA09827";
+  static const uint8_t binary_fingerprint[16]; // = {0xAC,0x29,0x3B,0x9C,0x27,0x6B,0xEF,0x35,0x34,0x7F,0x3E,0xA3,0xBA,0xA0,0x98,0x27};
 
   Partition() : dbName(), tableName(), createTime(0), lastAccessTime(0), partitionName(), version(0) {
   }
@@ -1556,8 +1567,8 @@ typedef struct _GlobalSchema__isset {
 class GlobalSchema {
  public:
 
-  static const char* ascii_fingerprint; // = "63580A9C0450626B7ABC5B545E2350E1";
-  static const uint8_t binary_fingerprint[16]; // = {0x63,0x58,0x0A,0x9C,0x04,0x50,0x62,0x6B,0x7A,0xBC,0x5B,0x54,0x5E,0x23,0x50,0xE1};
+  static const char* ascii_fingerprint; // = "8442BBEAF50292ADD3A520841ADCCBFA";
+  static const uint8_t binary_fingerprint[16]; // = {0x84,0x42,0xBB,0xEA,0xF5,0x02,0x92,0xAD,0xD3,0xA5,0x20,0x84,0x1A,0xDC,0xCB,0xFA};
 
   GlobalSchema() : schemaName(), owner(), createTime(0), lastAccessTime(0), retention(0), viewOriginalText(), viewExpandedText(), schemaType() {
   }
@@ -1688,8 +1699,8 @@ typedef struct _Table__isset {
 class Table {
  public:
 
-  static const char* ascii_fingerprint; // = "DF9C891974A860952C5DAD07B9FDB623";
-  static const uint8_t binary_fingerprint[16]; // = {0xDF,0x9C,0x89,0x19,0x74,0xA8,0x60,0x95,0x2C,0x5D,0xAD,0x07,0xB9,0xFD,0xB6,0x23};
+  static const char* ascii_fingerprint; // = "CA9C3D16CFF315792651F5BFCAA07DCC";
+  static const uint8_t binary_fingerprint[16]; // = {0xCA,0x9C,0x3D,0x16,0xCF,0xF3,0x15,0x79,0x26,0x51,0xF5,0xBF,0xCA,0xA0,0x7D,0xCC};
 
   Table() : tableName(), dbName(), schemaName(), owner(), createTime(0), lastAccessTime(0), retention(0), viewOriginalText(), viewExpandedText(), tableType() {
   }
@@ -1854,8 +1865,8 @@ typedef struct _BusiTypeColumn__isset {
 class BusiTypeColumn {
  public:
 
-  static const char* ascii_fingerprint; // = "0050F7230E57718FD8D90F72334A9425";
-  static const uint8_t binary_fingerprint[16]; // = {0x00,0x50,0xF7,0x23,0x0E,0x57,0x71,0x8F,0xD8,0xD9,0x0F,0x72,0x33,0x4A,0x94,0x25};
+  static const char* ascii_fingerprint; // = "429203F0F804B86D08EBF7446189C6EE";
+  static const uint8_t binary_fingerprint[16]; // = {0x42,0x92,0x03,0xF0,0xF8,0x04,0xB8,0x6D,0x08,0xEB,0xF7,0x44,0x61,0x89,0xC6,0xEE};
 
   BusiTypeColumn() : busiType(), column() {
   }
@@ -1955,19 +1966,20 @@ class BusiTypeDatacenter {
 void swap(BusiTypeDatacenter &a, BusiTypeDatacenter &b);
 
 typedef struct _SplitValue__isset {
-  _SplitValue__isset() : splitKeyName(false), level(false), value(false) {}
+  _SplitValue__isset() : splitKeyName(false), level(false), value(false), verison(false) {}
   bool splitKeyName;
   bool level;
   bool value;
+  bool verison;
 } _SplitValue__isset;
 
 class SplitValue {
  public:
 
-  static const char* ascii_fingerprint; // = "70563A0628F75DF9555F4D24690B1E26";
-  static const uint8_t binary_fingerprint[16]; // = {0x70,0x56,0x3A,0x06,0x28,0xF7,0x5D,0xF9,0x55,0x5F,0x4D,0x24,0x69,0x0B,0x1E,0x26};
+  static const char* ascii_fingerprint; // = "B26E3EE0F60BE71407EEDAFDE8E4D32D";
+  static const uint8_t binary_fingerprint[16]; // = {0xB2,0x6E,0x3E,0xE0,0xF6,0x0B,0xE7,0x14,0x07,0xEE,0xDA,0xFD,0xE8,0xE4,0xD3,0x2D};
 
-  SplitValue() : splitKeyName(), level(0), value() {
+  SplitValue() : splitKeyName(), level(0), value(), verison(0) {
   }
 
   virtual ~SplitValue() throw() {}
@@ -1975,6 +1987,7 @@ class SplitValue {
   std::string splitKeyName;
   int32_t level;
   std::string value;
+  int64_t verison;
 
   _SplitValue__isset __isset;
 
@@ -1990,6 +2003,10 @@ class SplitValue {
     value = val;
   }
 
+  void __set_verison(const int64_t val) {
+    verison = val;
+  }
+
   bool operator == (const SplitValue & rhs) const
   {
     if (!(splitKeyName == rhs.splitKeyName))
@@ -1997,6 +2014,8 @@ class SplitValue {
     if (!(level == rhs.level))
       return false;
     if (!(value == rhs.value))
+      return false;
+    if (!(verison == rhs.verison))
       return false;
     return true;
   }
@@ -2197,8 +2216,8 @@ typedef struct _SFile__isset {
 class SFile {
  public:
 
-  static const char* ascii_fingerprint; // = "74D4B54F2BB87CDE697FD7A565CEE102";
-  static const uint8_t binary_fingerprint[16]; // = {0x74,0xD4,0xB5,0x4F,0x2B,0xB8,0x7C,0xDE,0x69,0x7F,0xD7,0xA5,0x65,0xCE,0xE1,0x02};
+  static const char* ascii_fingerprint; // = "D97D287EA64ABBFDA973ED9DFD4246C8";
+  static const uint8_t binary_fingerprint[16]; // = {0xD9,0x7D,0x28,0x7E,0xA6,0x4A,0xBB,0xFD,0xA9,0x73,0xED,0x9D,0xFD,0x42,0x46,0xC8};
 
   SFile() : fid(0), dbName(), tableName(), store_status(0), rep_nr(0), digest(), record_nr(0), all_record_nr(0), length(0) {
   }
@@ -2311,8 +2330,8 @@ typedef struct _SFileRef__isset {
 class SFileRef {
  public:
 
-  static const char* ascii_fingerprint; // = "22C310E7699000A110311B3C5387D7D9";
-  static const uint8_t binary_fingerprint[16]; // = {0x22,0xC3,0x10,0xE7,0x69,0x90,0x00,0xA1,0x10,0x31,0x1B,0x3C,0x53,0x87,0xD7,0xD9};
+  static const char* ascii_fingerprint; // = "74B036F8991A125FF055CCE997FCFD70";
+  static const uint8_t binary_fingerprint[16]; // = {0x74,0xB0,0x36,0xF8,0x99,0x1A,0x12,0x5F,0xF0,0x55,0xCC,0xE9,0x97,0xFC,0xFD,0x70};
 
   SFileRef() : origin_fid(0) {
   }
@@ -2421,8 +2440,8 @@ typedef struct _Index__isset {
 class Index {
  public:
 
-  static const char* ascii_fingerprint; // = "09EEF655216AC81802850988D6C470A6";
-  static const uint8_t binary_fingerprint[16]; // = {0x09,0xEE,0xF6,0x55,0x21,0x6A,0xC8,0x18,0x02,0x85,0x09,0x88,0xD6,0xC4,0x70,0xA6};
+  static const char* ascii_fingerprint; // = "CD5B5B520F9837C000345B35A2169F22";
+  static const uint8_t binary_fingerprint[16]; // = {0xCD,0x5B,0x5B,0x52,0x0F,0x98,0x37,0xC0,0x00,0x34,0x5B,0x35,0xA2,0x16,0x9F,0x22};
 
   Index() : indexName(), indexHandlerClass(), dbName(), origTableName(), createTime(0), lastAccessTime(0), indexTableName(), deferredRebuild(0) {
   }
@@ -3052,8 +3071,8 @@ typedef struct _Schema__isset {
 class Schema {
  public:
 
-  static const char* ascii_fingerprint; // = "5CFEE46C975F4E2368D905109B8E3B5B";
-  static const uint8_t binary_fingerprint[16]; // = {0x5C,0xFE,0xE4,0x6C,0x97,0x5F,0x4E,0x23,0x68,0xD9,0x05,0x10,0x9B,0x8E,0x3B,0x5B};
+  static const char* ascii_fingerprint; // = "9EA43B0EE173E84788396641C1993971";
+  static const uint8_t binary_fingerprint[16]; // = {0x9E,0xA4,0x3B,0x0E,0xE1,0x73,0xE8,0x47,0x88,0x39,0x66,0x41,0xC1,0x99,0x39,0x71};
 
   Schema() {
   }

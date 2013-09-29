@@ -1189,11 +1189,17 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             tbl.getParameters().get(hive_metastoreConstants.DDL_TIME) == null) {
           tbl.putToParameters(hive_metastoreConstants.DDL_TIME, Long.toString(time));
         }
+        LOG.info("--zjw--before crt");
+        try{
         ms.createTable(tbl);
+        }catch(Exception e){
+          LOG.error(e, e);
+        }
+        LOG.info("--zjw--before commitTransaction");
         success = ms.commitTransaction();
-
+        LOG.info("--zjw--before commitTransaction");
         this.createBusiTypeDC(ms, tbl);
-
+        LOG.info("--zjw--after createBusiTypeDC");
       } finally {
         if (!success) {
           ms.rollbackTransaction();
@@ -4349,9 +4355,31 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return getMS().delDevice(devid);
     }
 
+    public boolean fileSplitValuesCheck(List<SplitValue> values) {
+      long version = -1;
+
+      if (values == null || values.size() <= 0) {
+        return true;
+      }
+
+      for (SplitValue sv : values) {
+        if (version == -1) {
+          version = sv.getVerison();
+        }
+        if (version != sv.getVerison()) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
     @Override
     public SFile create_file(String node_name, int repnr, String db_name, String table_name, List<SplitValue> values)
         throws FileOperationException, TException {
+      if (!fileSplitValuesCheck(values)) {
+        throw new FileOperationException("Invalid File Split Values: inconsistent version among values?", FOFailReason.INVALID_FILE);
+      }
       // TODO: if repnr less than 1, we should increase it to replicate to BACKUP-STORE
       if (repnr <= 1) {
         repnr++;
@@ -4364,6 +4392,9 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     private SFile create_file_wo_location(int repnr, String dbName, String tableName, List<SplitValue> values)
       throws FileOperationException, TException {
 
+      if (!fileSplitValuesCheck(values)) {
+        throw new FileOperationException("Invalid File Split Values: inconsistent version among values?", FOFailReason.INVALID_FILE);
+      }
       SFile cfile = new SFile(0, dbName, tableName, MetaStoreConst.MFileStoreStatus.INCREATE, repnr,
           "SFILE_DEFAULT_X", 0, 0, null, 0, values);
       getMS().createFile(cfile);
@@ -4446,6 +4477,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         } while (true);
       } catch (IOException e) {
         throw new FileOperationException("System might in Safe Mode, please wait ... {" + e + "}", FOFailReason.SAFEMODE);
+      } catch (InvalidObjectException e) {
+        throw new FileOperationException("Internal error: " + e.getMessage(), FOFailReason.INVALID_FILE);
       }
 
       return cfile;
@@ -5690,7 +5723,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public boolean deleteGeoLocation(GeoLocation gl) throws MetaException, TException {
-      getMS().deleteGeoLocation(gl);
+      try{
+        LOG.info("++++++++++++++++++++++++++++++before deleteGeoLocation");
+        getMS().deleteGeoLocation(gl);
+        LOG.info("++++++++++++++++++++++++++++++after deleteGeoLocation");
+      }catch(Exception e){
+        LOG.error("++++++++++++++++++++++++++++++Error deleteGeoLocation");
+        LOG.error(e,e);
+      }
       return true;
     }
 
@@ -5702,6 +5742,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException,
         TException {
+      LOG.info("++++++++++++++++++++++++++++++before getGeoLocationByName");
       return getMS().getGeoLocationByName(geoLocName);
     }
 
@@ -5750,6 +5791,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public boolean createSchema(GlobalSchema schema) throws AlreadyExistsException,
         InvalidObjectException, MetaException, TException {
 
+      if(schema.getSd().getCols() != null){
+        LOG.info("---zjw--"+schema);
+        for(FieldSchema fs : schema.getSd().getCols()){
+          LOG.info("---zjw--"+fs.getName() + fs.getType());
+        }
+      }
       if (!MetaStoreUtils.validateName(schema.getSchemaName())
           || !MetaStoreUtils.validateColNames(schema.getSd().getCols())
           || !MetaStoreUtils.validateSkewedColNames(
@@ -5914,6 +5961,63 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public long getSessionId() throws MetaException, TException {
       return msss.getSessionId();
+    }
+
+    @Override
+    public List<GeoLocation> getGeoLocationByNames(List<String> geoLocNames) throws MetaException,
+        TException {
+      return getMS().getGeoLocationByNames(geoLocNames);
+    }
+
+    @Override
+    public List<Node> listNodes() throws MetaException, TException {
+      return getMS().listNodes();
+    }
+
+    @Override
+    public boolean addUserAssignment(String roleName, String dbName) throws MetaException,
+        NoSuchObjectException, TException {
+      return getMS().addUserAssignment(roleName,dbName);
+    }
+
+    @Override
+    public boolean deleteUserAssignment(String roleName, String dbName) throws MetaException,
+        NoSuchObjectException, TException {
+      return getMS().deleteUserAssignment(roleName,dbName);
+    }
+
+    @Override
+    public List<User> listUsers() throws MetaException, TException {
+      return getMS().listUsers();
+    }
+
+    @Override
+    public boolean addRoleAssignment(String userName, String dbName) throws MetaException,
+        NoSuchObjectException, TException {
+      return getMS().addRoleAssignment(userName,dbName);
+    }
+
+    @Override
+    public boolean deleteRoleAssignment(String userName, String dbName) throws MetaException,
+        NoSuchObjectException, TException {
+      return getMS().deleteRoleAssignment(userName,dbName);
+    }
+
+    @Override
+    public List<Role> listRoles() throws MetaException, TException {
+      return getMS().listRoles();
+    }
+
+    @Override
+    public boolean addNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException,
+        TException {
+      return getMS().addNodeGroupAssignment(ng,dbName);
+    }
+
+    @Override
+    public boolean deleteNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException,
+        TException {
+      return getMS().deleteNodeGroupAssignment(ng,dbName);
     }
 
   }

@@ -157,6 +157,7 @@ import org.apache.hadoop.hive.metastore.msg.MetaMsgServer;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree.ANTLRNoCaseStringStream;
 import org.apache.hadoop.hive.metastore.parser.FilterLexer;
 import org.apache.hadoop.hive.metastore.parser.FilterParser;
+import org.apache.hadoop.hive.metastore.tools.MetaUtil;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.thrift.TException;
 
@@ -533,7 +534,7 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       schema_name = schema_name.toLowerCase().trim();
-      Query query = pm.newQuery(MSchema.class, "name == schema_name");
+      Query query = pm.newQuery(MSchema.class, "schemaName == schema_name");
       query.declareParameters("java.lang.String schema_name");
       query.setUnique(true);
       mSchema = (MSchema) query.execute(schema_name);
@@ -685,7 +686,7 @@ public class ObjectStore implements RawStore, Configurable {
     if (type.getFields() != null) {
       for (FieldSchema field : type.getFields()) {
         fields.add(new MFieldSchema(field.getName(), field.getType(), field
-            .getComment()));
+            .getComment(), field.getVersion()));
       }
     }
     return new MType(type.getName(), type.getType1(), type.getType2(), fields);
@@ -1475,6 +1476,12 @@ public class ObjectStore implements RawStore, Configurable {
       if(!make_table){
         pm.makePersistent(mtbl);
       }
+      if(mtbl.getGroupDistribute() != null && !mtbl.getGroupDistribute().isEmpty()){
+        for(MNodeGroup mng : mtbl.getGroupDistribute()){
+          mng.getAttachedtables().add(mtbl);
+        }
+        pm.makePersistentAll(mtbl.getGroupDistribute());
+      }
 
       if(tbl.getPartitions() != null && !tbl.getPartitions().isEmpty()){//存储分区
         LOG.info("--zjw--getPartitions is not null,size:"+tbl.getPartitionsSize());
@@ -2206,6 +2213,9 @@ public class ObjectStore implements RawStore, Configurable {
   private MNode getMNode(String node_name) {
     MNode mn = null;
     boolean commited = false;
+
+    LOG.info("---zjw--in getMnode,nodename:["+node_name+"]");
+
     try {
       openTransaction();
       if (!node_name.contains(".")) {
@@ -2441,6 +2451,17 @@ public class ObjectStore implements RawStore, Configurable {
     return nodes;
   }
 
+  private Set<MNode> getMNodeSet(Set<Node> mnSet)  {
+    if (mnSet == null) {
+      return null;
+    }
+    Set<MNode> nodes = new HashSet<MNode>();
+    for(Node mn : mnSet){
+      nodes.add(getMNode(mn.getNode_name()));
+    }
+    return nodes;
+  }
+
   private Device convertToDevice(MDevice md) throws MetaException {
     if (md == null) {
       return null;
@@ -2464,7 +2485,7 @@ public class ObjectStore implements RawStore, Configurable {
     List<SplitValue> values = new ArrayList<SplitValue>();
     if (mf.getValues() != null) {
       for (MSplitValue msv : mf.getValues()) {
-        values.add(new SplitValue(msv.getPkname(), msv.getLevel(), msv.getValue()));
+        values.add(new SplitValue(msv.getPkname(), msv.getLevel(), msv.getValue(), msv.getVersion()));
       }
     }
     return new SFile(mf.getFid(), dbName, tableName, mf.getStore_status(), mf.getRep_nr(),
@@ -2562,8 +2583,29 @@ public class ObjectStore implements RawStore, Configurable {
     }
     List<MSplitValue> values = new ArrayList<MSplitValue>();
     if (file.getValuesSize() > 0) {
+      long version = -1;
+
+      if (mt == null || mt.getFileSplitKeys() == null || mt.getFileSplitKeys().size() == 0) {
+        throw new InvalidObjectException("This file does not belong to any TABLE or table contains NONE file split keys, you should not set SplitValues!");
+      }
       for (SplitValue sv : file.getValues()) {
-        values.add(new MSplitValue(sv.getSplitKeyName(), sv.getLevel(), sv.getValue()));
+        values.add(new MSplitValue(sv.getSplitKeyName(), sv.getLevel(), sv.getValue(), sv.getVerison()));
+        if (version == -1) {
+          version = sv.getVerison();
+        }
+      }
+      //  we must check whether the values are valid.
+      boolean ok = false;
+
+      if (version != -1) {
+        for (MFieldSchema mfs : mt.getFileSplitKeys()) {
+          if (mfs.getVersion() == version) {
+            ok = true;
+          }
+        }
+      }
+      if (!ok) {
+        throw new InvalidObjectException("This file contains invalid SPLIT KEYS version: " + version);
       }
     }
 
@@ -2627,14 +2669,30 @@ public class ObjectStore implements RawStore, Configurable {
       }
     }
 
-    // A new table is always created with a new column descriptor
-    return new MTable(tbl.getTableName().toLowerCase(), mdb,mSchema,
+    MTable mtbl =new MTable(tbl.getTableName().toLowerCase(), mdb,mSchema,
         convertToMStorageDescriptor(tbl.getSd()), tbl.getOwner(), tbl
             .getCreateTime(), tbl.getLastAccessTime(), tbl.getRetention(),
         convertToMFieldSchemas(tbl.getFileSplitKeys()),
         convertToMFieldSchemas(tbl.getPartitionKeys()), tbl.getParameters(),
         tbl.getViewOriginalText(), tbl.getViewExpandedText(),
         tableType);
+
+    if(tbl.getNodeGroups() != null && !tbl.getNodeGroups().isEmpty()){
+      HashSet<MNodeGroup> mngs = new HashSet<MNodeGroup>();
+      for( NodeGroup ngGroup : tbl.getNodeGroups()){
+        MNodeGroup mng;
+        try {
+          mng = getMNodeGroup(ngGroup.getNode_group_name());
+        } catch (NoSuchObjectException e) {
+          throw new InvalidObjectException("Node group ["+ngGroup.getNode_group_name()+"] is not valid.");
+        }
+        mngs.add(mng);
+      }
+      mtbl.setGroupDistribute(mngs);
+    }
+
+    // A new table is always created with a new column descriptor
+    return mtbl;
   }
 
   private MSchema convertToMSchema(GlobalSchema schema) throws InvalidObjectException,
@@ -2671,8 +2729,9 @@ public class ObjectStore implements RawStore, Configurable {
     if (keys != null) {
       mkeys = new ArrayList<MFieldSchema>(keys.size());
       for (FieldSchema part : keys) {
+        // FIXME: set version to ZERO initially
         mkeys.add(new MFieldSchema(part.getName().toLowerCase(),
-            part.getType(), part.getComment()));
+            part.getType(), part.getComment(), 0));
       }
     }
     return mkeys;
@@ -2683,6 +2742,7 @@ public class ObjectStore implements RawStore, Configurable {
     if (key != null) {
       key = new FieldSchema(mkey.getName().toLowerCase(),
           mkey.getType(), mkey.getComment());
+      key.setVersion(mkey.getVersion());
     }
     return key;
   }
@@ -2692,8 +2752,10 @@ public class ObjectStore implements RawStore, Configurable {
     if (mkeys != null) {
       keys = new ArrayList<FieldSchema>(mkeys.size());
       for (MFieldSchema part : mkeys) {
-        keys.add(new FieldSchema(part.getName(), part.getType(), part
-            .getComment()));
+        FieldSchema fs = new FieldSchema(part.getName(), part.getType(), part
+            .getComment());
+        fs.setVersion(part.getVersion());
+        keys.add(fs);
       }
     }
     return keys;
@@ -4159,7 +4221,46 @@ public class ObjectStore implements RawStore, Configurable {
       copyMSD(newt.getSd(), oldt.getSd());
       oldt.setDatabase(newt.getDatabase());
       oldt.setRetention(newt.getRetention());
-      oldt.setPartitionKeys(newt.getPartitionKeys());
+      // !NOTE: append new partition keys to old partition key list with new version
+      List<MFieldSchema> newFS = new ArrayList<MFieldSchema>();
+      long cur_version = 0;
+
+      if (oldt.getPartitionKeys() != null) {
+        for (MFieldSchema mfs : oldt.getPartitionKeys()) {
+          if (mfs.getVersion() > cur_version) {
+            cur_version = mfs.getVersion();
+            newFS.add(mfs);
+          }
+        }
+      }
+      cur_version++;
+      if (newt.getPartitionKeys() != null) {
+        for (MFieldSchema mfs : newt.getPartitionKeys()) {
+          mfs.setVersion(cur_version);
+          newFS.add(mfs);
+        }
+      }
+      oldt.setPartitionKeys(newFS);
+      // !NOTE: append new file split keys to old file split key list with new version
+      newFS.clear();
+      cur_version = 0;
+      if (oldt.getFileSplitKeys() != null) {
+        for (MFieldSchema mfs : oldt.getFileSplitKeys()) {
+          if (mfs.getVersion() > cur_version) {
+            cur_version = mfs.getVersion();
+            newFS.add(mfs);
+          }
+        }
+      }
+      cur_version++;
+      if (newt.getFileSplitKeys() != null) {
+        for (MFieldSchema mfs : newt.getFileSplitKeys()) {
+          mfs.setVersion(cur_version);
+          newFS.add(mfs);
+        }
+      }
+      oldt.setFileSplitKeys(newFS);
+
       oldt.setTableType(newt.getTableType());
       oldt.setLastAccessTime(newt.getLastAccessTime());
       oldt.setViewOriginalText(newt.getViewOriginalText());
@@ -4760,7 +4861,7 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       MUser nameCheck = this.getMUser(userName);
       if (nameCheck != null) {
-        LOG.info("User "+ userName +" already exists！");
+        LOG.info("User "+ userName +" already exists!");
         return false;
       }
         int now = (int)(System.currentTimeMillis()/1000);
@@ -4831,7 +4932,7 @@ public class ObjectStore implements RawStore, Configurable {
         pm.deletePersistent(mUser);
       } else {
         //LOG.debug("用户" + userName + "不存在！");
-        LOG.debug("User " + userName + " doesnt exist！");
+        LOG.debug("User " + userName + " doesnt exist!");
         return false;
       }
       success = commitTransaction();
@@ -4852,7 +4953,7 @@ public boolean modifyUser(User user) throws MetaException,
     openTransaction();
     MUser nameCheck = this.getMUser(user.getUserName());
     if (nameCheck == null) {
-      LOG.debug("User " + user.getUserName() + " doesnt exist！");
+      LOG.debug("User " + user.getUserName() + " doesnt exist!");
       return false;
     }
     nameCheck.setPasswd(user.getPassword());
@@ -4931,17 +5032,17 @@ public boolean authentication(String userName, String passwd)
     MUser nameCheck = this.getMUser(userName);
     if (nameCheck == null) {
       //LOG.debug("用户 " + userName + " 不存在！");
-      LOG.debug("User " + userName + " doesnt exist！");
-      return false;
+      LOG.debug("User " + userName + " doesnt exist");
+      auth = false;
     } else if (nameCheck.getPasswd().equals(passwd)){
       auth = true;
     } else {
       //LOG.debug("用户名或密码错误！");
       LOG.debug("User or password error!"+nameCheck.getPasswd()+", "+passwd);
-      return false;
+      auth = false;
     }
-
   } finally {
+    commitTransaction();
   }
   return auth;
 }
@@ -8276,7 +8377,7 @@ public MUser getMUser(String userName) {
   }
 
 /**
- * cry
+ * Cry
  */
 
   @Override
@@ -8429,12 +8530,6 @@ public MUser getMUser(String userName) {
     try {
       openTransaction();
       MGeoLocation mgl = convertToMGeoLocation(gl);
-//      MGeoLocation mgl = new MGeoLocation();
-//      mgl.setGeoLocName(gl.getGeoLocName());
-//      mgl.setNation(gl.getNation());
-//      mgl.setProvince(gl.getProvince());
-//      mgl.setCity(gl.getCity());
-//      mgl.setDist(gl.getDist());
       if (mgl != null) {
         pm.deletePersistent(mgl);
       }
@@ -8485,6 +8580,7 @@ public MUser getMUser(String userName) {
     boolean commited = false;
 
     try {
+      LOG.info("in obj createSchema");
       openTransaction();
       MSchema mSchema = convertToMSchema(schema);
       boolean make_schema = false;
@@ -8682,8 +8778,7 @@ public MUser getMUser(String userName) {
       oldmt.setLastAccessTime(mSchema.getLastAccessTime());
       oldmt.setViewOriginalText(mSchema.getViewOriginalText());
       oldmt.setViewExpandedText(mSchema.getViewExpandedText());
-      //FIXME: enable the following line on next commit!
-      //oldmt.setGroupDistribute(MetaUtil.CollectionToHashSet(convertToMNodeGroups(ngs)));
+      oldmt.setGroupDistribute(MetaUtil.CollectionToHashSet(convertToMNodeGroups(ngs)));
 
       // commit the changes
       success = commitTransaction();
@@ -8910,11 +9005,14 @@ public MUser getMUser(String userName) {
 
     boolean success = false;
     boolean commited = false;
+
+    LOG.info("---zjw--in addNodeGroup");
     try {
       openTransaction();
       MNodeGroup mng = convertToMNodeGroup(ng);
 
       pm.makePersistent(mng);
+      pm.makePersistentAll(mng.getNodes());
       commited = commitTransaction();
       MetaMsgServer.sendMsg( MSGFactory.generateDDLMsg(MSGType.MSG_NEW_NODEGROUP,-1,-1,pm,mng,null));
       success = true;
@@ -8931,19 +9029,20 @@ public MUser getMUser(String userName) {
     boolean success = false;
     boolean commited = false;
     try {
-      List<String> ngNames = new ArrayList<String>();
-      ngNames.add(ngName);
-      List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
-      if (mngs == null) {
-        throw new MetaException("NodeGroup " + ngName+" does not exist.");
-      }else if(mngs.size() != 1){
-        throw new MetaException("Duplicated NodeGroup " + ngName+" exist.");
-      }
 
+      MNodeGroup mng = null;
+      try {
+        mng = getMNodeGroup(ngName);
+      } catch (NoSuchObjectException e) {
+        throw new MetaException("NodeGroup :" + ngName+" does not exist.");
+      }
+      if (mng == null) {
+        throw new MetaException("NodeGroup " + ngName+" does not exist.");
+      }
       openTransaction();
       MNodeGroup new_mng = convertToMNodeGroup(ng);
 
-      MNodeGroup mng = mngs.get(0);
+
       mng.setMNodeGroup(new_mng);
 
       pm.makePersistent(mng);
@@ -8967,15 +9066,19 @@ public MUser getMUser(String userName) {
     boolean success = false;
     boolean commited = false;
     try {
-      List<String> ngNames = new ArrayList<String>();
-      ngNames.add(ng.getNode_group_name());
-      List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
-      if (mngs == null) {
+
+      MNodeGroup mng = null;
+      try {
+        mng = getMNodeGroup(ng.getNode_group_name());
+      } catch (NoSuchObjectException e) {
+        throw new MetaException("NodeGroup [" + ng.getNode_group_name()+"] does not exist.");
+      }
+      if (mng == null) {
         throw new MetaException("NodeGroup " + ng.getNode_group_name()+" does not exist.");
       }
       openTransaction();
 
-      pm.deletePersistentAll(mngs);// watch here
+      pm.deletePersistentAll(mng);// watch here
       commited = commitTransaction();
       success = true;
 
@@ -9042,18 +9145,29 @@ public MUser getMUser(String userName) {
       }
       int now = (int)(System.currentTimeMillis()/1000);
 
-      List<MNodeGroup> mngs = this.getMNodeGroupByNames(ng);//new ArrayList<MNodeGroup>();
-      for(MNodeGroup mng : mngs){
-          if(!mtbl.getGroupDistribute().contains(mng)){//always in lowercase,else ask zhuqihan
+//      List<MNodeGroup> mngs = this.getMNodeGroupByNames(ng);//new ArrayList<MNodeGroup>();
+      List<NodeGroup> ngs = this.getNodeGroupByNames(ng);//new ArrayList<MNodeGroup>();
+      MNodeGroup mng =  null;
+      HashMap<String , MNodeGroup> str2Mng = new HashMap<String, MNodeGroup>();
+      for(MNodeGroup mNodeGroup :mtbl.getGroupDistribute()){
+        str2Mng.put(mNodeGroup.getNode_group_name(), mNodeGroup);
+      }
+
+      for(NodeGroup nodeGroup : ngs){
+          if(!str2Mng.keySet().contains(nodeGroup.getNode_group_name().toLowerCase())){//always in lowercase,else ask zhuqihan
+            try {
+              mng = getMNodeGroup(nodeGroup.getNode_group_name());
+            } catch (NoSuchObjectException e) {
+              LOG.error(e,e);
+              throw new MetaException(e.getMessage());
+            }
             mtbl.getGroupDistribute().add(mng);//many-to-many delete
             mng.getAttachedtables().add(mtbl);
-          }else{
-            mngs.remove(mng);
           }
        }
 
       pm.makePersistent(mtbl);
-      pm.makePersistentAll(mngs);// watch here
+      pm.makePersistentAll(ngs);// watch here
       commited = commitTransaction();
       success = true;
     } finally {
@@ -9064,9 +9178,43 @@ public MUser getMUser(String userName) {
     return success;
   }
 
-  private List<MNodeGroup> getMNodeGroupByNames(List<String> ngs)throws MetaException {
+  @SuppressWarnings("nls")
+  private MNodeGroup getMNodeGroup(String nodegroupName) throws NoSuchObjectException {
+    MNodeGroup mng = null;
+    boolean commited = false;
+    if(nodegroupName == null ) {
+      return null;
+    }
+    LOG.info("getMnodeGroup groupName:["+nodegroupName+"]");
+    try {
+      openTransaction();
+      nodegroupName = nodegroupName.toLowerCase().trim();
+      Query query = pm.newQuery(MNodeGroup.class, "node_group_name == nodegroupName");
+      query.declareParameters("java.lang.String nodegroupName");
+      query.setUnique(true);
+      mng = (MNodeGroup) query.execute(nodegroupName);
+      pm.retrieve(mng);
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    if (mng == null) {
+      throw new NoSuchObjectException("There is no schema named " + nodegroupName);
+    }
+    return mng;
+  }
+
+  private List<NodeGroup> getNodeGroupByNames(List<String> ngs)throws MetaException {
     boolean success = false;
-    List<MNodeGroup> results = new ArrayList<MNodeGroup>();
+
+    if(ngs == null || ngs.isEmpty()){
+      return null;
+    }
+
+    LOG.debug(" JDOQL filter is " + ngs.toString());
+    List<NodeGroup> results = new ArrayList<NodeGroup>();
 
     try {
       openTransaction();
@@ -9094,7 +9242,8 @@ public MUser getMUser(String userName) {
       query.declareParameters(parameterDeclaration);
       query.setOrdering("node_group_name ascending");
 
-      results = (List<MNodeGroup>) query.executeWithMap(params);
+      List<MNodeGroup> mngs = (List<MNodeGroup>) query.executeWithMap(params);
+      results = convertToNodeGroups(mngs);
 
       query.closeAll();
       success = commitTransaction();
@@ -9112,6 +9261,11 @@ public MUser getMUser(String userName) {
     if(mngs != null) {
       ngs = new ArrayList<NodeGroup>();
       for(MNodeGroup mng : mngs){
+        if(mng.getNodes() != null) {
+          LOG.info("---zjw nodes :"+mng.getNodes().size());
+        } else {
+          LOG.info("---zjw nodes is null");
+        }
         NodeGroup ng = new NodeGroup(mng.getNode_group_name(),
             mng.getComment(),mng.getStatus(),convertToNodeSet(mng.getNodes()));
         ngs.add(ng);
@@ -9134,8 +9288,23 @@ public MUser getMUser(String userName) {
   }
 
   private MNodeGroup convertToMNodeGroup(NodeGroup ng) {
-    return  new MNodeGroup(ng.getNode_group_name(),
-        ng.getComment(),ng.getStatus(),convertToMNodeSet(ng.getNodes()));
+    if(ng.getNodes() != null && !ng.getNodes().isEmpty()){
+      for(Node node : ng.getNodes()){
+        LOG.info("---zjw--" + node.getNode_name());
+      }
+    }else{
+      LOG.info("---zjw--nodes is null");
+    }
+
+    MNodeGroup mng = new MNodeGroup(ng.getNode_group_name(),
+        ng.getComment(),ng.getStatus(),getMNodeSet(ng.getNodes()));
+    for(MNode mNode : mng.getNodes()){
+      if(mNode.getNodeGroups() == null){
+        mNode.setNodeGroups(new HashSet<MNodeGroup>());
+      }
+      mNode.getNodeGroups().add(mng);
+    }
+    return mng;
   }
 
   @Override
@@ -9183,8 +9352,374 @@ public MUser getMUser(String userName) {
 
   @Override
   public List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws MetaException {
-    List<MNodeGroup> mngs = getMNodeGroupByNames(ngNames);
-    return convertToNodeGroups(mngs);
+    return  getNodeGroupByNames(ngNames);
+  }
+
+/**
+ * Cry ------ NodeAssignment,UserAssignment,RoleAssignment
+ */
+
+  @Override
+  public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MNode mnd = this.getMNode(nodeName);
+      Set<MNode> nodes = mdb.getNodes();
+      if (mdb.getNodes() != null) {
+        throw new MetaException("this" + nodeName + "already exists!");
+      }
+      nodes = new HashSet<MNode>();
+      nodes.add(mnd);
+      mnd.getDbs().add(mdb);
+      int now = (int) (System.currentTimeMillis() / 1000);
+      pm.makePersistent(mnd);
+      pm.makePersistent(mdb);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MNode mnd = this.getMNode(nodeName);
+      Set<MNode> nodes = mdb.getNodes();
+      if (mdb.getNodes() != null) {
+        throw new MetaException("this" + nodeName + "already exists!");
+      }
+      nodes = new HashSet<MNode>();
+      nodes.add(mnd);
+      mnd.getDbs().add(mdb);
+      int now = (int) (System.currentTimeMillis() / 1000);
+      pm.deletePersistent(mnd);
+      pm.deletePersistent(mdb);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException {
+//    List<GeoLocation> gls = new ArrayList<GeoLocation>();
+    GeoLocation gl = null;
+    boolean committed = false;
+    try {
+      openTransaction();//创建并开始一个事务
+      Query query = pm.newQuery(MGeoLocation.class);//设置这个query作用的范围，即查询的是那个表或记录集
+      query.setFilter("geoLocName == \"geoLocName\"");
+      query.declareParameters("java.lang.String geoLocName");
+//      gl =  (GeoLocation) query.execute(geoLocName);
+//      query.setUnique(true);//设置返回的结果是唯一的
+      MGeoLocation mgl=(MGeoLocation)query.execute(geoLocName);
+      LOG.info("++++++++++++++++++++++++++++++MGeoLocation" + mgl.getGeoLocName());
+      gl = convertToGeoLocation(mgl);
+      committed = commitTransaction();
+    } finally {
+      if (!committed) {
+        rollbackTransaction();
+      }
+    }
+    return gl;
+  }
+
+  private GeoLocation convertToGeoLocation(MGeoLocation mgl) {
+    if (mgl == null) {
+      return null;
+    }
+    return new GeoLocation(mgl.getGeoLocName(),mgl.getNation(),mgl.getProvince(),mgl.getCity(),mgl.getDist());
+  }
+
+  @Override
+  public List<GeoLocation> getGeoLocationByNames(List<String> geoLocNames) throws MetaException {
+    List<MGeoLocation> mgls = getMGeoLocationByNames(geoLocNames);
+    return convertToGeoLocations(mgls);
+  }
+
+  private List<MGeoLocation> getMGeoLocationByNames(List<String> geoLocNames) throws MetaException {
+    boolean success = false;
+    List<MGeoLocation> results = new ArrayList<MGeoLocation>();
+    try {
+      openTransaction();
+      StringBuilder sb = new StringBuilder(
+          "(");
+      int n = 0;
+      Map<String, String> params = new HashMap<String, String>();
+      for (Iterator<String> itr = geoLocNames.iterator(); itr.hasNext();) {
+        String pn = "p" + n;
+        n++;
+        String part = itr.next();
+        params.put(pn, part);
+        sb.append("geoLocName == ").append(pn);
+        sb.append(" || ");
+      }
+      sb.setLength(sb.length() - 4);
+      sb.append(')');
+      Query query = pm.newQuery(MGeoLocation.class, sb.toString());
+      String parameterDeclaration = makeParameterDeclarationString(params);
+      query.declareParameters(parameterDeclaration);
+      query.setOrdering("geoLocName ascending");
+      results = (List<MGeoLocation>) query.executeWithMap(params);
+      query.closeAll();
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return results;
+  }
+
+  private List<GeoLocation> convertToGeoLocations(Collection<MGeoLocation> mgls) {
+    List<GeoLocation> gls = null;
+    if(mgls != null) {
+      gls = new ArrayList<GeoLocation>();
+      for(MGeoLocation mgl : mgls){
+        GeoLocation gl = new GeoLocation(mgl.getGeoLocName(),mgl.getNation(),mgl.getProvince(),mgl.getCity(),mgl.getDist());
+        gls.add(gl);
+      }
+    }
+    return gls;
+  }
+
+  @Override
+  public List<Node> listNodes() throws MetaException {
+    List<Node> nds = null;
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MNode.class);
+      List<MNode> mnds = (List<MNode>) query.execute();
+      pm.retrieveAll(mnds);
+
+      success = commitTransaction();
+      nds = this.convertToNodes(mnds);
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return nds;
+  }
+
+  private List<Node> convertToNodes(List<MNode> mnds) {
+    List<Node> nds = null;
+    if(mnds != null) {
+      nds = new ArrayList<Node>();
+      for(MNode mnd : mnds){
+        Node nd = new Node(mnd.getNode_name(), mnd.getIPList(), mnd.getStatus());
+        nds.add(nd);
+      }
+    }
+    return nds;
+  }
+
+  @Override
+  public boolean addUserAssignment(String userName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MUser muser = this.getMUser(userName);
+      if (mdb.getUsers() != null) {
+        throw new MetaException("this" + userName + "already exists！");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+      List<MUser> musers  = new ArrayList<MUser>();
+      musers.add(muser);
+      muser.getDbs().add(mdb);
+      pm.makePersistent(mdb);
+      pm.makePersistent(muser);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public boolean deleteUserAssignment(String userName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MUser muser = this.getMUser(userName);
+      if (mdb.getUsers() != null) {
+        throw new MetaException("this" + userName + "already exists！");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+      List<MUser> musers  = new ArrayList<MUser>();
+      musers.add(muser);
+      muser.getDbs().add(mdb);
+      pm.deletePersistent(mdb);
+      pm.deletePersistent(muser);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public List<User> listUsers() throws MetaException {
+    List<User> users = null;
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MUser.class);
+      List<MUser> musers = (List<MUser>) query.execute();
+      pm.retrieveAll(musers);
+
+      success = commitTransaction();
+      users = this.convertToUsers(musers);
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return users;
+  }
+
+  private List<User> convertToUsers(List<MUser> musers) {
+    List<User> users = null;
+    if(musers != null) {
+      users = new ArrayList<User>();
+      for(MUser muser : musers){
+        User user = new User(muser.getUserName(),muser.getPasswd(),muser.getCreateTime(),muser.getOwnerName());
+        users.add(user);
+      }
+    }
+    return users;
+  }
+
+  @Override
+  public boolean addRoleAssignment(String roleName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MRole mrole = this.getMRole(roleName);
+      if (mdb.getRoles() != null) {
+        throw new MetaException("this" + roleName + "already exists！");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+      List<MRole> mroles  = new ArrayList<MRole>();
+      mroles.add(mrole);
+      mrole.getDbs().add(mdb);
+      pm.makePersistent(mdb);
+      pm.makePersistent(mrole);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public boolean deleteRoleAssignment(String roleName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    boolean success = false;
+    boolean commited = false;
+    try {
+      openTransaction();
+      MDatabase mdb = this.getMDatabase(dbName);
+      MRole mrole = this.getMRole(roleName);
+      if (mdb.getRoles() != null) {
+        throw new MetaException("this" + roleName + "already exists！");
+      }
+      int now = (int)(System.currentTimeMillis()/1000);
+      List<MRole> mroles  = new ArrayList<MRole>();
+      mroles.add(mrole);
+      mrole.getDbs().add(mdb);
+      pm.deletePersistent(mdb);
+      pm.deletePersistent(mrole);
+      commited = commitTransaction();
+      success = true;
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return success;
+  }
+
+  @Override
+  public List<Role> listRoles() throws MetaException {
+    List<Role> roles = null;
+    boolean success = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MRole.class);
+      List<MRole> mroles = (List<MRole>) query.execute();
+      pm.retrieveAll(mroles);
+
+      success = commitTransaction();
+      roles = this.convertToRoles(mroles);
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+    return roles;
+  }
+
+  private List<Role> convertToRoles(List<MRole> mroles) {
+    List<Role> roles = null;
+    if(mroles != null) {
+      roles = new ArrayList<Role>();
+      for(MRole mrole : mroles){
+        Role role = new Role(mrole.getRoleName(),mrole.getCreateTime(),mrole.getOwnerName());
+        roles.add(role);
+      }
+    }
+    return roles;
+  }
+
+  @Override
+  public boolean addNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException,
+      NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean deleteNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException,
+      NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
   }
 
 }

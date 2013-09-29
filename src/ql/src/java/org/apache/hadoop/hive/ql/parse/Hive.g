@@ -336,6 +336,7 @@ TOK_SHOWFILELOCATIONS;
 TOK_STRINGLITERALLIST;
 TOK_TABLEDISTRIBUTION;
 
+TOK_SCHEMANAME;
 TOK_CREATESCHEMA;
 TOK_DROPSCHEMA;
 
@@ -363,6 +364,19 @@ TOK_ALTERSCHEMA_RENAMECOL;
 TOK_ALTERSCHEMA_CHANGECOL_AFTER_POSITION;
 TOK_ALTERSCHEMA_PROPERTIES;
 TOK_SHOWNODEASSIGNMENT;
+TOK_CREATENODEGROUPASSIGNMENT;
+TOK_DROPNODEGROUPASSIGNMENT;
+TOK_SHOWNODEGROUPASSIGNMENT;
+TOK_CREATEUSERASSIGNMENT;
+TOK_DROPUSERASSIGNMENT;
+TOK_SHOWUSERASSIGNMENT;
+TOK_CREATEROLEASSIGNMENT;
+TOK_DROPROLEASSIGNMENT;
+TOK_SHOWROLEASSIGNMENT;
+
+TOK_SHOWSCHEMAS;
+TOK_DESCSCHEMA;
+
 }
 
 
@@ -479,8 +493,17 @@ ddlStatement
     | createNodeAssignmentStatement
     | dropNodeAssignmentStatement
     | showNodeAssignment
+    | createNodeGroupAssignmentStatement
+    | dropNodeGroupAssignmentStatement
+    | showNodeGroupAssignment
     | createRoleStatement
     | dropRoleStatement
+    | createUserAssignmentStatement
+    | dropUserAssignmentStatement
+    | showUserAssignment
+    | createRoleAssignmentStatement
+    | dropRoleAssignmentStatement
+    | showRoleAssignment
     
     | createNodeGroupStatement
     | modifyNodeGroupStatement
@@ -491,26 +514,79 @@ ddlStatement
     
     ;
 //
+
+showRoleAssignment
+@init { msgs.push("show RoleAssignment"); }
+@after { msgs.pop(); }
+    :  KW_SHOW KW_ROLEASSIGNMENT
+     -> ^(TOK_SHOWROLEASSIGNMENT)
+    ;
+dropRoleAssignmentStatement
+@init { msgs.push("drop RoleAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_DROP KW_ROLEASSIGNMENT LPAREN DBNAME= StringLiteral COMMA ROLE_NAME=StringLiteral RPAREN 
+    -> ^(TOK_DROPROLEASSIGNMENT $DBNAME $ROLE_NAME)
+    ;
+createRoleAssignmentStatement
+@init { msgs.push("create RoleAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_CREATE KW_ROLEASSIGNMENT LPAREN DBNAME= StringLiteral COMMA ROLE_NAME=StringLiteral RPAREN 
+    -> ^(TOK_CREATEROLEASSIGNMENT $DBNAME $ROLE_NAME)
+    ;       
+showUserAssignment
+@init { msgs.push("show UserAssignment"); }
+@after { msgs.pop(); }
+    :  KW_SHOW KW_USERASSIGNMENT
+     -> ^(TOK_SHOWUSERASSIGNMENT)
+    ;
+dropUserAssignmentStatement
+@init { msgs.push("drop UserAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_DROP KW_USERASSIGNMENT LPAREN DBNAME= StringLiteral COMMA USER_NAME=StringLiteral RPAREN 
+    -> ^(TOK_DROPUSERASSIGNMENT $DBNAME $USER_NAME)
+    ;
+createUserAssignmentStatement
+@init { msgs.push("create UserAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_CREATE KW_USERASSIGNMENT LPAREN DBNAME= StringLiteral COMMA USER_NAME=StringLiteral RPAREN 
+    -> ^(TOK_CREATEUSERASSIGNMENT $DBNAME $USER_NAME)
+    ;       
+showNodeGroupAssignment
+@init { msgs.push("show NodeGroupAssignment"); }
+@after { msgs.pop(); }
+    :  KW_SHOW KW_NODEGROUPASSIGNMENT
+     -> ^(TOK_SHOWNODEGROUPASSIGNMENT)
+    ;
+dropNodeGroupAssignmentStatement
+@init { msgs.push("drop NodeGroupAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_DROP KW_NODEGROUPASSIGNMENT LPAREN DBNAME= StringLiteral COMMA NODEGROUP_NAME=StringLiteral RPAREN 
+    -> ^(TOK_DROPNODEGROUPASSIGNMENT $DBNAME $NODEGROUP_NAME)
+    ;
+createNodeGroupAssignmentStatement
+@init { msgs.push("create NodeGroupAssignmentStatement"); }
+@after { msgs.pop(); }
+    : KW_CREATE KW_NODEGROUPASSIGNMENT LPAREN DBNAME= StringLiteral COMMA NODEGROUP_NAME=StringLiteral RPAREN 
+    -> ^(TOK_CREATENODEGROUPASSIGNMENT $DBNAME $NODEGROUP_NAME)
+    ;       
 showNodeAssignment
 @init { msgs.push("show NodeAssignment"); }
 @after { msgs.pop(); }
     :  KW_SHOW KW_NODEASSIGNMENT
      -> ^(TOK_SHOWNODEASSIGNMENT)
-    ;
-        
+    ;       
 dropNodeAssignmentStatement
 @init { msgs.push("drop NodeAssignmentStatement"); }
 @after { msgs.pop(); }
     : KW_DROP KW_NODEASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA DBNAME= StringLiteral RPAREN 
     -> ^(TOK_DROPNODEASSIGNMENT $NODE_NAME $DBNAME)
-    ;
-    
+    ; 
 createNodeAssignmentStatement
 @init { msgs.push("create NodeAssignmentStatement"); }
 @after { msgs.pop(); }
     : KW_CREATE KW_NODEASSIGNMENT LPAREN NODE_NAME=StringLiteral COMMA DBNAME= StringLiteral RPAREN 
     -> ^(TOK_CREATENODEASSIGNMENT $NODE_NAME $DBNAME)
-        ;
+    ;
 showEqRoom
 @init { msgs.push("show EqRoom"); }
 @after { msgs.pop(); }
@@ -535,7 +611,7 @@ createEqRoomStatement
 @after { msgs.pop(); }
     : KW_CREATE KW_EQROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier RPAREN  (KW_COMMENT CMT=StringLiteral)? ( KW_ON GEO_LOC_NAME=StringLiteral)? 
     -> ^(TOK_CREATEEQROOM $EQ_ROOM_NAME $STATUS $CMT? (KW_ON $GEO_LOC_NAME)? )
-        ;
+    ;
         
 showGeoLoc
 @init { msgs.push("show GeoLoc"); }
@@ -608,8 +684,8 @@ createNodeGroupStatement
         name=Identifier
         nodegroupComment?
         (KW_WITH KW_DBPROPERTIES nodegroupprops=nodegroupProperties)?
-        (KW_ON KW_NODEPROPERTIES nodeprops=nodeProperties)?
-    -> ^(TOK_CREATENODEGROUP $name ifNotExists?  nodegroupComment? $nodegroupprops? $nodeprops?)
+        (KW_ON KW_NODES nodes=stringLiteralList)?
+    -> ^(TOK_CREATENODEGROUP $name ifNotExists?  nodegroupComment? $nodegroupprops? $nodes?)
     ;
 
 nodegroupProperties
@@ -649,7 +725,8 @@ nodegroupComment
 
    
 //end of nodegroup
-    
+
+//FIXME
 createBusitypeStatement
 @init { msgs.push("create busiType statement"); }
 @after { msgs.pop(); }
@@ -712,7 +789,7 @@ alterNodeStatement
 createDatabaseStatement
 @init { msgs.push("create database statement"); }
 @after { msgs.pop(); }
-    : KW_CREATE (KW_DATABASE|KW_SCHEMA)
+    : KW_CREATE ()
         ifNotExists?
         name=Identifier
         databaseComment?
@@ -753,7 +830,7 @@ switchDatabaseStatement
 dropDatabaseStatement
 @init { msgs.push("drop database statement"); }
 @after { msgs.pop(); }
-    : KW_DROP (KW_DATABASE|KW_SCHEMA) ifExists? Identifier restrictOrCascade?
+    : KW_DROP  ifExists? Identifier restrictOrCascade?
     -> ^(TOK_DROPDATABASE Identifier ifExists? restrictOrCascade?)
     ;
 
@@ -783,32 +860,35 @@ createSchemaStatement
          (like=KW_LIKE likeName=schemaName) tableComment?
          tablePropertiesPrefixed?
     -> ^(TOK_CREATESCHEMA $name ifNotExists?
-         TOK_LIKESCHEMA $likeName)
+         TOK_LIKESCHEMA $likeName
          tableComment?
          tablePropertiesPrefixed?
         )
-     */
+    */
+    
       KW_CREATE KW_SCHEMA ifNotExists? name=schemaName
          (
-         (like=KW_LIKE likeName=schemaName) 
-         |
-          (LPAREN columnNameTypeList RPAREN)
-          )
+          like=KW_LIKE KW_SCHEMA likeName=schemaName
+          |
+          LPAREN columnNameTypeList RPAREN
+         )
          tableComment?
          schemaPropertiesPrefixed?
     -> ^(TOK_CREATESCHEMA $name ifNotExists?
-         ^(TOK_LIKESCHEMA $likeName)?
+         ^(TOK_LIKESCHEMA $likeName?)
          columnNameTypeList?
          tableComment?
          schemaPropertiesPrefixed?
          )
     ;
-
+ 
 createTableStatement
 @init { msgs.push("create table statement"); }
 @after { msgs.pop(); }
-    : KW_CREATE (ext=KW_EXTERNAL)? KW_TABLE ifNotExists? name=tableName
-      (  like=KW_LIKE likeName=tableName
+    : 
+    /*
+    KW_CREATE (ext=KW_EXTERNAL)? KW_TABLE ifNotExists? name=tableName
+      (  like=KW_LIKE likeTabName=tableName
          tableLocation?
        | (LPAREN columnNameTypeList RPAREN)?
          tableComment?
@@ -822,7 +902,7 @@ createTableStatement
          (KW_AS selectStatement)?
       )
     -> ^(TOK_CREATETABLE $name $ext? ifNotExists?
-         ^(TOK_LIKETABLE $likeName?)
+         ^(TOK_LIKETABLE $likeTabName?)
          columnNameTypeList?
          tableComment?
          tablePartition?
@@ -834,20 +914,52 @@ createTableStatement
          tablePropertiesPrefixed?
          selectStatement?
         )
-    |KW_CREATE KW_TABLE ifNotExists? 
-      (  like=KW_LIKE KW_SCHEMA likeName=tableName KW_TO dbName=Identifier
+    |KW_CREATE KW_TABLE ifNotExists? tname=tableName
+      (  like=KW_LIKE KW_SCHEMA likeName=schemaName KW_TO dbName=Identifier
          tableLocation?
          tableComment?
          tablePartition?
          tableDistribution?
          tablePropertiesPrefixed?
       )
-    -> ^(TOK_CREATETABLE ifNotExists?
+    -> ^(TOK_CREATETABLE ifNotExists? $tname
          ^(TOK_LIKESCHEMA $likeName $dbName)
          tableComment?
          tablePartition?
          tableDistribution?
          tablePropertiesPrefixed?
+        )
+        */
+         
+        KW_CREATE (ext=KW_EXTERNAL)? KW_TABLE ifNotExists? name=tableName
+      (  like=KW_LIKE (KW_TABLE likeTabName=tableName |KW_SCHEMA likeName=schemaName KW_TO dbName=Identifier)
+         tableComment?   tablePartition?  tableDistribution?
+       | (LPAREN columnNameTypeList RPAREN)?
+         tableComment?
+         tablePartition?
+         tableBuckets?
+         tableSkewed?
+         tableRowFormat?
+         tableFileFormat?
+         tableLocation?
+         tablePropertiesPrefixed?
+         tableDistribution?
+         (KW_AS selectStatement)?
+      )
+    -> ^(TOK_CREATETABLE $name $ext? ifNotExists?
+         ^(TOK_LIKETABLE $likeTabName? )
+         ^(TOK_LIKESCHEMA $likeName? $dbName?)
+         columnNameTypeList?
+         tableComment?
+         tablePartition?
+         tableBuckets?
+         tableSkewed?
+         tableRowFormat?
+         tableFileFormat?
+         tableLocation?
+         tablePropertiesPrefixed?
+         tableDistribution?
+         selectStatement?
         )
     ;
 
@@ -955,7 +1067,7 @@ alterStatement
 
 
 alterSchemaStatementSuffix
-@init { msgs.push("alter table statement"); }
+@init { msgs.push("alter Schema statement"); }
 @after { msgs.pop(); }
     : alterSchemaStatementSuffixRename
     | alterSchemaStatementSuffixAddCol
@@ -1108,7 +1220,7 @@ alterStatementSuffixAddCol
     ->                 ^(TOK_ALTERTABLE_REPLACECOLS Identifier columnNameTypeList)
     ;
 alterSchemaStatementSuffixAddCol
-@init { msgs.push("add column statement"); }
+@init { msgs.push("add Schema column statement"); }
 @after { msgs.pop(); }
     : Identifier (add=KW_ADD | replace=KW_REPLACE) KW_COLUMNS LPAREN columnNameTypeList RPAREN
     -> {$add != null}? ^(TOK_ALTERSCHEMA_ADDCOLS Identifier columnNameTypeList)
@@ -1123,7 +1235,7 @@ alterStatementSuffixRenameCol
     ;
 
 alterSchemaStatementSuffixRenameCol
-@init { msgs.push("rename column name"); }
+@init { msgs.push("rename Schema column name"); }
 @after { msgs.pop(); }
     : Identifier KW_CHANGE KW_COLUMN? oldName=Identifier newName=Identifier colType (KW_COMMENT comment=StringLiteral)? alterStatementChangeColPosition?
     ->^(TOK_ALTERSCHEMA_RENAMECOL Identifier $oldName $newName colType $comment? alterStatementChangeColPosition?)
@@ -1429,6 +1541,7 @@ descStatement
     : (KW_DESCRIBE|KW_DESC) (descOptions=KW_FORMATTED|descOptions=KW_EXTENDED)? (parttype=descPartTypeExpr) -> ^(TOK_DESCTABLE $parttype $descOptions?)
     | (KW_DESCRIBE|KW_DESC) KW_FUNCTION KW_EXTENDED? (name=descFuncNames) -> ^(TOK_DESCFUNCTION $name KW_EXTENDED?)
     | (KW_DESCRIBE|KW_DESC) KW_DATABASE KW_EXTENDED? (dbName=Identifier) -> ^(TOK_DESCDATABASE $dbName KW_EXTENDED?)
+    | (KW_DESCRIBE|KW_DESC) KW_SCHEMA (schema=Identifier) -> ^(TOK_DESCSCHEMA $schema)
     ;
 
 analyzeStatement
@@ -1442,6 +1555,7 @@ showStatement
 @after { msgs.pop(); }
     : KW_SHOW (KW_DATABASES|KW_SCHEMAS) (dc_name=Identifier )?  (KW_LIKE  showStmtIdentifier)? -> ^(TOK_SHOWDATABASES $dc_name? (KW_LIKE showStmtIdentifier)?)
     | KW_SHOW KW_NODEGROUPS showStmtIdentifier?  -> ^(TOK_SHOWNODEGROUPS showStmtIdentifier?)
+    | KW_SHOW KW_SCHEMAS showStmtIdentifier?  -> ^(TOK_SHOWSCHEMAS showStmtIdentifier?)
     | KW_SHOW KW_BUSITYPES  -> ^(TOK_SHOWBUSITYPES )
     | KW_SHOW KW_NODES (dc_name=Identifier )? -> ^(TOK_SHOWNODES $dc_name?)
     | KW_SHOW KW_FILES (part_name=StringLiteral (KW_FROM|KW_IN) tabname=tableName)? -> ^(TOK_SHOWFILES ($part_name $tabname)?)
@@ -2551,7 +2665,7 @@ schemaName
 @init { msgs.push("schema name"); }
 @after { msgs.pop(); }
     :schema=Identifier
-    -> ^(TOK_TABNAME $schema)
+    -> ^(TOK_SCHEMANAME $schema)
     ;
 
 viewName
@@ -3313,7 +3427,9 @@ KW_NGPROPERTIES:'NGPROPERTIES';
 KW_GEOLOC:'GEOLOC';
 KW_EQROOM:'EQROOM';
 KW_NODEASSIGNMENT:'NODEASSIGNMENT';
-
+KW_NODEGROUPASSIGNMENT:'NODEGROUPASSIGNMENT';
+KW_USERASSIGNMENT:'USERASSIGNMENT';	
+KW_ROLEASSIGNMENT:'ROLEASSIGNMENT';
 KW_SCHEMAPROPERTIES:	'SCHEMEPROPERTIES';
 
 // Operators

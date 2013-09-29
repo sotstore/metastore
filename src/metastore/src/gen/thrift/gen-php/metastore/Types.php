@@ -270,6 +270,7 @@ class FieldSchema {
   public $name = null;
   public $type = null;
   public $comment = null;
+  public $version = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -286,6 +287,10 @@ class FieldSchema {
           'var' => 'comment',
           'type' => TType::STRING,
           ),
+        4 => array(
+          'var' => 'version',
+          'type' => TType::I64,
+          ),
         );
     }
     if (is_array($vals)) {
@@ -297,6 +302,9 @@ class FieldSchema {
       }
       if (isset($vals['comment'])) {
         $this->comment = $vals['comment'];
+      }
+      if (isset($vals['version'])) {
+        $this->version = $vals['version'];
       }
     }
   }
@@ -341,6 +349,13 @@ class FieldSchema {
             $xfer += $input->skip($ftype);
           }
           break;
+        case 4:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->version);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
         default:
           $xfer += $input->skip($ftype);
           break;
@@ -367,6 +382,11 @@ class FieldSchema {
     if ($this->comment !== null) {
       $xfer += $output->writeFieldBegin('comment', TType::STRING, 3);
       $xfer += $output->writeString($this->comment);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->version !== null) {
+      $xfer += $output->writeFieldBegin('version', TType::I64, 4);
+      $xfer += $output->writeI64($this->version);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
@@ -4906,6 +4926,7 @@ class SplitValue {
   public $splitKeyName = null;
   public $level = null;
   public $value = null;
+  public $verison = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -4922,6 +4943,10 @@ class SplitValue {
           'var' => 'value',
           'type' => TType::STRING,
           ),
+        4 => array(
+          'var' => 'verison',
+          'type' => TType::I64,
+          ),
         );
     }
     if (is_array($vals)) {
@@ -4933,6 +4958,9 @@ class SplitValue {
       }
       if (isset($vals['value'])) {
         $this->value = $vals['value'];
+      }
+      if (isset($vals['verison'])) {
+        $this->verison = $vals['verison'];
       }
     }
   }
@@ -4977,6 +5005,13 @@ class SplitValue {
             $xfer += $input->skip($ftype);
           }
           break;
+        case 4:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->verison);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
         default:
           $xfer += $input->skip($ftype);
           break;
@@ -5003,6 +5038,11 @@ class SplitValue {
     if ($this->value !== null) {
       $xfer += $output->writeFieldBegin('value', TType::STRING, 3);
       $xfer += $output->writeString($this->value);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->verison !== null) {
+      $xfer += $output->writeFieldBegin('verison', TType::I64, 4);
+      $xfer += $output->writeI64($this->verison);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();

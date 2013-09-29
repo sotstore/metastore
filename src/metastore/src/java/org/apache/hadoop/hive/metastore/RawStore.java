@@ -623,12 +623,6 @@ public interface RawStore extends Configurable {
 
   public abstract void createSchema(GlobalSchema schema)throws InvalidObjectException, MetaException;
 
-  public abstract boolean addNodeAssignment(String nodename, String dbname) throws MetaException, NoSuchObjectException;
-
-  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException;
-
-  public abstract GeoLocation getGeoLocationByName(String geoLocName) throws MetaException;
-
   public abstract List<SFile> listTableFiles(String dbName, String tableName, short max_num) throws MetaException;
 
   public abstract List<SFile> filterTableFiles(String dbName, String tableName, List<String> values)
@@ -638,5 +632,39 @@ public interface RawStore extends Configurable {
       List<NodeGroup> ngs) throws InvalidObjectException,NoSuchObjectException, MetaException;
 
   public abstract List<NodeGroup> listNodeGroupByNames(List<String> ngNames) throws  MetaException;
+
+  /**
+   * 根据名找对象,节点归属，用户归属，角色归属的增删查！！！
+   * @author
+   * @param geoLocName
+   * @return
+   * @throws MetaException
+   */
+
+  public abstract GeoLocation getGeoLocationByName(String geoLocName) throws MetaException;
+
+  public abstract List<GeoLocation> getGeoLocationByNames(List<String> geoLocNames) throws MetaException;
+
+  public abstract boolean addNodeAssignment(String nodename, String dbname) throws MetaException, NoSuchObjectException;
+
+  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException;
+
+  public abstract List<Node> listNodes() throws  MetaException;
+
+  public abstract boolean addUserAssignment(String userName, String dbName) throws MetaException, NoSuchObjectException;
+
+  public abstract boolean deleteUserAssignment(String userName, String dbName) throws MetaException, NoSuchObjectException;
+
+  public abstract List<User> listUsers() throws  MetaException;
+
+  public abstract boolean addRoleAssignment(String roleName, String dbName) throws MetaException, NoSuchObjectException;
+
+  public abstract boolean deleteRoleAssignment(String roleName, String dbName) throws MetaException, NoSuchObjectException;
+
+  public abstract List<Role> listRoles() throws  MetaException;
+
+  public abstract boolean addNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException, NoSuchObjectException;
+
+  public abstract boolean deleteNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException, NoSuchObjectException;
 
 }

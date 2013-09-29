@@ -1139,6 +1139,72 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     return null;
   }
 
+  @Override
+  public List<GeoLocation> getGeoLocationByNames(List<String> geoLocNames) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<Node> listNodes() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean addUserAssignment(String userName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean deleteUserAssignment(String userName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public List<User> listUsers() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean addRoleAssignment(String roleName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean deleteRoleAssignment(String roleName, String dbName) throws MetaException,
+      NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public List<Role> listRoles() throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean addNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException,
+      NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean deleteNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException,
+      NoSuchObjectException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
 }
 
 

@@ -1164,9 +1164,13 @@ public interface IMetaStoreClient {
 
   public boolean user_authority_check(User user, Table tbl, List<MSOperation> ops) throws MetaException, TException;
 
-/*
- * cry
- */
+  /**
+   * @author Cry
+   * @param
+   * @return
+   * @throws MetaException
+   * @throws TException
+   */
 
   public boolean addEquipRoom(EquipRoom er) throws MetaException, TException;
 
@@ -1183,12 +1187,6 @@ public interface IMetaStoreClient {
   public boolean deleteGeoLocation(GeoLocation gl) throws MetaException, TException;
 
   public List<GeoLocation> listGeoLocation() throws MetaException, TException;
-
-  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException, TException;
-
-  public boolean addNodeAssignment(String nodename, String dbname) throws MetaException, NoSuchObjectException, TException;
-
-  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException, TException;
 
   public boolean createSchema(GlobalSchema schema) throws AlreadyExistsException, InvalidObjectException, MetaException, TException;
 
@@ -1227,5 +1225,30 @@ public interface IMetaStoreClient {
 
   public List<NodeGroup> listNodeGroups(List<String> ngNames) throws MetaException, TException;
 
+  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException, TException;
+
+  public List<GeoLocation> getGeoLocationByNames(List<String> geoLocNames) throws MetaException, TException;
+
+  public boolean addNodeAssignment(String nodename, String dbname) throws MetaException, NoSuchObjectException, TException;
+
+  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException, TException;
+
+  public List<Node> listNodes() throws  MetaException , TException;
+
+  public boolean addUserAssignment(String userName, String dbName) throws MetaException, NoSuchObjectException, TException;
+
+  public boolean deleteUserAssignment(String userName, String dbName) throws MetaException, NoSuchObjectException, TException;
+
+  public List<User> listUsers() throws  MetaException, TException;
+
+  public boolean addRoleAssignment(String roleName, String dbName) throws MetaException, NoSuchObjectException, TException;
+
+  public boolean deleteRoleAssignment(String roleName, String dbName) throws MetaException, NoSuchObjectException, TException;
+
+  public List<Role> listRoles() throws  MetaException, TException;
+
+  public boolean addNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException, NoSuchObjectException, TException;
+
+  public boolean deleteNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException, NoSuchObjectException, TException;
 
 }

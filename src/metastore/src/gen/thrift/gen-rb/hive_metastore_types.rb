@@ -124,11 +124,13 @@ class FieldSchema
   NAME = 1
   TYPE = 2
   COMMENT = 3
+  VERSION = 4
 
   FIELDS = {
     NAME => {:type => ::Thrift::Types::STRING, :name => 'name'},
     TYPE => {:type => ::Thrift::Types::STRING, :name => 'type'},
-    COMMENT => {:type => ::Thrift::Types::STRING, :name => 'comment'}
+    COMMENT => {:type => ::Thrift::Types::STRING, :name => 'comment'},
+    VERSION => {:type => ::Thrift::Types::I64, :name => 'version', :optional => true}
   }
 
   def struct_fields; FIELDS; end
@@ -681,11 +683,13 @@ class SplitValue
   SPLITKEYNAME = 1
   LEVEL = 2
   VALUE = 3
+  VERISON = 4
 
   FIELDS = {
     SPLITKEYNAME => {:type => ::Thrift::Types::STRING, :name => 'splitKeyName'},
     LEVEL => {:type => ::Thrift::Types::I32, :name => 'level'},
-    VALUE => {:type => ::Thrift::Types::STRING, :name => 'value'}
+    VALUE => {:type => ::Thrift::Types::STRING, :name => 'value'},
+    VERISON => {:type => ::Thrift::Types::I64, :name => 'verison'}
   }
 
   def struct_fields; FIELDS; end
