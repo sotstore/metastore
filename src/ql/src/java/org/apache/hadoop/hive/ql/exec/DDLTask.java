@@ -4889,16 +4889,6 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     // no-op
   }
 
-  /**
-   * Add a geo_loc
-   *
-   * @param db
-   *          Database to add the partition to.
-   * @param addGeoLocDesc
-   *          Add this GeoLoc.
-   * @return Returns 0 when execution succeeds and above 0 if it fails.
-   * @throws HiveException
-   */
 
   private int addGeoLoc(Hive db, AddGeoLocDesc addGeoLocDesc) throws HiveException {
     GeoLoc gd = new GeoLoc(addGeoLocDesc.getGeoLocName(),addGeoLocDesc.getNation(),

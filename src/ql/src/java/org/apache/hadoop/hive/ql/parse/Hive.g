@@ -290,7 +290,13 @@ TOK_SKEWED_LOCATIONS;
 TOK_SKEWED_LOCATION_LIST;
 TOK_SKEWED_LOCATION_MAP;
 TOK_STOREDASDIRS;
-
+TOK_SPLITED_BY;
+TOK_SUBSPLITED_BY;
+TOK_SPLITED_EXPER;
+TOK_SUBSPLIT_EXPER;
+TOK_SPLIT;
+TOK_SPLIT_EXPER;
+TOK_SUBSPLIT;
 TOK_PARTITIONED_BY;
 TOK_SUBPARTITIONED_BY;
 TOK_PARTITION_EXPER;
@@ -597,7 +603,7 @@ alterEqRoomStatement
 @init { msgs.push("alter EqRoomStatement"); }
 @after { msgs.pop(); }
     :  KW_MODIFY KW_EQROOM LPAREN EQ_ROOM_NAME=StringLiteral COMMA STATUS= Identifier RPAREN  (KW_COMMENT CMT=StringLiteral)? ( KW_ON GEO_LOC_NAME=StringLiteral)? 
-    -> ^(TOK_MODIFYEQROOM $EQ_ROOM_NAME $STATUS $GEO_LOC_NAME $CMT)
+    -> ^(TOK_MODIFYEQROOM $EQ_ROOM_NAME $STATUS $CMT? (KW_ON $GEO_LOC_NAME)?)
     ;
     
 dropEqRoomStatement
@@ -936,6 +942,7 @@ createTableStatement
          tableComment?   tablePartition?  tableDistribution?
        | (LPAREN columnNameTypeList RPAREN)?
          tableComment?
+         fileSplit?
          tablePartition?
          tableBuckets?
          tableSkewed?
@@ -951,6 +958,7 @@ createTableStatement
          ^(TOK_LIKESCHEMA $likeName? $dbName?)
          columnNameTypeList?
          tableComment?
+         fileSplit?
          tablePartition?
          tableBuckets?
          tableSkewed?
@@ -1851,6 +1859,18 @@ tableComment
       KW_COMMENT comment=StringLiteral  -> ^(TOK_TABLECOMMENT $comment)
     ;
 
+fileSplit
+@init { msgs.push("file split specification"); }
+@after { msgs.pop(); }
+    : KW_SPLITED KW_BY splitParamList=partitionParamList
+    fileSubSplit?
+    splitTemplate?
+    -> ^(TOK_SPLITED_BY $splitParamList
+    fileSubSplit?
+    splitTemplate?)
+    ;
+    
+    
 tablePartition
 @init { msgs.push("table partition specification"); }
 @after { msgs.pop(); }
@@ -1860,6 +1880,15 @@ tablePartition
     -> ^(TOK_PARTITIONED_BY $partParamList
     tableSubPartition?
     partitionTemplate?)
+    ;
+    
+fileSubSplit
+@init { msgs.push("file subSplit specification"); }
+@after { msgs.pop(); }
+    :KW_SUBSPLITED KW_BY splitParamList=partitionParamList
+   subSplitTemplate?
+    -> ^(TOK_SUBSPLITED_BY $splitParamList
+    subSplitTemplate?)
     ;
     
 tableSubPartition
@@ -1882,12 +1911,26 @@ partitionParamList
     	|columnNameList
    	| functionList)
     ;
-    
+  
+  splitTemplate
+@init { msgs.push("file SpiltTemplate specification"); }
+@after { msgs.pop(); }
+    :LPAREN splitExper (COMMA splitExper)* RPAREN
+     -> ^(TOK_SPLIT_EXPER splitExper+)
+    ;
+      
 partitionTemplate
 @init { msgs.push("table PartitionTemplate specification"); }
 @after { msgs.pop(); }
     :LPAREN partitionExper (COMMA partitionExper)* RPAREN
      -> ^(TOK_PARTITION_EXPER partitionExper+)
+    ;
+    
+ subSplitTemplate
+@init { msgs.push(" splitTemplate specification"); }
+@after { msgs.pop(); }
+    :LPAREN  (subSplitExper (COMMA subSplitExper)*) RPAREN
+    -> ^(TOK_SUBSPLIT_EXPER subSplitExper+)
     ;
     
 subPartitionTemplate
@@ -1897,11 +1940,18 @@ subPartitionTemplate
     -> ^(TOK_SUBPARTITION_EXPER subPartitionExper+)
     ;
 
+splitExper
+@init { msgs.push("splitExper specification"); }
+@after { msgs.pop(); }
+    :KW_SPLIT split_name=splitName  partitionValuesExper  subSplitTemplate?
+    -> ^(TOK_SPLIT $splitName partitionValuesExper subSplitTemplate?)
+    ;
+    
 partitionExper
 @init { msgs.push("partitionExper specification"); }
 @after { msgs.pop(); }
-    :KW_PARTITION partition_name=partitionName  partitionValuesExper  subPartitionTemplate?
-    -> ^(TOK_PARTITION $partition_name partitionValuesExper subPartitionTemplate?)
+    :KW_PARTITION partition_name=partitionName  partitionValuesExper  subSplitTemplate?
+    -> ^(TOK_PARTITION $partition_name partitionValuesExper subSplitTemplate?)
     ;
     
 partitionValuesExper
@@ -1915,6 +1965,24 @@ partitionValuesExper
      -> ^(TOK_VALUES   $valueList )
     ;
     
+splitValuesExper
+@init { msgs.push(" splitValuesExper specification"); }
+@after { msgs.pop(); }
+    :KW_VALUES  KW_LESS KW_THAN LPAREN value=stringOrNumOrFunc RPAREN 
+    -> ^(TOK_VALUES_LESS  $value )
+    |KW_VALUES  KW_GREATER KW_THAN LPAREN value=stringOrNumOrFunc RPAREN 
+     -> ^(TOK_VALUES_GREATER  $value )
+    | KW_VALUES LPAREN valueList=stringOrNumOrFuncList RPAREN
+     -> ^(TOK_VALUES   $valueList )
+    ;
+       
+subSplitExper
+@init { msgs.push("subSplitExper specification"); }
+@after { msgs.pop(); }
+      :KW_SUBSPLIT split_name=splitName  partitionValuesExper 
+    -> ^(TOK_SUBSPLIT $split_name partitionValuesExper)
+    ;
+
 subPartitionExper
 @init { msgs.push("subPartitionExper specification"); }
 @after { msgs.pop(); }
@@ -1942,7 +2010,14 @@ stringOrNumOrFunc
  :(stringOrNumOrFunc (COMMA stringOrNumOrFunc)*)
  -> ^(TOK_STR_OR_NUM_OR_FUNC stringOrNumOrFunc+)
     ;
-      
+ 
+ splitName
+@init { msgs.push("file splitName specification"); }
+@after { msgs.pop(); }
+    :
+      Identifier
+    ;
+         
 partitionName
 @init { msgs.push("table partitionName specification"); }
 @after { msgs.pop(); }
@@ -3208,6 +3283,7 @@ KW_LEFT : 'LEFT';
 KW_RIGHT : 'RIGHT';
 KW_FULL : 'FULL';
 KW_ON : 'ON';
+KW_SPLIT : 'SPLIT';
 KW_PARTITION : 'PARTITION';
 KW_PARTITIONS : 'PARTITIONS';
 KW_TABLE: 'TABLE';
@@ -3263,6 +3339,7 @@ KW_STRUCT: 'STRUCT';
 KW_MAP: 'MAP';
 KW_UNIONTYPE: 'UNIONTYPE';
 KW_REDUCE: 'REDUCE';
+KW_SPLITED: 'SPLITED';
 KW_PARTITIONED: 'PARTITIONED';
 KW_CLUSTERED: 'CLUSTERED';
 KW_SORTED: 'SORTED';
@@ -3401,6 +3478,8 @@ KW_IDENTIFIED: 'IDENTIFIED';
 KW_CONNECT: 'CONNECT';	//added by liulichao,end
 //added by zjw
 KW_VALUES:	 'VALUES';
+KW_SUBSPLITED: 'SUBSPLITED';
+KW_SUBSPLIT: 'SUBSPLIT';
 KW_SUBPARTITIONED: 'SUBPARTITIONED';
 KW_SUBPARTITION: 'SUBPARTITION';
 KW_LESS:'LESS';

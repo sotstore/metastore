@@ -17,7 +17,7 @@ public class DDLTest {
 
     //String sql = "create eqroom('aaa',qw)comment 'dsds' on'ff'";
     //String sql = "drop eqroom'aaa'";
-    //String sql = "modify eqroom('aaa',qq)comment 'dsds' on'ff'";
+    String sql = "modify eqroom('aaa',qq)comment 'dsds' on'ff'";
     //String sql = "show eqroom";
 
     //String sql = "create NODEASSIGNMENT('aaa','qw')";
@@ -34,7 +34,7 @@ public class DDLTest {
 
     //String sql = "create roleAssignment('a','b')";
     //String sql = "drop roleAssignment('a','b')";
-    String sql = "show roleAssignment";
+    //String sql = "show roleAssignment";
 
     Driver dr = new Driver(new HiveConf());
     try {
