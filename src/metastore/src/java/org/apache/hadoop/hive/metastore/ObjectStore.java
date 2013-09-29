@@ -8637,99 +8637,8 @@ public MUser getMUser(String userName) {
 
   }
 
-/*
- * cry
- */
-  @Override
-  public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException {
-    boolean success = false;
-    boolean commited = false;
-    try {
-      openTransaction();
-      MDatabase mdb = this.getMDatabase(dbName);
-      MNode mnd = this.getMNode(nodeName);
-      Set<MNode> nodes = mdb.getNodes();
-      if (mdb.getNodes() == null) {
-        throw new MetaException("this"+nodeName+"does not exist");
-      }
-      nodes = new HashSet<MNode>();
-      nodes.add(mnd);
-      mnd.getDbs().add(mdb);
-      int now = (int)(System.currentTimeMillis()/1000);
-      pm.makePersistent(mnd);
-      pm.makePersistent(mdb);
-      commited = commitTransaction();
-      success = true;
 
 
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      }
-    }
-    return success;
-  }
-
-  @Override
-  public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException {
-    boolean success = false;
-    boolean commited = false;
-    try {
-      openTransaction();
-      MDatabase mdb = this.getMDatabase(dbName);
-      MNode mnd = this.getMNode(nodeName);
-      Set<MNode> nodes = mdb.getNodes();
-      if (mdb.getNodes() == null) {
-        throw new MetaException("this"+nodeName+"does not exist");
-      }
-      nodes = new HashSet<MNode>();
-      nodes.add(mnd);
-      mnd.getDbs().add(mdb);
-      int now = (int)(System.currentTimeMillis()/1000);
-      pm.deletePersistent(mnd);
-      pm.deletePersistent(mdb);
-      commited = commitTransaction();
-      success = true;
-
-
-    } finally {
-      if (!commited) {
-        rollbackTransaction();
-      }
-    }
-    return success;
-  }
-
-  @Override
-  public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException {
-
-    GeoLocation gl = null;
-    boolean committed = false;
-    try {
-      openTransaction();//创建并开始一个事务
-      Query query = pm.newQuery(MGeoLocation.class);//设置这个query作用的范围，即查询的是那个表或记录集
-      query.setFilter("geoLocName == \"geoLocName\"");
-      query.declareParameters("java.lang.String geoLocName");
-//      gl =  (GeoLocation) query.execute(geoLocName);
-      query.setUnique(true);//设置返回的结果是唯一的
-      MGeoLocation mgl=(MGeoLocation)query.execute(geoLocName);
-      LOG.info("++++++++++++++++++++++++MGeoLocation" + mgl.getGeoLocName());
-      gl = convertToGeoLocation(mgl);
-      committed = commitTransaction();
-    } finally {
-      if (!committed) {
-        rollbackTransaction();
-      }
-    }
-    return gl;
-
-  }
-  private GeoLocation convertToGeoLocation(MGeoLocation mgl) {
-    if (mgl == null) {
-      return null;
-    }
-    return new GeoLocation(mgl.getGeoLocName(),mgl.getNation(),mgl.getProvince(),mgl.getCity(),mgl.getDist());
-  }
 
   /**
    * 修改模式结构的同时，需要修改表和视图
@@ -9084,7 +8993,7 @@ public MUser getMUser(String userName) {
 
       HashMap<String,Object> params = new HashMap<String,Object>();
       params.put("nodegroup_name", ng.getNode_group_name());
-      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_NODEGROUP, -1, -1, pm, mngs, params));
+      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_NODEGROUP, -1, -1, pm, mng, params));
     } finally {
       if (!commited) {
         rollbackTransaction();
