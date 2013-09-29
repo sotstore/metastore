@@ -990,4 +990,12 @@ public class Table implements Serializable {
     tTable.setNodeGroups(nodeGroups);
   }
 
+  public List<FieldSchema> getFileSplitKeys() {
+    return tTable.getFileSplitKeys();
+  }
+
+  public void setFileSplitKeys(List<FieldSchema> fileSplitKeys) {
+    tTable.setFileSplitKeys(fileSplitKeys);
+  }
+
 };

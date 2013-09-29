@@ -639,6 +639,54 @@ TOK_PARTITION_EXPER--text:TOK_PARTITION_EXPER--tokenType:255
   }
 
 
+  public static List<FieldSchema> analyzeFielSplitClause(ASTNode ast, PartitionDefinition pd) throws SemanticException {
+    List<FieldSchema> colList = new ArrayList<FieldSchema>();
+    PartitionDefinition global_sub_pd = null;
+  //table partition columns analyze
+    zlog.warn("Ast tree:"+ast.toStringTree());
+    int partChildNum = ast.getChildCount();
+    for (int p = 0; p < partChildNum; p++) {//anyalyze partition by
+
+      ASTNode p_child = (ASTNode) ast.getChild(p);
+      zlog.warn("in part columns-111,tree:"+p_child.toString()
+          +"--text:"+p_child.getText()+"--tokenType:"+p_child.getToken().getType());
+      switch(p_child.getToken().getType()){
+      case  HiveParser.TOK_TABLEPARTCOLS://part function:hash/list/range/interval
+        getPartitionType( p_child,colList, pd);
+        break;
+      case  HiveParser.TOK_SPLIT_EXPER://一级分区定义，子分区定义也在此分支中处理
+        zlog.warn("TOK_PARTITION_EXPER,tree+++++");
+        List<PartitionDefinition> parts = getPartitionDef(p_child,global_sub_pd);
+        pd.setPartitions(parts);
+
+        break;
+      case  HiveParser.TOK_SUBSPLITED_BY://直接跟在一级分区定义后，本子分区定义会直接传递给一级分区的所有分区
+        global_sub_pd = new PartitionDefinition();
+        global_sub_pd.setTableName(pd.getTableName());
+        global_sub_pd.getPi().setP_level(2);//设为2级分区
+        List<FieldSchema> subPartCol = analyzePartitionClause( p_child,  global_sub_pd);//递归调用，获取子分区定义
+//        List<SubPartitionFieldSchema> subPartFieldList =
+//            PartitionFactory.toSubPartitionFieldSchemaList(subPartCol);
+        colList.addAll(subPartCol);
+        PartitionFactory.createSubPartition(colList,global_sub_pd,true,null);
+//        assert(colList.size() == 1);
+
+        break;
+      case  HiveParser.TOK_SUBSPLIT_EXPER://用递归调用时，本分支仅在第二层调用，不用递归应放在TOK_SUBPARTITIONED_BY里面解析
+        zlog.warn("TOK_SUBPARTITION_EXPER,tree-----");
+        List<PartitionDefinition> sub_parts = getPartitionDef(p_child,global_sub_pd);
+        pd.setPartitions(sub_parts);
+        break;
+      default:
+        assert(false);
+      }
+
+    }
+//    FieldSchema fieldSchema = pd.toMFieldSchema();
+
+    return colList;
+}
+
   /**
    * 解析对分区方法的定义
    * @param p_child

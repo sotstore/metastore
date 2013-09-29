@@ -702,7 +702,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
 
   private int crtTblLikeSchemaDesc(Hive db, CreateTableLikeSchemaDesc crtTblLikeSchemaDesc) throws HiveException {
-    GlobalSchema schema = db.newSchema(crtTblLikeSchemaDesc.getLikeTableName());
+    GlobalSchema schema = db.getSchema(crtTblLikeSchemaDesc.getLikeTableName(),false);
     Table tbl;
     if (schema.getTableType() == TableType.VIRTUAL_VIEW) {
       String targetTableName = crtTblLikeSchemaDesc.getTableName();
@@ -755,6 +755,14 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       if(crtTblLikeSchemaDesc.getNodeGroupNames() != null
           && !crtTblLikeSchemaDesc.getNodeGroupNames().isEmpty()) {
         tbl.setNodeGroups(db.listNodeGroups(crtTblLikeSchemaDesc.getNodeGroupNames()));
+      }
+      if(crtTblLikeSchemaDesc.getFileSplitCols() != null
+          && !crtTblLikeSchemaDesc.getFileSplitCols().isEmpty()) {
+        tbl.setFileSplitKeys(crtTblLikeSchemaDesc.getFileSplitCols());
+      }
+      if(crtTblLikeSchemaDesc.getPartCols() != null
+          && !crtTblLikeSchemaDesc.getPartCols().isEmpty()) {
+        tbl.setPartCols(crtTblLikeSchemaDesc.getPartCols());
       }
 
       if (crtTblLikeSchemaDesc.getLocation() != null) {
