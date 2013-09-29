@@ -667,14 +667,24 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
           try {
               for (NodeGroups nodeGroup : nodeGroups) {
                   outStream.writeBytes(nodeGroup.getNode_group_name());
-                  outStream.write(terminator);
-                  outStream.writeBytes(nodeGroup.getComment());
-                  outStream.write(terminator);
+                  outStream.write(separator);
+                  if(nodeGroup.getComment() != null){
+                    outStream.writeBytes(nodeGroup.getComment());
+                  }else{
+                    outStream.writeBytes("");
+                  }
+                  outStream.write(separator);
                   outStream.writeBytes(nodeGroup.getStatus());
-                  outStream.write(terminator);
+                  outStream.write(separator);
                   String nodes = "[";
+                  boolean first = true;
                   for(String node : nodeGroup.getNodes()){
-                    nodes += node;
+                    if(!first){
+                      nodes = ","+nodes;
+                    }else{
+                      first = false;
+                    }
+                    nodes +=  node;
                   }
                   String nodeInfo = nodes + "]";
                   outStream.writeBytes(nodeInfo);

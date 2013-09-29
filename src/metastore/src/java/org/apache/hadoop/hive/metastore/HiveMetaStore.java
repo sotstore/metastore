@@ -1189,11 +1189,17 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             tbl.getParameters().get(hive_metastoreConstants.DDL_TIME) == null) {
           tbl.putToParameters(hive_metastoreConstants.DDL_TIME, Long.toString(time));
         }
+        LOG.info("--zjw--before crt");
+        try{
         ms.createTable(tbl);
+        }catch(Exception e){
+          LOG.error(e, e);
+        }
+        LOG.info("--zjw--before commitTransaction");
         success = ms.commitTransaction();
-
+        LOG.info("--zjw--before commitTransaction");
         this.createBusiTypeDC(ms, tbl);
-
+        LOG.info("--zjw--after createBusiTypeDC");
       } finally {
         if (!success) {
           ms.rollbackTransaction();

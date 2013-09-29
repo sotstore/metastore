@@ -746,6 +746,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       String targetTableName = crtTblLikeSchemaDesc.getTableName();
       tbl = db.newTable(targetTableName);
 
+      tbl.setSchemaName(schema.getSchemaName());
       tbl.setDbName(crtTblLikeSchemaDesc.getDbName());
       tbl.setTableName(crtTblLikeSchemaDesc.getTableName());
 
@@ -3751,6 +3752,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       if (colPath.equals(tableName)) {
         cols = (part == null || tbl.getTableType() == TableType.VIRTUAL_VIEW) ?
             tbl.getCols() : part.getCols();
+        LOG.info("---zjw tbl.getCols() " + tbl.getTableName());
 
 //        if (!descTbl.isFormatted()) {
 //          if (tableName.equals(colPath)) {
@@ -3758,7 +3760,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 //          }
 //        }
       } else {
+        LOG.info("---zjw describeTable:getFieldsFromDeserializer " + tbl.getTableName());
         cols = Hive.getFieldsFromDeserializer(colPath, tbl.getDeserializer());
+      }
+      for(FieldSchema col :cols){
+        LOG.info("---zjw --col:"+col.getName() +"--"+col.getType());
       }
 
       formatter.describeTable(outStream, colPath, tableName, tbl, part, cols,
@@ -5077,6 +5083,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
                         formatter.ERROR);
       return 1;
     } catch (Exception e) {
+      LOG.error(e,e);
       throw new HiveException(e.toString());
     } finally {
       IOUtils.closeStream((FSDataOutputStream) outStream);

@@ -9233,7 +9233,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
               shared.serdeProps);
         }
       case HiveParser.TOK_TABLEDISTRIBUTION:
-        nodeGroupNames = getNodeGroups(child);
+        nodeGroupNames = getNodeGroups((ASTNode)child.getChild(0));
         break;
 
       case HiveParser.TOK_FILEFORMAT_GENERIC:

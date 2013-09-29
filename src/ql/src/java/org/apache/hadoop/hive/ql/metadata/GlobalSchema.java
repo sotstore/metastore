@@ -37,6 +37,7 @@ import org.apache.hadoop.hive.metastore.ProtectMode;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.Constants;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.SkewedInfo;
@@ -406,6 +407,23 @@ public class GlobalSchema implements Serializable {
     tschema.getSd().setStoredAsSubDirectories(storedAsSubDirectories);
   }
 
+  final public Deserializer getDeserializer() {
+    if (deserializer == null) {
+      deserializer = getDeserializerFromMetaStore();
+    }
+    return deserializer;
+  }
+
+  private Deserializer getDeserializerFromMetaStore() {
+    try {
+      return MetaStoreUtils.getDeserializer(Hive.get().getConf(), tschema);
+    } catch (MetaException e) {
+      throw new RuntimeException(e);
+    } catch (HiveException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private boolean isField(String col) {
     for (FieldSchema field : getCols()) {
       if (field.getName().equals(col)) {
@@ -421,12 +439,11 @@ public class GlobalSchema implements Serializable {
     if (!getColsFromSerDe) {
       return tschema.getSd().getCols();
     } else {
-//      try {
-//        return Hive.getFieldsFromDeserializer(getSchemaName(), getDeserializer());
-//      } catch (HiveException e) {
-//        LOG.error("Unable to get field from serde: " + getSerializationLib(), e);
-//      }
-//      return new ArrayList<FieldSchema>();
+      try {
+        return Hive.getFieldsFromDeserializer(getSchemaName(), getDeserializer());
+      } catch (HiveException e) {
+        LOG.error("Unable to get field from serde: " + getSerializationLib(), e);
+      }
       LOG.error("Unable to get field from serde,getColsFromSerDe:" + getColsFromSerDe);
       return new ArrayList<FieldSchema>();
     }

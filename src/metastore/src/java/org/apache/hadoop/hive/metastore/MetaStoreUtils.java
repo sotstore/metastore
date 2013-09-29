@@ -502,6 +502,117 @@ public class MetaStoreUtils {
   }
 
   public static Properties getSchema(
+      org.apache.hadoop.hive.metastore.api.GlobalSchema tschema) {
+    return MetaStoreUtils.getSchema(tschema.getSd(), tschema.getSd(), tschema
+        .getParameters(), tschema.getSchemaName());
+  }
+
+  /**
+   * for GlobalSchema columns info,
+   * added by zjw 9-29
+   * @param sd
+   * @param sd2
+   * @param parameters
+   * @param schemaName
+   * @return
+   */
+  private static Properties getSchema(StorageDescriptor sd, StorageDescriptor sd2,
+      Map<String, String> parameters, String schemaName) {
+    Properties schema = new Properties();
+    String inputFormat = sd.getInputFormat();
+    if (inputFormat == null || inputFormat.length() == 0) {
+      inputFormat = org.apache.hadoop.mapred.SequenceFileInputFormat.class
+        .getName();
+    }
+    schema.setProperty(
+      org.apache.hadoop.hive.metastore.api.hive_metastoreConstants.FILE_INPUT_FORMAT,
+      inputFormat);
+    String outputFormat = sd.getOutputFormat();
+    if (outputFormat == null || outputFormat.length() == 0) {
+      outputFormat = org.apache.hadoop.mapred.SequenceFileOutputFormat.class
+        .getName();
+    }
+    schema.setProperty(
+      org.apache.hadoop.hive.metastore.api.hive_metastoreConstants.FILE_OUTPUT_FORMAT,
+      outputFormat);
+
+    schema.setProperty(
+        org.apache.hadoop.hive.metastore.api.hive_metastoreConstants.META_TABLE_NAME,
+        schemaName);
+
+    if (sd.getLocation() != null) {
+      schema.setProperty(
+          org.apache.hadoop.hive.metastore.api.hive_metastoreConstants.META_TABLE_LOCATION,
+          sd.getLocation());
+    }
+    schema.setProperty(
+        org.apache.hadoop.hive.metastore.api.hive_metastoreConstants.BUCKET_COUNT, Integer
+            .toString(sd.getNumBuckets()));
+    if (sd.getBucketCols() != null && sd.getBucketCols().size() > 0) {
+      schema.setProperty(
+          org.apache.hadoop.hive.metastore.api.hive_metastoreConstants.BUCKET_FIELD_NAME, sd
+              .getBucketCols().get(0));
+    }
+    if (sd.getSerdeInfo() != null) {
+      for (Map.Entry<String,String> param : sd.getSerdeInfo().getParameters().entrySet()) {
+        schema.put(param.getKey(), (param.getValue() != null) ? param.getValue() : "");
+      }
+
+      if (sd.getSerdeInfo().getSerializationLib() != null) {
+        schema.setProperty(
+            org.apache.hadoop.hive.serde.serdeConstants.SERIALIZATION_LIB, sd
+                .getSerdeInfo().getSerializationLib());
+      }
+    }
+    StringBuilder colNameBuf = new StringBuilder();
+    StringBuilder colTypeBuf = new StringBuilder();
+    boolean first = true;
+    for (FieldSchema col : sd.getCols()) {
+      if (!first) {
+        colNameBuf.append(",");
+        colTypeBuf.append(":");
+      }
+      colNameBuf.append(col.getName());
+      colTypeBuf.append(col.getType());
+      first = false;
+    }
+    String colNames = colNameBuf.toString();
+    String colTypes = colTypeBuf.toString();
+    schema.setProperty(
+        org.apache.hadoop.hive.metastore.api.hive_metastoreConstants.META_TABLE_COLUMNS,
+        colNames);
+    schema.setProperty(
+        org.apache.hadoop.hive.metastore.api.hive_metastoreConstants.META_TABLE_COLUMN_TYPES,
+        colTypes);
+    if (sd.getCols() != null) {
+      schema.setProperty(
+          org.apache.hadoop.hive.serde.serdeConstants.SERIALIZATION_DDL,
+          getDDLFromFieldSchema(schemaName, sd.getCols()));
+    }
+
+    String partString = "";
+    String partStringSep = "";
+
+    if (partString.length() > 0) {
+      schema
+          .setProperty(
+              org.apache.hadoop.hive.metastore.api.hive_metastoreConstants.META_TABLE_PARTITION_COLUMNS,
+              partString);
+    }
+
+    if (parameters != null) {
+      for (Entry<String, String> e : parameters.entrySet()) {
+        // add non-null parameters to the schema
+        if ( e.getValue() != null) {
+          schema.setProperty(e.getKey(), e.getValue());
+        }
+      }
+    }
+
+    return schema;
+  }
+
+  public static Properties getSchema(
       org.apache.hadoop.hive.metastore.api.Partition part,
       org.apache.hadoop.hive.metastore.api.Table table) {
     return MetaStoreUtils.getSchema(part.getSd(), table.getSd(), table
@@ -1109,6 +1220,27 @@ public class MetaStoreUtils {
     }
 
     return version;
+  }
+
+  public static Deserializer getDeserializer(HiveConf conf,
+      org.apache.hadoop.hive.metastore.api.GlobalSchema tschema) throws MetaException {
+
+    String lib = tschema.getSd().getSerdeInfo().getSerializationLib();
+    if (lib == null) {
+      return null;
+    }
+    try {
+      Deserializer deserializer = SerDeUtils.lookupDeserializer(lib);
+      deserializer.initialize(conf, MetaStoreUtils.getSchema(tschema));
+      return deserializer;
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Exception e) {
+      LOG.error("error in initSerDe: " + e.getClass().getName() + " "
+          + e.getMessage());
+      MetaStoreUtils.printStackTrace(e);
+      throw new MetaException(e.getClass().getName() + " " + e.getMessage());
+    }
   }
 
 }
