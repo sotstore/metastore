@@ -42,6 +42,7 @@ public class CreateTableLikeSchemaDesc extends DDLDesc implements Serializable {
   boolean ifNotExists;
   String likeTableName;
   List<String> nodeGroupNames;
+  private List<FieldSchema> fileSplitCols;
   private List<FieldSchema> partCols;
 
   public CreateTableLikeSchemaDesc() {
@@ -183,6 +184,14 @@ public class CreateTableLikeSchemaDesc extends DDLDesc implements Serializable {
 
   public void setPartCols(List<FieldSchema> partCols) {
     this.partCols = partCols;
+  }
+
+  public List<FieldSchema> getFileSplitCols() {
+    return fileSplitCols;
+  }
+
+  public void setFileSplitCols(List<FieldSchema> fileSplitCols) {
+    this.fileSplitCols = fileSplitCols;
   }
 
 

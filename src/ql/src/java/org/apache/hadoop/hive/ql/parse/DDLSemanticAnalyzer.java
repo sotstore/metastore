@@ -74,104 +74,9 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveUtils;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
-import org.apache.hadoop.hive.ql.plan.AddEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.AddGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.AddNodeAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.AddNodeDesc;
-import org.apache.hadoop.hive.ql.plan.AddNodeGroupAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.AddPartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.AddPartitionDesc;
-import org.apache.hadoop.hive.ql.plan.AddRoleAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.AddSubpartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.AddSubpartitionDesc;
-import org.apache.hadoop.hive.ql.plan.AddUserAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.AlterDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.AlterDatawareHouseDesc;
-import org.apache.hadoop.hive.ql.plan.AlterIndexDesc;
+import org.apache.hadoop.hive.ql.plan.*;
 import org.apache.hadoop.hive.ql.plan.AlterIndexDesc.AlterIndexTypes;
-import org.apache.hadoop.hive.ql.plan.AlterTableDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
-import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
-import org.apache.hadoop.hive.ql.plan.CreateBusitypeDesc;
-import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
-import org.apache.hadoop.hive.ql.plan.CreateNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.DDLWork;
-import org.apache.hadoop.hive.ql.plan.DescDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.DescFunctionDesc;
-import org.apache.hadoop.hive.ql.plan.DescTableDesc;
-import org.apache.hadoop.hive.ql.plan.DropDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.DropEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.DropGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.DropIndexDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeGroupAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.DropNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.DropPartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.DropPartitionDesc;
-import org.apache.hadoop.hive.ql.plan.DropRoleAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.DropSubpartIndexDesc;
-import org.apache.hadoop.hive.ql.plan.DropSubpartitionDesc;
-import org.apache.hadoop.hive.ql.plan.DropTableDesc;
-import org.apache.hadoop.hive.ql.plan.DropUserAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.FetchWork;
-import org.apache.hadoop.hive.ql.plan.GrantDesc;
-import org.apache.hadoop.hive.ql.plan.GrantRevokeRoleDDL;
-import org.apache.hadoop.hive.ql.plan.LoadTableDesc;
-import org.apache.hadoop.hive.ql.plan.LockTableDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyNodeDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartIndexAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartIndexDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartitionAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifyPartitionDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartIndexDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartitionAddFileDesc;
-import org.apache.hadoop.hive.ql.plan.ModifySubpartitionDropFileDesc;
-import org.apache.hadoop.hive.ql.plan.MoveWork;
-import org.apache.hadoop.hive.ql.plan.MsckDesc;
-import org.apache.hadoop.hive.ql.plan.PartitionSpec;
-import org.apache.hadoop.hive.ql.plan.PlanUtils;
-import org.apache.hadoop.hive.ql.plan.PrincipalDesc;
-import org.apache.hadoop.hive.ql.plan.PrivilegeDesc;
-import org.apache.hadoop.hive.ql.plan.PrivilegeObjectDesc;
-import org.apache.hadoop.hive.ql.plan.RenamePartitionDesc;
-import org.apache.hadoop.hive.ql.plan.RevokeDesc;
-import org.apache.hadoop.hive.ql.plan.RoleDDLDesc;
-import org.apache.hadoop.hive.ql.plan.ShowBusitypesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowColumnsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowCreateTableDesc;
-import org.apache.hadoop.hive.ql.plan.ShowDatabasesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowDatacentersDesc;
-import org.apache.hadoop.hive.ql.plan.ShowEqRoomDesc;
-import org.apache.hadoop.hive.ql.plan.ShowFileLocationsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowFilesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowFunctionsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowGeoLocDesc;
-import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
-import org.apache.hadoop.hive.ql.plan.ShowIndexesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowLocksDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodeAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodeGroupAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodeGroupDesc;
-import org.apache.hadoop.hive.ql.plan.ShowNodesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowPartitionKeysDesc;
-import org.apache.hadoop.hive.ql.plan.ShowPartitionsDesc;
-import org.apache.hadoop.hive.ql.plan.ShowRoleAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.ShowSubpartitionDesc;
-import org.apache.hadoop.hive.ql.plan.ShowTableStatusDesc;
-import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
-import org.apache.hadoop.hive.ql.plan.ShowUserAssignmentDesc;
-import org.apache.hadoop.hive.ql.plan.StatsWork;
-import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
-import org.apache.hadoop.hive.ql.plan.TableDesc;
-import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
-import org.apache.hadoop.hive.ql.plan.UserDDLDesc;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
 import org.apache.hadoop.hive.ql.security.authorization.PrivilegeRegistry;
 import org.apache.hadoop.hive.ql.session.SessionState;
@@ -629,9 +534,20 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
       analyzeShowRoleAssignment(ast);
       break;
-
-
     case HiveParser.TOK_DROPSCHEMA:
+      analyzeDropSchema(ast);
+      break;
+    case HiveParser.TOK_DESCSCHEMA:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeDescSchema(ast);
+      break;
+    case HiveParser.TOK_SHOWSCHEMAS:
+      ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
+      analyzeShowSchema(ast);
+      break;
+
+
+
     case HiveParser.TOK_ALTERSCHEMA_RENAME:
     case HiveParser.TOK_ALTERSCHEMA_ADDCOLS:
     case HiveParser.TOK_ALTERSCHEMA_REPLACECOLS:
@@ -642,6 +558,41 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     default:
       throw new SemanticException("Unsupported command.");
     }
+  }
+
+  private void analyzeDropSchema(ASTNode ast) throws SemanticException {
+    String schemaName = unescapeIdentifier(ast.getChild(0).getText());
+    boolean ifExists = false;
+    if (null != ast.getFirstChildWithType(HiveParser.TOK_IFEXISTS)) {
+      ifExists = true;
+    }
+    DropSchemaDesc dropSchemaDesc = new DropSchemaDesc(schemaName, ifExists);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+        dropSchemaDesc), conf));
+
+  }
+
+  private void analyzeDescSchema(ASTNode ast) {
+    String schemaName;
+    schemaName = stripQuotes(ast.getChild(0).getText());
+
+    DescSchemaDesc descSchemaDesc = new DescSchemaDesc(ctx.getResFile(), schemaName);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), descSchemaDesc), conf));
+    setFetchTask(createFetchTask(descSchemaDesc.getSchema()));
+  }
+
+
+  private void analyzeShowSchema(ASTNode ast) {
+    ShowSchemaDesc showSchemaDesc;
+    if (ast.getChildCount() == 1) {
+      String schema_name = unescapeIdentifier(ast.getChild(0).getText());
+      showSchemaDesc = new ShowSchemaDesc(ctx.getResFile(), schema_name);
+    } else {
+      showSchemaDesc = new ShowSchemaDesc(ctx.getResFile());
+    }
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), showSchemaDesc), conf));
+    setFetchTask(createFetchTask(showSchemaDesc.getSchema()));
+
   }
 
   private void analyzeShowRoleAssignment(ASTNode ast) {
@@ -728,7 +679,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
   private void analyzeShowNodeGroup(ASTNode ast) {
     ShowNodeGroupDesc showNodeGroupDesc;
     if (ast.getChildCount() == 1) {
-      String ng_name = unescapeIdentifier(ast.getChild(0).getText());
+      String ng_name = unescapeSQLString(ast.getChild(0).getText());
       showNodeGroupDesc = new ShowNodeGroupDesc(ctx.getResFile(), ng_name);
       showNodeGroupDesc.setNg_name(ng_name);
     } else {

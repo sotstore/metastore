@@ -217,6 +217,7 @@ public class ObjectStore implements RawStore, Configurable {
   private static final Map<String, Class> PINCLASSMAP;
   static {
     Map<String, Class> map = new HashMap();
+    map.put("schema", MSchema.class);
     map.put("table", MTable.class);
     map.put("storagedescriptor", MStorageDescriptor.class);
     map.put("serdeinfo", MSerDeInfo.class);
@@ -539,6 +540,8 @@ public class ObjectStore implements RawStore, Configurable {
       query.setUnique(true);
       mSchema = (MSchema) query.execute(schema_name);
       pm.retrieve(mSchema);
+      pm.retrieve(mSchema.getSd());
+      pm.retrieve(mSchema.getSd().getCD());
       commited = commitTransaction();
     } finally {
       if (!commited) {
@@ -2677,6 +2680,10 @@ public class ObjectStore implements RawStore, Configurable {
         tbl.getViewOriginalText(), tbl.getViewExpandedText(),
         tableType);
 
+    if(tbl.getFileSplitKeys() != null && !tbl.getFileSplitKeys().isEmpty()){
+      mtbl.setFileSplitKeys(convertToMFieldSchemas(tbl.getFileSplitKeys()));
+    }
+
     if(tbl.getNodeGroups() != null && !tbl.getNodeGroups().isEmpty()){
       HashSet<MNodeGroup> mngs = new HashSet<MNodeGroup>();
       for( NodeGroup ngGroup : tbl.getNodeGroups()){
@@ -2821,6 +2828,7 @@ public class ObjectStore implements RawStore, Configurable {
     }
     List<MFieldSchema> mFieldSchemas = msd.getCD() == null ? null : msd.getCD().getCols();
 
+    LOG.info("mFieldSchemas.size():"+mFieldSchemas.size());
     StorageDescriptor sd = new StorageDescriptor(noFS ? null : convertToFieldSchemas(mFieldSchemas),
         msd.getLocation(), msd.getInputFormat(), msd.getOutputFormat(), msd
         .isCompressed(), msd.getNumBuckets(), converToSerDeInfo(msd
@@ -8567,7 +8575,7 @@ public MUser getMUser(String userName) {
   @Override
   public GlobalSchema getSchema(String schema_name) throws NoSuchObjectException,MetaException {
     MSchema mSchema =  this.getMSchema(schema_name);
-
+    LOG.info("---zjw in  createSchema");
     GlobalSchema schema = convertToSchema(mSchema);
 
     return schema;
@@ -8873,6 +8881,7 @@ public MUser getMUser(String userName) {
             mschema.getCreateTime(), mschema.getLastAccessTime(), mschema.getRetention(),
             convertToStorageDescriptor(mschema.getSd()), mschema.getParameters(),
             mschema.getViewOriginalText(), mschema.getViewExpandedText(), mschema.getSchemaType());
+        LOG.info("---zjw--getColsSize():"+schema.getSd().getColsSize());
     }
     return schema;
   }

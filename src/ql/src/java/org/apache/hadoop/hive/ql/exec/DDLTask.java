@@ -652,6 +652,19 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       if (null != showRoleAssignmentDesc) {
         return showRoleAssignment(db, showRoleAssignmentDesc);
       }
+      DropSchemaDesc dropSchemaDesc = work.getDropSchemaDesc();
+      if (null != dropSchemaDesc) {
+        return dropSchema(db, dropSchemaDesc);
+      }
+      DescSchemaDesc descSchemaDesc = work.getDescSchemaDesc();
+      if (null != descSchemaDesc) {
+        return descSchema(db, descSchemaDesc);
+      }
+      ShowSchemaDesc showSchemaDesc = work.getShowSchemaDesc();
+      if (null != showSchemaDesc) {
+        return showSchema(db, showSchemaDesc);
+      }
+
 
     } catch (InvalidTableException e) {
       formatter.consoleError(console, "Table " + e.getTableName() + " does not exist",
@@ -686,8 +699,10 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
 
 
+
+
   private int crtTblLikeSchemaDesc(Hive db, CreateTableLikeSchemaDesc crtTblLikeSchemaDesc) throws HiveException {
-    GlobalSchema schema = db.newSchema(crtTblLikeSchemaDesc.getLikeTableName());
+    GlobalSchema schema = db.getSchema(crtTblLikeSchemaDesc.getLikeTableName(),false);
     Table tbl;
     if (schema.getTableType() == TableType.VIRTUAL_VIEW) {
       String targetTableName = crtTblLikeSchemaDesc.getTableName();
@@ -740,6 +755,14 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       if(crtTblLikeSchemaDesc.getNodeGroupNames() != null
           && !crtTblLikeSchemaDesc.getNodeGroupNames().isEmpty()) {
         tbl.setNodeGroups(db.listNodeGroups(crtTblLikeSchemaDesc.getNodeGroupNames()));
+      }
+      if(crtTblLikeSchemaDesc.getFileSplitCols() != null
+          && !crtTblLikeSchemaDesc.getFileSplitCols().isEmpty()) {
+        tbl.setFileSplitKeys(crtTblLikeSchemaDesc.getFileSplitCols());
+      }
+      if(crtTblLikeSchemaDesc.getPartCols() != null
+          && !crtTblLikeSchemaDesc.getPartCols().isEmpty()) {
+        tbl.setPartCols(crtTblLikeSchemaDesc.getPartCols());
       }
 
       if (crtTblLikeSchemaDesc.getLocation() != null) {
@@ -4874,16 +4897,6 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     // no-op
   }
 
-  /**
-   * Add a geo_loc
-   *
-   * @param db
-   *          Database to add the partition to.
-   * @param addGeoLocDesc
-   *          Add this GeoLoc.
-   * @return Returns 0 when execution succeeds and above 0 if it fails.
-   * @throws HiveException
-   */
 
   private int addGeoLoc(Hive db, AddGeoLocDesc addGeoLocDesc) throws HiveException {
     GeoLoc gd = new GeoLoc(addGeoLocDesc.getGeoLocName(),addGeoLocDesc.getNation(),
@@ -5197,4 +5210,80 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     return 0;
   }
 
+  private int showSchema(Hive db, ShowSchemaDesc showSchemaDesc) throws HiveException {
+    List<GlobalSchema> globalSchemas = db.showGlobalSchema();
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(showSchemaDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+      formatter.showGlobalSchema(outStream, globalSchemas);
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+        formatter.logWarn(outStream, "show globalSchemas: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+      } catch (IOException e) {
+        formatter.logWarn(outStream, "show globalSchemas: " + stringifyException(e),
+                          MetaDataFormatter.ERROR);
+        return 1;
+    } catch (Exception e) {
+      throw new HiveException(e);
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+  private int descSchema(Hive db, DescSchemaDesc descSchemaDesc) throws HiveException {
+    DataOutputStream outStream = null;
+    try {
+      Path resFile = new Path(descSchemaDesc.getResFile());
+      FileSystem fs = resFile.getFileSystem(conf);
+      outStream = fs.create(resFile);
+
+      org.apache.hadoop.hive.metastore.api.GlobalSchema gs= db.getSchemaByName(descSchemaDesc.getSchemaName());
+
+      if (gs == null) {
+          formatter.error(outStream,
+                          "No such schema: " + descSchemaDesc.getSchemaName(),
+                          formatter.MISSING);
+      } else {
+          Map<String, String> params = null;
+            params = gs.getParameters();
+
+
+
+          formatter.showSchemaDescription(outStream,
+                                            gs.getSchemaName(),
+                                            gs.getSd().getCols(),
+                                            params);
+      }
+      ((FSDataOutputStream) outStream).close();
+      outStream = null;
+    } catch (FileNotFoundException e) {
+      formatter.logWarn(outStream,
+                        "describe database: " + stringifyException(e),
+                        formatter.ERROR);
+      return 1;
+    } catch (IOException e) {
+      formatter.logWarn(outStream,
+                        "describe database: " + stringifyException(e),
+                        formatter.ERROR);
+      return 1;
+    } catch (Exception e) {
+      throw new HiveException(e.toString());
+    } finally {
+      IOUtils.closeStream((FSDataOutputStream) outStream);
+    }
+    return 0;
+  }
+
+  private int dropSchema(Hive db, DropSchemaDesc dropSchemaDesc) throws HiveException {
+    GlobalSchema  schema = new GlobalSchema();
+    schema.setSchemaName(dropSchemaDesc.getSchemaName());
+    this.db.dropSchema(schema);
+    return 0;
+  }
 }

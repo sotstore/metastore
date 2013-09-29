@@ -43,6 +43,7 @@ import org.apache.hadoop.hive.metastore.tools.PartitionFactory.PartitionInfo;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.metadata.EqRoom;
 import org.apache.hadoop.hive.ql.metadata.GeoLoc;
+import org.apache.hadoop.hive.ql.metadata.GlobalSchema;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.NodeAssignment;
@@ -739,6 +740,40 @@ public class TextMetaDataFormatter implements MetaDataFormatter {
             throw new HiveException(e);
         }
 
+    }
+
+    @Override
+    public void showGlobalSchema(DataOutputStream outStream, List<GlobalSchema> globalSchemas)
+        throws HiveException {
+      try {
+        for (GlobalSchema gl : globalSchemas) {
+            outStream.writeBytes(gl.getSchemaName());
+            outStream.write(terminator);
+
+          }
+      } catch (IOException e) {
+          throw new HiveException(e);
+      }
+
+    }
+
+
+    @Override
+    public void showSchemaDescription(DataOutputStream outStream, String schemaName,
+        List<FieldSchema> cols, Map<String, String> params) throws HiveException {
+      try {
+        outStream.writeBytes(schemaName);
+        outStream.write(separator);
+//        if (completeName != null) {
+//          outStream.writeBytes(completeName);
+//        }
+        if (params != null && !params.isEmpty()) {
+            outStream.writeBytes(params.toString());
+        }
+        outStream.write(terminator);
+    } catch (IOException e) {
+        throw new HiveException(e);
+    }
     }
 
 }

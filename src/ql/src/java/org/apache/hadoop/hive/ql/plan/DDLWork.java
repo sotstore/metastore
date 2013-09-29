@@ -149,6 +149,9 @@ public class DDLWork implements Serializable {
   private ShowRoleAssignmentDesc showRoleAssignmentDesc;
   private AddRoleAssignmentDesc addRoleAssignmentDesc;
   private DropRoleAssignmentDesc dropRoleAssignmentDesc;
+  private DropSchemaDesc dropSchemaDesc;
+  private DescSchemaDesc descSchemaDesc;
+  private ShowSchemaDesc showSchemaDesc;
 
 
   public DDLWork() {
@@ -854,6 +857,24 @@ public class DDLWork implements Serializable {
       DropRoleAssignmentDesc dropRoleAssignmentDesc) {
     this(inputs, outputs);
     this.dropRoleAssignmentDesc = dropRoleAssignmentDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DropSchemaDesc dropSchemaDesc) {
+    this(inputs, outputs);
+    this.dropSchemaDesc = dropSchemaDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      DescSchemaDesc descSchemaDesc) {
+    this(inputs, outputs);
+    this.descSchemaDesc = descSchemaDesc;
+  }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      ShowSchemaDesc showSchemaDesc) {
+    this(inputs, outputs);
+    this.showSchemaDesc = showSchemaDesc;
   }
 
   /**
@@ -1884,6 +1905,30 @@ public class DDLWork implements Serializable {
 
   public void setDropRoleAssignmentDesc(DropRoleAssignmentDesc dropRoleAssignmentDesc) {
     this.dropRoleAssignmentDesc = dropRoleAssignmentDesc;
+  }
+
+  public DropSchemaDesc getDropSchemaDesc() {
+    return dropSchemaDesc;
+  }
+
+  public void setDropSchemaDesc(DropSchemaDesc dropSchemaDesc) {
+    this.dropSchemaDesc = dropSchemaDesc;
+  }
+
+  public DescSchemaDesc getDescSchemaDesc() {
+    return descSchemaDesc;
+  }
+
+  public void setDescSchemaDesc(DescSchemaDesc descSchemaDesc) {
+    this.descSchemaDesc = descSchemaDesc;
+  }
+
+  public ShowSchemaDesc getShowSchemaDesc() {
+    return showSchemaDesc;
+  }
+
+  public void setShowSchemaDesc(ShowSchemaDesc showSchemaDesc) {
+    this.showSchemaDesc = showSchemaDesc;
   }
 
 }

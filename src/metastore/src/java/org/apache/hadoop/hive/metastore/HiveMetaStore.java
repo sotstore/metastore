@@ -1129,6 +1129,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           || !MetaStoreUtils.validateColNames(tbl.getSd().getCols())
           || (tbl.getPartitionKeys() != null && !MetaStoreUtils
               .validateColNames(tbl.getPartitionKeys()))
+          || (tbl.getFileSplitKeys() != null && !MetaStoreUtils
+              .validateColNames(tbl.getFileSplitKeys()))
           || !MetaStoreUtils.validateSkewedColNames(
               (null == tbl.getSd().getSkewedInfo()) ?
                   null : tbl.getSd().getSkewedInfo().getSkewedColNames())
