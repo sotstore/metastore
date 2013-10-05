@@ -19,7 +19,7 @@ public class MSGType {
       //新建表
   public static final int MSG_ALT_TALBE_NAME = 1102;
       //修改表名
-  public static final int MSG_ALT_TALBE_DISTRIBUTE = 1103;
+  public static final int MSG_ALT_TALBE_DISTRIBUTE = 1103;          ////这个先不管
       //修改表数据分布
   public static final int MSG_ALT_TALBE_PARTITIONING = 1104;
       //修改表分区方式
@@ -31,7 +31,7 @@ public class MSGType {
       //修改表修改列名
   public static final int MSG_ALT_TALBE_ALT_COL_TYPE = 1204;
       //修改表修改列类型
-  public static final int MSG_ALT_TALBE_ALT_COL_LENGTH = 1205;
+  public static final int MSG_ALT_TALBE_ALT_COL_LENGTH = 1205;        ////注意：本事件不会触发！！！
       //表参数变化
   public static final int MSG_ALT_TABLE_PARAM = 1206;
       //修改表修改列类型长度
@@ -43,7 +43,7 @@ public class MSGType {
       // 删除分区
   public static final int MSG_NEW_PARTITION_FILE =  1304;
       //增加分区文件
-  public static final int MSG_ALT_PARTITION_FILE =  1305;
+  public static final int MSG_ALT_PARTITION_FILE =  1305;           ////分区的先不管
       //修改分区文件
   public static final int MSG_REP_PARTITION_FILE_CHAGE =  1306;
       //分区文件副本变化
@@ -65,7 +65,7 @@ public class MSGType {
       //删除列索引
   public static final int MSG_NEW_PARTITION_INDEX =  1405;
       //新建分区索引
-  public static final int MSG_ALT_PARTITION_INDEX = 1406;
+  public static final int MSG_ALT_PARTITION_INDEX = 1406;           ////
       //修改分区索引
   public static final int MSG_DEL_PARTITION_INDEX = 1407;
       // 删除分区索引
@@ -89,9 +89,12 @@ public class MSGType {
       //节点故障
   public static final int MSG_BACK_NODE = 1504;
       //节点恢复
-
   public static final int MSG_DDL_DIRECT_DW1 = 2001;
   //dw1 专用DDL语句
   public static final int MSG_DDL_DIRECT_DW2 = 2002;
   //dw2 专用DDL语句
+
+  public static final int MSG_NEW_NODEGROUP = 3001;     //新增节点组
+  public static final int MSG_MODIFY_NODEGROUP = 3002;      //修改节点组
+  public static final int MSG_DEL_NODEGROUP = 3003;         //删除节点组
 }

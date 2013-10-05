@@ -24,22 +24,22 @@ import java.util.Set;
 
 public class MTable {
 
-  private String tableName;
+  private String tableName;//
   private MDatabase database;
   private MSchema schema;
-  private MStorageDescriptor sd;
+  private MStorageDescriptor sd;//
   private String owner;
   private int createTime;
   private int lastAccessTime;
   private int retention;
-  private List<MFieldSchema> partitionKeys;
-  private Map<String, String> parameters;
+  private List<MFieldSchema> partitionKeys;//
+  private Map<String, String> parameters;//
   private String viewOriginalText;
   private String viewExpandedText;
   private String tableType;
 
-  private List<MFieldSchema> fileSplitKeys;
-  private Set<MNodeGroup> groupDistribute;
+  private List<MFieldSchema> fileSplitKeys;//
+  private Set<MNodeGroup> groupDistribute;//
 
   public MTable() {}
 

@@ -7,7 +7,7 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.hive.metastore.ObjectStore;
+import org.apache.hadoop.hive.metastore.ObjectStore; 
 import org.apache.hadoop.hive.metastore.msg.MSGFactory.DDLMsg;
 
 import com.taobao.metamorphosis.Message;
@@ -17,7 +17,7 @@ import com.taobao.metamorphosis.client.MetaMessageSessionFactory;
 import com.taobao.metamorphosis.client.consumer.ConsumerConfig;
 import com.taobao.metamorphosis.client.consumer.MessageConsumer;
 import com.taobao.metamorphosis.client.producer.MessageProducer;
-import com.taobao.metamorphosis.client.producer.SendResult;
+import com.taobao.metamorphosis.client.producer.SendResult; 
 import com.taobao.metamorphosis.exception.MetaClientException;
 import com.taobao.metamorphosis.utils.ZkUtils.ZKConfig;
 
@@ -60,6 +60,7 @@ public class MetaMsgServer {
     send.release();
   }
 
+  //zy  是不是应该release多个
   public static void sendMsg(List<DDLMsg> msgs) {
     queue.addAll(msgs);
     send.release();
@@ -229,7 +230,8 @@ public class MetaMsgServer {
     if(times <= 0){
       return false;
     }
-
+    //zy
+    //第一次失败,第二次发送成功的话依然返回false把..
     boolean success = false;
     try{
       success = producer.sendMsg(jsonMsg);
