@@ -8387,7 +8387,6 @@ public MUser getMUser(String userName) {
   }
   @Override
   public boolean modifyGeoLocation(GeoLocation gl) throws MetaException {
-
     boolean success = false;
     boolean committed = false;
     try {
@@ -9321,15 +9320,21 @@ public MUser getMUser(String userName) {
       openTransaction();
       MDatabase mdb = this.getMDatabase(dbName);
       MUser muser = this.getMUser(userName);
-      if (mdb.getUsers() != null) {
-        throw new MetaException("this" + userName + "already exists！");
+//      if (mdb.getUsers() != null) {
+//        throw new MetaException("this" + userName + "already exists！");
+//      }
+      if (muser == null) {
+        throw new MetaException("this" + userName + "does not exist.");
       }
       int now = (int)(System.currentTimeMillis()/1000);
+//      List<User> users = this.getUserByName(userName);
       List<MUser> musers  = new ArrayList<MUser>();
       musers.add(muser);
       muser.getDbs().add(mdb);
       pm.makePersistent(mdb);
       pm.makePersistent(muser);
+//      pm.makePersistent(mdb.getUsers());
+//      pm.makePersistent(muser.getDbs());
       commited = commitTransaction();
       success = true;
     } finally {
