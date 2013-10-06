@@ -2574,6 +2574,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getDMStatus failed: unknown result')
     end
 
+    def getNodeInfo()
+      send_getNodeInfo()
+      return recv_getNodeInfo()
+    end
+
+    def send_getNodeInfo()
+      send_message('getNodeInfo', GetNodeInfo_args)
+    end
+
+    def recv_getNodeInfo()
+      result = receive_message(GetNodeInfo_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getNodeInfo failed: unknown result')
+    end
+
     def migrate2_in(tbl, parts, idxs, from_db, to_nas_devid, fileMap)
       send_migrate2_in(tbl, parts, idxs, from_db, to_nas_devid, fileMap)
       return recv_migrate2_in()
@@ -4885,6 +4901,17 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'getDMStatus', seqid)
+    end
+
+    def process_getNodeInfo(seqid, iprot, oprot)
+      args = read_args(iprot, GetNodeInfo_args)
+      result = GetNodeInfo_result.new()
+      begin
+        result.success = @handler.getNodeInfo()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'getNodeInfo', seqid)
     end
 
     def process_migrate2_in(seqid, iprot, oprot)
@@ -10934,6 +10961,39 @@ module ThriftHiveMetastore
   end
 
   class GetDMStatus_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetNodeInfo_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetNodeInfo_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1

@@ -2217,8 +2217,6 @@ public class ObjectStore implements RawStore, Configurable {
     MNode mn = null;
     boolean commited = false;
 
-    LOG.info("---zjw--in getMnode,nodename:["+node_name+"]");
-
     try {
       openTransaction();
       if (!node_name.contains(".")) {

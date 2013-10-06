@@ -792,6 +792,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("getDMStatus\n");
   }
 
+  void getNodeInfo(std::string& _return) {
+    // Your implementation goes here
+    printf("getNodeInfo\n");
+  }
+
   bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) {
     // Your implementation goes here
     printf("migrate2_in\n");

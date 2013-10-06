@@ -6022,6 +6022,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return getMS().deleteNodeGroupAssignment(ng,dbName);
     }
 
+    @Override
+    public String getNodeInfo() throws MetaException, TException {
+      if (dm != null) {
+        return dm.getNodeInfo();
+      }
+      return "+FAIL: No DiskManger!\n";
+    }
+
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {
