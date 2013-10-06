@@ -1449,6 +1449,58 @@ public class DiskManager {
       }
     }
 
+    public List<Node> findBestNodes(Set<String> fromSet, int nr) throws IOException {
+      if (safeMode) {
+        throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
+      }
+      if (nr <= 0) {
+        return new ArrayList<Node>();
+      }
+      List<Node> r = new ArrayList<Node>(nr);
+      SortedMap<Long, String> m = new TreeMap<Long, String>();
+
+      for (String node : fromSet) {
+        NodeInfo ni = ndmap.get(node);
+        if (ni == null) {
+          continue;
+        }
+        synchronized (ni) {
+          List<DeviceInfo> dis = filterSharedDevice(node, ni.dis);
+          long thisfree = 0;
+
+          if (dis == null) {
+            continue;
+          }
+          for (DeviceInfo di : dis) {
+            thisfree += di.free;
+          }
+          if (thisfree > 0) {
+            m.put(thisfree, node);
+          }
+        }
+      }
+
+      int i = 0;
+      for (Map.Entry<Long, String> entry : m.entrySet()) {
+        if (i >= nr) {
+          break;
+        }
+        synchronized (rs) {
+          try {
+            Node n = rs.getNode(entry.getValue());
+            if (n != null) {
+              r.add(n);
+              i++;
+            }
+          } catch (MetaException e) {
+            LOG.error(e, e);
+          }
+
+        }
+      }
+      return r;
+    }
+
     public List<Node> findBestNodes(int nr) throws IOException {
       if (safeMode) {
         throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
@@ -1462,7 +1514,7 @@ public class DiskManager {
       for (Map.Entry<String, NodeInfo> entry : ndmap.entrySet()) {
         NodeInfo ni = entry.getValue();
         synchronized (ni) {
-          List<DeviceInfo> dis = ni.dis;
+          List<DeviceInfo> dis = filterSharedDevice(entry.getKey(), ni.dis);
           long thisfree = 0;
 
           if (dis == null) {
@@ -1512,7 +1564,7 @@ public class DiskManager {
       for (Map.Entry<String, NodeInfo> entry : ndmap.entrySet()) {
         NodeInfo ni = entry.getValue();
         synchronized (ni) {
-          List<DeviceInfo> dis = ni.dis;
+          List<DeviceInfo> dis = filterSharedDevice(entry.getKey(), ni.dis);
 
           if (dis == null) {
             continue;

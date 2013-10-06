@@ -5934,10 +5934,38 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public List<Node> find_best_nodes_in_groups(String arg0, String arg1, int arg2,
-        FindNodePolicy arg3) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+    public List<Node> find_best_nodes_in_groups(String dbName, String tableName, int nr,
+        FindNodePolicy fnp) throws MetaException, TException {
+      List<Node> r = new ArrayList<Node>();
+      Set<String> fromSet = new TreeSet<String>();
+      Table tbl = null;
+
+      tbl = this.get_table(dbName, tableName);
+      if (tbl.getNodeGroupsSize() > 0) {
+        for (NodeGroup ng : tbl.getNodeGroups()) {
+          if (ng.getNodesSize() > 0) {
+            switch (fnp) {
+            case SINGLE_NG:
+            case ALL_NGS:
+              for (Node n : ng.getNodes()) {
+                fromSet.add(n.getNode_name());
+              }
+              break;
+            }
+            if (fnp == FindNodePolicy.SINGLE_NG) {
+              break;
+            }
+          }
+        }
+      }
+      if (fromSet.size() > 0) {
+        try {
+          r = dm.findBestNodes(fromSet, nr);
+        } catch (IOException e) {
+          throw new MetaException(e.getMessage());
+        }
+      }
+      return r;
     }
 
     @Override
