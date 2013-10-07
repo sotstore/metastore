@@ -1194,6 +1194,16 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         LOG.info("--zjw--before crt");
         try{
         ms.createTable(tbl);
+
+        /**********added by zjw for schema and table when creating view********/
+        /**********with what need to notice is that table cache syn    ********/
+        /********** *  should compermise with schema                   ********/
+        /********** *  视图的table对象仅在全局点存储，视图的schema对象全局保存 ********/
+        if (TableType.VIRTUAL_VIEW.toString().equals(tbl.getTableType())) {
+          createSchema(copySchemaFromtable(tbl));
+        }
+        /**********end ofadded by zjw for creating view********/
+
         }catch(Exception e){
           LOG.error(e, e);
         }
@@ -1216,6 +1226,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           listener.onCreateTable(createTableEvent);
         }
       }
+    }
+
+    private GlobalSchema copySchemaFromtable(Table tbl){
+      GlobalSchema gs = new GlobalSchema(tbl.getSchemaName(), tbl.getOwner(),
+          tbl.getCreateTime(), tbl.getLastAccessTime(), tbl.getRetention(),
+          tbl.getSd(), tbl.getParameters(),
+          tbl.getViewOriginalText(), tbl.getViewExpandedText(), tbl.getTableType());
+      return gs;
     }
 
     private void createBusiTypeDC(final RawStore ms,Table tbl) throws MetaException{
