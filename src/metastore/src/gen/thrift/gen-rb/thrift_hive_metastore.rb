@@ -2574,6 +2574,70 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getDMStatus failed: unknown result')
     end
 
+    def getNodeInfo()
+      send_getNodeInfo()
+      return recv_getNodeInfo()
+    end
+
+    def send_getNodeInfo()
+      send_message('getNodeInfo', GetNodeInfo_args)
+    end
+
+    def recv_getNodeInfo()
+      result = receive_message(GetNodeInfo_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getNodeInfo failed: unknown result')
+    end
+
+    def migrate_in(tbl, files, idxs, from_db, to_devid, fileMap)
+      send_migrate_in(tbl, files, idxs, from_db, to_devid, fileMap)
+      return recv_migrate_in()
+    end
+
+    def send_migrate_in(tbl, files, idxs, from_db, to_devid, fileMap)
+      send_message('migrate_in', Migrate_in_args, :tbl => tbl, :files => files, :idxs => idxs, :from_db => from_db, :to_devid => to_devid, :fileMap => fileMap)
+    end
+
+    def recv_migrate_in()
+      result = receive_message(Migrate_in_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate_in failed: unknown result')
+    end
+
+    def migrate_stage1(dbName, tableName, files, to_db)
+      send_migrate_stage1(dbName, tableName, files, to_db)
+      return recv_migrate_stage1()
+    end
+
+    def send_migrate_stage1(dbName, tableName, files, to_db)
+      send_message('migrate_stage1', Migrate_stage1_args, :dbName => dbName, :tableName => tableName, :files => files, :to_db => to_db)
+    end
+
+    def recv_migrate_stage1()
+      result = receive_message(Migrate_stage1_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate_stage1 failed: unknown result')
+    end
+
+    def migrate_stage2(dbName, tableName, files, from_db, to_db, to_devid)
+      send_migrate_stage2(dbName, tableName, files, from_db, to_db, to_devid)
+      return recv_migrate_stage2()
+    end
+
+    def send_migrate_stage2(dbName, tableName, files, from_db, to_db, to_devid)
+      send_message('migrate_stage2', Migrate_stage2_args, :dbName => dbName, :tableName => tableName, :files => files, :from_db => from_db, :to_db => to_db, :to_devid => to_devid)
+    end
+
+    def recv_migrate_stage2()
+      result = receive_message(Migrate_stage2_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'migrate_stage2 failed: unknown result')
+    end
+
     def migrate2_in(tbl, parts, idxs, from_db, to_nas_devid, fileMap)
       send_migrate2_in(tbl, parts, idxs, from_db, to_nas_devid, fileMap)
       return recv_migrate2_in()
@@ -4885,6 +4949,50 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'getDMStatus', seqid)
+    end
+
+    def process_getNodeInfo(seqid, iprot, oprot)
+      args = read_args(iprot, GetNodeInfo_args)
+      result = GetNodeInfo_result.new()
+      begin
+        result.success = @handler.getNodeInfo()
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'getNodeInfo', seqid)
+    end
+
+    def process_migrate_in(seqid, iprot, oprot)
+      args = read_args(iprot, Migrate_in_args)
+      result = Migrate_in_result.new()
+      begin
+        result.success = @handler.migrate_in(args.tbl, args.files, args.idxs, args.from_db, args.to_devid, args.fileMap)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'migrate_in', seqid)
+    end
+
+    def process_migrate_stage1(seqid, iprot, oprot)
+      args = read_args(iprot, Migrate_stage1_args)
+      result = Migrate_stage1_result.new()
+      begin
+        result.success = @handler.migrate_stage1(args.dbName, args.tableName, args.files, args.to_db)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'migrate_stage1', seqid)
+    end
+
+    def process_migrate_stage2(seqid, iprot, oprot)
+      args = read_args(iprot, Migrate_stage2_args)
+      result = Migrate_stage2_result.new()
+      begin
+        result.success = @handler.migrate_stage2(args.dbName, args.tableName, args.files, args.from_db, args.to_db, args.to_devid)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'migrate_stage2', seqid)
     end
 
     def process_migrate2_in(seqid, iprot, oprot)
@@ -10940,6 +11048,167 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetNodeInfo_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class GetNodeInfo_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate_in_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    TBL = 1
+    FILES = 2
+    IDXS = 3
+    FROM_DB = 4
+    TO_DEVID = 5
+    FILEMAP = 6
+
+    FIELDS = {
+      TBL => {:type => ::Thrift::Types::STRUCT, :name => 'tbl', :class => ::Table},
+      FILES => {:type => ::Thrift::Types::LIST, :name => 'files', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}},
+      IDXS => {:type => ::Thrift::Types::LIST, :name => 'idxs', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Index}},
+      FROM_DB => {:type => ::Thrift::Types::STRING, :name => 'from_db'},
+      TO_DEVID => {:type => ::Thrift::Types::STRING, :name => 'to_devid'},
+      FILEMAP => {:type => ::Thrift::Types::MAP, :name => 'fileMap', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::SFileLocation}}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate_in_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate_stage1_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    TABLENAME = 2
+    FILES = 3
+    TO_DB = 4
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+      TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
+      FILES => {:type => ::Thrift::Types::LIST, :name => 'files', :element => {:type => ::Thrift::Types::I64}},
+      TO_DB => {:type => ::Thrift::Types::STRING, :name => 'to_db'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate_stage1_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFileLocation}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate_stage2_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DBNAME = 1
+    TABLENAME = 2
+    FILES = 3
+    FROM_DB = 4
+    TO_DB = 5
+    TO_DEVID = 6
+
+    FIELDS = {
+      DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
+      TABLENAME => {:type => ::Thrift::Types::STRING, :name => 'tableName'},
+      FILES => {:type => ::Thrift::Types::LIST, :name => 'files', :element => {:type => ::Thrift::Types::I64}},
+      FROM_DB => {:type => ::Thrift::Types::STRING, :name => 'from_db'},
+      TO_DB => {:type => ::Thrift::Types::STRING, :name => 'to_db'},
+      TO_DEVID => {:type => ::Thrift::Types::STRING, :name => 'to_devid'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class Migrate_stage2_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 

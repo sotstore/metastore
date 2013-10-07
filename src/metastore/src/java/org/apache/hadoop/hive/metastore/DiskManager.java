@@ -202,6 +202,21 @@ public class DiskManager {
       }
       DMReplyType type;
       String args;
+
+      @Override
+      public String toString() {
+        String r = "";
+        switch (type) {
+        case DELETED:
+          r += "DELETED";
+          break;
+        case REPLICATED:
+          r += "REPLICATED";
+          break;
+        }
+        r += ": {" + args + "}";
+        return r;
+      }
     }
 
     public static class DMRequest {
@@ -269,6 +284,8 @@ public class DiskManager {
       List<DeviceInfo> dis;
       Set<SFileLocation> toDelete;
       List<JSONObject> toRep;
+      String lastReportStr;
+      long totalReportNr = 0;
 
       public NodeInfo(List<DeviceInfo> dis) {
         this.lastRptTs = System.currentTimeMillis();
@@ -1154,6 +1171,22 @@ public class DiskManager {
       return marked;
     }
 
+    public String getNodeInfo() throws MetaException {
+      String r = "", prefix = " ";
+
+      r += "MetaStore Server Disk Manager listening @ " + hiveConf.getIntVar(HiveConf.ConfVars.DISKMANAGERLISTENPORT);
+      r += "\nActive Node Infos: {\n";
+      synchronized (ndmap) {
+        for (Map.Entry<String, NodeInfo> e : ndmap.entrySet()) {
+          r += prefix + " " + e.getKey() + " -> " + "Rpt TNr: " + e.getValue().totalReportNr + ", Last Rpt " + (System.currentTimeMillis() - e.getValue().lastRptTs)/1000 + "s ago, {\n";
+          r += prefix + e.getValue().lastReportStr + "}\n";
+        }
+      }
+      r += "}\n";
+
+      return r;
+    }
+
     public String getDMStatus() throws MetaException {
       String r = "";
 
@@ -1416,6 +1449,58 @@ public class DiskManager {
       }
     }
 
+    public List<Node> findBestNodes(Set<String> fromSet, int nr) throws IOException {
+      if (safeMode) {
+        throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
+      }
+      if (nr <= 0) {
+        return new ArrayList<Node>();
+      }
+      List<Node> r = new ArrayList<Node>(nr);
+      SortedMap<Long, String> m = new TreeMap<Long, String>();
+
+      for (String node : fromSet) {
+        NodeInfo ni = ndmap.get(node);
+        if (ni == null) {
+          continue;
+        }
+        synchronized (ni) {
+          List<DeviceInfo> dis = filterSharedDevice(node, ni.dis);
+          long thisfree = 0;
+
+          if (dis == null) {
+            continue;
+          }
+          for (DeviceInfo di : dis) {
+            thisfree += di.free;
+          }
+          if (thisfree > 0) {
+            m.put(thisfree, node);
+          }
+        }
+      }
+
+      int i = 0;
+      for (Map.Entry<Long, String> entry : m.entrySet()) {
+        if (i >= nr) {
+          break;
+        }
+        synchronized (rs) {
+          try {
+            Node n = rs.getNode(entry.getValue());
+            if (n != null) {
+              r.add(n);
+              i++;
+            }
+          } catch (MetaException e) {
+            LOG.error(e, e);
+          }
+
+        }
+      }
+      return r;
+    }
+
     public List<Node> findBestNodes(int nr) throws IOException {
       if (safeMode) {
         throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");
@@ -1429,7 +1514,7 @@ public class DiskManager {
       for (Map.Entry<String, NodeInfo> entry : ndmap.entrySet()) {
         NodeInfo ni = entry.getValue();
         synchronized (ni) {
-          List<DeviceInfo> dis = ni.dis;
+          List<DeviceInfo> dis = filterSharedDevice(entry.getKey(), ni.dis);
           long thisfree = 0;
 
           if (dis == null) {
@@ -1479,7 +1564,7 @@ public class DiskManager {
       for (Map.Entry<String, NodeInfo> entry : ndmap.entrySet()) {
         NodeInfo ni = entry.getValue();
         synchronized (ni) {
-          List<DeviceInfo> dis = ni.dis;
+          List<DeviceInfo> dis = filterSharedDevice(entry.getKey(), ni.dis);
 
           if (dis == null) {
             continue;
@@ -2072,6 +2157,26 @@ public class DiskManager {
         public String node = null;
         public List<DeviceInfo> dil = null;
         public List<DMReply> replies = null;
+
+        @Override
+        public String toString() {
+          String r = "";
+          if (dil != null) {
+            r += " DeviceInfo -> {\n";
+            for (DeviceInfo di : dil) {
+              r += " - " + di.dev + "," + di.mp + "," + di.used + "," + di.free + "\n";
+            }
+            r += "}\n";
+          }
+          if (replies != null) {
+            r += " CMDs -> {\n";
+            for (DMReply dmr : replies) {
+              r += " - " + dmr.toString() + "\n";
+            }
+            r += "}\n";
+          }
+          return r;
+        }
       }
 
       public DMReport parseReport(String recv) {
@@ -2094,13 +2199,15 @@ public class DiskManager {
           LOG.error("parseReport '" + recv + "' error.");
           r = null;
         }
-        String infos = "----node----->" + r.node + "\n";
+
+        //FIXME: do not print this info now
+        /*String infos = "----node----->" + r.node + "\n";
         if (r.dil != null) {
           for (DeviceInfo di : r.dil) {
             infos += "----DEVINFO------>" + di.dev + "," + di.mp + "," + di.used + "," + di.free + "\n";
           }
         }
-        LOG.debug(infos);
+        LOG.debug(infos);*/
 
         return r;
       }
@@ -2191,7 +2298,7 @@ public class DiskManager {
             continue;
           }
           String recvStr = new String(recvPacket.getData() , 0 , recvPacket.getLength());
-          LOG.debug("RECV: " + recvStr);
+          //LOG.debug("RECV: " + recvStr);
 
           DMReport report = parseReport(recvStr);
 
@@ -2228,6 +2335,15 @@ public class DiskManager {
             sendStr = "+FAIL\n";
             sendStr += "+COMMENT:" + errStr;
           } else {
+            // 0. update NodeInfo
+            NodeInfo oni = null;
+
+            oni = ndmap.get(reportNode.getNode_name());
+            if (oni != null) {
+              oni.totalReportNr++;
+              oni.lastReportStr = report.toString();
+            }
+
             // 1. update Node status
             switch (reportNode.getStatus()) {
             default:

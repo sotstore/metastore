@@ -504,14 +504,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           try {
             HMSHandler.topdcli.createDatabase(mdb);
           } catch (AlreadyExistsException e1) {
-            LOG.error(e, e);
+            LOG.error(e1, e1);
           } catch (TException e1) {
-            LOG.error(e, e);
-            throw new MetaException("Try to create dc to top-level attribution failed!");
+            LOG.error(e1, e1);
+            throw new MetaException("Try to create db to top-level attribution failed!");
           }
         } catch (TException e) {
           LOG.error(e, e);
-          throw new MetaException("Try to get dc from top-level attribution failed!");
+          throw new MetaException("Try to get db from top-level attribution failed!");
         }
       }
 
@@ -5166,7 +5166,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
         Boolean ret = false;
         try {
-          ret = getMS().authentication(user_name, passwd);
+          ret = getMS().authentication(user_name, "'" + passwd + "'");
         } catch (NoSuchObjectException e) {
           throw e;
         } catch (MetaException e) {
@@ -5952,10 +5952,38 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public List<Node> find_best_nodes_in_groups(String arg0, String arg1, int arg2,
-        FindNodePolicy arg3) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+    public List<Node> find_best_nodes_in_groups(String dbName, String tableName, int nr,
+        FindNodePolicy fnp) throws MetaException, TException {
+      List<Node> r = new ArrayList<Node>();
+      Set<String> fromSet = new TreeSet<String>();
+      Table tbl = null;
+
+      tbl = this.get_table(dbName, tableName);
+      if (tbl.getNodeGroupsSize() > 0) {
+        for (NodeGroup ng : tbl.getNodeGroups()) {
+          if (ng.getNodesSize() > 0) {
+            switch (fnp) {
+            case SINGLE_NG:
+            case ALL_NGS:
+              for (Node n : ng.getNodes()) {
+                fromSet.add(n.getNode_name());
+              }
+              break;
+            }
+            if (fnp == FindNodePolicy.SINGLE_NG) {
+              break;
+            }
+          }
+        }
+      }
+      if (fromSet.size() > 0) {
+        try {
+          r = dm.findBestNodes(fromSet, nr);
+        } catch (IOException e) {
+          throw new MetaException(e.getMessage());
+        }
+      }
+      return r;
     }
 
     @Override
@@ -6038,6 +6066,171 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     public boolean deleteNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException,
         TException {
       return getMS().deleteNodeGroupAssignment(ng,dbName);
+    }
+
+    @Override
+    public String getNodeInfo() throws MetaException, TException {
+      if (dm != null) {
+        return dm.getNodeInfo();
+      }
+      return "+FAIL: No DiskManger!\n";
+    }
+
+    @Override
+    public boolean migrate_in(Table tbl, List<SFile> files, List<Index> idxs, String from_db,
+        String to_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException {
+
+      LOG.info("Server files2: recv " + files.size() + " files in.");
+
+      // try to find and create the database, if it doesn't exist
+      try {
+        getMS().getDatabase(tbl.getDbName());
+      } catch (NoSuchObjectException e) {
+        // get the db from top attribution
+        Database db = null;
+
+        if (isTopAttribution()) {
+          throw new MetaException("Top Attribution '" + HiveConf.ConfVars.TOP_ATTRIBUTION + "' rejects any data migrations.");
+        } else {
+          if (HMSHandler.topdcli == null) {
+            // connect firstly
+            connect_to_top_attribution(hiveConf);
+            if (HMSHandler.topdcli == null) {
+              throw new MetaException("Top-level attribution metastore is null, please check!");
+            }
+          }
+          db = HMSHandler.topdcli.get_attribution(tbl.getDbName());
+        }
+
+        if (db != null) {
+          getMS().createDatabase(db);
+        }
+        LOG.info("Create database " + tbl.getDbName() + " done locally.");
+      }
+      // try to create the table, if it doesn't exist
+      try {
+        create_table(tbl);
+      } catch (AlreadyExistsException e) {
+        // it is ok, ignore it? alter_table?
+        alter_table(tbl.getDbName(), tbl.getTableName(), tbl);
+      }
+      LOG.info("Create table " + tbl.getTableName() + " done.");
+
+      // try to create the idxs, if they don't exist
+      if (idxs != null) {
+        for (Index i : idxs) {
+          try {
+            add_index(i, null);
+          } catch (AlreadyExistsException e) {
+            // it is ok, ignore it
+          }
+        }
+      }
+      LOG.info("Create indexs: " + idxs.size() + " done.");
+
+      // try to create the file now, without any active locations.
+      Set<SFile> fileToDel = new TreeSet<SFile>();
+      Set<SFileLocation> sflToDel = new TreeSet<SFileLocation>();
+      Map<Long, SFile> oldFidToNewFile = new HashMap<Long, SFile>();
+
+      for (Map.Entry<Long, SFileLocation> entry : fileMap.entrySet()) {
+        SFileLocation sfl = entry.getValue();
+
+        LOG.info("Add NEW SFL DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+        // FIXME: v0.2 to fix: add file values here!
+        SFile nfile = create_file_wo_location(3, tbl.getDbName(), tbl.getTableName(), null);
+        fileToDel.add(nfile);
+
+        sfl.setNode_name(dm.getAnyNode());
+        while (sfl.getNode_name() == null) {
+          LOG.warn("No active node in ndmap ... retry it.");
+          sfl.setNode_name(dm.getAnyNode());
+          try {
+            Thread.sleep(1000);
+          } catch (InterruptedException e) {
+            LOG.error(e, e);
+          }
+        }
+        sfl.setFid(nfile.getFid());
+        sfl.setRep_id(0);
+        sfl.setUpdate_time(System.currentTimeMillis());
+        sfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
+
+        if (!getMS().createFileLocation(sfl)) {
+          LOG.info("[ROLLBACK] Failed to create SFL " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+          // rollback to delete all files and locations
+          for (SFileLocation fl : sflToDel) {
+            getMS().delSFileLocation(fl.getDevid(), fl.getLocation());
+          }
+          for (SFile f : fileToDel) {
+            getMS().delSFile(f.getFid());
+          }
+          return false;
+        } else {
+          sflToDel.add(sfl);
+          List<SFileLocation> locations = new ArrayList<SFileLocation>();
+          locations.add(sfl);
+          nfile.setLocations(locations);
+          oldFidToNewFile.put(entry.getKey(), nfile);
+        }
+      }
+
+      // close the files
+      for (Map.Entry<Long, SFile> entry : oldFidToNewFile.entrySet()) {
+        close_file(entry.getValue());
+      }
+
+      LOG.info("OK, we will migrate Attribution " + from_db + " Table " +
+          tbl.getTableName() + "'s " + fileMap.size() + " files to local attribution.");
+
+      return true;
+    }
+
+    @Override
+    // Migrate use NAS-WAN-NAS fashion migration,
+    // In stage1, we get the file list and generate NAS file location list.
+    public List<SFileLocation> migrate_stage1(String dbName, String tableName, List<Long> files,
+        String to_db) throws MetaException, TException {
+      List<SFileLocation> r = new ArrayList<SFileLocation>();
+
+      // prepare files
+      for (Long fid : files) {
+        SFile f = get_file_by_id(fid);
+        // check file status
+        if (f.getStore_status() == MetaStoreConst.MFileStoreStatus.INCREATE ||
+            f.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED) {
+          LOG.warn("Invalid file (fid " + fid + ") status (INCREATE or CLOSED).");
+          r.clear();
+          return r;
+        }
+        boolean added = false;
+        if (f != null && f.getLocationsSize() > 0) {
+          for (SFileLocation sfl : f.getLocations()) {
+            if (sfl.getNode_name().equals("")) {
+              // this is the NAS location, record it
+              r.add(sfl);
+              LOG.info("sp -> SHARED SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+              added = true;
+              break;
+            }
+          }
+        }
+        if (!added) {
+          // record a non-NAS location
+          SFileLocation sfl = f.getLocations().get(0);
+          r.add(sfl);
+          LOG.info("sp -> SHARED SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+        }
+      }
+
+      return r;
+    }
+
+    @Override
+    public boolean migrate_stage2(String dbName, String tableName, List<Long> files,
+        String from_db, String to_db, String to_devid) throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return false;
     }
 
   }
@@ -6205,8 +6398,18 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           HiveConf.getIntVar(conf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
           conf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
           null);
+      // do authentication here!
+      String user_name = conf.getVar(HiveConf.ConfVars.HIVE_USER);
+      String passwd = conf.getVar(HiveConf.ConfVars.HIVE_USERPWD);
+      HMSHandler.topdcli.authentication(user_name, passwd);
       } catch (MetaException me) {
         LOG.info("Connect to top-level Attribution failed!");
+      } catch (NoSuchObjectException e) {
+        LOG.info("User authentication failed: NoSuchUser?");
+        throw new MetaException(e.getMessage());
+      } catch (TException e) {
+        LOG.info("User authentication failed with unknown TException!");
+        throw new MetaException(e.getMessage());
       }
     }
   }

@@ -1107,6 +1107,8 @@ public interface IMetaStoreClient {
 
   public String getDMStatus() throws MetaException, TException;
 
+  public String getNodeInfo() throws MetaException, TException;
+
   public boolean addDatawareHouseSql(Integer dwNum, String sql)throws MetaException, TException;
 
   public List<String> getSubPartitions(String dbName, String tabName, String partName) throws MetaException, TException;

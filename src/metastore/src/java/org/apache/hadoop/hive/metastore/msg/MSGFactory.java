@@ -22,6 +22,7 @@ import org.apache.hadoop.hive.metastore.model.MFile;
 import org.apache.hadoop.hive.metastore.model.MFileLocation;
 import org.apache.hadoop.hive.metastore.model.MIndex;
 import org.apache.hadoop.hive.metastore.model.MNode;
+import org.apache.hadoop.hive.metastore.model.MNodeGroup;
 import org.apache.hadoop.hive.metastore.model.MPartition;
 import org.apache.hadoop.hive.metastore.model.MPartitionIndex;
 import org.apache.hadoop.hive.metastore.model.MTable;
@@ -405,11 +406,14 @@ public class MSGFactory {
             params.put("old_column_name",msg.getOld_object_params().get("old_column_name"));
           }
           break;
-      case MSGType.MSG_ALT_TALBE_ALT_COL_TYPE :
+      case MSGType.MSG_ALT_TALBE_ALT_COL_TYPE :       //不需要指明是哪个列吗
             //修改表修改列类型
           MTable alt_col_type_tbl = (MTable)msg.getEventObject();
           params.put("db_name",alt_col_type_tbl.getDatabase().getName());
           params.put("table_name",alt_col_type_tbl.getTableName());
+          if(msg.getOld_object_params().containsKey("column_name")){        //add by zy
+            params.put("column_name", msg.getOld_object_params().get("column_name"));
+          }
           if(msg.getOld_object_params().containsKey("column_type")){
             params.put("column_type",msg.getOld_object_params().get("column_type"));
           }
@@ -452,8 +456,9 @@ public class MSGFactory {
           params.put("table_name",alt_part.getTable().getTableName());
           params.put("partition_name", alt_part.getPartitionName());
           if(alt_part.getPartition_level() ==2){
-            Long.parseLong(getIDFromJdoObjectId(alt_part.getParent().toString()));
-            params.put("parent_partition_name", alt_part.getPartitionName());
+            //modify by zy
+//            Long.parseLong(getIDFromJdoObjectId(alt_part.getParent().toString()));
+            params.put("parent_partition_name", alt_part.getParent().getPartitionName());
           }
           params.put("partition_level", alt_part.getPartition_level());
           if(msg.getOld_object_params().containsKey("old_partition_name")){
@@ -467,8 +472,9 @@ public class MSGFactory {
           params.put("table_name",del_part.getTable().getTableName());
           params.put("partition_name", del_part.getPartitionName());
           if(del_part.getPartition_level() ==2){
-            Long.parseLong(getIDFromJdoObjectId(del_part.getParent().toString()));
-            params.put("parent_partition_name", del_part.getPartitionName());
+          //modify by zy
+//            Long.parseLong(getIDFromJdoObjectId(del_part.getParent().toString()));
+            params.put("parent_partition_name", del_part.getParent().getPartitionName());
           }
           params.put("partition_level", del_part.getPartition_level());
           break;
@@ -659,8 +665,13 @@ public class MSGFactory {
           if(msg.getOld_object_params().containsKey("param_name")){
             params.put("param_name",msg.getOld_object_params().get("param_name"));
           }
-      case MSGType.MSG_DEL_INDEX : break;
-            //删除列索引
+      case MSGType.MSG_DEL_INDEX :
+        //删除列索引
+        if(msg.getOld_object_params().containsKey("index_name")) {          //add by zy
+          params.put("index_name",msg.getOld_object_params().get("index_name"));
+        }
+        break;
+
       case MSGType.MSG_NEW_PARTITION_INDEX :
             //新建分区索引
           MPartitionIndex part_idx = (MPartitionIndex)msg.getEventObject();
@@ -764,6 +775,7 @@ public class MSGFactory {
             params.put("status", msg.getOld_object_params().get("status"));
           }
           break;
+
       case MSGType.MSG_DDL_DIRECT_DW1 :
         //dw1 专用DDL语句
           MDirectDDL direct_ddl1 = (MDirectDDL)msg.getEventObject();
@@ -774,6 +786,30 @@ public class MSGFactory {
           MDirectDDL direct_ddl2 = (MDirectDDL)msg.getEventObject();
           params.put("sql",direct_ddl2.getSql());
           break;
+
+      case MSGType.MSG_NEW_NODEGROUP:
+        //新建节点组
+        MNodeGroup newmng = (MNodeGroup)msg.getEventObject();
+        params.put("nodegroup_name",newmng.getNode_group_name());
+        break;
+      case MSGType.MSG_DEL_NODEGROUP:
+        //删除节点组
+        if(msg.getOld_object_params().containsKey("nodegroup_name")) {
+          params.put("nodegroup_name",msg.getOld_object_params().get("nodegroup_name"));
+        }
+        break;
+      case MSGType.MSG_MODIFY_NODEGROUP:
+        //修改节点组
+        MNodeGroup modmng = (MNodeGroup)msg.getEventObject();
+        if (msg.getOld_object_params().containsKey("nodegroup_name")) {
+          params.put("nodegroup_name", msg.getOld_object_params().get("nodegroup_name"));
+        } else {
+          params.put("nodegroup_name", modmng.getNode_group_name());
+        }
+        if (msg.getOld_object_params().containsKey("old_nodegroup_name")) {
+          params.put("old_nodegroup_name", msg.getOld_object_params().get("old_nodegroup_name"));
+        }
+        break;
     }//end of switch
 
 //    String jsonData = params.toString();

@@ -17,7 +17,7 @@ public class DDLTest {
 
     //String sql = "create eqroom('aaa',qw)comment 'dsds' on'ff'";
     //String sql = "drop eqroom'aaa'";
-    String sql = "modify eqroom('aaa',qq)comment 'dsds' on'ff'";
+    String sql = "modify eqroom('aaa',qq)'dsds' on'ff'";
     //String sql = "show eqroom";
 
     //String sql = "create NODEASSIGNMENT('aaa','qw')";

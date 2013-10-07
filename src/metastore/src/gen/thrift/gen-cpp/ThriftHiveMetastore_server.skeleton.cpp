@@ -792,6 +792,26 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("getDMStatus\n");
   }
 
+  void getNodeInfo(std::string& _return) {
+    // Your implementation goes here
+    printf("getNodeInfo\n");
+  }
+
+  bool migrate_in(const Table& tbl, const std::vector<SFile> & files, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_devid, const std::map<int64_t, SFileLocation> & fileMap) {
+    // Your implementation goes here
+    printf("migrate_in\n");
+  }
+
+  void migrate_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<int64_t> & files, const std::string& to_db) {
+    // Your implementation goes here
+    printf("migrate_stage1\n");
+  }
+
+  bool migrate_stage2(const std::string& dbName, const std::string& tableName, const std::vector<int64_t> & files, const std::string& from_db, const std::string& to_db, const std::string& to_devid) {
+    // Your implementation goes here
+    printf("migrate_stage2\n");
+  }
+
   bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) {
     // Your implementation goes here
     printf("migrate2_in\n");
