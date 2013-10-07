@@ -6058,6 +6058,130 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return "+FAIL: No DiskManger!\n";
     }
 
+    @Override
+    public boolean migrate_in(Table tbl, List<SFile> files, List<Index> idxs, String from_db,
+        String to_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException {
+
+      LOG.info("Server files2: recv " + files.size() + " files in.");
+
+      // try to find and create the database, if it doesn't exist
+      try {
+        getMS().getDatabase(tbl.getDbName());
+      } catch (NoSuchObjectException e) {
+        // get the db from top attribution
+        Database db = null;
+
+        if (isTopAttribution()) {
+          throw new MetaException("Top Attribution '" + HiveConf.ConfVars.TOP_ATTRIBUTION + "' rejects any data migrations.");
+        } else {
+          if (HMSHandler.topdcli == null) {
+            // connect firstly
+            connect_to_top_attribution(hiveConf);
+            if (HMSHandler.topdcli == null) {
+              throw new MetaException("Top-level attribution metastore is null, please check!");
+            }
+          }
+          db = HMSHandler.topdcli.get_attribution(tbl.getDbName());
+        }
+
+        if (db != null) {
+          getMS().createDatabase(db);
+        }
+        LOG.info("Create database " + tbl.getDbName() + " done locally.");
+      }
+      // try to create the table, if it doesn't exist
+      try {
+        create_table(tbl);
+      } catch (AlreadyExistsException e) {
+        // it is ok, ignore it? alter_table?
+        alter_table(tbl.getDbName(), tbl.getTableName(), tbl);
+      }
+      LOG.info("Create table " + tbl.getTableName() + " done.");
+
+      // try to create the idxs, if they don't exist
+      if (idxs != null) {
+        for (Index i : idxs) {
+          try {
+            add_index(i, null);
+          } catch (AlreadyExistsException e) {
+            // it is ok, ignore it
+          }
+        }
+      }
+      LOG.info("Create indexs: " + idxs.size() + " done.");
+
+      // try to create the file now, without any active locations.
+      Set<SFile> fileToDel = new TreeSet<SFile>();
+      Set<SFileLocation> sflToDel = new TreeSet<SFileLocation>();
+      Map<Long, SFile> oldFidToNewFile = new HashMap<Long, SFile>();
+
+      for (Map.Entry<Long, SFileLocation> entry : fileMap.entrySet()) {
+        SFileLocation sfl = entry.getValue();
+
+        LOG.info("Add NEW SFL DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+        // FIXME: v0.2 to fix: add file values here!
+        SFile nfile = create_file_wo_location(3, tbl.getDbName(), tbl.getTableName(), null);
+        fileToDel.add(nfile);
+
+        sfl.setNode_name(dm.getAnyNode());
+        while (sfl.getNode_name() == null) {
+          LOG.warn("No active node in ndmap ... retry it.");
+          sfl.setNode_name(dm.getAnyNode());
+          try {
+            Thread.sleep(1000);
+          } catch (InterruptedException e) {
+            LOG.error(e, e);
+          }
+        }
+        sfl.setFid(nfile.getFid());
+        sfl.setRep_id(0);
+        sfl.setUpdate_time(System.currentTimeMillis());
+        sfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
+
+        if (!getMS().createFileLocation(sfl)) {
+          LOG.info("[ROLLBACK] Failed to create SFL " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+          // rollback to delete all files and locations
+          for (SFileLocation fl : sflToDel) {
+            getMS().delSFileLocation(fl.getDevid(), fl.getLocation());
+          }
+          for (SFile f : fileToDel) {
+            getMS().delSFile(f.getFid());
+          }
+          return false;
+        } else {
+          sflToDel.add(sfl);
+          List<SFileLocation> locations = new ArrayList<SFileLocation>();
+          locations.add(sfl);
+          nfile.setLocations(locations);
+          oldFidToNewFile.put(entry.getKey(), nfile);
+        }
+      }
+
+      // close the files
+      for (Map.Entry<Long, SFile> entry : oldFidToNewFile.entrySet()) {
+        close_file(entry.getValue());
+      }
+
+      LOG.info("OK, we will migrate Attribution " + from_db + " Table " +
+          tbl.getTableName() + "'s " + fileMap.size() + " files to local attribution.");
+
+      return true;
+    }
+
+    @Override
+    public List<SFileLocation> migrate_stage1(String dbName, String tableName, List<Long> files,
+        String to_db) throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public boolean migrate_stage2(String dbName, String tableName, List<Long> files,
+        String from_db, String to_db, String to_devid) throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {
