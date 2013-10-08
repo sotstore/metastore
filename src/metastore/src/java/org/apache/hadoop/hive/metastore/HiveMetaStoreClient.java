@@ -102,7 +102,6 @@ import org.apache.thrift.transport.TMemoryBuffer;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
-//import org.apache.hadoop.hive.ql.metadata.HiveException;
 
 /**
  * Hive Metastore Client.
@@ -2028,19 +2027,19 @@ public boolean authentication(String user_name, String passwd)
 
   @Override
   public GeoLocation getGeoLocationByName(String geoLocName) throws MetaException, TException {
-    return client.getGeoLocationByName("geoLocName");
+    return client.getGeoLocationByName(geoLocName);
   }
 
   @Override
-  public boolean addNodeAssignment(String nodename, String dbname) throws MetaException,
+  public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException,
       NoSuchObjectException, TException {
-    return client.addNodeAssignment("nodeName", "dbName");
+    return client.addNodeAssignment(nodeName, dbName);
   }
 
   @Override
   public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException,
       NoSuchObjectException, TException {
-    return client.deleteNodeAssignment("nodeName", "dbName");
+    return client.deleteNodeAssignment(nodeName, dbName);
   }
 
   @Override
