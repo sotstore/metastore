@@ -2085,7 +2085,7 @@ public class Hive {
 //      }
 
       boolean success = false;
-      success = getMSC().authentication(userName, passwd);
+      success = getMSC().authentication(userName, passwd.substring(1, passwd.lastIndexOf("'")));
       if (success) {
         ret = 0;
       } else {
@@ -2512,7 +2512,7 @@ public class Hive {
       String user_name = conf.get(HiveConf.ConfVars.HIVE_USER.varname, "root");
       String passwd = conf.get(HiveConf.ConfVars.HIVE_USERPWD.varname, "111111");
       try {
-        metaStoreClient.authentication(user_name, "'" + passwd + "'");
+        metaStoreClient.authentication(user_name, passwd);
       } catch (NoSuchObjectException e) {
         e.printStackTrace();
         throw new MetaException(e.getMessage());
