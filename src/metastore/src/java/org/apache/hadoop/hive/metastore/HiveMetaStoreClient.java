@@ -89,7 +89,6 @@ import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.model.MetaStoreConst;
-import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -2216,6 +2215,40 @@ public boolean authentication(String user_name, String passwd)
   @Override
   public String getNodeInfo() throws MetaException, TException {
     return client.getNodeInfo();
+  }
+
+  @Override
+  public boolean migrate_in(Table tbl, List<SFile> files, List<Index> idxs, String from_db,
+      String to_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException {
+    assert tbl != null;
+    assert files != null;
+    assert idxs != null;
+    assert from_db != null;
+    assert to_devid != null;
+    assert fileMap != null;
+    return client.migrate_in(tbl, files, idxs, from_db, to_devid, fileMap);
+  }
+
+  @Override
+  public List<SFileLocation> migrate_stage1(String dbName, String tableName, List<Long> files,
+      String to_db) throws MetaException, TException {
+    assert dbName != null;
+    assert tableName != null;
+    assert files != null;
+    assert to_db != null;
+    return client.migrate_stage1(dbName, tableName, files, to_db);
+  }
+
+  @Override
+  public boolean migrate_stage2(String dbName, String tableName, List<Long> files, String from_db,
+      String to_db, String to_devid) throws MetaException, TException {
+    assert dbName != null;
+    assert tableName != null;
+    assert files != null;
+    assert from_db != null;
+    assert to_db != null;
+    assert to_devid != null;
+    return client.migrate_stage2(dbName, tableName, files, from_db, to_db, to_devid);
   }
 
 }

@@ -5174,8 +5174,10 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
     if (ret) {
       HiveMetaStoreServerContext serverContext = HiveMetaStoreServerEventHandler.getServerContext(msss.getSessionId());
-      serverContext.setUserName(user_name);
-      serverContext.setAuthenticated(true);
+      if (serverContext != null) {
+        serverContext.setUserName(user_name);
+        serverContext.setAuthenticated(true);
+      }
     }
     return ret;
   }

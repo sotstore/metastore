@@ -2509,8 +2509,8 @@ public class Hive {
     if (metaStoreClient == null) {
       metaStoreClient = createMetaStoreClient();
       // do authentication here
-      String user_name = conf.get(HiveConf.ConfVars.HIVE_USER.varname, "root");
-      String passwd = conf.get(HiveConf.ConfVars.HIVE_USERPWD.varname, "111111");
+      String user_name = conf.getVar(HiveConf.ConfVars.HIVE_USER);
+      String passwd = conf.getVar(HiveConf.ConfVars.HIVE_USERPWD);
       try {
         metaStoreClient.authentication(user_name, passwd);
       } catch (NoSuchObjectException e) {

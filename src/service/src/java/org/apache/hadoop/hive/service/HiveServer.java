@@ -508,7 +508,6 @@ public class HiveServer extends ThriftHive {
           }
         }
 
-        password = "'" + password + "'";
         ret = this.authentication(user, password);//true then ret = 0; authenticated user.
         if (ret == false) {
           LOG.info(user+ "with pwd='"+ password+ "' is invalid!");
