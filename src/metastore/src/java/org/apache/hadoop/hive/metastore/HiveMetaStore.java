@@ -6211,8 +6211,151 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public boolean migrate_stage2(String dbName, String tableName, List<Long> files,
         String from_db, String to_db, String to_devid) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+      // prepare attribution connection
+      if (HMSHandler.topdcli == null) {
+        connect_to_top_attribution(hiveConf);
+        if (HMSHandler.topdcli == null) {
+          throw new MetaException("Top-level attribution metastore is null, please check!");
+        }
+      }
+      if (hiveConf.getVar(ConfVars.LOCAL_ATTRIBUTION) == null) {
+        throw new MetaException("Please set 'hive.attribution.local' as local datacenter NAME.");
+      }
+      Database rdb = HMSHandler.topdcli.get_attribution(to_db);
+      Database ldb;
+      if (from_db == null) {
+        ldb = get_attribution(hiveConf.getVar(ConfVars.LOCAL_ATTRIBUTION));
+      } else {
+        ldb = get_attribution(from_db);
+      }
+
+      IMetaStoreClient rcli = new HiveMetaStoreClient(rdb.getParameters().get("service.metastore.uri"),
+            HiveConf.getIntVar(hiveConf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
+            hiveConf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
+            null);
+
+      // prepare tbl
+      Table tbl = get_table(dbName, tableName);
+      // change tbl's dbname to rdb
+      tbl.setDbName(rdb.getName());
+
+      // set tbl properties
+      Map<String, String> kvs = new HashMap<String, String>();
+      boolean isMaster = false;
+      if (tbl.getParametersSize() > 0) {
+        LOG.info(tbl.getParameters().toString());
+        kvs.putAll(tbl.getParameters());
+        kvs.put("store.remote", "both");
+        if (kvs.get("store.identify") == null) {
+          kvs.put("store.identify", "slave");
+          isMaster = true;
+        } else {
+          if (kvs.get("store.identify").equalsIgnoreCase("slave")) {
+            // this means migrate from slave table back to master table
+            LOG.info("Migrate from slave table to other table (slave?).");
+            isMaster = false;
+          } else {
+            LOG.info("Migrate from master table again.");
+            kvs.put("store.identify", "slave");
+            isMaster = true;
+          }
+        }
+
+        if (kvs.get("store.remote.dbs") == null) {
+          kvs.put("store.remote.dbs", to_db + "," + ldb.getName());
+        } else {
+          String olddcs = kvs.get("store.remote.dbs");
+          String[] dcsarray = olddcs.split(",");
+          boolean ign = false;
+          for (int i = 0; i < dcsarray.length; i++) {
+            if (dcsarray[i].equals(to_db)) {
+              ign = true;
+              break;
+            }
+          }
+          if (!ign) {
+            olddcs += "," + to_db;
+          }
+          kvs.put("store.remote.dbs", olddcs);
+        }
+        tbl.setParameters(kvs);
+      } else {
+        tbl.setParameters(kvs);
+      }
+
+      // prepare index
+      short maxIndexNum = 1000;
+      List<Index> idxs = get_indexes(dbName, tableName, maxIndexNum);
+      if (idxs != null && idxs.size() > 0) {
+        for (Index i : idxs) {
+          i.setDbName(to_db);
+          LOG.info("IDX -> " + i.getIndexName() + ", " + i.getParameters().toString());
+        }
+      }
+
+      // TODO: prepare files
+      List<SFile> sfiles = new ArrayList<SFile>();
+      Map<Long, SFileLocation> targetFileMap = new HashMap<Long, SFileLocation>();
+
+      // call remote metastore's migrate2_in to construct metadata
+      if (rcli.migrate_in(tbl, sfiles, idxs, ldb.getName(), to_devid, targetFileMap)) {
+        // wow, it is success, change tbl's dbname to dbName
+        tbl.setDbName(dbName);
+        // set tbl properties
+        kvs = new HashMap<String, String>();
+        if (tbl.getParametersSize() > 0) {
+          LOG.info(tbl.getParameters().toString());
+          kvs.putAll(tbl.getParameters());
+          kvs.put("store.remote", "both");
+          if (isMaster) {
+            kvs.put("store.identify", "master");
+          } else {
+            kvs.put("store.identify", "slave");
+          }
+          if (kvs.get("store.remote.dbs") == null) {
+            kvs.put("store.remote.dbs", to_db + "," + ldb.getName());
+          } else {
+            String olddcs = kvs.get("store.remote.dbs");
+            String[] dcsarray = olddcs.split(",");
+            boolean ign = false;
+            for (int i = 0; i < dcsarray.length; i++) {
+              if (dcsarray[i].equals(to_db)) {
+                ign = true;
+                break;
+              }
+            }
+            if (!ign) {
+              olddcs += "," + to_db;
+            }
+            kvs.put("store.remote.dbs", olddcs);
+          }
+          tbl.setParameters(kvs);
+        } else {
+          tbl.setParameters(kvs);
+        }
+        alter_table(dbName, tableName, tbl);
+        LOG.info("Update table properties to reflect the migration.");
+
+        HashMap<String,Object> old_params= new HashMap<String,Object>();
+        List<String> tmp = new ArrayList<String>();
+        tmp.add("store.remote");
+        tmp.add("store.remote.dbs");
+
+        old_params.put("tbl_param_keys", tmp);
+        old_params.put("db_name", tbl.getDbName());
+        old_params.put("table_name", tbl.getTableName());
+        MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_TABLE_PARAM,-1l,-1l, null,-1l,old_params));
+      } else {
+        LOG.info("Migrate2 through NAS-WAN-NAS failed at remote Attribuition " + to_db);
+        return false;
+      }
+      rcli.close();
+
+      // TODO: finally, remove local files
+
+      LOG.info("Finally, our migration succeed, files in this Attribution is deleted.");
+
+      return true;
     }
 
   }
