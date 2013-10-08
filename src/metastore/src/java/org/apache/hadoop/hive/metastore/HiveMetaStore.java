@@ -504,14 +504,14 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           try {
             HMSHandler.topdcli.createDatabase(mdb);
           } catch (AlreadyExistsException e1) {
-            LOG.error(e, e);
+            LOG.error(e1, e1);
           } catch (TException e1) {
-            LOG.error(e, e);
-            throw new MetaException("Try to create dc to top-level attribution failed!");
+            LOG.error(e1, e1);
+            throw new MetaException("Try to create db to top-level attribution failed!");
           }
         } catch (TException e) {
           LOG.error(e, e);
-          throw new MetaException("Try to get dc from top-level attribution failed!");
+          throw new MetaException("Try to get db from top-level attribution failed!");
         }
       }
 
@@ -5148,7 +5148,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
         Boolean ret = false;
         try {
-          ret = getMS().authentication(user_name, passwd);
+          ret = getMS().authentication(user_name, "'" + passwd + "'");
         } catch (NoSuchObjectException e) {
           throw e;
         } catch (MetaException e) {
@@ -6169,10 +6169,43 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
+    // Migrate use NAS-WAN-NAS fashion migration,
+    // In stage1, we get the file list and generate NAS file location list.
     public List<SFileLocation> migrate_stage1(String dbName, String tableName, List<Long> files,
         String to_db) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
+      List<SFileLocation> r = new ArrayList<SFileLocation>();
+
+      // prepare files
+      for (Long fid : files) {
+        SFile f = get_file_by_id(fid);
+        // check file status
+        if (f.getStore_status() == MetaStoreConst.MFileStoreStatus.INCREATE ||
+            f.getStore_status() == MetaStoreConst.MFileStoreStatus.CLOSED) {
+          LOG.warn("Invalid file (fid " + fid + ") status (INCREATE or CLOSED).");
+          r.clear();
+          return r;
+        }
+        boolean added = false;
+        if (f != null && f.getLocationsSize() > 0) {
+          for (SFileLocation sfl : f.getLocations()) {
+            if (sfl.getNode_name().equals("")) {
+              // this is the NAS location, record it
+              r.add(sfl);
+              LOG.info("sp -> SHARED SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+              added = true;
+              break;
+            }
+          }
+        }
+        if (!added) {
+          // record a non-NAS location
+          SFileLocation sfl = f.getLocations().get(0);
+          r.add(sfl);
+          LOG.info("sp -> SHARED SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+        }
+      }
+
+      return r;
     }
 
     @Override
@@ -6347,8 +6380,18 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           HiveConf.getIntVar(conf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
           conf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
           null);
+      // do authentication here!
+      String user_name = conf.getVar(HiveConf.ConfVars.HIVE_USER);
+      String passwd = conf.getVar(HiveConf.ConfVars.HIVE_USERPWD);
+      HMSHandler.topdcli.authentication(user_name, passwd);
       } catch (MetaException me) {
         LOG.info("Connect to top-level Attribution failed!");
+      } catch (NoSuchObjectException e) {
+        LOG.info("User authentication failed: NoSuchUser?");
+        throw new MetaException(e.getMessage());
+      } catch (TException e) {
+        LOG.info("User authentication failed with unknown TException!");
+        throw new MetaException(e.getMessage());
       }
     }
   }
