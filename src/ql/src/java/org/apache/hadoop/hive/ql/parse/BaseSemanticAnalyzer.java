@@ -605,12 +605,14 @@ TOK_PARTITION_EXPER--text:TOK_PARTITION_EXPER--tokenType:255
         case  HiveParser.TOK_TABLEPARTCOLS://part function:hash/list/range/interval
           getPartitionType( p_child,colList, pd);
           break;
+        case  HiveParser.TOK_SPLIT_EXPER:
         case  HiveParser.TOK_PARTITION_EXPER://一级分区定义，子分区定义也在此分支中处理
           zlog.warn("TOK_PARTITION_EXPER,tree+++++");
           List<PartitionDefinition> parts = getPartitionDef(p_child,global_sub_pd);
           pd.setPartitions(parts);
 
           break;
+        case  HiveParser.TOK_SUBSPLITED_BY:
         case  HiveParser.TOK_SUBPARTITIONED_BY://直接跟在一级分区定义后，本子分区定义会直接传递给一级分区的所有分区
           global_sub_pd = new PartitionDefinition();
           global_sub_pd.setTableName(pd.getTableName());
@@ -623,6 +625,7 @@ TOK_PARTITION_EXPER--text:TOK_PARTITION_EXPER--tokenType:255
 //          assert(colList.size() == 1);
 
           break;
+        case  HiveParser.TOK_SUBSPLIT_EXPER:
         case  HiveParser.TOK_SUBPARTITION_EXPER://用递归调用时，本分支仅在第二层调用，不用递归应放在TOK_SUBPARTITIONED_BY里面解析
           zlog.warn("TOK_SUBPARTITION_EXPER,tree-----");
           List<PartitionDefinition> sub_parts = getPartitionDef(p_child,global_sub_pd);
