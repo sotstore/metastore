@@ -4793,7 +4793,7 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       MRole nameCheck = this.getMRole(roleName);
       if (nameCheck != null) {
-        throw new InvalidObjectException("Role " + roleName + " already exists.");
+        throw new InvalidObjectException("Role " + roleName + " already exists");
       }
       int now = (int)(System.currentTimeMillis()/1000);
       MRole mRole = new MRole(roleName, now,
@@ -4870,7 +4870,7 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       MUser nameCheck = this.getMUser(userName);
       if (nameCheck != null) {
-        LOG.info("User "+ userName +" already exists!");
+        LOG.info("User "+ userName +" already exists");
         return false;
       }
         int now = (int)(System.currentTimeMillis()/1000);
@@ -9317,9 +9317,9 @@ public MUser getMUser(String userName) {
       MDatabase mdb = this.getMDatabase(dbName);
       MNode mnd = this.getMNode(nodeName);
       Set<MNode> nodes = mdb.getNodes();
-      if (mdb.getNodes() != null) {
-        throw new MetaException("this" + nodeName + "already exists!");
-      }
+//      if (mdb.getNodes() != null) {
+//        throw new MetaException("this " + nodeName + " already exists");
+//      }
       int now = (int) (System.currentTimeMillis() / 1000);
       nodes = new HashSet<MNode>();
       nodes.add(mnd);
@@ -9347,17 +9347,17 @@ public MUser getMUser(String userName) {
       MDatabase mdb = this.getMDatabase(dbName);
       MNode mnd = this.getMNode(nodeName);
       Set<MNode> nodes = mdb.getNodes();
-      if (mdb.getNodes() != null) {
-        throw new MetaException("this" + nodeName + "already exists!");
-      }
+//      if (mdb.getNodes() != null) {
+//        throw new MetaException("this " + nodeName + " already exists");
+//      }
       int now = (int) (System.currentTimeMillis() / 1000);
       nodes = new HashSet<MNode>();
       nodes.add(mnd);
       mnd.getDbs().remove(mdb);
       mdb.getNodes().remove(mnd);
-      pm.deletePersistent(mnd);
-      pm.deletePersistent(mdb);
-      pm.deletePersistentAll(nodes);
+      pm.makePersistent(mnd);
+      pm.makePersistent(mdb);
+//      pm.deletePersistentAll(nodes);
       commited = commitTransaction();
       success = true;
     } finally {
@@ -9493,15 +9493,12 @@ public MUser getMUser(String userName) {
       MDatabase mdb = this.getMDatabase(dbName);
       MUser muser = this.getMUser(userName);
 //      if (mdb.getUsers() != null) {
-//        throw new MetaException("this" + userName + "already exists！");
+//        throw new MetaException("this" + userName + "already exists");
 //      }
-      if (muser == null) {
-        throw new MetaException("this" + userName + "does not exist.");
-      }
       int now = (int)(System.currentTimeMillis()/1000);
 //      List<User> users = this.getUserByName(userName);
-      List<MUser> musers  = new ArrayList<MUser>();
-      musers.add(muser);
+//      List<MUser> musers  = new ArrayList<MUser>();
+//      musers.add(muser);
       muser.getDbs().add(mdb);
       mdb.getUsers().add(muser);
       pm.makePersistent(mdb);
@@ -9525,19 +9522,19 @@ public MUser getMUser(String userName) {
       openTransaction();
       MDatabase mdb = this.getMDatabase(dbName);
       MUser muser = this.getMUser(userName);
-      if (mdb.getUsers() != null) {
-        throw new MetaException("this" + userName + "already exists！");
-      }
+//      if (mdb.getUsers() == null) {
+//        throw new MetaException("this " + userName + " does not exist");
+//      }
       int now = (int)(System.currentTimeMillis()/1000);
-      List<MUser> musers  = new ArrayList<MUser>();
+//      List<MUser> musers  = new ArrayList<MUser>();
 //      muser.getDbs().remove(mdb);
 //      mdb.getUsers().remove(muser);
-      musers.add(muser);
+//      musers.add(muser);
       muser.getDbs().remove(mdb);
       mdb.getUsers().remove(muser);
-      pm.deletePersistent(mdb);
-      pm.deletePersistent(muser);
-      pm.deletePersistentAll(musers);
+      pm.makePersistent(mdb);
+      pm.makePersistent(muser);
+//      pm.deletePersistentAll(musers);
       commited = commitTransaction();
       success = true;
     } finally {
@@ -9589,12 +9586,12 @@ public MUser getMUser(String userName) {
       openTransaction();
       MDatabase mdb = this.getMDatabase(dbName);
       MRole mrole = this.getMRole(roleName);
-      if (mdb.getRoles() != null) {
-        throw new MetaException("this" + roleName + "already exists！");
-      }
+//      if (mdb.getRoles() != null) {
+//        throw new MetaException("this " + roleName + " already exists");
+//      }
       int now = (int)(System.currentTimeMillis()/1000);
-      List<MRole> mroles  = new ArrayList<MRole>();
-      mroles.add(mrole);
+//      List<MRole> mroles  = new ArrayList<MRole>();
+//      mroles.add(mrole);
       mrole.getDbs().add(mdb);
       mdb.getRoles().add(mrole);
       pm.makePersistent(mdb);
@@ -9618,17 +9615,17 @@ public MUser getMUser(String userName) {
       openTransaction();
       MDatabase mdb = this.getMDatabase(dbName);
       MRole mrole = this.getMRole(roleName);
-      if (mdb.getRoles() != null) {
-        throw new MetaException("this" + roleName + "already exists！");
-      }
+//      if (mdb.getRoles() != null) {
+//        throw new MetaException("this " + roleName + " already exists");
+//      }
       int now = (int)(System.currentTimeMillis()/1000);
-      List<MRole> mroles  = new ArrayList<MRole>();
-      mroles.add(mrole);
+//      List<MRole> mroles  = new ArrayList<MRole>();
+//      mroles.add(mrole);
       mrole.getDbs().remove(mdb);
       mdb.getRoles().remove(mrole);
-      pm.deletePersistent(mdb);
-      pm.deletePersistent(mrole);
-      pm.deletePersistentAll(mroles);
+      pm.makePersistent(mdb);
+      pm.makePersistent(mrole);
+//      pm.deletePersistentAll(mroles);
       commited = commitTransaction();
       success = true;
     } finally {
