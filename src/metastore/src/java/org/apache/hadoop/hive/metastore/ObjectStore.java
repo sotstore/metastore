@@ -9290,10 +9290,11 @@ public MUser getMUser(String userName) {
       if (mdb.getNodes() != null) {
         throw new MetaException("this" + nodeName + "already exists!");
       }
+      int now = (int) (System.currentTimeMillis() / 1000);
       nodes = new HashSet<MNode>();
       nodes.add(mnd);
       mnd.getDbs().add(mdb);
-      int now = (int) (System.currentTimeMillis() / 1000);
+      mdb.getNodes().add(mnd);
       pm.makePersistent(mnd);
       pm.makePersistent(mdb);
       commited = commitTransaction();
@@ -9319,12 +9320,14 @@ public MUser getMUser(String userName) {
       if (mdb.getNodes() != null) {
         throw new MetaException("this" + nodeName + "already exists!");
       }
+      int now = (int) (System.currentTimeMillis() / 1000);
       nodes = new HashSet<MNode>();
       nodes.add(mnd);
-      mnd.getDbs().add(mdb);
-      int now = (int) (System.currentTimeMillis() / 1000);
+      mnd.getDbs().remove(mdb);
+      mdb.getNodes().remove(mnd);
       pm.deletePersistent(mnd);
       pm.deletePersistent(mdb);
+      pm.deletePersistentAll(nodes);
       commited = commitTransaction();
       success = true;
     } finally {
@@ -9470,10 +9473,9 @@ public MUser getMUser(String userName) {
       List<MUser> musers  = new ArrayList<MUser>();
       musers.add(muser);
       muser.getDbs().add(mdb);
+      mdb.getUsers().add(muser);
       pm.makePersistent(mdb);
       pm.makePersistent(muser);
-//      pm.makePersistent(mdb.getUsers());
-//      pm.makePersistent(muser.getDbs());
       commited = commitTransaction();
       success = true;
     } finally {
@@ -9498,10 +9500,14 @@ public MUser getMUser(String userName) {
       }
       int now = (int)(System.currentTimeMillis()/1000);
       List<MUser> musers  = new ArrayList<MUser>();
+//      muser.getDbs().remove(mdb);
+//      mdb.getUsers().remove(muser);
       musers.add(muser);
-      muser.getDbs().add(mdb);
+      muser.getDbs().remove(mdb);
+      mdb.getUsers().remove(muser);
       pm.deletePersistent(mdb);
       pm.deletePersistent(muser);
+      pm.deletePersistentAll(musers);
       commited = commitTransaction();
       success = true;
     } finally {
@@ -9560,6 +9566,7 @@ public MUser getMUser(String userName) {
       List<MRole> mroles  = new ArrayList<MRole>();
       mroles.add(mrole);
       mrole.getDbs().add(mdb);
+      mdb.getRoles().add(mrole);
       pm.makePersistent(mdb);
       pm.makePersistent(mrole);
       commited = commitTransaction();
@@ -9587,9 +9594,11 @@ public MUser getMUser(String userName) {
       int now = (int)(System.currentTimeMillis()/1000);
       List<MRole> mroles  = new ArrayList<MRole>();
       mroles.add(mrole);
-      mrole.getDbs().add(mdb);
+      mrole.getDbs().remove(mdb);
+      mdb.getRoles().remove(mrole);
       pm.deletePersistent(mdb);
       pm.deletePersistent(mrole);
+      pm.deletePersistentAll(mroles);
       commited = commitTransaction();
       success = true;
     } finally {
