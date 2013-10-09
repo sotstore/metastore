@@ -701,5 +701,21 @@ public class GlobalSchema implements Serializable {
     return  getSchemaName();
   }
 
+  final public boolean isValidSpec(Map<String, String> spec)
+      throws HiveException {
+
+    // TODO - types need to be checked.
+    List<FieldSchema> partCols = tschema.getPartitionKeys();
+    if (partCols == null || (partCols.size() == 0)) {
+      if (spec != null) {
+        throw new HiveException(
+            "schema is not partitioned but partition spec exists: " + spec);
+      } else {
+        return true;
+      }
+    }
+
+    return true;
+  }
 
 };

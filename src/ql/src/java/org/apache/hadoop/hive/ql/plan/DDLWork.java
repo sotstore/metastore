@@ -152,6 +152,7 @@ public class DDLWork implements Serializable {
   private DropSchemaDesc dropSchemaDesc;
   private DescSchemaDesc descSchemaDesc;
   private ShowSchemaDesc showSchemaDesc;
+  private AlterSchemaDesc alterSchDesc;
 
 
   public DDLWork() {
@@ -876,6 +877,11 @@ public class DDLWork implements Serializable {
     this(inputs, outputs);
     this.showSchemaDesc = showSchemaDesc;
   }
+
+  public DDLWork(HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs,
+      AlterSchemaDesc alterSchDesc) {
+    this(inputs, outputs);
+    this.alterSchDesc = alterSchDesc;  }
 
   /**
    * @return Create Database descriptor
@@ -1929,6 +1935,14 @@ public class DDLWork implements Serializable {
 
   public void setShowSchemaDesc(ShowSchemaDesc showSchemaDesc) {
     this.showSchemaDesc = showSchemaDesc;
+  }
+
+  public AlterSchemaDesc getAlterSchDesc() {
+    return alterSchDesc;
+  }
+
+  public void setAlterSchDesc(AlterSchemaDesc alterSchDesc) {
+    this.alterSchDesc = alterSchDesc;
   }
 
 }
