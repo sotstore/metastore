@@ -89,6 +89,7 @@ import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.model.MetaStoreConst;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -2218,7 +2219,7 @@ public boolean authentication(String user_name, String passwd)
   }
 
   @Override
-  public boolean migrate_in(Table tbl, List<SFile> files, List<Index> idxs, String from_db,
+  public boolean migrate_in(Table tbl, Map<Long, SFile> files, List<Index> idxs, String from_db,
       String to_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException {
     assert tbl != null;
     assert files != null;
