@@ -539,9 +539,12 @@ public class ObjectStore implements RawStore, Configurable {
       query.declareParameters("java.lang.String schema_name");
       query.setUnique(true);
       mSchema = (MSchema) query.execute(schema_name);
-      pm.retrieve(mSchema);
-      pm.retrieve(mSchema.getSd());
-      pm.retrieve(mSchema.getSd().getCD());
+      if(mSchema != null){
+        pm.retrieve(mSchema);
+        pm.retrieve(mSchema.getSd());
+        pm.retrieve(mSchema.getSd().getCD());
+        pm.retrieve(mSchema.getSd().getSerDeInfo());
+      }
       commited = commitTransaction();
     } finally {
       if (!commited) {
@@ -8572,9 +8575,35 @@ public MUser getMUser(String userName) {
 
   @Override
   public GlobalSchema getSchema(String schema_name) throws NoSuchObjectException,MetaException {
-    MSchema mSchema =  this.getMSchema(schema_name);
-    LOG.info("---zjw in  createSchema");
-    GlobalSchema schema = convertToSchema(mSchema);
+
+    MSchema mSchema = null;
+    GlobalSchema schema = null;
+    boolean commited = false;
+    try {
+      openTransaction();
+      schema_name = schema_name.toLowerCase().trim();
+      Query query = pm.newQuery(MSchema.class, "schemaName == schema_name");
+      query.declareParameters("java.lang.String schema_name");
+      query.setUnique(true);
+      mSchema = (MSchema) query.execute(schema_name);
+      if(mSchema != null){
+        pm.retrieve(mSchema);
+        pm.retrieve(mSchema.getSd());
+        pm.retrieve(mSchema.getSd().getCD());
+        pm.retrieve(mSchema.getSd().getSerDeInfo());
+        schema = convertToSchema(mSchema);
+      }
+
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    if (schema == null) {
+      throw new NoSuchObjectException("There is no schema named " + schema_name);
+    }
+
 
     return schema;
   }
@@ -8865,8 +8894,9 @@ public MUser getMUser(String userName) {
         pm.retrieve(ms.getSd());
         pm.retrieve(ms.getSd().getCD());
       }
-      success = commitTransaction();
       schemas = convertToSchemas(mschemas);
+      success = commitTransaction();
+
     } finally {
       if (!success) {
         rollbackTransaction();

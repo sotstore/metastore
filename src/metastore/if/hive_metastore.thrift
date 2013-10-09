@@ -963,6 +963,12 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   string getNodeInfo() throws(1:MetaException o1)
   
+  bool migrate_in(1:Table tbl, 2:map<i64, SFile> files, 3:list<Index> idxs, 4:string from_db, 5:string to_devid, 6:map<i64, SFileLocation> fileMap) throws (1:MetaException o1)
+  
+  list<SFileLocation> migrate_stage1(1:string dbName, 2:string tableName, 3:list<i64> files, 4:string to_db) throws (1:MetaException o1)
+  
+  bool migrate_stage2(1:string dbName, 2:string tableName, 3:list<i64> files, 4:string from_db, 5:string to_db, 6:string to_devid) throws (1:MetaException o1)
+  
   bool migrate2_in(1:Table tbl, 2:list<Partition> parts, 3:list<Index> idxs, 4:string from_db, 5:string to_nas_devid, 6:map<i64, SFileLocation> fileMap) throws (1:MetaException o1)
   
   list<SFileLocation> migrate2_stage1(1:string dbName, 2:string tableName, 3:list<string> partNames, 4:string to_db) throws (1:MetaException o1)

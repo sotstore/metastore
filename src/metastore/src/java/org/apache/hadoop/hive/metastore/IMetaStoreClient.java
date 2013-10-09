@@ -1126,6 +1126,15 @@ public interface IMetaStoreClient {
   public void update_attribution(Database db) throws NoSuchObjectException,
         InvalidOperationException, MetaException, TException;
 
+  public boolean migrate_in(Table tbl, Map<Long, SFile> files, List<Index> idxs, String from_db,
+      String to_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException;
+
+  public List<SFileLocation> migrate_stage1(String dbName, String tableName, List<Long> files,
+      String to_db) throws MetaException, TException;
+
+  public boolean migrate_stage2(String dbName, String tableName, List<Long> files,
+      String from_db, String to_db, String to_devid) throws MetaException, TException;
+
   public List<SFileLocation> migrate2_stage1(String dbName, String tableName, List<String> partNames, String to_dc)
       throws MetaException, TException;
 
