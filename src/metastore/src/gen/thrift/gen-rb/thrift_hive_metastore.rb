@@ -11103,7 +11103,7 @@ module ThriftHiveMetastore
 
     FIELDS = {
       TBL => {:type => ::Thrift::Types::STRUCT, :name => 'tbl', :class => ::Table},
-      FILES => {:type => ::Thrift::Types::LIST, :name => 'files', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}},
+      FILES => {:type => ::Thrift::Types::MAP, :name => 'files', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}},
       IDXS => {:type => ::Thrift::Types::LIST, :name => 'idxs', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Index}},
       FROM_DB => {:type => ::Thrift::Types::STRING, :name => 'from_db'},
       TO_DEVID => {:type => ::Thrift::Types::STRING, :name => 'to_devid'},

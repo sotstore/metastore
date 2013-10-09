@@ -5222,7 +5222,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Database rdb = HMSHandler.topdcli.get_attribution(to_db);
       Database ldb;
       if (from_db == null) {
-        ldb = get_attribution(hiveConf.getVar(ConfVars.LOCAL_ATTRIBUTION));
+        ldb = get_attribution(dbName);
       } else {
         ldb = get_attribution(from_db);
       }
@@ -5234,8 +5234,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
       // prepare tbl
       Table tbl = get_table(dbName, tableName);
-      // change tbl's dbname to rdb
-      tbl.setDbName(rdb.getName());
+      // keep tbl's dbName to ldb
+      tbl.setDbName(ldb.getName());
 
       // set tbl properties
       Map<String, String> kvs = new HashMap<String, String>();
@@ -5278,6 +5278,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
         tbl.setParameters(kvs);
       } else {
+        // there is always a kv, thus next line would never be reached.
         tbl.setParameters(kvs);
       }
 
@@ -6078,8 +6079,18 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return "+FAIL: No DiskManger!\n";
     }
 
+    private void migrate_rollback_tool(Set<SFile> fileToDel, Set<SFileLocation> sflToDel) throws MetaException {
+      // rollback to delete all files and locations
+      for (SFileLocation fl : sflToDel) {
+        getMS().delSFileLocation(fl.getDevid(), fl.getLocation());
+      }
+      for (SFile f : fileToDel) {
+        getMS().delSFile(f.getFid());
+      }
+    }
+
     @Override
-    public boolean migrate_in(Table tbl, List<SFile> files, List<Index> idxs, String from_db,
+    public boolean migrate_in(Table tbl, Map<Long, SFile> files, List<Index> idxs, String from_db,
         String to_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException {
 
       LOG.info("Server files2: recv " + files.size() + " files in.");
@@ -6138,42 +6149,49 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       for (Map.Entry<Long, SFileLocation> entry : fileMap.entrySet()) {
         SFileLocation sfl = entry.getValue();
 
-        LOG.info("Add NEW SFL DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
-        // FIXME: v0.2 to fix: add file values here!
-        SFile nfile = create_file_wo_location(3, tbl.getDbName(), tbl.getTableName(), null);
-        fileToDel.add(nfile);
+        try {
+          if (!dm.isSharedDevice(sfl.getDevid())) {
+            LOG.info("NEW SFL DEV " + sfl.getDevid() + " is NOT shared device??!");
+            throw new MetaException("Target device is not a valid shared device!");
+          }
 
-        sfl.setNode_name(dm.getAnyNode());
-        while (sfl.getNode_name() == null) {
-          LOG.warn("No active node in ndmap ... retry it.");
+          LOG.info("Add NEW SFL DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+          // FIXME: v0.2 to fix: add file values here!
+          SFile nfile = create_file_wo_location(3, tbl.getDbName(), tbl.getTableName(),
+              files.get(entry.getKey()).getValues());
+          fileToDel.add(nfile);
+
           sfl.setNode_name(dm.getAnyNode());
-          try {
-            Thread.sleep(1000);
-          } catch (InterruptedException e) {
-            LOG.error(e, e);
+          while (sfl.getNode_name() == null) {
+            LOG.warn("No active node in ndmap ... retry it.");
+            sfl.setNode_name(dm.getAnyNode());
+            try {
+              Thread.sleep(1000);
+            } catch (InterruptedException e) {
+              LOG.error(e, e);
+            }
           }
-        }
-        sfl.setFid(nfile.getFid());
-        sfl.setRep_id(0);
-        sfl.setUpdate_time(System.currentTimeMillis());
-        sfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
+          sfl.setFid(nfile.getFid());
+          sfl.setRep_id(0);
+          sfl.setUpdate_time(System.currentTimeMillis());
+          sfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
 
-        if (!getMS().createFileLocation(sfl)) {
-          LOG.info("[ROLLBACK] Failed to create SFL " + sfl.getDevid() + ", LOC " + sfl.getLocation());
-          // rollback to delete all files and locations
-          for (SFileLocation fl : sflToDel) {
-            getMS().delSFileLocation(fl.getDevid(), fl.getLocation());
+          if (!getMS().createFileLocation(sfl)) {
+            LOG.info("[ROLLBACK] Failed to create SFL " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+            migrate_rollback_tool(fileToDel, sflToDel);
+            return false;
+          } else {
+            sflToDel.add(sfl);
+            List<SFileLocation> locations = new ArrayList<SFileLocation>();
+            locations.add(sfl);
+            nfile.setLocations(locations);
+            oldFidToNewFile.put(entry.getKey(), nfile);
           }
-          for (SFile f : fileToDel) {
-            getMS().delSFile(f.getFid());
-          }
-          return false;
-        } else {
-          sflToDel.add(sfl);
-          List<SFileLocation> locations = new ArrayList<SFileLocation>();
-          locations.add(sfl);
-          nfile.setLocations(locations);
-          oldFidToNewFile.put(entry.getKey(), nfile);
+
+        } catch (Exception e) {
+          LOG.error(e, e);
+          migrate_rollback_tool(fileToDel, sflToDel);
+          throw new MetaException(e.getMessage());
         }
       }
 
@@ -6211,7 +6229,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             if (sfl.getNode_name().equals("")) {
               // this is the NAS location, record it
               r.add(sfl);
-              LOG.info("sp -> SHARED SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+              LOG.info("fid " + fid + " -> SHARED SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
               added = true;
               break;
             }
@@ -6221,7 +6239,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           // record a non-NAS location
           SFileLocation sfl = f.getLocations().get(0);
           r.add(sfl);
-          LOG.info("sp -> SHARED SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+          LOG.info("fid " + fid + "-> SHARED SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
         }
       }
 
@@ -6229,6 +6247,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
+    // from_db is set to table's dbName
+    // to_db only used to routing
     public boolean migrate_stage2(String dbName, String tableName, List<Long> files,
         String from_db, String to_db, String to_devid) throws MetaException, TException {
       // prepare attribution connection
@@ -6244,7 +6264,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Database rdb = HMSHandler.topdcli.get_attribution(to_db);
       Database ldb;
       if (from_db == null) {
-        ldb = get_attribution(hiveConf.getVar(ConfVars.LOCAL_ATTRIBUTION));
+        ldb = get_attribution(dbName);
       } else {
         ldb = get_attribution(from_db);
       }
@@ -6256,8 +6276,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
       // prepare tbl
       Table tbl = get_table(dbName, tableName);
-      // change tbl's dbname to rdb
-      tbl.setDbName(rdb.getName());
+      // keep tbl's dbname to ldb
+      tbl.setDbName(ldb.getName());
 
       // set tbl properties
       Map<String, String> kvs = new HashMap<String, String>();
@@ -6300,6 +6320,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
         tbl.setParameters(kvs);
       } else {
+        // there is always a kv, thus next line would never be reached.
         tbl.setParameters(kvs);
       }
 
@@ -6314,8 +6335,24 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       }
 
       // TODO: prepare files
-      List<SFile> sfiles = new ArrayList<SFile>();
+      Map<Long, SFile> sfiles = new HashMap<Long, SFile>();
       Map<Long, SFileLocation> targetFileMap = new HashMap<Long, SFileLocation>();
+
+      for (Long fid : files) {
+        SFile f = get_file_by_id(fid);
+        if (f != null && f.getLocationsSize() > 0) {
+          for (SFileLocation sfl : f.getLocations()) {
+            if (sfl.getNode_name().equals("")) {
+              // this is the SHARED location, record it
+              LOG.info("fid " + fid + " -> SFL: DEV" + sfl.getDevid() + ", LOC " + sfl.getLocation());
+              sfl.setDevid(to_devid);
+              sfl.setDigest("MIGRATE-DIGESTED!");
+              targetFileMap.put(fid, sfl);
+              sfiles.put(fid, f);
+            }
+          }
+        }
+      }
 
       // call remote metastore's migrate2_in to construct metadata
       if (rcli.migrate_in(tbl, sfiles, idxs, ldb.getName(), to_devid, targetFileMap)) {

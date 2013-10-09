@@ -1449,6 +1449,18 @@ public class DiskManager {
       }
     }
 
+    public boolean isSharedDevice(String devid) throws MetaException, NoSuchObjectException {
+      synchronized (rs) {
+        Device d = rs.getDevice(devid);
+        if (d.getProp() == MetaStoreConst.MDeviceProp.SHARED ||
+            d.getProp() == MetaStoreConst.MDeviceProp.BACKUP) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+
     public List<Node> findBestNodes(Set<String> fromSet, int nr) throws IOException {
       if (safeMode) {
         throw new IOException("Disk Manager is in Safe Mode, waiting for disk reports ...\n");

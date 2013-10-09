@@ -171,7 +171,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void get_all_nodes(std::vector<Node> & _return) = 0;
   virtual void getDMStatus(std::string& _return) = 0;
   virtual void getNodeInfo(std::string& _return) = 0;
-  virtual bool migrate_in(const Table& tbl, const std::vector<SFile> & files, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_devid, const std::map<int64_t, SFileLocation> & fileMap) = 0;
+  virtual bool migrate_in(const Table& tbl, const std::map<int64_t, SFile> & files, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_devid, const std::map<int64_t, SFileLocation> & fileMap) = 0;
   virtual void migrate_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<int64_t> & files, const std::string& to_db) = 0;
   virtual bool migrate_stage2(const std::string& dbName, const std::string& tableName, const std::vector<int64_t> & files, const std::string& from_db, const std::string& to_db, const std::string& to_devid) = 0;
   virtual bool migrate2_in(const Table& tbl, const std::vector<Partition> & parts, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_nas_devid, const std::map<int64_t, SFileLocation> & fileMap) = 0;
@@ -752,7 +752,7 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void getNodeInfo(std::string& /* _return */) {
     return;
   }
-  bool migrate_in(const Table& /* tbl */, const std::vector<SFile> & /* files */, const std::vector<Index> & /* idxs */, const std::string& /* from_db */, const std::string& /* to_devid */, const std::map<int64_t, SFileLocation> & /* fileMap */) {
+  bool migrate_in(const Table& /* tbl */, const std::map<int64_t, SFile> & /* files */, const std::vector<Index> & /* idxs */, const std::string& /* from_db */, const std::string& /* to_devid */, const std::map<int64_t, SFileLocation> & /* fileMap */) {
     bool _return = false;
     return _return;
   }
@@ -21448,7 +21448,7 @@ class ThriftHiveMetastore_migrate_in_args {
   virtual ~ThriftHiveMetastore_migrate_in_args() throw() {}
 
   Table tbl;
-  std::vector<SFile>  files;
+  std::map<int64_t, SFile>  files;
   std::vector<Index>  idxs;
   std::string from_db;
   std::string to_devid;
@@ -21460,7 +21460,7 @@ class ThriftHiveMetastore_migrate_in_args {
     tbl = val;
   }
 
-  void __set_files(const std::vector<SFile> & val) {
+  void __set_files(const std::map<int64_t, SFile> & val) {
     files = val;
   }
 
@@ -21515,7 +21515,7 @@ class ThriftHiveMetastore_migrate_in_pargs {
   virtual ~ThriftHiveMetastore_migrate_in_pargs() throw() {}
 
   const Table* tbl;
-  const std::vector<SFile> * files;
+  const std::map<int64_t, SFile> * files;
   const std::vector<Index> * idxs;
   const std::string* from_db;
   const std::string* to_devid;
@@ -25515,8 +25515,8 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void getNodeInfo(std::string& _return);
   void send_getNodeInfo();
   void recv_getNodeInfo(std::string& _return);
-  bool migrate_in(const Table& tbl, const std::vector<SFile> & files, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_devid, const std::map<int64_t, SFileLocation> & fileMap);
-  void send_migrate_in(const Table& tbl, const std::vector<SFile> & files, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_devid, const std::map<int64_t, SFileLocation> & fileMap);
+  bool migrate_in(const Table& tbl, const std::map<int64_t, SFile> & files, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_devid, const std::map<int64_t, SFileLocation> & fileMap);
+  void send_migrate_in(const Table& tbl, const std::map<int64_t, SFile> & files, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_devid, const std::map<int64_t, SFileLocation> & fileMap);
   bool recv_migrate_in();
   void migrate_stage1(std::vector<SFileLocation> & _return, const std::string& dbName, const std::string& tableName, const std::vector<int64_t> & files, const std::string& to_db);
   void send_migrate_stage1(const std::string& dbName, const std::string& tableName, const std::vector<int64_t> & files, const std::string& to_db);
@@ -27477,7 +27477,7 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return;
   }
 
-  bool migrate_in(const Table& tbl, const std::vector<SFile> & files, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_devid, const std::map<int64_t, SFileLocation> & fileMap) {
+  bool migrate_in(const Table& tbl, const std::map<int64_t, SFile> & files, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_devid, const std::map<int64_t, SFileLocation> & fileMap) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
