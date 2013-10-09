@@ -2218,7 +2218,7 @@ public boolean authentication(String user_name, String passwd)
   }
 
   @Override
-  public boolean migrate_in(Table tbl, List<SFile> files, List<Index> idxs, String from_db,
+  public boolean migrate_in(Table tbl, Map<Long, SFile> files, List<Index> idxs, String from_db,
       String to_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException {
     assert tbl != null;
     assert files != null;

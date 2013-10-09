@@ -4463,7 +4463,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           try {
             tbl = getMS().getTable(db_name, table_name);
           } catch (MetaException me) {
-            throw new FileOperationException("Invalid Table name:" + db_name + "/" + table_name, FOFailReason.INVALID_TABLE);
+            throw new FileOperationException("Invalid Table name:" + db_name + "/" + table_name + " + " + me.getMessage(), FOFailReason.INVALID_TABLE);
           }
           table_name = tbl.getDbName() + "/" + tbl.getTableName();
         }
