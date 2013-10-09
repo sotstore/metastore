@@ -69,6 +69,7 @@ import org.apache.hadoop.hive.ql.index.HiveIndexHandler;
 import org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat;
 import org.apache.hadoop.hive.ql.io.RCFileInputFormat;
 import org.apache.hadoop.hive.ql.lib.Node;
+import org.apache.hadoop.hive.ql.metadata.GlobalSchema;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveUtils;
@@ -76,6 +77,7 @@ import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.plan.*;
 import org.apache.hadoop.hive.ql.plan.AlterIndexDesc.AlterIndexTypes;
+import org.apache.hadoop.hive.ql.plan.AlterSchemaDesc.AlterSchemaTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
 import org.apache.hadoop.hive.ql.security.authorization.PrivilegeRegistry;
@@ -545,19 +547,116 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       ctx.setResFile(new Path(ctx.getLocalTmpFileURI()));
       analyzeShowSchema(ast);
       break;
-
-
-
     case HiveParser.TOK_ALTERSCHEMA_RENAME:
+      analyzeAlterSchemaRename(ast, false);
+      break;
     case HiveParser.TOK_ALTERSCHEMA_ADDCOLS:
+      analyzeAlterSchemaModifyCols(ast, AlterSchemaTypes.ADDCOLS);
+      break;
     case HiveParser.TOK_ALTERSCHEMA_REPLACECOLS:
+      analyzeAlterSchemaModifyCols(ast, AlterSchemaTypes.REPLACECOLS);
+      break;
     case HiveParser.TOK_ALTERSCHEMA_RENAMECOL:
+      analyzeAlterSchemaRenameCol(ast);
+      break;
     case HiveParser.TOK_ALTERSCHEMA_CHANGECOL_AFTER_POSITION:
     case HiveParser.TOK_ALTERSCHEMA_PROPERTIES:
+      analyzeAlterSchemaProps(ast, false);
       break;
     default:
       throw new SemanticException("Unsupported command.");
     }
+  }
+
+  private void analyzeAlterSchemaProps(ASTNode ast, boolean expectView) throws SemanticException {
+
+      String schemaName = getUnescapedName((ASTNode) ast.getChild(0));
+      HashMap<String, String> mapProp = getProps((ASTNode) (ast.getChild(1))
+          .getChild(0));
+      AlterSchemaDesc alterSchDesc =
+          new AlterSchemaDesc(AlterSchemaTypes.ADDPROPS, expectView);
+      alterSchDesc.setProps(mapProp);
+      alterSchDesc.setOldName(schemaName);
+
+      addInputsOutputsAlterSchema(schemaName, null, alterSchDesc);
+
+      rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+          alterSchDesc), conf));
+  }
+
+  private void analyzeAlterSchemaRenameCol(ASTNode ast) throws SemanticException {
+      String schName = getUnescapedName((ASTNode) ast.getChild(0));
+      String newComment = null;
+      String newType = null;
+      newType = getTypeStringFromAST((ASTNode) ast.getChild(3));
+      boolean first = false;
+      String flagCol = null;
+      ASTNode positionNode = null;
+      if (ast.getChildCount() == 6) {
+        newComment = unescapeSQLString(ast.getChild(4).getText());
+        positionNode = (ASTNode) ast.getChild(5);
+      } else if (ast.getChildCount() == 5) {
+        if (ast.getChild(4).getType() == HiveParser.StringLiteral) {
+          newComment = unescapeSQLString(ast.getChild(4).getText());
+        } else {
+          positionNode = (ASTNode) ast.getChild(4);
+        }
+      }
+
+      if (positionNode != null) {
+        if (positionNode.getChildCount() == 0) {
+          first = true;
+        } else {
+          flagCol = unescapeIdentifier(positionNode.getChild(0).getText());
+        }
+      }
+
+      String oldColName = ast.getChild(1).getText();
+      String newColName = ast.getChild(2).getText();
+
+      /* Validate the operation of renaming a column name. */
+      GlobalSchema gls = null;
+      try {
+        gls = db.getSchema(schName, true);
+      } catch (HiveException e) {
+        throw new SemanticException(ErrorMsg.INVALID_SCHEMA.getMsg(schName), e);
+      }
+      SkewedInfo skewInfo = gls.getTSchema().getSd().getSkewedInfo();
+      if ((null != skewInfo)
+          && (null != skewInfo.getSkewedColNames())
+          && skewInfo.getSkewedColNames().contains(oldColName)) {
+        throw new SemanticException(oldColName
+            + ErrorMsg.ALTER_SCHEMA_NOT_ALLOWED_RENAME_SKEWED_COLUMN.getMsg());
+      }
+
+      AlterSchemaDesc alterSchDesc = new AlterSchemaDesc(schName,
+          unescapeIdentifier(oldColName), unescapeIdentifier(newColName),
+          newType, newComment, first, flagCol);
+      addInputsOutputsAlterSchema(schName, null, alterSchDesc);
+
+      rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+          alterSchDesc), conf));
+    }
+
+  private void analyzeAlterSchemaModifyCols(ASTNode ast, AlterSchemaTypes alterType) throws SemanticException {
+      String schName = getUnescapedName((ASTNode) ast.getChild(0));
+      List<FieldSchema> newCols = getColumns((ASTNode) ast.getChild(1));
+      AlterSchemaDesc alterSchDesc = new AlterSchemaDesc(schName, newCols,
+          alterType);
+
+      addInputsOutputsAlterSchema(schName, null, alterSchDesc);
+      rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+          alterSchDesc), conf));
+  }
+
+  private void analyzeAlterSchemaRename(ASTNode ast, boolean expectView) throws SemanticException {
+      String schName = getUnescapedName((ASTNode) ast.getChild(0));
+      AlterSchemaDesc alterSchDesc = new AlterSchemaDesc(schName,
+          getUnescapedName((ASTNode) ast.getChild(1)), expectView);
+
+      addInputsOutputsAlterSchema(schName, null, alterSchDesc);
+      rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
+          alterSchDesc), conf));
   }
 
   private void analyzeDropSchema(ASTNode ast) throws SemanticException {
@@ -2117,6 +2216,34 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     }
   }
 
+  private void validateAlterSchemaType(GlobalSchema gls, AlterSchemaTypes op, boolean expectView)
+      throws SemanticException {
+    if (gls.isView()) {
+      if (!expectView) {
+        throw new SemanticException(ErrorMsg.ALTER_COMMAND_FOR_VIEWS.getMsg());
+      }
+
+      switch (op) {
+      case ADDPROPS:
+      case RENAME:
+      case ADDCOLS:
+      case REPLACECOLS:
+      case RENAMECOLUMN:
+        // allow this form
+        break;
+      default:
+        throw new SemanticException(ErrorMsg.ALTER_VIEW_DISALLOWED_OP.getMsg(op.toString()));
+      }
+    } else {
+      if (expectView) {
+        throw new SemanticException(ErrorMsg.ALTER_COMMAND_FOR_SCHEMAS.getMsg());
+      }
+    }
+    if (gls.isNonNative()) {
+      throw new SemanticException(ErrorMsg.ALTER_SCHEMA_NON_NATIVE.getMsg(gls.getSchemaName()));
+    }
+  }
+
   private void analyzeAlterTableProps(ASTNode ast, boolean expectView)
       throws SemanticException {
 
@@ -2274,6 +2401,23 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
 
     if (desc != null) {
       validateAlterTableType(tab, desc.getOp(), desc.getExpectView());
+    }
+  }
+
+  private void addInputsOutputsAlterSchema(String schemaName, HashMap<String, String> partSpec,
+      AlterSchemaDesc desc) throws SemanticException {
+    GlobalSchema sch = null;
+    try {
+      sch = db.getSchema(schemaName, true);
+    } catch (HiveException e) {
+      throw new SemanticException(ErrorMsg.INVALID_SCHEMA.getMsg(schemaName));
+    }
+
+    inputs.add(new ReadEntity(sch));
+    outputs.add(new WriteEntity(sch));
+
+    if (desc != null) {
+      validateAlterSchemaType(sch, desc.getOp(), desc.getExpectView());
     }
   }
 

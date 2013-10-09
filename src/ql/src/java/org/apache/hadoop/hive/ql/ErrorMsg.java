@@ -291,6 +291,12 @@ public enum ErrorMsg {
 
   HIVE_GROUPING_SETS_EXPR_NOT_IN_GROUPBY(10213,
     "Grouping sets expression is not in GROUP BY key"),
+  INVALID_SCHEMA(10214, "Schema not found", "42S02"),
+  ALTER_COMMAND_FOR_SCHEMAS(10215, "To alter a base schema you need to use the ALTER SCHEMA command."),
+  ALTER_SCHEMA_NON_NATIVE(10216, "ALTER SCHEMA cannot be used for a non-native schema"),
+  ALTER_SCHEMA_NOT_ALLOWED_RENAME_SKEWED_COLUMN(10217,
+      " is a skewed column. It's not allowed to rename skewed column"
+          + " or change skewed column type."),
 
   SCRIPT_INIT_ERROR(20000, "Unable to initialize custom script."),
   SCRIPT_IO_ERROR(20001, "An error occurred while reading or writing to your custom script. "
