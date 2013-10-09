@@ -5295,12 +5295,12 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     return 0;
   }
   /**
-   * Alter a given table.
+   * Alter a given schema.
    *
    * @param db
    *          The database in question.
-   * @param alterTbl
-   *          This is the table we're altering.
+   * @param alterSch
+   *          This is the schema we're altering.
    * @return Returns 0 when execution succeeds and above 0 if it fails.
    * @throws HiveException
    *           Throws this exception if an unexpected error occurs.

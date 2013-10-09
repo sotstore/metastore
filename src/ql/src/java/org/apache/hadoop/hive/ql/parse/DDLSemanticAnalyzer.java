@@ -559,10 +559,10 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     case HiveParser.TOK_ALTERSCHEMA_RENAMECOL:
       analyzeAlterSchemaRenameCol(ast);
       break;
-    case HiveParser.TOK_ALTERSCHEMA_CHANGECOL_AFTER_POSITION:
     case HiveParser.TOK_ALTERSCHEMA_PROPERTIES:
       analyzeAlterSchemaProps(ast, false);
       break;
+    case HiveParser.TOK_ALTERSCHEMA_CHANGECOL_AFTER_POSITION:
     default:
       throw new SemanticException("Unsupported command.");
     }

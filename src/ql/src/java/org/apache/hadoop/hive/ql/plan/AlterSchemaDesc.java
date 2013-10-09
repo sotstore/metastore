@@ -25,11 +25,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.hadoop.hive.metastore.api.GlobalSchema;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.ql.exec.Utilities;
-import org.apache.hadoop.hive.ql.metadata.Table;
-import org.apache.hadoop.hive.ql.parse.ParseUtils;
-import org.apache.hadoop.hive.ql.parse.SemanticException;
 
 /**
  * AlterSchemaDesc.
@@ -44,10 +42,7 @@ public class AlterSchemaDesc extends DDLDesc implements Serializable {
    *
    */
   public static enum AlterSchemaTypes {
-    RENAME, ADDCOLS, REPLACECOLS, ADDPROPS, ADDSERDE, ADDSERDEPROPS,
-    ADDFILEFORMAT, ADDCLUSTERSORTCOLUMN, RENAMECOLUMN, ADDPARTITION,
-    TOUCH, ARCHIVE, UNARCHIVE, ALTERPROTECTMODE, ALTERPARTITIONPROTECTMODE,
-    ALTERLOCATION, DROPPARTITION, RENAMEPARTITION, ADDSKEWEDBY, ALTERSKEWEDLOCATION
+    RENAME, ADDCOLS, REPLACECOLS, ADDPROPS, RENAMECOLUMN
   };
 
   public static enum ProtectModeType {
@@ -84,14 +79,14 @@ public class AlterSchemaDesc extends DDLDesc implements Serializable {
   boolean isStoredAsSubDirectories = false;
   List<String> skewedColNames;
   List<List<String>> skewedColValues;
-  Table table;
+  GlobalSchema gls;
 
   public AlterSchemaDesc() {
   }
 
   /**
-   * @param tblName
-   *          table name
+   * @param schName
+   *          schema name
    * @param oldColName
    *          old column name
    * @param newColName
@@ -99,10 +94,10 @@ public class AlterSchemaDesc extends DDLDesc implements Serializable {
    * @param newComment
    * @param newType
    */
-  public AlterSchemaDesc(String tblName, String oldColName, String newColName,
+  public AlterSchemaDesc(String schName, String oldColName, String newColName,
       String newType, String newComment, boolean first, String afterCol) {
     super();
-    oldName = tblName;
+    oldName = schName;
     this.oldColName = oldColName;
     this.newColName = newColName;
     newColType = newType;
@@ -127,7 +122,7 @@ public class AlterSchemaDesc extends DDLDesc implements Serializable {
 
   /**
    * @param name
-   *          name of the table
+   *          name of the schema
    * @param newCols
    *          new columns to be added
    */
@@ -155,61 +150,6 @@ public class AlterSchemaDesc extends DDLDesc implements Serializable {
     this.expectView = expectView;
   }
 
-  /**
-   *
-   * @param name
-   *          name of the table
-   * @param inputFormat
-   *          new table input format
-   * @param outputFormat
-   *          new table output format
-   * @param partSpec
-   */
-  public AlterSchemaDesc(String name, String inputFormat, String outputFormat,
-      String serdeName, String storageHandler, HashMap<String, String> partSpec) {
-    super();
-    op = AlterSchemaTypes.ADDFILEFORMAT;
-    oldName = name;
-    this.inputFormat = inputFormat;
-    this.outputFormat = outputFormat;
-    this.serdeName = serdeName;
-    this.storageHandler = storageHandler;
-    this.partSpec = partSpec;
-  }
-
-  public AlterSchemaDesc(String tableName, int numBuckets,
-      List<String> bucketCols, List<Order> sortCols) {
-    oldName = tableName;
-    op = AlterSchemaTypes.ADDCLUSTERSORTCOLUMN;
-    numberBuckets = numBuckets;
-    bucketColumns = new ArrayList<String>(bucketCols);
-    sortColumns = new ArrayList<Order>(sortCols);
-  }
-
-  public AlterSchemaDesc(String tableName, String newLocation,
-      HashMap<String, String> partSpec) {
-    op = AlterSchemaTypes.ALTERLOCATION;
-    this.oldName = tableName;
-    this.newLocation = newLocation;
-    this.partSpec = partSpec;
-  }
-
-  public AlterSchemaDesc(String tableName, Map<List<String>, String> locations,
-      HashMap<String, String> partSpec) {
-    op = AlterSchemaTypes.ALTERSKEWEDLOCATION;
-    this.oldName = tableName;
-    this.skewedLocations = locations;
-    this.partSpec = partSpec;
-  }
-
-  public AlterSchemaDesc(String tableName, boolean turnOffSkewed,
-      List<String> skewedColNames, List<List<String>> skewedColValues) {
-    oldName = tableName;
-    op = AlterSchemaTypes.ADDSKEWEDBY;
-    this.isTurnOffSkewed = turnOffSkewed;
-    this.skewedColNames = new ArrayList<String>(skewedColNames);
-    this.skewedColValues = new ArrayList<List<String>>(skewedColValues);
-  }
 
   @Explain(displayName = "new columns")
   public List<String> getNewColsString() {
@@ -225,6 +165,8 @@ public class AlterSchemaDesc extends DDLDesc implements Serializable {
       return "add columns";
     case REPLACECOLS:
       return "replace columns";
+    case ADDPROPS:
+      return "add properties";
     }
 
     return "unknown";
@@ -622,34 +564,6 @@ public class AlterSchemaDesc extends DDLDesc implements Serializable {
   }
 
   /**
-   * Validate alter table description.
-   *
-   * @throws SemanticException
-   */
-  public void validate() throws SemanticException {
-    if (null != table) {
-      /* Validate skewed information. */
-      ValidationUtility.validateSkewedInformation(
-          ParseUtils.validateColumnNameUniqueness(table.getCols()), this.getSkewedColNames(),
-          this.getSkewedColValues());
-    }
-  }
-
-  /**
-   * @return the table
-   */
-  public Table getTable() {
-    return table;
-  }
-
-  /**
-   * @param table the table to set
-   */
-  public void setTable(Table table) {
-    this.table = table;
-  }
-
-  /**
    * @return the isStoredAsSubDirectories
    */
   public boolean isStoredAsSubDirectories() {
@@ -663,4 +577,11 @@ public class AlterSchemaDesc extends DDLDesc implements Serializable {
     this.isStoredAsSubDirectories = isStoredAsSubDirectories;
   }
 
+  public GlobalSchema getGls() {
+    return gls;
+  }
+
+  public void setGls(GlobalSchema gls) {
+    this.gls = gls;
+  }
 }
