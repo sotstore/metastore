@@ -2927,7 +2927,7 @@ public class Hive {
 
   public void addNodeAssignment(NodeAssignment gd) throws HiveException {
     try {
-      getMSC().addNodeAssignment(gd.nodeName, gd.dbName);
+      getMSC().addNodeAssignment(gd.getNodeName(), gd.getDbName());
     } catch (Exception e) {
       throw new HiveException(e);
     }
@@ -2935,7 +2935,7 @@ public class Hive {
 
   public void dropNodeAssignment(NodeAssignment gd) throws HiveException {
     try {
-      getMSC().deleteNodeAssignment(gd.nodeName, gd.dbName);
+      getMSC().deleteNodeAssignment(gd.getNodeName(), gd.getDbName());
     } catch (Exception e) {
       throw new HiveException(e);
     }
@@ -3229,7 +3229,8 @@ public class Hive {
 
   public void addNodeGroupAssignment(NodeGroupAssignment nga) throws HiveException {
       try {
-        //getMSC().addNodeGroupAssignment(nga.getDbName(), nga.getNodeGroupName());
+        NodeGroup ng = new NodeGroup();//getMSC().getNodeGroupByName(nga.getNodeGroupName());
+        getMSC().addNodeGroupAssignment(ng, nga.getDbName());
       } catch (Exception e) {
         throw new HiveException(e);
       }
@@ -3237,7 +3238,8 @@ public class Hive {
 
   public void dropNodeGroupAssignment(NodeGroupAssignment nga) throws HiveException {
     try {
-      //getMSC().deleteNodeGroupAssignment(nga.getDbName(),nga.getNodeGroupName());
+      NodeGroup ng = new NodeGroup();//getMSC().getNodeGroupByName(nga.getNodeGroupName());
+      getMSC().deleteNodeGroupAssignment(ng, nga.getDbName());
     } catch (Exception e) {
       throw new HiveException(e);
     }
@@ -3256,7 +3258,7 @@ public class Hive {
 
   public void addRoleAssignment(RoleAssignment ra) throws HiveException {
     try {
-      //getMSC().addRoleAssignment(ra.getDbName(), ra.getRoleName());
+      getMSC().addRoleAssignment(ra.getRoleName(),ra.getDbName());
     } catch (Exception e) {
       throw new HiveException(e);
     }
@@ -3264,7 +3266,7 @@ public class Hive {
 
   public void dropRoleAssignment(RoleAssignment ra) throws HiveException {
     try {
-      //getMSC().deleteRoleAssignment(ra.getDbName(),ra.getRoleName());
+      getMSC().deleteRoleAssignment(ra.getRoleName(),ra.getDbName());
     } catch (Exception e) {
       throw new HiveException(e);
     }
@@ -3283,7 +3285,7 @@ public class Hive {
 
   public void addUserAssignment(UserAssignment ua) throws HiveException {
     try {
-      //getMSC().addUserAssignment(ua.getDbName(), ua.getUserName());
+      getMSC().addUserAssignment(ua.getUserName(),ua.getDbName());
     } catch (Exception e) {
       throw new HiveException(e);
     }
@@ -3291,7 +3293,7 @@ public class Hive {
 
   public void dropUserAssignment(UserAssignment ua) throws HiveException {
       try {
-        //getMSC().deleteUserAssignment(ua.getDbName(),ua.getUserName());
+        getMSC().deleteUserAssignment(ua.getUserName(),ua.getDbName());
       } catch (Exception e) {
         throw new HiveException(e);
       }

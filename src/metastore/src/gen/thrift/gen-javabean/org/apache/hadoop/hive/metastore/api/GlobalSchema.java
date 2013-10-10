@@ -6,30 +6,21 @@
  */
 package org.apache.hadoop.hive.metastore.api;
 
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.thrift.EncodingUtils;
+import org.apache.thrift.protocol.TTupleProtocol;
 import org.apache.thrift.scheme.IScheme;
 import org.apache.thrift.scheme.SchemeFactory;
 import org.apache.thrift.scheme.StandardScheme;
-
 import org.apache.thrift.scheme.TupleScheme;
-import org.apache.thrift.protocol.TTupleProtocol;
-import org.apache.thrift.protocol.TProtocolException;
-import org.apache.thrift.EncodingUtils;
-import org.apache.thrift.TException;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.EnumMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.EnumSet;
-import java.util.Collections;
-import java.util.BitSet;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, GlobalSchema._Fields>, java.io.Serializable, Cloneable {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("GlobalSchema");
@@ -63,6 +54,7 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
   private String viewExpandedText; // required
   private String schemaType; // required
   private PrincipalPrivilegeSet privileges; // optional
+  private List<FieldSchema> partitionKeys; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -124,7 +116,9 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
      */
     public static _Fields findByThriftIdOrThrow(int fieldId) {
       _Fields fields = findByThriftId(fieldId);
-      if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+      if (fields == null) {
+        throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+      }
       return fields;
     }
 
@@ -157,33 +151,33 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
   private static final int __LASTACCESSTIME_ISSET_ID = 1;
   private static final int __RETENTION_ISSET_ID = 2;
   private byte __isset_bitfield = 0;
-  private _Fields optionals[] = {_Fields.PRIVILEGES};
+  private final _Fields optionals[] = {_Fields.PRIVILEGES};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.SCHEMA_NAME, new org.apache.thrift.meta_data.FieldMetaData("schemaName", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.SCHEMA_NAME, new org.apache.thrift.meta_data.FieldMetaData("schemaName", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.OWNER, new org.apache.thrift.meta_data.FieldMetaData("owner", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.OWNER, new org.apache.thrift.meta_data.FieldMetaData("owner", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.CREATE_TIME, new org.apache.thrift.meta_data.FieldMetaData("createTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.CREATE_TIME, new org.apache.thrift.meta_data.FieldMetaData("createTime", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.LAST_ACCESS_TIME, new org.apache.thrift.meta_data.FieldMetaData("lastAccessTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.LAST_ACCESS_TIME, new org.apache.thrift.meta_data.FieldMetaData("lastAccessTime", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.RETENTION, new org.apache.thrift.meta_data.FieldMetaData("retention", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.RETENTION, new org.apache.thrift.meta_data.FieldMetaData("retention", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.SD, new org.apache.thrift.meta_data.FieldMetaData("sd", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.SD, new org.apache.thrift.meta_data.FieldMetaData("sd", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, StorageDescriptor.class)));
-    tmpMap.put(_Fields.PARAMETERS, new org.apache.thrift.meta_data.FieldMetaData("parameters", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
-            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
+    tmpMap.put(_Fields.PARAMETERS, new org.apache.thrift.meta_data.FieldMetaData("parameters", org.apache.thrift.TFieldRequirementType.DEFAULT,
+        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP,
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING),
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
-    tmpMap.put(_Fields.VIEW_ORIGINAL_TEXT, new org.apache.thrift.meta_data.FieldMetaData("viewOriginalText", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.VIEW_ORIGINAL_TEXT, new org.apache.thrift.meta_data.FieldMetaData("viewOriginalText", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.VIEW_EXPANDED_TEXT, new org.apache.thrift.meta_data.FieldMetaData("viewExpandedText", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.VIEW_EXPANDED_TEXT, new org.apache.thrift.meta_data.FieldMetaData("viewExpandedText", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.SCHEMA_TYPE, new org.apache.thrift.meta_data.FieldMetaData("schemaType", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.SCHEMA_TYPE, new org.apache.thrift.meta_data.FieldMetaData("schemaType", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.PRIVILEGES, new org.apache.thrift.meta_data.FieldMetaData("privileges", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.PRIVILEGES, new org.apache.thrift.meta_data.FieldMetaData("privileges", org.apache.thrift.TFieldRequirementType.OPTIONAL,
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PrincipalPrivilegeSet.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(GlobalSchema.class, metaDataMap);
@@ -716,114 +710,139 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
 
   @Override
   public boolean equals(Object that) {
-    if (that == null)
+    if (that == null) {
       return false;
-    if (that instanceof GlobalSchema)
+    }
+    if (that instanceof GlobalSchema) {
       return this.equals((GlobalSchema)that);
+    }
     return false;
   }
 
   public boolean equals(GlobalSchema that) {
-    if (that == null)
+    if (that == null) {
       return false;
+    }
 
     boolean this_present_schemaName = true && this.isSetSchemaName();
     boolean that_present_schemaName = true && that.isSetSchemaName();
     if (this_present_schemaName || that_present_schemaName) {
-      if (!(this_present_schemaName && that_present_schemaName))
+      if (!(this_present_schemaName && that_present_schemaName)) {
         return false;
-      if (!this.schemaName.equals(that.schemaName))
+      }
+      if (!this.schemaName.equals(that.schemaName)) {
         return false;
+      }
     }
 
     boolean this_present_owner = true && this.isSetOwner();
     boolean that_present_owner = true && that.isSetOwner();
     if (this_present_owner || that_present_owner) {
-      if (!(this_present_owner && that_present_owner))
+      if (!(this_present_owner && that_present_owner)) {
         return false;
-      if (!this.owner.equals(that.owner))
+      }
+      if (!this.owner.equals(that.owner)) {
         return false;
+      }
     }
 
     boolean this_present_createTime = true;
     boolean that_present_createTime = true;
     if (this_present_createTime || that_present_createTime) {
-      if (!(this_present_createTime && that_present_createTime))
+      if (!(this_present_createTime && that_present_createTime)) {
         return false;
-      if (this.createTime != that.createTime)
+      }
+      if (this.createTime != that.createTime) {
         return false;
+      }
     }
 
     boolean this_present_lastAccessTime = true;
     boolean that_present_lastAccessTime = true;
     if (this_present_lastAccessTime || that_present_lastAccessTime) {
-      if (!(this_present_lastAccessTime && that_present_lastAccessTime))
+      if (!(this_present_lastAccessTime && that_present_lastAccessTime)) {
         return false;
-      if (this.lastAccessTime != that.lastAccessTime)
+      }
+      if (this.lastAccessTime != that.lastAccessTime) {
         return false;
+      }
     }
 
     boolean this_present_retention = true;
     boolean that_present_retention = true;
     if (this_present_retention || that_present_retention) {
-      if (!(this_present_retention && that_present_retention))
+      if (!(this_present_retention && that_present_retention)) {
         return false;
-      if (this.retention != that.retention)
+      }
+      if (this.retention != that.retention) {
         return false;
+      }
     }
 
     boolean this_present_sd = true && this.isSetSd();
     boolean that_present_sd = true && that.isSetSd();
     if (this_present_sd || that_present_sd) {
-      if (!(this_present_sd && that_present_sd))
+      if (!(this_present_sd && that_present_sd)) {
         return false;
-      if (!this.sd.equals(that.sd))
+      }
+      if (!this.sd.equals(that.sd)) {
         return false;
+      }
     }
 
     boolean this_present_parameters = true && this.isSetParameters();
     boolean that_present_parameters = true && that.isSetParameters();
     if (this_present_parameters || that_present_parameters) {
-      if (!(this_present_parameters && that_present_parameters))
+      if (!(this_present_parameters && that_present_parameters)) {
         return false;
-      if (!this.parameters.equals(that.parameters))
+      }
+      if (!this.parameters.equals(that.parameters)) {
         return false;
+      }
     }
 
     boolean this_present_viewOriginalText = true && this.isSetViewOriginalText();
     boolean that_present_viewOriginalText = true && that.isSetViewOriginalText();
     if (this_present_viewOriginalText || that_present_viewOriginalText) {
-      if (!(this_present_viewOriginalText && that_present_viewOriginalText))
+      if (!(this_present_viewOriginalText && that_present_viewOriginalText)) {
         return false;
-      if (!this.viewOriginalText.equals(that.viewOriginalText))
+      }
+      if (!this.viewOriginalText.equals(that.viewOriginalText)) {
         return false;
+      }
     }
 
     boolean this_present_viewExpandedText = true && this.isSetViewExpandedText();
     boolean that_present_viewExpandedText = true && that.isSetViewExpandedText();
     if (this_present_viewExpandedText || that_present_viewExpandedText) {
-      if (!(this_present_viewExpandedText && that_present_viewExpandedText))
+      if (!(this_present_viewExpandedText && that_present_viewExpandedText)) {
         return false;
-      if (!this.viewExpandedText.equals(that.viewExpandedText))
+      }
+      if (!this.viewExpandedText.equals(that.viewExpandedText)) {
         return false;
+      }
     }
 
     boolean this_present_schemaType = true && this.isSetSchemaType();
     boolean that_present_schemaType = true && that.isSetSchemaType();
     if (this_present_schemaType || that_present_schemaType) {
-      if (!(this_present_schemaType && that_present_schemaType))
+      if (!(this_present_schemaType && that_present_schemaType)) {
         return false;
-      if (!this.schemaType.equals(that.schemaType))
+      }
+      if (!this.schemaType.equals(that.schemaType)) {
         return false;
+      }
     }
 
     boolean this_present_privileges = true && this.isSetPrivileges();
     boolean that_present_privileges = true && that.isSetPrivileges();
     if (this_present_privileges || that_present_privileges) {
-      if (!(this_present_privileges && that_present_privileges))
+      if (!(this_present_privileges && that_present_privileges)) {
         return false;
-      if (!this.privileges.equals(that.privileges))
+      }
+      if (!this.privileges.equals(that.privileges)) {
         return false;
+      }
     }
 
     return true;
@@ -835,58 +854,69 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
 
     boolean present_schemaName = true && (isSetSchemaName());
     builder.append(present_schemaName);
-    if (present_schemaName)
+    if (present_schemaName) {
       builder.append(schemaName);
+    }
 
     boolean present_owner = true && (isSetOwner());
     builder.append(present_owner);
-    if (present_owner)
+    if (present_owner) {
       builder.append(owner);
+    }
 
     boolean present_createTime = true;
     builder.append(present_createTime);
-    if (present_createTime)
+    if (present_createTime) {
       builder.append(createTime);
+    }
 
     boolean present_lastAccessTime = true;
     builder.append(present_lastAccessTime);
-    if (present_lastAccessTime)
+    if (present_lastAccessTime) {
       builder.append(lastAccessTime);
+    }
 
     boolean present_retention = true;
     builder.append(present_retention);
-    if (present_retention)
+    if (present_retention) {
       builder.append(retention);
+    }
 
     boolean present_sd = true && (isSetSd());
     builder.append(present_sd);
-    if (present_sd)
+    if (present_sd) {
       builder.append(sd);
+    }
 
     boolean present_parameters = true && (isSetParameters());
     builder.append(present_parameters);
-    if (present_parameters)
+    if (present_parameters) {
       builder.append(parameters);
+    }
 
     boolean present_viewOriginalText = true && (isSetViewOriginalText());
     builder.append(present_viewOriginalText);
-    if (present_viewOriginalText)
+    if (present_viewOriginalText) {
       builder.append(viewOriginalText);
+    }
 
     boolean present_viewExpandedText = true && (isSetViewExpandedText());
     builder.append(present_viewExpandedText);
-    if (present_viewExpandedText)
+    if (present_viewExpandedText) {
       builder.append(viewExpandedText);
+    }
 
     boolean present_schemaType = true && (isSetSchemaType());
     builder.append(present_schemaType);
-    if (present_schemaType)
+    if (present_schemaType) {
       builder.append(schemaType);
+    }
 
     boolean present_privileges = true && (isSetPrivileges());
     builder.append(present_privileges);
-    if (present_privileges)
+    if (present_privileges) {
       builder.append(privileges);
+    }
 
     return builder.toHashCode();
   }
@@ -1036,7 +1066,9 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
       sb.append(this.schemaName);
     }
     first = false;
-    if (!first) sb.append(", ");
+    if (!first) {
+      sb.append(", ");
+    }
     sb.append("owner:");
     if (this.owner == null) {
       sb.append("null");
@@ -1044,19 +1076,27 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
       sb.append(this.owner);
     }
     first = false;
-    if (!first) sb.append(", ");
+    if (!first) {
+      sb.append(", ");
+    }
     sb.append("createTime:");
     sb.append(this.createTime);
     first = false;
-    if (!first) sb.append(", ");
+    if (!first) {
+      sb.append(", ");
+    }
     sb.append("lastAccessTime:");
     sb.append(this.lastAccessTime);
     first = false;
-    if (!first) sb.append(", ");
+    if (!first) {
+      sb.append(", ");
+    }
     sb.append("retention:");
     sb.append(this.retention);
     first = false;
-    if (!first) sb.append(", ");
+    if (!first) {
+      sb.append(", ");
+    }
     sb.append("sd:");
     if (this.sd == null) {
       sb.append("null");
@@ -1064,7 +1104,9 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
       sb.append(this.sd);
     }
     first = false;
-    if (!first) sb.append(", ");
+    if (!first) {
+      sb.append(", ");
+    }
     sb.append("parameters:");
     if (this.parameters == null) {
       sb.append("null");
@@ -1072,7 +1114,9 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
       sb.append(this.parameters);
     }
     first = false;
-    if (!first) sb.append(", ");
+    if (!first) {
+      sb.append(", ");
+    }
     sb.append("viewOriginalText:");
     if (this.viewOriginalText == null) {
       sb.append("null");
@@ -1080,7 +1124,9 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
       sb.append(this.viewOriginalText);
     }
     first = false;
-    if (!first) sb.append(", ");
+    if (!first) {
+      sb.append(", ");
+    }
     sb.append("viewExpandedText:");
     if (this.viewExpandedText == null) {
       sb.append("null");
@@ -1088,7 +1134,9 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
       sb.append(this.viewExpandedText);
     }
     first = false;
-    if (!first) sb.append(", ");
+    if (!first) {
+      sb.append(", ");
+    }
     sb.append("schemaType:");
     if (this.schemaType == null) {
       sb.append("null");
@@ -1097,7 +1145,9 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
     }
     first = false;
     if (isSetPrivileges()) {
-      if (!first) sb.append(", ");
+      if (!first) {
+        sb.append(", ");
+      }
       sb.append("privileges:");
       if (this.privileges == null) {
         sb.append("null");
@@ -1153,7 +1203,7 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
           break;
         }
         switch (schemeField.id) {
@@ -1161,7 +1211,7 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.schemaName = iprot.readString();
               struct.setSchemaNameIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1169,7 +1219,7 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.owner = iprot.readString();
               struct.setOwnerIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1177,7 +1227,7 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.createTime = iprot.readI32();
               struct.setCreateTimeIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1185,7 +1235,7 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.lastAccessTime = iprot.readI32();
               struct.setLastAccessTimeIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1193,7 +1243,7 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.retention = iprot.readI32();
               struct.setRetentionIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1202,7 +1252,7 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
               struct.sd = new StorageDescriptor();
               struct.sd.read(iprot);
               struct.setSdIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1222,7 +1272,7 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
                 iprot.readMapEnd();
               }
               struct.setParametersIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1230,7 +1280,7 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.viewOriginalText = iprot.readString();
               struct.setViewOriginalTextIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1238,7 +1288,7 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.viewExpandedText = iprot.readString();
               struct.setViewExpandedTextIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1246,7 +1296,7 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.schemaType = iprot.readString();
               struct.setSchemaTypeIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1255,7 +1305,7 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
               struct.privileges = new PrincipalPrivilegeSet();
               struct.privileges.read(iprot);
               struct.setPrivilegesIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1487,6 +1537,10 @@ public class GlobalSchema implements org.apache.thrift.TBase<GlobalSchema, Globa
         struct.setPrivilegesIsSet(true);
       }
     }
+  }
+
+  public List<FieldSchema> getPartitionKeys() {
+    return this.partitionKeys;
   }
 
 }

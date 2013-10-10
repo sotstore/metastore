@@ -20,8 +20,9 @@ package org.apache.hadoop.hive.ql.hooks;
 
 import java.io.Serializable;
 
-import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.DummyPartition;
+import org.apache.hadoop.hive.ql.metadata.GlobalSchema;
+import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 
 /**
@@ -50,7 +51,19 @@ public class WriteEntity extends Entity implements Serializable {
   public WriteEntity(Table t, boolean complete) {
     super(t, complete);
   }
+  /**
+   * Constructor for a schema.
+   *
+   * @param s
+   *          Schema that is written to.
+   */
+  public WriteEntity(GlobalSchema gls) {
+    this(gls, true);
+  }
 
+  public WriteEntity(GlobalSchema gls, boolean complete) {
+    super(gls, complete);
+  }
   /**
    * Constructor for a partition.
    *
