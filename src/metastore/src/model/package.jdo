@@ -378,6 +378,9 @@
             <field name="type">
               <column name="TYPE_NAME" length="4000" jdbc-type="VARCHAR"  allows-null="false"/>
             </field>
+            <field name="comment" >
+              <column name="FCOMMENT" length="4000" jdbc-type="VARCHAR" allows-null="true"/>
+            </field>
           </embedded>
         </element>
       </field>

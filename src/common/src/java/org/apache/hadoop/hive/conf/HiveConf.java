@@ -242,6 +242,8 @@ public class HiveConf extends Configuration {
     METASTOREDIRECTORY("hive.metastore.metadb.dir", ""),
     METASTOREWAREHOUSE("hive.metastore.warehouse.dir", "/user/hive/warehouse"),
     METASTOREURIS("hive.metastore.uris", ""),
+    METASTORELOCALURIS("hive.metastore.local.uris", ""),
+    METAZOOKEEPERSTOREURIS("hive.metastore.zookeeper.uris", ""),
     // Number of times to retry a connection to a Thrift metastore server
     METASTORETHRIFTCONNECTIONRETRIES("hive.metastore.connect.retries", 3),
     // Number of times to retry a Thrift metastore call upon failure
@@ -575,6 +577,7 @@ public class HiveConf extends Configuration {
     HIVE_LOCK_MAPRED_ONLY("hive.lock.mapred.only.operation", false),
 
     HIVE_ZOOKEEPER_QUORUM("hive.zookeeper.quorum", ""),
+    HIVE_ZOOKEEPER_META_PORT("meta.zookeeper.property.clientPort", "3181"),
     HIVE_ZOOKEEPER_CLIENT_PORT("hive.zookeeper.client.port", "2181"),
     HIVE_ZOOKEEPER_SESSION_TIMEOUT("hive.zookeeper.session.timeout", 600*1000),
     HIVE_ZOOKEEPER_NAMESPACE("hive.zookeeper.namespace", "hive_zookeeper_namespace"),
