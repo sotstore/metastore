@@ -664,9 +664,10 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       if (null != showSchemaDesc) {
         return showSchema(db, showSchemaDesc);
       }
-      AlterSchemaDesc alterSch = work.getAlterSchDesc();
-      if (alterTbl != null) {
-        return alterSchema(db, alterSch);
+      AlterSchemaDesc alterSchDesc = work.getAlterSchDesc();
+      if (null != alterSchDesc) {
+        LOG.info("****************zqh****************alterSchema(db, alterSch))");
+        return alterSchema(db, alterSchDesc);
       }
 
     } catch (InvalidTableException e) {
@@ -5305,23 +5306,15 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
    * @throws HiveException
    *           Throws this exception if an unexpected error occurs.
    */
-  private int alterSchema(Hive db, AlterSchemaDesc alterSch) throws HiveException {
+  private int alterSchema(Hive db, AlterSchemaDesc alterSchDesc) throws Exception {
     // alter the schema
-    GlobalSchema gls = db.getSchema(alterSch.getOldName(), true);
+    GlobalSchema gls = db.getSchema(alterSchDesc.getOldName(), true);
     GlobalSchema oldGlobalSchema = gls.copy();
-
-    if (alterSch.getOp() == AlterSchemaDesc.AlterSchemaTypes.RENAME) {
-      gls.setSchemaName(alterSch.getNewName());
-    } else if (alterSch.getOp() == AlterSchemaDesc.AlterSchemaTypes.ADDCOLS) {
-      List<FieldSchema> newCols = alterSch.getNewCols();
+    if (alterSchDesc.getOp() == AlterSchemaDesc.AlterSchemaTypes.RENAME) {
+      gls.setSchemaName(alterSchDesc.getNewName());
+    } else if (alterSchDesc.getOp() == AlterSchemaDesc.AlterSchemaTypes.ADDCOLS) {
+      List<FieldSchema> newCols = alterSchDesc.getNewCols();
       List<FieldSchema> oldCols = gls.getCols();
-      if (gls.getSerializationLib().equals(
-          "org.apache.hadoop.hive.serde.thrift.columnsetSerDe")) {
-        console
-            .printInfo("Replacing columns for columnsetSerDe and changing to LazySimpleSerDe");
-        gls.setSerializationLib(LazySimpleSerDe.class.getName());
-        gls.getTSchema().getSd().setCols(newCols);
-      } else {
         // make sure the columns does not already exist
         Iterator<FieldSchema> iterNewCols = newCols.iterator();
         while (iterNewCols.hasNext()) {
@@ -5340,17 +5333,17 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
           oldCols.add(newCol);
         }
         gls.getTSchema().getSd().setCols(oldCols);
-      }
-    } else if (alterSch.getOp() == AlterSchemaDesc.AlterSchemaTypes.RENAMECOLUMN) {
+        LOG.info("****************zqh****************AlterSchemaTypes.ADDCOLS SUCCESSFULLY");
+    } else if (alterSchDesc.getOp() == AlterSchemaDesc.AlterSchemaTypes.RENAMECOLUMN) {
       List<FieldSchema> oldCols = gls.getCols();
       List<FieldSchema> newCols = new ArrayList<FieldSchema>();
       Iterator<FieldSchema> iterOldCols = oldCols.iterator();
-      String oldName = alterSch.getOldColName();
-      String newName = alterSch.getNewColName();
-      String type = alterSch.getNewColType();
-      String comment = alterSch.getNewColComment();
-      boolean first = alterSch.getFirst();
-      String afterCol = alterSch.getAfterCol();
+      String oldName = alterSchDesc.getOldColName();
+      String newName = alterSchDesc.getNewColName();
+      String type = alterSchDesc.getNewColType();
+      String comment = alterSchDesc.getNewColComment();
+      boolean first = alterSchDesc.getFirst();
+      String afterCol = alterSchDesc.getAfterCol();
       FieldSchema column = null;
 
       boolean found = false;
@@ -5414,7 +5407,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
       gls.getTSchema().getSd().setCols(newCols);
 
-    } else if (alterSch.getOp() == AlterSchemaDesc.AlterSchemaTypes.REPLACECOLS) {
+    } else if (alterSchDesc.getOp() == AlterSchemaDesc.AlterSchemaTypes.REPLACECOLS) {
       // change SerDe to LazySimpleSerDe if it is columnsetSerDe
       if (gls.getSerializationLib().equals(
           "org.apache.hadoop.hive.serde.thrift.columnsetSerDe")) {
@@ -5432,9 +5425,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
                                formatter.ERROR);
         return 1;
       }
-      gls.getTSchema().getSd().setCols(alterSch.getNewCols());
-    } else if (alterSch.getOp() == AlterSchemaDesc.AlterSchemaTypes.ADDPROPS) {
-      gls.getTSchema().getParameters().putAll(alterSch.getProps());
+      gls.getTSchema().getSd().setCols(alterSchDesc.getNewCols());
+      LOG.info("****************zqh****************AlterSchemaTypes.REPLACECOLS SUCCESSFULLY");
+    } else if (alterSchDesc.getOp() == AlterSchemaDesc.AlterSchemaTypes.ADDPROPS) {
+      gls.getTSchema().getParameters().putAll(alterSchDesc.getProps());
+      LOG.info("****************zqh****************AlterSchemaTypes.ADDPROPS SUCCESSFULLY");
     } else {
       formatter.consoleError(console,
                              "Unsupported Alter commnad",
@@ -5442,8 +5437,22 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       return 1;
     }
 
-      work.getInputs().add(new ReadEntity(oldGlobalSchema));
-      work.getOutputs().add(new WriteEntity(gls));
+    try {
+      db.alterSchema(alterSchDesc.getOldName(), gls);
+      LOG.info("****************zqh****************AlterSchema SUCCESSFULLY");
+    } catch (InvalidOperationException e) {
+      console.printError("Invalid alter operation: " + e.getMessage());
+      LOG.info("alter schema: " + stringifyException(e));
+      return 1;
+    } catch (HiveException e) {
+      return 1;
+    } catch (Exception e) {
+      return 1;
+    }
+
+    work.getInputs().add(new ReadEntity(oldGlobalSchema));
+    work.getOutputs().add(new WriteEntity(gls));
+
     return 0;
   }
 }

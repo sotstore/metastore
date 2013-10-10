@@ -22,10 +22,13 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.ql.metadata.DummyPartition;
 import org.apache.hadoop.hive.ql.metadata.GlobalSchema;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
+import org.apache.hadoop.hive.ql.parse.DDLSemanticAnalyzer;
 
 /**
  * This class encapsulates an object that is being read or written to by the
@@ -34,6 +37,7 @@ import org.apache.hadoop.hive.ql.metadata.Table;
  */
 public class Entity implements Serializable {
   private static final long serialVersionUID = 1L;
+  private static final Log LOG = LogFactory.getLog(DDLSemanticAnalyzer.class);
 
   /**
    * The type of the entity.
@@ -124,6 +128,14 @@ public class Entity implements Serializable {
     this.d = d;
   }
 
+  public GlobalSchema getGls() {
+    return gls;
+  }
+
+  public void setGls(GlobalSchema gls) {
+    this.gls = gls;
+  }
+
   /**
    * Only used by serialization.
    */
@@ -163,7 +175,8 @@ public class Entity implements Serializable {
     d = null;
     p = null;
     this.gls = gls;
-    typ = Type.TABLE;
+    LOG.info("****************zqh****************inputs.add(new Read/WriteEntity(sch)):"+this.gls.getCompleteName());
+    typ = Type.SCHEMA;
     name = computeName();
     this.complete = complete;
   }
@@ -290,6 +303,8 @@ public class Entity implements Serializable {
       return t.getDbName() + "@" + t.getTableName() + "@" + p.getName();
     case DUMMYPARTITION:
       return p.getName();
+    case SCHEMA:
+      return gls.getSchemaName();
     default:
       return d;
     }

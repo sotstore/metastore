@@ -29,12 +29,18 @@ public class DDLTest {
     //String sql = "show nodeGroupAssignment";
 
     //String sql = "create userAssignment('a','b')";
-    String sql = "drop userAssignment('a','b')";
+    //String sql = "drop userAssignment('a','b')";
     //String sql = "show userAssignment";
 
     //String sql = "create roleAssignment('a','b')";
     //String sql = "drop roleAssignment('a','b')";
     //String sql = "show roleAssignment";
+
+    String sql = "alter schema tb rename to tc";
+    //String sql = "alter schema tb add columns(col int)";
+    //String sql = "alter schema tb change column tb tc int";
+    //String sql = "alter schema tb set schemeproperties('ff'='FF')";
+
 
     Driver dr = new Driver(new HiveConf());
     try {

@@ -640,11 +640,12 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
 
   private void analyzeAlterSchemaModifyCols(ASTNode ast, AlterSchemaTypes alterType) throws SemanticException {
       String schName = getUnescapedName((ASTNode) ast.getChild(0));
+      LOG.info("****************zqh****************):"+ (ASTNode) ast.getChild(1));
       List<FieldSchema> newCols = getColumns((ASTNode) ast.getChild(1));
       AlterSchemaDesc alterSchDesc = new AlterSchemaDesc(schName, newCols,
           alterType);
-
       addInputsOutputsAlterSchema(schName, null, alterSchDesc);
+      LOG.info("****************zqh****************addInputsOutputsAlterSchema BACK):"+ schName + newCols.get(0).getName() + newCols.get(0).getType());
       rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
           alterSchDesc), conf));
   }
@@ -653,8 +654,8 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       String schName = getUnescapedName((ASTNode) ast.getChild(0));
       AlterSchemaDesc alterSchDesc = new AlterSchemaDesc(schName,
           getUnescapedName((ASTNode) ast.getChild(1)), expectView);
-
       addInputsOutputsAlterSchema(schName, null, alterSchDesc);
+      LOG.info("****************zqh****************addInputsOutputsAlterSchema BACK):");
       rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
           alterSchDesc), conf));
   }
@@ -2218,6 +2219,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
 
   private void validateAlterSchemaType(GlobalSchema gls, AlterSchemaTypes op, boolean expectView)
       throws SemanticException {
+    LOG.info("****************zqh****************gls.isView()):"+gls.isView());
     if (gls.isView()) {
       if (!expectView) {
         throw new SemanticException(ErrorMsg.ALTER_COMMAND_FOR_VIEWS.getMsg());
@@ -2415,9 +2417,13 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
 
     inputs.add(new ReadEntity(sch));
     outputs.add(new WriteEntity(sch));
-
+    boolean flag  = (desc != null);
+    LOG.info("****************zqh****************desc != null):"+flag);
     if (desc != null) {
+      LOG.info("****************zqh****************desc.getOp()):"+desc.getOp());
+      LOG.info("****************zqh****************desc.getExpectView()):"+desc.getExpectView());
       validateAlterSchemaType(sch, desc.getOp(), desc.getExpectView());
+
     }
   }
 
