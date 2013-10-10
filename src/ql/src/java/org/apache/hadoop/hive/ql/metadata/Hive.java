@@ -81,6 +81,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
+import org.apache.hadoop.hive.metastore.api.SplitValue;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
@@ -3000,9 +3001,9 @@ public class Hive {
 
 
 
-  public List<SFile> listTableFiles(String dbName, String tabName, short max_num) throws HiveException {
+  public List<Long> listTableFiles(String dbName, String tabName, int begin, int end) throws HiveException {
     try {
-    return getMSC().listTableFiles(dbName, tabName, max_num);
+    return getMSC().listTableFiles(dbName, tabName, begin, end);
     } catch (Exception e) {
       throw new HiveException(e);
     }
@@ -3062,7 +3063,7 @@ public class Hive {
   }
 
 
-  public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values) throws HiveException {
+  public List<SFile> filterTableFiles(String dbName, String tabName, List<SplitValue> values) throws HiveException {
     try {
     return getMSC().filterTableFiles(dbName, tabName, values);
     } catch (Exception e) {

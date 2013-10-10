@@ -778,53 +778,89 @@ public class ObjectStore implements RawStore, Configurable {
   }
 
   @Override
-  public List<SFile> filterTableFiles(String dbName, String tableName, List<String> values) throws MetaException {
+  public List<SFile> filterTableFiles(String dbName, String tableName, List<SplitValue> values) throws MetaException {
     List<SFile> rls = new ArrayList<SFile>();
-    int splitLen = values.size();
+    String filter = "", parameters = "java.lang.String tableName, java.lang.String dbName, java.util.Collection values";
+    Map<String, Object> params = new HashMap<String, Object>();
 
-    if (splitLen < 1 || splitLen > 2) {
+    if (values.size() == 0) {
       return rls;
     }
-
     try {
+      openTransaction();
       Query q = pm.newQuery(MFile.class, "this.table.tableName == tableName && this.table.database.name == dbName");
-      if (splitLen == 1) {
-        q.setFilter("this.values.get(0) == values.get(0)");
-      } else {
-        q.setFilter("this.values.get(0) == values.get(0) && this.values.get(1) == values.get(1)");
+      for (int i = 0; i < values.size(); i++) {
+        filter += "values.get(" + i + ").splitKeyName == 'rel_time'";
       }
-      q.declareParameters("java.lang.String tableName, java.lang.String dbName, java.util.List values");
-      Collection files = (Collection)q.execute(dbName, tableName, values);
+
+      params.put("tableName", tableName);
+      params.put("dbName", dbName);
+      params.put("values", values);
+
+      LOG.info("Got filter: " + filter);
+      LOG.info("Got parameter: " + parameters);
+
+      q.setFilter(filter);
+      q.declareParameters(parameters);
+      Collection files = (Collection)q.execute(tableName, dbName, values);
       Iterator iter = files.iterator();
       while (iter.hasNext()) {
         MFile mf = (MFile)iter.next();
+
         if (mf == null) {
           continue;
         }
-        rls.add(convertToSFile(mf));
+        List<MFileLocation> lmf = getMFileLocations(mf.getFid());
+        List<SFileLocation> l = new ArrayList<SFileLocation>();
+
+        if (lmf != null) {
+          l = convertToSFileLocation(lmf);
+        }
+
+        SFile sf = convertToSFile(mf);
+        sf.setLocations(l);
+        rls.add(sf);
       }
     } finally {
+      commitTransaction();
     }
 
     return rls;
   }
 
   @Override
-  public List<SFile> listTableFiles(String dbName, String tableName, short max_num) throws MetaException {
-    List<SFile> rls = new ArrayList<SFile>();
+  public List<Long> listTableFiles(String dbName, String tableName, int begin, int end) throws MetaException {
+    List<Long> rls = new ArrayList<Long>();
 
     try {
+      Query q0 = pm.newQuery(MFile.class, "this.table.tableName == tableName && this.table.database.name == dbName");
+      q0.setResult("count(fid)");
+      q0.declareParameters("java.lang.String tableName, java.lang.String dbName");
+      Long fnr = (Long)q0.execute(tableName, dbName);
+      LOG.info("Total hit " + fnr + " files in DB '" + dbName + "' TABLE '" + tableName + "'.");
+
       Query q = pm.newQuery(MFile.class, "this.table.tableName == tableName && this.table.database.name == dbName");
-      q.setRange(0, max_num);
+      if (begin < 0) {
+        begin = 0;
+      }
+      if (end < 0) {
+        end = 0;
+      }
+      // FIXME: do NOT ordering on large data set!
+      if (fnr < 1000) {
+        q.setOrdering("fid ascending");
+      }
+      q.setRange(begin, end);
       q.declareParameters("java.lang.String tableName, java.lang.String dbName");
-      Collection files = (Collection)q.execute(dbName, tableName);
+      Collection files = (Collection)q.execute(tableName, dbName);
       Iterator iter = files.iterator();
       while (iter.hasNext()) {
         MFile mf = (MFile)iter.next();
+
         if (mf == null) {
           continue;
         }
-        rls.add(convertToSFile(mf));
+        rls.add(mf.getFid());
       }
     } finally {
     }
@@ -2582,7 +2618,7 @@ public class ObjectStore implements RawStore, Configurable {
     if (file.getDbName() != null && file.getTableName() != null) {
       mt = getMTable(file.getDbName(), file.getTableName());
       if (mt == null) {
-        throw new InvalidObjectException("Invalid db or table name.");
+        throw new InvalidObjectException("Invalid db or table name: db=" + file.getDbName() + ", table=" + file.getTableName());
       }
     }
     List<MSplitValue> values = new ArrayList<MSplitValue>();

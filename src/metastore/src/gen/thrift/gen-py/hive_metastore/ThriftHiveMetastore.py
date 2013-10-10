@@ -1339,12 +1339,13 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
-  def listTableFiles(self, dbName, tabName, max_num):
+  def listTableFiles(self, dbName, tabName, from, to):
     """
     Parameters:
      - dbName
      - tabName
-     - max_num
+     - from
+     - to
     """
     pass
 
@@ -7394,22 +7395,24 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getTableNodeFiles failed: unknown result");
 
-  def listTableFiles(self, dbName, tabName, max_num):
+  def listTableFiles(self, dbName, tabName, from, to):
     """
     Parameters:
      - dbName
      - tabName
-     - max_num
+     - from
+     - to
     """
-    self.send_listTableFiles(dbName, tabName, max_num)
+    self.send_listTableFiles(dbName, tabName, from, to)
     return self.recv_listTableFiles()
 
-  def send_listTableFiles(self, dbName, tabName, max_num):
+  def send_listTableFiles(self, dbName, tabName, from, to):
     self._oprot.writeMessageBegin('listTableFiles', TMessageType.CALL, self._seqid)
     args = listTableFiles_args()
     args.dbName = dbName
     args.tabName = tabName
-    args.max_num = max_num
+    args.from = from
+    args.to = to
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
@@ -10631,7 +10634,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     iprot.readMessageEnd()
     result = listTableFiles_result()
     try:
-      result.success = self._handler.listTableFiles(args.dbName, args.tabName, args.max_num)
+      result.success = self._handler.listTableFiles(args.dbName, args.tabName, args.from, args.to)
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("listTableFiles", TMessageType.REPLY, seqid)
@@ -37621,20 +37624,23 @@ class listTableFiles_args:
   Attributes:
    - dbName
    - tabName
-   - max_num
+   - from
+   - to
   """
 
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'dbName', None, None, ), # 1
     (2, TType.STRING, 'tabName', None, None, ), # 2
-    (3, TType.I16, 'max_num', None, None, ), # 3
+    (3, TType.I32, 'from', None, None, ), # 3
+    (4, TType.I32, 'to', None, None, ), # 4
   )
 
-  def __init__(self, dbName=None, tabName=None, max_num=None,):
+  def __init__(self, dbName=None, tabName=None, from=None, to=None,):
     self.dbName = dbName
     self.tabName = tabName
-    self.max_num = max_num
+    self.from = from
+    self.to = to
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -37656,8 +37662,13 @@ class listTableFiles_args:
         else:
           iprot.skip(ftype)
       elif fid == 3:
-        if ftype == TType.I16:
-          self.max_num = iprot.readI16();
+        if ftype == TType.I32:
+          self.from = iprot.readI32();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.I32:
+          self.to = iprot.readI32();
         else:
           iprot.skip(ftype)
       else:
@@ -37678,9 +37689,13 @@ class listTableFiles_args:
       oprot.writeFieldBegin('tabName', TType.STRING, 2)
       oprot.writeString(self.tabName)
       oprot.writeFieldEnd()
-    if self.max_num is not None:
-      oprot.writeFieldBegin('max_num', TType.I16, 3)
-      oprot.writeI16(self.max_num)
+    if self.from is not None:
+      oprot.writeFieldBegin('from', TType.I32, 3)
+      oprot.writeI32(self.from)
+      oprot.writeFieldEnd()
+    if self.to is not None:
+      oprot.writeFieldBegin('to', TType.I32, 4)
+      oprot.writeI32(self.to)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -37708,7 +37723,7 @@ class listTableFiles_result:
   """
 
   thrift_spec = (
-    (0, TType.LIST, 'success', (TType.STRUCT,(SFile, SFile.thrift_spec)), None, ), # 0
+    (0, TType.LIST, 'success', (TType.I64,None), None, ), # 0
     (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
   )
 
@@ -37730,8 +37745,7 @@ class listTableFiles_result:
           self.success = []
           (_etype997, _size994) = iprot.readListBegin()
           for _i998 in xrange(_size994):
-            _elem999 = SFile()
-            _elem999.read(iprot)
+            _elem999 = iprot.readI64();
             self.success.append(_elem999)
           iprot.readListEnd()
         else:
@@ -37754,9 +37768,9 @@ class listTableFiles_result:
     oprot.writeStructBegin('listTableFiles_result')
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.LIST, 0)
-      oprot.writeListBegin(TType.STRUCT, len(self.success))
+      oprot.writeListBegin(TType.I64, len(self.success))
       for iter1000 in self.success:
-        iter1000.write(oprot)
+        oprot.writeI64(iter1000)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.o1 is not None:
@@ -37793,7 +37807,7 @@ class filterTableFiles_args:
     None, # 0
     (1, TType.STRING, 'dbName', None, None, ), # 1
     (2, TType.STRING, 'tabName', None, None, ), # 2
-    (3, TType.LIST, 'values', (TType.STRING,None), None, ), # 3
+    (3, TType.LIST, 'values', (TType.STRUCT,(SplitValue, SplitValue.thrift_spec)), None, ), # 3
   )
 
   def __init__(self, dbName=None, tabName=None, values=None,):
@@ -37825,7 +37839,8 @@ class filterTableFiles_args:
           self.values = []
           (_etype1004, _size1001) = iprot.readListBegin()
           for _i1005 in xrange(_size1001):
-            _elem1006 = iprot.readString();
+            _elem1006 = SplitValue()
+            _elem1006.read(iprot)
             self.values.append(_elem1006)
           iprot.readListEnd()
         else:
@@ -37850,9 +37865,9 @@ class filterTableFiles_args:
       oprot.writeFieldEnd()
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 3)
-      oprot.writeListBegin(TType.STRING, len(self.values))
+      oprot.writeListBegin(TType.STRUCT, len(self.values))
       for iter1007 in self.values:
-        oprot.writeString(iter1007)
+        iter1007.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()

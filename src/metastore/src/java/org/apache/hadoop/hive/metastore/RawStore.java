@@ -51,6 +51,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.SplitValue;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -623,9 +624,9 @@ public interface RawStore extends Configurable {
 
   public abstract void createSchema(GlobalSchema schema)throws InvalidObjectException, MetaException;
 
-  public abstract List<SFile> listTableFiles(String dbName, String tableName, short max_num) throws MetaException;
+  public abstract List<Long> listTableFiles(String dbName, String tableName, int begin, int end) throws MetaException;
 
-  public abstract List<SFile> filterTableFiles(String dbName, String tableName, List<String> values)
+  public abstract List<SFile> filterTableFiles(String dbName, String tableName, List<SplitValue> values)
       throws MetaException;
 
   public abstract boolean assiginSchematoDB(String dbName, String schemaName, List<FieldSchema> fileSplitKeys, List<FieldSchema> part_keys,

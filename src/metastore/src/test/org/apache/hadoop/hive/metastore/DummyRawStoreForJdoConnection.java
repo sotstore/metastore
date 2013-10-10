@@ -53,6 +53,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SFileRef;
+import org.apache.hadoop.hive.metastore.api.SplitValue;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
@@ -1083,7 +1084,7 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public List<SFile> listTableFiles(String dbName, String tableName, short max_num)
+  public List<Long> listTableFiles(String dbName, String tableName, int begin, int end)
       throws MetaException {
     // TODO Auto-generated method stub
     return null;
@@ -1095,7 +1096,7 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public List<SFile> filterTableFiles(String dbName, String tableName, List<String> values)
+  public List<SFile> filterTableFiles(String dbName, String tableName, List<SplitValue> values)
       throws MetaException {
     // TODO Auto-generated method stub
     return null;

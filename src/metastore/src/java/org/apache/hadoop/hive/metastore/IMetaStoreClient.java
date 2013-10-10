@@ -1211,9 +1211,9 @@ public interface IMetaStoreClient {
 
   public List<NodeGroup> getTableNodeGroups(String dbName, String tabName) throws MetaException, TException;
 
-  public List<SFile> listTableFiles(String dbName, String tabName, short max_num) throws MetaException, TException;
+  public List<Long> listTableFiles(String dbName, String tabName, int begin, int end) throws MetaException, TException;
 
-  public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values) throws MetaException, TException;
+  public List<SFile> filterTableFiles(String dbName, String tabName, List<SplitValue> values) throws MetaException, TException;
 
   public boolean addNodeGroup(NodeGroup ng) throws AlreadyExistsException, MetaException, TException;
 

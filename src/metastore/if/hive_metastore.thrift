@@ -988,8 +988,8 @@ service ThriftHiveMetastore extends fb303.FacebookService
   list<NodeGroup> getTableNodeGroups(1:string dbName,2:string tabName) throws (1:MetaException o1)
   list<SFile> getTableNodeFiles(1:string dbName,2:string tabName,3:string nodeName)  throws (1:MetaException o1)
   
-  list<SFile> listTableFiles(1:string dbName,2:string tabName,3:i16 max_num)  throws (1:MetaException o1)
-  list<SFile> filterTableFiles(1:string dbName,2:string tabName,3:list<string> values)  throws (1:MetaException o1)
+  list<i64> listTableFiles(1:string dbName,2:string tabName,3:i32 from, 4:i32 to)  throws (1:MetaException o1)
+  list<SFile> filterTableFiles(1:string dbName,2:string tabName,3:list<SplitValue> values)  throws (1:MetaException o1)
   
   bool addNodeGroup(1:NodeGroup ng) throws (1:AlreadyExistsException o1,2:MetaException o2)
   bool modifyNodeGroup (1:string schemaName,2:NodeGroup ng) throws (1:MetaException o1)

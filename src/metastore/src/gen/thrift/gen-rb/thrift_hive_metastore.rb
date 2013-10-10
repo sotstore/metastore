@@ -2833,13 +2833,13 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'getTableNodeFiles failed: unknown result')
     end
 
-    def listTableFiles(dbName, tabName, max_num)
-      send_listTableFiles(dbName, tabName, max_num)
+    def listTableFiles(dbName, tabName, from, to)
+      send_listTableFiles(dbName, tabName, from, to)
       return recv_listTableFiles()
     end
 
-    def send_listTableFiles(dbName, tabName, max_num)
-      send_message('listTableFiles', ListTableFiles_args, :dbName => dbName, :tabName => tabName, :max_num => max_num)
+    def send_listTableFiles(dbName, tabName, from, to)
+      send_message('listTableFiles', ListTableFiles_args, :dbName => dbName, :tabName => tabName, :from => from, :to => to)
     end
 
     def recv_listTableFiles()
@@ -5137,7 +5137,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, ListTableFiles_args)
       result = ListTableFiles_result.new()
       begin
-        result.success = @handler.listTableFiles(args.dbName, args.tabName, args.max_num)
+        result.success = @handler.listTableFiles(args.dbName, args.tabName, args.from, args.to)
       rescue ::MetaException => o1
         result.o1 = o1
       end
@@ -11672,12 +11672,14 @@ module ThriftHiveMetastore
     include ::Thrift::Struct, ::Thrift::Struct_Union
     DBNAME = 1
     TABNAME = 2
-    MAX_NUM = 3
+    FROM = 3
+    TO = 4
 
     FIELDS = {
       DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
       TABNAME => {:type => ::Thrift::Types::STRING, :name => 'tabName'},
-      MAX_NUM => {:type => ::Thrift::Types::I16, :name => 'max_num'}
+      FROM => {:type => ::Thrift::Types::I32, :name => 'from'},
+      TO => {:type => ::Thrift::Types::I32, :name => 'to'}
     }
 
     def struct_fields; FIELDS; end
@@ -11694,7 +11696,7 @@ module ThriftHiveMetastore
     O1 = 1
 
     FIELDS = {
-      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SFile}},
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 
@@ -11715,7 +11717,7 @@ module ThriftHiveMetastore
     FIELDS = {
       DBNAME => {:type => ::Thrift::Types::STRING, :name => 'dbName'},
       TABNAME => {:type => ::Thrift::Types::STRING, :name => 'tabName'},
-      VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRING}}
+      VALUES => {:type => ::Thrift::Types::LIST, :name => 'values', :element => {:type => ::Thrift::Types::STRUCT, :class => ::SplitValue}}
     }
 
     def struct_fields; FIELDS; end

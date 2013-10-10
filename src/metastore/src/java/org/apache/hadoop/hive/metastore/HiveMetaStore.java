@@ -4428,6 +4428,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     private SFile create_file(FileLocatingPolicy flp, String node_name, int repnr, String db_name, String table_name, List<SplitValue> values)
         throws FileOperationException, TException {
+      String table_path = null;
 
       if (node_name == null) {
         // this means we should select Best Available Node and Best Available Device;
@@ -4465,7 +4466,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           } catch (MetaException me) {
             throw new FileOperationException("Invalid Table name:" + db_name + "/" + table_name + " + " + me.getMessage(), FOFailReason.INVALID_TABLE);
           }
-          table_name = tbl.getDbName() + "/" + tbl.getTableName();
+          table_path = tbl.getDbName() + "/" + tbl.getTableName();
         }
 
         // how to convert table_name to tbl_id?
@@ -4480,10 +4481,10 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         do {
           String location = "/data/";
 
-          if (table_name == null) {
+          if (table_path == null) {
             location += "UNNAMED-DB/UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
           } else {
-            location += table_name + "/" + rand.nextInt(Integer.MAX_VALUE);
+            location += table_path + "/" + rand.nextInt(Integer.MAX_VALUE);
           }
           SFileLocation sfloc = new SFileLocation(node_name, cfile.getFid(), devid, location, 0, System.currentTimeMillis(),
               MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_DEFAULT");
@@ -5894,13 +5895,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public List<SFile> listTableFiles(String dbName, String tabName, short max_num)
+    public List<Long> listTableFiles(String dbName, String tabName, int from, int to)
         throws MetaException, TException {
-      return getMS().listTableFiles(dbName, tabName, max_num);
+      return getMS().listTableFiles(dbName, tabName, from, to);
     }
 
     @Override
-    public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values)
+    public List<SFile> filterTableFiles(String dbName, String tabName, List<SplitValue> values)
         throws MetaException, TException {
       return getMS().filterTableFiles(dbName, tabName, values);
     }

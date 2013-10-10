@@ -1675,12 +1675,17 @@ public boolean authentication(String user_name, String passwd)
   }
 
   @Override
+  // ignore non exist files.
   public List<SFile> get_files_by_ids(List<Long> fids) throws FileOperationException,
       MetaException, TException {
     List<SFile> lsf = new ArrayList<SFile>();
     if (fids.size() > 0) {
       for (Long id : fids) {
-        lsf.add(client.get_file_by_id(id));
+        // FIXME: ignore nonexist files.
+        try {
+          lsf.add(client.get_file_by_id(id));
+        } catch (FileOperationException e) {
+        }
       }
     }
 
@@ -2088,13 +2093,13 @@ public boolean authentication(String user_name, String passwd)
   }
 
   @Override
-  public List<SFile> listTableFiles(String dbName, String tabName, short max_num)
+  public List<Long> listTableFiles(String dbName, String tabName, int begin, int end)
       throws MetaException, TException {
-    return client.listTableFiles(dbName, tabName, max_num);
+    return client.listTableFiles(dbName, tabName, begin, end);
   }
 
   @Override
-  public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values)
+  public List<SFile> filterTableFiles(String dbName, String tabName, List<SplitValue> values)
       throws MetaException, TException {
     return client.filterTableFiles(dbName, tabName, values);
   }

@@ -186,8 +186,8 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void getSchemaByName(GlobalSchema& _return, const std::string& schemaName) = 0;
   virtual void getTableNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName) = 0;
   virtual void getTableNodeFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& nodeName) = 0;
-  virtual void listTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const int16_t max_num) = 0;
-  virtual void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<std::string> & values) = 0;
+  virtual void listTableFiles(std::vector<int64_t> & _return, const std::string& dbName, const std::string& tabName, const int32_t from, const int32_t to) = 0;
+  virtual void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<SplitValue> & values) = 0;
   virtual bool addNodeGroup(const NodeGroup& ng) = 0;
   virtual bool modifyNodeGroup(const std::string& schemaName, const NodeGroup& ng) = 0;
   virtual bool deleteNodeGroup(const NodeGroup& ng) = 0;
@@ -805,10 +805,10 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   void getTableNodeFiles(std::vector<SFile> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const std::string& /* nodeName */) {
     return;
   }
-  void listTableFiles(std::vector<SFile> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const int16_t /* max_num */) {
+  void listTableFiles(std::vector<int64_t> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const int32_t /* from */, const int32_t /* to */) {
     return;
   }
-  void filterTableFiles(std::vector<SFile> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const std::vector<std::string> & /* values */) {
+  void filterTableFiles(std::vector<SFile> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const std::vector<SplitValue> & /* values */) {
     return;
   }
   bool addNodeGroup(const NodeGroup& /* ng */) {
@@ -23481,23 +23481,25 @@ class ThriftHiveMetastore_getTableNodeFiles_presult {
 };
 
 typedef struct _ThriftHiveMetastore_listTableFiles_args__isset {
-  _ThriftHiveMetastore_listTableFiles_args__isset() : dbName(false), tabName(false), max_num(false) {}
+  _ThriftHiveMetastore_listTableFiles_args__isset() : dbName(false), tabName(false), from(false), to(false) {}
   bool dbName;
   bool tabName;
-  bool max_num;
+  bool from;
+  bool to;
 } _ThriftHiveMetastore_listTableFiles_args__isset;
 
 class ThriftHiveMetastore_listTableFiles_args {
  public:
 
-  ThriftHiveMetastore_listTableFiles_args() : dbName(), tabName(), max_num(0) {
+  ThriftHiveMetastore_listTableFiles_args() : dbName(), tabName(), from(0), to(0) {
   }
 
   virtual ~ThriftHiveMetastore_listTableFiles_args() throw() {}
 
   std::string dbName;
   std::string tabName;
-  int16_t max_num;
+  int32_t from;
+  int32_t to;
 
   _ThriftHiveMetastore_listTableFiles_args__isset __isset;
 
@@ -23509,8 +23511,12 @@ class ThriftHiveMetastore_listTableFiles_args {
     tabName = val;
   }
 
-  void __set_max_num(const int16_t val) {
-    max_num = val;
+  void __set_from(const int32_t val) {
+    from = val;
+  }
+
+  void __set_to(const int32_t val) {
+    to = val;
   }
 
   bool operator == (const ThriftHiveMetastore_listTableFiles_args & rhs) const
@@ -23519,7 +23525,9 @@ class ThriftHiveMetastore_listTableFiles_args {
       return false;
     if (!(tabName == rhs.tabName))
       return false;
-    if (!(max_num == rhs.max_num))
+    if (!(from == rhs.from))
+      return false;
+    if (!(to == rhs.to))
       return false;
     return true;
   }
@@ -23543,7 +23551,8 @@ class ThriftHiveMetastore_listTableFiles_pargs {
 
   const std::string* dbName;
   const std::string* tabName;
-  const int16_t* max_num;
+  const int32_t* from;
+  const int32_t* to;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -23563,12 +23572,12 @@ class ThriftHiveMetastore_listTableFiles_result {
 
   virtual ~ThriftHiveMetastore_listTableFiles_result() throw() {}
 
-  std::vector<SFile>  success;
+  std::vector<int64_t>  success;
   MetaException o1;
 
   _ThriftHiveMetastore_listTableFiles_result__isset __isset;
 
-  void __set_success(const std::vector<SFile> & val) {
+  void __set_success(const std::vector<int64_t> & val) {
     success = val;
   }
 
@@ -23607,7 +23616,7 @@ class ThriftHiveMetastore_listTableFiles_presult {
 
   virtual ~ThriftHiveMetastore_listTableFiles_presult() throw() {}
 
-  std::vector<SFile> * success;
+  std::vector<int64_t> * success;
   MetaException o1;
 
   _ThriftHiveMetastore_listTableFiles_presult__isset __isset;
@@ -23633,7 +23642,7 @@ class ThriftHiveMetastore_filterTableFiles_args {
 
   std::string dbName;
   std::string tabName;
-  std::vector<std::string>  values;
+  std::vector<SplitValue>  values;
 
   _ThriftHiveMetastore_filterTableFiles_args__isset __isset;
 
@@ -23645,7 +23654,7 @@ class ThriftHiveMetastore_filterTableFiles_args {
     tabName = val;
   }
 
-  void __set_values(const std::vector<std::string> & val) {
+  void __set_values(const std::vector<SplitValue> & val) {
     values = val;
   }
 
@@ -23679,7 +23688,7 @@ class ThriftHiveMetastore_filterTableFiles_pargs {
 
   const std::string* dbName;
   const std::string* tabName;
-  const std::vector<std::string> * values;
+  const std::vector<SplitValue> * values;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -25560,11 +25569,11 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void getTableNodeFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& nodeName);
   void send_getTableNodeFiles(const std::string& dbName, const std::string& tabName, const std::string& nodeName);
   void recv_getTableNodeFiles(std::vector<SFile> & _return);
-  void listTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const int16_t max_num);
-  void send_listTableFiles(const std::string& dbName, const std::string& tabName, const int16_t max_num);
-  void recv_listTableFiles(std::vector<SFile> & _return);
-  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<std::string> & values);
-  void send_filterTableFiles(const std::string& dbName, const std::string& tabName, const std::vector<std::string> & values);
+  void listTableFiles(std::vector<int64_t> & _return, const std::string& dbName, const std::string& tabName, const int32_t from, const int32_t to);
+  void send_listTableFiles(const std::string& dbName, const std::string& tabName, const int32_t from, const int32_t to);
+  void recv_listTableFiles(std::vector<int64_t> & _return);
+  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<SplitValue> & values);
+  void send_filterTableFiles(const std::string& dbName, const std::string& tabName, const std::vector<SplitValue> & values);
   void recv_filterTableFiles(std::vector<SFile> & _return);
   bool addNodeGroup(const NodeGroup& ng);
   void send_addNodeGroup(const NodeGroup& ng);
@@ -27619,17 +27628,17 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return;
   }
 
-  void listTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const int16_t max_num) {
+  void listTableFiles(std::vector<int64_t> & _return, const std::string& dbName, const std::string& tabName, const int32_t from, const int32_t to) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->listTableFiles(_return, dbName, tabName, max_num);
+      ifaces_[i]->listTableFiles(_return, dbName, tabName, from, to);
     }
-    ifaces_[i]->listTableFiles(_return, dbName, tabName, max_num);
+    ifaces_[i]->listTableFiles(_return, dbName, tabName, from, to);
     return;
   }
 
-  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<std::string> & values) {
+  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<SplitValue> & values) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
