@@ -66,6 +66,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void listRoles(std::vector<Role> & _return) = 0;
   virtual bool addNodeGroupAssignment(const NodeGroup& ng, const std::string& dbName) = 0;
   virtual bool deleteNodeGroupAssignment(const NodeGroup& ng, const std::string& dbName) = 0;
+  virtual void pingPong(std::string& _return, const int32_t len) = 0;
   virtual void create_database(const Database& database) = 0;
   virtual void get_database(Database& _return, const std::string& name) = 0;
   virtual void drop_database(const std::string& name, const bool deleteData, const bool cascade) = 0;
@@ -406,6 +407,9 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
   bool deleteNodeGroupAssignment(const NodeGroup& /* ng */, const std::string& /* dbName */) {
     bool _return = false;
     return _return;
+  }
+  void pingPong(std::string& /* _return */, const int32_t /* len */) {
+    return;
   }
   void create_database(const Database& /* database */) {
     return;
@@ -7070,6 +7074,124 @@ class ThriftHiveMetastore_deleteNodeGroupAssignment_presult {
   MetaException o1;
 
   _ThriftHiveMetastore_deleteNodeGroupAssignment_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_pingPong_args__isset {
+  _ThriftHiveMetastore_pingPong_args__isset() : len(false) {}
+  bool len;
+} _ThriftHiveMetastore_pingPong_args__isset;
+
+class ThriftHiveMetastore_pingPong_args {
+ public:
+
+  ThriftHiveMetastore_pingPong_args() : len(0) {
+  }
+
+  virtual ~ThriftHiveMetastore_pingPong_args() throw() {}
+
+  int32_t len;
+
+  _ThriftHiveMetastore_pingPong_args__isset __isset;
+
+  void __set_len(const int32_t val) {
+    len = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_pingPong_args & rhs) const
+  {
+    if (!(len == rhs.len))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_pingPong_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_pingPong_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_pingPong_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_pingPong_pargs() throw() {}
+
+  const int32_t* len;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_pingPong_result__isset {
+  _ThriftHiveMetastore_pingPong_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_pingPong_result__isset;
+
+class ThriftHiveMetastore_pingPong_result {
+ public:
+
+  ThriftHiveMetastore_pingPong_result() : success() {
+  }
+
+  virtual ~ThriftHiveMetastore_pingPong_result() throw() {}
+
+  std::string success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_pingPong_result__isset __isset;
+
+  void __set_success(const std::string& val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_pingPong_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_pingPong_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_pingPong_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_pingPong_presult__isset {
+  _ThriftHiveMetastore_pingPong_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_pingPong_presult__isset;
+
+class ThriftHiveMetastore_pingPong_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_pingPong_presult() throw() {}
+
+  std::string* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_pingPong_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -25330,6 +25452,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   bool deleteNodeGroupAssignment(const NodeGroup& ng, const std::string& dbName);
   void send_deleteNodeGroupAssignment(const NodeGroup& ng, const std::string& dbName);
   bool recv_deleteNodeGroupAssignment();
+  void pingPong(std::string& _return, const int32_t len);
+  void send_pingPong(const int32_t len);
+  void recv_pingPong(std::string& _return);
   void create_database(const Database& database);
   void send_create_database(const Database& database);
   void recv_create_database();
@@ -25789,6 +25914,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_listRoles(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_addNodeGroupAssignment(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_deleteNodeGroupAssignment(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_pingPong(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_create_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_drop_database(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -25976,6 +26102,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["listRoles"] = &ThriftHiveMetastoreProcessor::process_listRoles;
     processMap_["addNodeGroupAssignment"] = &ThriftHiveMetastoreProcessor::process_addNodeGroupAssignment;
     processMap_["deleteNodeGroupAssignment"] = &ThriftHiveMetastoreProcessor::process_deleteNodeGroupAssignment;
+    processMap_["pingPong"] = &ThriftHiveMetastoreProcessor::process_pingPong;
     processMap_["create_database"] = &ThriftHiveMetastoreProcessor::process_create_database;
     processMap_["get_database"] = &ThriftHiveMetastoreProcessor::process_get_database;
     processMap_["drop_database"] = &ThriftHiveMetastoreProcessor::process_drop_database;
@@ -26607,6 +26734,16 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->deleteNodeGroupAssignment(ng, dbName);
     }
     return ifaces_[i]->deleteNodeGroupAssignment(ng, dbName);
+  }
+
+  void pingPong(std::string& _return, const int32_t len) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->pingPong(_return, len);
+    }
+    ifaces_[i]->pingPong(_return, len);
+    return;
   }
 
   void create_database(const Database& database) {

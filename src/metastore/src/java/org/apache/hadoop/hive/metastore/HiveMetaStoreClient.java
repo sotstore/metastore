@@ -2274,4 +2274,9 @@ public boolean authentication(String user_name, String passwd)
     client.truncTableFiles(dbName, tabName);
   }
 
+  @Override
+  public String pingPong(int len) throws MetaException, TException {
+    return client.pingPong(len);
+  }
+
 }

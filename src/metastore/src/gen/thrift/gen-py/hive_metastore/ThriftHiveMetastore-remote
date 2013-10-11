@@ -73,6 +73,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '   listRoles()'
   print '  bool addNodeGroupAssignment(NodeGroup ng, string dbName)'
   print '  bool deleteNodeGroupAssignment(NodeGroup ng, string dbName)'
+  print '  string pingPong(i32 len)'
   print '  void create_database(Database database)'
   print '  Database get_database(string name)'
   print '  void drop_database(string name, bool deleteData, bool cascade)'
@@ -556,6 +557,12 @@ elif cmd == 'deleteNodeGroupAssignment':
     print 'deleteNodeGroupAssignment requires 2 args'
     sys.exit(1)
   pp.pprint(client.deleteNodeGroupAssignment(eval(args[0]),args[1],))
+
+elif cmd == 'pingPong':
+  if len(args) != 1:
+    print 'pingPong requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.pingPong(eval(args[0]),))
 
 elif cmd == 'create_database':
   if len(args) != 1:
