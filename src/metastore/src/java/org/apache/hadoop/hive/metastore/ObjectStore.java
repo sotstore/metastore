@@ -8914,7 +8914,7 @@ public MUser getMUser(String userName) {
     try {
       openTransaction();
       schemaName = schemaName.toLowerCase().trim();
-      Query query = pm.newQuery(MTable.class, "schema.name == schemaName");
+      Query query = pm.newQuery(MTable.class, "schema.schemaName == schemaName");
       query.declareParameters("java.lang.String schemaName");
       mtbls = (List<MTable>) query.execute(schemaName);
       pm.retrieve(mtbls);

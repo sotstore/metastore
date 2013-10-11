@@ -112,7 +112,6 @@ public class Hive {
   private IMetaStoreClient metaStoreClient;
 
   private String currentDatabase;
-
   //added by liulichao
   private static String rootName = "root";//root
   private static String rootPWD = "111111";//root
@@ -3358,5 +3357,38 @@ public class Hive {
     }
     return gl;
   }
-
+  /**
+   * Updates the existing table metadata with the new metadata.
+   *
+   * @param glsName
+   *          name of the existing schema
+   * @param newSch
+   *          new name of the schema. could be the old name
+   * @throws InvalidOperationException
+   *           if the changes in metadata is not acceptable
+   * @throws TException
+   */
+  public void alterSchema(String schName, org.apache.hadoop.hive.ql.metadata.GlobalSchema newSch)
+      throws InvalidOperationException, HiveException, Exception {
+    org.apache.hadoop.hive.ql.metadata.GlobalSchema gls = new org.apache.hadoop.hive.ql.metadata.GlobalSchema(schName);
+    try {
+      // Remove the DDL_TIME so it gets refreshed
+      if (newSch.getParameters() != null) {
+        LOG.info("****************zqh****************newSch.getParameters()" + newSch.getParameters());
+        newSch.getParameters().remove(hive_metastoreConstants.DDL_TIME);
+      }
+      LOG.info("****************zqh****************modifySchema" + gls.getSchemaName());
+      getMSC().modifySchema(gls.getSchemaName(), newSch.getTSchema());
+      LOG.info("****************zqh****************modifySchemaSuccessfully");
+    } catch (MetaException e) {
+      LOG.error("Unable to modify schema MetaException:" + e.getMessage());
+      throw new HiveException("Unable to alter schema.", e);
+    } catch (TException e) {
+      LOG.error("Unable to modify schema TException:" + e.getMessage());
+      throw new HiveException("Unable to alter schema.", e);
+    } catch (Exception e) {
+      LOG.error("Unable to modify schema Exception:" + e.getMessage());
+      throw new Exception("Unable to alter schema.", e);
+    }
+  }
 };
