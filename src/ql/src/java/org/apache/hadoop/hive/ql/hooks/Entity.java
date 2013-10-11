@@ -156,7 +156,7 @@ public class Entity implements Serializable {
     d = null;
     p = null;
     this.t = t;
-    typ = Type.SCHEMA;
+    typ = Type.TABLE;
     name = computeName();
     this.complete = complete;
   }
@@ -297,8 +297,6 @@ public class Entity implements Serializable {
 
   private String computeName() {
     switch (typ) {
-    case SCHEMA:
-      return t.getDbName() + "@" + t.getTableName();
     case TABLE:
       return t.getDbName() + "@" + t.getTableName();
     case PARTITION:
