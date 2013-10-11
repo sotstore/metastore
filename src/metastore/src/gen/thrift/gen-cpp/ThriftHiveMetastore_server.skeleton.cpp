@@ -272,6 +272,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("deleteNodeGroupAssignment\n");
   }
 
+  void pingPong(std::string& _return, const int32_t len) {
+    // Your implementation goes here
+    printf("pingPong\n");
+  }
+
   void create_database(const Database& database) {
     // Your implementation goes here
     printf("create_database\n");

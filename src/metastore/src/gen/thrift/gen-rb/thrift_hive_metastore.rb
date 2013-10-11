@@ -824,6 +824,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteNodeGroupAssignment failed: unknown result')
     end
 
+    def pingPong(len)
+      send_pingPong(len)
+      return recv_pingPong()
+    end
+
+    def send_pingPong(len)
+      send_message('pingPong', PingPong_args, :len => len)
+    end
+
+    def recv_pingPong()
+      result = receive_message(PingPong_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'pingPong failed: unknown result')
+    end
+
     def create_database(database)
       send_create_database(database)
       recv_create_database()
@@ -3601,6 +3617,17 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'deleteNodeGroupAssignment', seqid)
+    end
+
+    def process_pingPong(seqid, iprot, oprot)
+      args = read_args(iprot, PingPong_args)
+      result = PingPong_result.new()
+      begin
+        result.success = @handler.pingPong(args.len)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'pingPong', seqid)
     end
 
     def process_create_database(seqid, iprot, oprot)
@@ -7054,6 +7081,40 @@ module ThriftHiveMetastore
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::BOOL, :name => 'success'},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class PingPong_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    LEN = 1
+
+    FIELDS = {
+      LEN => {:type => ::Thrift::Types::I32, :name => 'len'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class PingPong_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::STRING, :name => 'success'},
       O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
     }
 

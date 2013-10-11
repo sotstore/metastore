@@ -1262,4 +1262,6 @@ public interface IMetaStoreClient {
 
   public boolean deleteNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException, NoSuchObjectException, TException;
 
+  public String pingPong(int len) throws MetaException, TException;
+
 }

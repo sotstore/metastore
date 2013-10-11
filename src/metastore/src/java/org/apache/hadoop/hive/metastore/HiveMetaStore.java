@@ -6416,6 +6416,32 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return true;
     }
 
+    @Override
+    public String pingPong(int len) throws MetaException, TException {
+      StringBuffer sb = new StringBuffer();
+      int index = 0;
+      for(int i = 0;i<=len;i++){
+        int random = (int) (Math.random()*1000);
+        if(i>3){
+          index = random%3;
+        }else{
+          index = i;
+        }
+        switch(index){
+        case 0:
+          sb.append((char)(97+random%26));
+          break;
+        case 1:
+          sb.append((char)(65+random%26));
+          break;
+        case 2:
+          sb.append((char)(48+random%26));
+          break;
+        }
+      }
+      return sb.toString();
+    }
+
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {

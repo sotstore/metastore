@@ -89,6 +89,7 @@ import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.model.MetaStoreConst;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -2253,6 +2254,11 @@ public boolean authentication(String user_name, String passwd)
     assert to_db != null;
     assert to_devid != null;
     return client.migrate_stage2(dbName, tableName, files, from_db, to_db, to_devid);
+  }
+
+  @Override
+  public String pingPong(int len) throws MetaException, TException {
+    return client.pingPong(len);
   }
 
 }
