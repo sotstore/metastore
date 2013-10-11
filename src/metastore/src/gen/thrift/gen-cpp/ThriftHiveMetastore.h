@@ -188,6 +188,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void getTableNodeFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& nodeName) = 0;
   virtual void listTableFiles(std::vector<int64_t> & _return, const std::string& dbName, const std::string& tabName, const int32_t from, const int32_t to) = 0;
   virtual void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<SplitValue> & values) = 0;
+  virtual void truncTableFiles(const std::string& dbName, const std::string& tabName) = 0;
   virtual bool addNodeGroup(const NodeGroup& ng) = 0;
   virtual bool modifyNodeGroup(const std::string& schemaName, const NodeGroup& ng) = 0;
   virtual bool deleteNodeGroup(const NodeGroup& ng) = 0;
@@ -809,6 +810,9 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return;
   }
   void filterTableFiles(std::vector<SFile> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const std::vector<SplitValue> & /* values */) {
+    return;
+  }
+  void truncTableFiles(const std::string& /* dbName */, const std::string& /* tabName */) {
     return;
   }
   bool addNodeGroup(const NodeGroup& /* ng */) {
@@ -23761,6 +23765,123 @@ class ThriftHiveMetastore_filterTableFiles_presult {
 
 };
 
+typedef struct _ThriftHiveMetastore_truncTableFiles_args__isset {
+  _ThriftHiveMetastore_truncTableFiles_args__isset() : dbName(false), tabName(false) {}
+  bool dbName;
+  bool tabName;
+} _ThriftHiveMetastore_truncTableFiles_args__isset;
+
+class ThriftHiveMetastore_truncTableFiles_args {
+ public:
+
+  ThriftHiveMetastore_truncTableFiles_args() : dbName(), tabName() {
+  }
+
+  virtual ~ThriftHiveMetastore_truncTableFiles_args() throw() {}
+
+  std::string dbName;
+  std::string tabName;
+
+  _ThriftHiveMetastore_truncTableFiles_args__isset __isset;
+
+  void __set_dbName(const std::string& val) {
+    dbName = val;
+  }
+
+  void __set_tabName(const std::string& val) {
+    tabName = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_truncTableFiles_args & rhs) const
+  {
+    if (!(dbName == rhs.dbName))
+      return false;
+    if (!(tabName == rhs.tabName))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_truncTableFiles_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_truncTableFiles_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_truncTableFiles_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_truncTableFiles_pargs() throw() {}
+
+  const std::string* dbName;
+  const std::string* tabName;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_truncTableFiles_result__isset {
+  _ThriftHiveMetastore_truncTableFiles_result__isset() : o1(false) {}
+  bool o1;
+} _ThriftHiveMetastore_truncTableFiles_result__isset;
+
+class ThriftHiveMetastore_truncTableFiles_result {
+ public:
+
+  ThriftHiveMetastore_truncTableFiles_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_truncTableFiles_result() throw() {}
+
+  MetaException o1;
+
+  _ThriftHiveMetastore_truncTableFiles_result__isset __isset;
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_truncTableFiles_result & rhs) const
+  {
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_truncTableFiles_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_truncTableFiles_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_truncTableFiles_presult__isset {
+  _ThriftHiveMetastore_truncTableFiles_presult__isset() : o1(false) {}
+  bool o1;
+} _ThriftHiveMetastore_truncTableFiles_presult__isset;
+
+class ThriftHiveMetastore_truncTableFiles_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_truncTableFiles_presult() throw() {}
+
+  MetaException o1;
+
+  _ThriftHiveMetastore_truncTableFiles_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 typedef struct _ThriftHiveMetastore_addNodeGroup_args__isset {
   _ThriftHiveMetastore_addNodeGroup_args__isset() : ng(false) {}
   bool ng;
@@ -25575,6 +25696,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<SplitValue> & values);
   void send_filterTableFiles(const std::string& dbName, const std::string& tabName, const std::vector<SplitValue> & values);
   void recv_filterTableFiles(std::vector<SFile> & _return);
+  void truncTableFiles(const std::string& dbName, const std::string& tabName);
+  void send_truncTableFiles(const std::string& dbName, const std::string& tabName);
+  void recv_truncTableFiles();
   bool addNodeGroup(const NodeGroup& ng);
   void send_addNodeGroup(const NodeGroup& ng);
   bool recv_addNodeGroup();
@@ -25787,6 +25911,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_getTableNodeFiles(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_listTableFiles(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_filterTableFiles(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_truncTableFiles(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_addNodeGroup(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_modifyNodeGroup(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_deleteNodeGroup(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -25973,6 +26098,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["getTableNodeFiles"] = &ThriftHiveMetastoreProcessor::process_getTableNodeFiles;
     processMap_["listTableFiles"] = &ThriftHiveMetastoreProcessor::process_listTableFiles;
     processMap_["filterTableFiles"] = &ThriftHiveMetastoreProcessor::process_filterTableFiles;
+    processMap_["truncTableFiles"] = &ThriftHiveMetastoreProcessor::process_truncTableFiles;
     processMap_["addNodeGroup"] = &ThriftHiveMetastoreProcessor::process_addNodeGroup;
     processMap_["modifyNodeGroup"] = &ThriftHiveMetastoreProcessor::process_modifyNodeGroup;
     processMap_["deleteNodeGroup"] = &ThriftHiveMetastoreProcessor::process_deleteNodeGroup;
@@ -27646,6 +27772,15 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     }
     ifaces_[i]->filterTableFiles(_return, dbName, tabName, values);
     return;
+  }
+
+  void truncTableFiles(const std::string& dbName, const std::string& tabName) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->truncTableFiles(dbName, tabName);
+    }
+    ifaces_[i]->truncTableFiles(dbName, tabName);
   }
 
   bool addNodeGroup(const NodeGroup& ng) {

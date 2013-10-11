@@ -162,7 +162,6 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.thrift.TException;
 
 import com.taobao.metamorphosis.exception.MetaClientException;
-
 /**
  * This class is the interface between the application logic and the database
  * store that contains the objects. Refrain putting any logic in mode.M* objects
@@ -410,7 +409,7 @@ public class ObjectStore implements RawStore, Configurable {
 
   public boolean openTransaction() {
     openTrasactionCalls++;
-//    LOG.debug("-----openTransaction:"+openTrasactionCalls);
+    //LOG.debug("---" + Thread.currentThread().getId() + "--openTransaction:"+openTrasactionCalls);
     if (openTrasactionCalls == 1) {
       currentTransaction = pm.currentTransaction();
       currentTransaction.begin();
@@ -434,6 +433,11 @@ public class ObjectStore implements RawStore, Configurable {
     if (TXN_STATUS.ROLLBACK == transactionStatus) {
       return false;
     }
+    /*String str = "THIS " + Thread.currentThread().getId() + " tx = " + openTrasactionCalls + " .\n";
+    for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+      str += "\t" + ste.toString() + "\n";
+    }
+    LOG.error(str);*/
     if (openTrasactionCalls <= 0) {
       throw new RuntimeException("commitTransaction was called but openTransactionCalls = "
           + openTrasactionCalls + ". This probably indicates that there are unbalanced " +
@@ -445,7 +449,7 @@ public class ObjectStore implements RawStore, Configurable {
               + " mismatching open and close calls or rollback was called in the same trasaction");
     }
     openTrasactionCalls--;
-//    LOG.debug("-----commitTransaction:"+openTrasactionCalls);
+    //LOG.debug("---" + Thread.currentThread().getId() + "--commitTransaction:"+openTrasactionCalls);
     if ((openTrasactionCalls == 0) && currentTransaction.isActive()) {
       transactionStatus = TXN_STATUS.COMMITED;
       currentTransaction.commit();
@@ -468,7 +472,7 @@ public class ObjectStore implements RawStore, Configurable {
    * Rolls back the current transaction if it is active
    */
   public void rollbackTransaction() {
-//    LOG.debug("-----rollbackTransaction:"+openTrasactionCalls);
+    //LOG.debug("---" + Thread.currentThread().getId() + "--rollbackTransaction:"+openTrasactionCalls);
     if (openTrasactionCalls < 1) {
       return;
     }
@@ -866,6 +870,36 @@ public class ObjectStore implements RawStore, Configurable {
     }
 
     return rls;
+  }
+
+  @Override
+  public void truncTableFiles(String dbName, String tableName) throws MetaException,
+    NoSuchObjectException {
+    boolean success = false;
+    try {
+      openTransaction();
+
+      for (int i = 0, step = 1000; i < Integer.MAX_VALUE; i+=step) {
+        List<Long> files = listTableFiles(dbName, tableName, i, i + step);
+        for (int j = 0; j < files.size(); j++) {
+          SFile f = this.getSFile(files.get(j));
+          if (f != null) {
+            f.setStore_status(MetaStoreConst.MFileStoreStatus.RM_PHYSICAL);
+            updateSFile(f);
+          }
+        }
+        if (files.size() < step) {
+          break;
+        }
+      }
+
+      success = commitTransaction();
+    } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
+    }
+
   }
 
   public void findVoidFiles(List<SFile> voidFiles) throws MetaException {
@@ -1565,6 +1599,28 @@ public class ObjectStore implements RawStore, Configurable {
 
   }
 
+  private void deleteBusiTypeCol(MTable mtbl) {
+    boolean commited = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MBusiTypeColumn.class, "table.tableName == tabName && table.database.name == dbName");
+      query.declareParameters("java.lang.String tabName, java.lang.String dbName");
+      Collection cols = (Collection)query.execute(mtbl.getTableName(), mtbl.getDatabase().getName());
+      Iterator iter = cols.iterator();
+      while (iter.hasNext()) {
+        MBusiTypeColumn col = (MBusiTypeColumn)iter.next();
+        LOG.debug("--> DEL BusiType " + col.getBusiType() + " on col " + col.getColumn() + " for db " +
+            mtbl.getDatabase().getName() + " table " + mtbl.getTableName());
+        pm.deletePersistent(col);
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+  }
+
   private void createBusiTypeCol(MTable mtbl,List<MBusiTypeColumn> bcs){
     for(MFieldSchema f : mtbl.getSd().getCD().getCols()){
       String cmet = f.getComment();
@@ -1652,6 +1708,12 @@ public class ObjectStore implements RawStore, Configurable {
         }
 
         preDropStorageDescriptor(tbl.getSd());
+        // FIXME: reset the schema here? and delete files? and delete busitypecols
+        deleteBusiTypeCol(tbl);
+
+        tbl.setSchema(null);
+        tbl.setDatabase(null);
+
         // then remove the table
         pm.deletePersistentAll(tbl);
       }
@@ -4673,14 +4735,26 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       MIndex index = getMIndex(dbName, origTableName, indexName);
+      MTable tmpOrigTable = null;
+
       if (index != null) {
+        // FIXME: set sd to null?
+        LOG.error("--> DROP INDEX " + index.getIndexName());
+        preDropStorageDescriptor(index.getSd());
+        tmpOrigTable = index.getOrigTable();
+
+        index.setOrigTable(null);
+        index.setIndexTable(null);
+
         pm.deletePersistent(index);
       }
       success = commitTransaction();
-      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(index.getOrigTable().getDatabase()).toString()));
-      HashMap<String,Object> params = new HashMap<String,Object>();
-      params.put("index_name", indexName);
-      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_INDEX, db_id, -1, pm, index, params));
+      if (tmpOrigTable != null) {
+        long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(tmpOrigTable.getDatabase()).toString()));
+        HashMap<String,Object> params = new HashMap<String,Object>();
+        params.put("index_name", indexName);
+        MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_INDEX, db_id, -1, pm, index, params));
+      }
     } finally {
       if (!success) {
         rollbackTransaction();

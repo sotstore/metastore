@@ -1358,6 +1358,14 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
+  def truncTableFiles(self, dbName, tabName):
+    """
+    Parameters:
+     - dbName
+     - tabName
+    """
+    pass
+
   def addNodeGroup(self, ng):
     """
     Parameters:
@@ -7469,6 +7477,38 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "filterTableFiles failed: unknown result");
 
+  def truncTableFiles(self, dbName, tabName):
+    """
+    Parameters:
+     - dbName
+     - tabName
+    """
+    self.send_truncTableFiles(dbName, tabName)
+    self.recv_truncTableFiles()
+
+  def send_truncTableFiles(self, dbName, tabName):
+    self._oprot.writeMessageBegin('truncTableFiles', TMessageType.CALL, self._seqid)
+    args = truncTableFiles_args()
+    args.dbName = dbName
+    args.tabName = tabName
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_truncTableFiles(self, ):
+    (fname, mtype, rseqid) = self._iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(self._iprot)
+      self._iprot.readMessageEnd()
+      raise x
+    result = truncTableFiles_result()
+    result.read(self._iprot)
+    self._iprot.readMessageEnd()
+    if result.o1 is not None:
+      raise result.o1
+    return
+
   def addNodeGroup(self, ng):
     """
     Parameters:
@@ -7986,6 +8026,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     self._processMap["getTableNodeFiles"] = Processor.process_getTableNodeFiles
     self._processMap["listTableFiles"] = Processor.process_listTableFiles
     self._processMap["filterTableFiles"] = Processor.process_filterTableFiles
+    self._processMap["truncTableFiles"] = Processor.process_truncTableFiles
     self._processMap["addNodeGroup"] = Processor.process_addNodeGroup
     self._processMap["modifyNodeGroup"] = Processor.process_modifyNodeGroup
     self._processMap["deleteNodeGroup"] = Processor.process_deleteNodeGroup
@@ -10652,6 +10693,20 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("filterTableFiles", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_truncTableFiles(self, seqid, iprot, oprot):
+    args = truncTableFiles_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = truncTableFiles_result()
+    try:
+      self._handler.truncTableFiles(args.dbName, args.tabName)
+    except MetaException as o1:
+      result.o1 = o1
+    oprot.writeMessageBegin("truncTableFiles", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -37947,6 +38002,139 @@ class filterTableFiles_result:
         iter1014.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
+    if self.o1 is not None:
+      oprot.writeFieldBegin('o1', TType.STRUCT, 1)
+      self.o1.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class truncTableFiles_args:
+  """
+  Attributes:
+   - dbName
+   - tabName
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'dbName', None, None, ), # 1
+    (2, TType.STRING, 'tabName', None, None, ), # 2
+  )
+
+  def __init__(self, dbName=None, tabName=None,):
+    self.dbName = dbName
+    self.tabName = tabName
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.dbName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.tabName = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('truncTableFiles_args')
+    if self.dbName is not None:
+      oprot.writeFieldBegin('dbName', TType.STRING, 1)
+      oprot.writeString(self.dbName)
+      oprot.writeFieldEnd()
+    if self.tabName is not None:
+      oprot.writeFieldBegin('tabName', TType.STRING, 2)
+      oprot.writeString(self.tabName)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class truncTableFiles_result:
+  """
+  Attributes:
+   - o1
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRUCT, 'o1', (MetaException, MetaException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, o1=None,):
+    self.o1 = o1
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRUCT:
+          self.o1 = MetaException()
+          self.o1.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('truncTableFiles_result')
     if self.o1 is not None:
       oprot.writeFieldBegin('o1', TType.STRUCT, 1)
       self.o1.write(oprot)

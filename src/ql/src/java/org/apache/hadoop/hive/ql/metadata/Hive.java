@@ -2526,15 +2526,30 @@ public class Hive {
   }
 
   private IMetaStoreClient getRemoteDbMSC(String db_name) throws HiveException {
+    IMetaStoreClient r = null;
+
     try{
       Database db = getMSC().get_attribution(db_name);
       if(db == null){
         throw new MetaException("There is no Attribution named:"+db_name+",or top attribution is not reachable.");
       }
-      return getMSC().getRemoteDbMSC(db_name);
+      r = getMSC().getRemoteDbMSC(db_name);
+      // do authentication here
+      String user_name = conf.getVar(HiveConf.ConfVars.HIVE_USER);
+      String passwd = conf.getVar(HiveConf.ConfVars.HIVE_USERPWD);
+      try {
+        r.authentication(user_name, passwd);
+      } catch (NoSuchObjectException e) {
+        e.printStackTrace();
+        throw new MetaException(e.getMessage());
+      } catch (TException e) {
+        e.printStackTrace();
+        throw new MetaException(e.getMessage());
+      }
     } catch (TException e) {
       throw new HiveException("Unable to alter getRemoteDcMSC,metastore service unreachable.", e);
     }
+    return r;
   }
 
   private String getUserName() {

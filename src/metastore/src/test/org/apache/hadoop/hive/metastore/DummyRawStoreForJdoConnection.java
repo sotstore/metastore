@@ -1206,6 +1206,13 @@ public class DummyRawStoreForJdoConnection implements RawStore {
     return false;
   }
 
+  @Override
+  public void truncTableFiles(String dbName, String tableName) throws MetaException,
+      NoSuchObjectException {
+    // TODO Auto-generated method stub
+
+  }
+
 }
 
 

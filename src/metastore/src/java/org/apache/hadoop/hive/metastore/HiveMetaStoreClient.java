@@ -259,6 +259,18 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       // connection has died and the default connection is likely to be the first array element.
       promoteRandomMetaStoreURI();
       open();
+      // must re-authenticated here!
+      String user_name = conf.getVar(HiveConf.ConfVars.HIVE_USER);
+      String passwd = conf.getVar(HiveConf.ConfVars.HIVE_USERPWD);
+      try {
+        this.authentication(user_name, passwd);
+      } catch (NoSuchObjectException e) {
+        e.printStackTrace();
+        throw new MetaException(e.getMessage());
+      } catch (TException e) {
+        e.printStackTrace();
+        throw new MetaException(e.getMessage());
+      }
     }
   }
 
@@ -2253,6 +2265,13 @@ public boolean authentication(String user_name, String passwd)
     assert to_db != null;
     assert to_devid != null;
     return client.migrate_stage2(dbName, tableName, files, from_db, to_db, to_devid);
+  }
+
+  @Override
+  public void truncTableFiles(String dbName, String tabName) throws MetaException, TException {
+    assert dbName != null;
+    assert tabName != null;
+    client.truncTableFiles(dbName, tabName);
   }
 
 }

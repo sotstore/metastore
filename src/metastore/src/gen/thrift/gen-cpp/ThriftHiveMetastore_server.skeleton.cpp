@@ -882,6 +882,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("filterTableFiles\n");
   }
 
+  void truncTableFiles(const std::string& dbName, const std::string& tabName) {
+    // Your implementation goes here
+    printf("truncTableFiles\n");
+  }
+
   bool addNodeGroup(const NodeGroup& ng) {
     // Your implementation goes here
     printf("addNodeGroup\n");

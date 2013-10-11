@@ -4464,7 +4464,10 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           try {
             tbl = getMS().getTable(db_name, table_name);
           } catch (MetaException me) {
-            throw new FileOperationException("Invalid Table name:" + db_name + "/" + table_name + " + " + me.getMessage(), FOFailReason.INVALID_TABLE);
+            throw new FileOperationException("Invalid DB or Table name:" + db_name + "." + table_name + " + " + me.getMessage(), FOFailReason.INVALID_TABLE);
+          }
+          if (tbl == null) {
+            throw new FileOperationException("Invalid DB or Table name:" + db_name + "." + table_name, FOFailReason.INVALID_TABLE);
           }
           table_path = tbl.getDbName() + "/" + tbl.getTableName();
         }
@@ -6414,6 +6417,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       LOG.info("Finally, our migration succeed, files in this Attribution is deleted.");
 
       return true;
+    }
+
+    @Override
+    public void truncTableFiles(String dbName, String tabName) throws MetaException, TException {
+      startFunction("truncTableFiles", "DB: " + dbName + " Table: " + tabName);
+      getMS().truncTableFiles(dbName, tabName);
     }
 
   }

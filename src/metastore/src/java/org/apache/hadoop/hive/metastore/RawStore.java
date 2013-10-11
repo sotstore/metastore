@@ -668,4 +668,6 @@ public interface RawStore extends Configurable {
 
   public abstract boolean deleteNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException, NoSuchObjectException;
 
+  public abstract void truncTableFiles(String dbName, String tableName) throws MetaException, NoSuchObjectException;
+
 }

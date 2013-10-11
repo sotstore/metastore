@@ -705,7 +705,7 @@ public class GlobalSchema implements Serializable {
       throws HiveException {
 
     // TODO - types need to be checked.
-    List<FieldSchema> partCols = tschema.getPartitionKeys();
+    /*List<FieldSchema> partCols = tschema.getPartitionKeys();
     if (partCols == null || (partCols.size() == 0)) {
       if (spec != null) {
         throw new HiveException(
@@ -713,7 +713,7 @@ public class GlobalSchema implements Serializable {
       } else {
         return true;
       }
-    }
+    }*/
 
     return true;
   }
