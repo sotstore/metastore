@@ -824,13 +824,13 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'deleteNodeGroupAssignment failed: unknown result')
     end
 
-    def pingPong(len)
-      send_pingPong(len)
+    def pingPong(str)
+      send_pingPong(str)
       return recv_pingPong()
     end
 
-    def send_pingPong(len)
-      send_message('pingPong', PingPong_args, :len => len)
+    def send_pingPong(str)
+      send_message('pingPong', PingPong_args, :str => str)
     end
 
     def recv_pingPong()
@@ -3638,7 +3638,7 @@ module ThriftHiveMetastore
       args = read_args(iprot, PingPong_args)
       result = PingPong_result.new()
       begin
-        result.success = @handler.pingPong(args.len)
+        result.success = @handler.pingPong(args.str)
       rescue ::MetaException => o1
         result.o1 = o1
       end
@@ -7120,10 +7120,10 @@ module ThriftHiveMetastore
 
   class PingPong_args
     include ::Thrift::Struct, ::Thrift::Struct_Union
-    LEN = 1
+    STR = 1
 
     FIELDS = {
-      LEN => {:type => ::Thrift::Types::I32, :name => 'len'}
+      STR => {:type => ::Thrift::Types::STRING, :name => 'str'}
     }
 
     def struct_fields; FIELDS; end

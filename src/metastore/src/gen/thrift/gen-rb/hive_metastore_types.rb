@@ -1186,23 +1186,6 @@ class EquipRoom
   ::Thrift::Struct.generate_accessors self
 end
 
-class PingPong
-  include ::Thrift::Struct, ::Thrift::Struct_Union
-  LEN = 1
-
-  FIELDS = {
-    LEN => {:type => ::Thrift::Types::I32, :name => 'len'}
-  }
-
-  def struct_fields; FIELDS; end
-
-  def validate
-    raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field len is unset!') unless @len
-  end
-
-  ::Thrift::Struct.generate_accessors self
-end
-
 class MetaException < ::Thrift::Exception
   include ::Thrift::Struct, ::Thrift::Struct_Union
   def initialize(message=nil)

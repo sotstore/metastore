@@ -476,10 +476,6 @@ struct EquipRoom {
 3: optional string comment,
 4: optional GeoLocation geolocation
 }
-struct PingPong {
-1: required i32 len,
-}
-//end up with cry
 
 exception MetaException {
   1: string message
@@ -622,7 +618,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   bool addNodeGroupAssignment (1:NodeGroup ng, 2:string dbName) throws(1:MetaException o1)
   bool deleteNodeGroupAssignment (1:NodeGroup ng, 2:string dbName) throws(1:MetaException o1)
   
-  string pingPong(1:i32 len) throws (1:MetaException o1);
+  string pingPong(1:string str) throws (1:MetaException o1);
   
 //end up with cry
 

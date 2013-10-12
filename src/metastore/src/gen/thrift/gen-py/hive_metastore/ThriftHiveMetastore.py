@@ -370,10 +370,10 @@ class Iface(fb303.FacebookService.Iface):
     """
     pass
 
-  def pingPong(self, len):
+  def pingPong(self, str):
     """
     Parameters:
-     - len
+     - str
     """
     pass
 
@@ -3107,18 +3107,18 @@ class Client(fb303.FacebookService.Client, Iface):
       raise result.o1
     raise TApplicationException(TApplicationException.MISSING_RESULT, "deleteNodeGroupAssignment failed: unknown result");
 
-  def pingPong(self, len):
+  def pingPong(self, str):
     """
     Parameters:
-     - len
+     - str
     """
-    self.send_pingPong(len)
+    self.send_pingPong(str)
     return self.recv_pingPong()
 
-  def send_pingPong(self, len):
+  def send_pingPong(self, str):
     self._oprot.writeMessageBegin('pingPong', TMessageType.CALL, self._seqid)
     args = pingPong_args()
-    args.len = len
+    args.str = str
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
@@ -8825,7 +8825,7 @@ class Processor(fb303.FacebookService.Processor, Iface, TProcessor):
     iprot.readMessageEnd()
     result = pingPong_result()
     try:
-      result.success = self._handler.pingPong(args.len)
+      result.success = self._handler.pingPong(args.str)
     except MetaException as o1:
       result.o1 = o1
     oprot.writeMessageBegin("pingPong", TMessageType.REPLY, seqid)
@@ -18227,16 +18227,16 @@ class deleteNodeGroupAssignment_result:
 class pingPong_args:
   """
   Attributes:
-   - len
+   - str
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.I32, 'len', None, None, ), # 1
+    (1, TType.STRING, 'str', None, None, ), # 1
   )
 
-  def __init__(self, len=None,):
-    self.len = len
+  def __init__(self, str=None,):
+    self.str = str
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -18248,8 +18248,8 @@ class pingPong_args:
       if ftype == TType.STOP:
         break
       if fid == 1:
-        if ftype == TType.I32:
-          self.len = iprot.readI32();
+        if ftype == TType.STRING:
+          self.str = iprot.readString();
         else:
           iprot.skip(ftype)
       else:
@@ -18262,9 +18262,9 @@ class pingPong_args:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
     oprot.writeStructBegin('pingPong_args')
-    if self.len is not None:
-      oprot.writeFieldBegin('len', TType.I32, 1)
-      oprot.writeI32(self.len)
+    if self.str is not None:
+      oprot.writeFieldBegin('str', TType.STRING, 1)
+      oprot.writeString(self.str)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

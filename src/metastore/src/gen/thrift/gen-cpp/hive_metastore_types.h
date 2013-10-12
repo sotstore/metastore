@@ -3292,43 +3292,6 @@ class EquipRoom {
 
 void swap(EquipRoom &a, EquipRoom &b);
 
-
-class PingPong {
- public:
-
-  static const char* ascii_fingerprint; // = "E86CACEB22240450EDCBEFC3A83970E4";
-  static const uint8_t binary_fingerprint[16]; // = {0xE8,0x6C,0xAC,0xEB,0x22,0x24,0x04,0x50,0xED,0xCB,0xEF,0xC3,0xA8,0x39,0x70,0xE4};
-
-  PingPong() : len(0) {
-  }
-
-  virtual ~PingPong() throw() {}
-
-  int32_t len;
-
-  void __set_len(const int32_t val) {
-    len = val;
-  }
-
-  bool operator == (const PingPong & rhs) const
-  {
-    if (!(len == rhs.len))
-      return false;
-    return true;
-  }
-  bool operator != (const PingPong &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const PingPong & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(PingPong &a, PingPong &b);
-
 typedef struct _MetaException__isset {
   _MetaException__isset() : message(false) {}
   bool message;

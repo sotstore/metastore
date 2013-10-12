@@ -10551,9 +10551,9 @@ uint32_t ThriftHiveMetastore_pingPong_args::read(::apache::thrift::protocol::TPr
     switch (fid)
     {
       case 1:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->len);
-          this->__isset.len = true;
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->str);
+          this->__isset.str = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -10574,8 +10574,8 @@ uint32_t ThriftHiveMetastore_pingPong_args::write(::apache::thrift::protocol::TP
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ThriftHiveMetastore_pingPong_args");
 
-  xfer += oprot->writeFieldBegin("len", ::apache::thrift::protocol::T_I32, 1);
-  xfer += oprot->writeI32(this->len);
+  xfer += oprot->writeFieldBegin("str", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString(this->str);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -10587,8 +10587,8 @@ uint32_t ThriftHiveMetastore_pingPong_pargs::write(::apache::thrift::protocol::T
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ThriftHiveMetastore_pingPong_pargs");
 
-  xfer += oprot->writeFieldBegin("len", ::apache::thrift::protocol::T_I32, 1);
-  xfer += oprot->writeI32((*(this->len)));
+  xfer += oprot->writeFieldBegin("str", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString((*(this->str)));
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -45019,19 +45019,19 @@ bool ThriftHiveMetastoreClient::recv_deleteNodeGroupAssignment()
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "deleteNodeGroupAssignment failed: unknown result");
 }
 
-void ThriftHiveMetastoreClient::pingPong(std::string& _return, const int32_t len)
+void ThriftHiveMetastoreClient::pingPong(std::string& _return, const std::string& str)
 {
-  send_pingPong(len);
+  send_pingPong(str);
   recv_pingPong(_return);
 }
 
-void ThriftHiveMetastoreClient::send_pingPong(const int32_t len)
+void ThriftHiveMetastoreClient::send_pingPong(const std::string& str)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("pingPong", ::apache::thrift::protocol::T_CALL, cseqid);
 
   ThriftHiveMetastore_pingPong_pargs args;
-  args.len = &len;
+  args.str = &str;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -56530,7 +56530,7 @@ void ThriftHiveMetastoreProcessor::process_pingPong(int32_t seqid, ::apache::thr
 
   ThriftHiveMetastore_pingPong_result result;
   try {
-    iface_->pingPong(result.success, args.len);
+    iface_->pingPong(result.success, args.str);
     result.__isset.success = true;
   } catch (MetaException &o1) {
     result.o1 = o1;

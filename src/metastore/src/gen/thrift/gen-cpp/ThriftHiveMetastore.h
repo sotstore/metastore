@@ -66,7 +66,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void listRoles(std::vector<Role> & _return) = 0;
   virtual bool addNodeGroupAssignment(const NodeGroup& ng, const std::string& dbName) = 0;
   virtual bool deleteNodeGroupAssignment(const NodeGroup& ng, const std::string& dbName) = 0;
-  virtual void pingPong(std::string& _return, const int32_t len) = 0;
+  virtual void pingPong(std::string& _return, const std::string& str) = 0;
   virtual void create_database(const Database& database) = 0;
   virtual void get_database(Database& _return, const std::string& name) = 0;
   virtual void drop_database(const std::string& name, const bool deleteData, const bool cascade) = 0;
@@ -408,7 +408,7 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     bool _return = false;
     return _return;
   }
-  void pingPong(std::string& /* _return */, const int32_t /* len */) {
+  void pingPong(std::string& /* _return */, const std::string& /* str */) {
     return;
   }
   void create_database(const Database& /* database */) {
@@ -7080,29 +7080,29 @@ class ThriftHiveMetastore_deleteNodeGroupAssignment_presult {
 };
 
 typedef struct _ThriftHiveMetastore_pingPong_args__isset {
-  _ThriftHiveMetastore_pingPong_args__isset() : len(false) {}
-  bool len;
+  _ThriftHiveMetastore_pingPong_args__isset() : str(false) {}
+  bool str;
 } _ThriftHiveMetastore_pingPong_args__isset;
 
 class ThriftHiveMetastore_pingPong_args {
  public:
 
-  ThriftHiveMetastore_pingPong_args() : len(0) {
+  ThriftHiveMetastore_pingPong_args() : str() {
   }
 
   virtual ~ThriftHiveMetastore_pingPong_args() throw() {}
 
-  int32_t len;
+  std::string str;
 
   _ThriftHiveMetastore_pingPong_args__isset __isset;
 
-  void __set_len(const int32_t val) {
-    len = val;
+  void __set_str(const std::string& val) {
+    str = val;
   }
 
   bool operator == (const ThriftHiveMetastore_pingPong_args & rhs) const
   {
-    if (!(len == rhs.len))
+    if (!(str == rhs.str))
       return false;
     return true;
   }
@@ -7124,7 +7124,7 @@ class ThriftHiveMetastore_pingPong_pargs {
 
   virtual ~ThriftHiveMetastore_pingPong_pargs() throw() {}
 
-  const int32_t* len;
+  const std::string* str;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -25452,8 +25452,8 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   bool deleteNodeGroupAssignment(const NodeGroup& ng, const std::string& dbName);
   void send_deleteNodeGroupAssignment(const NodeGroup& ng, const std::string& dbName);
   bool recv_deleteNodeGroupAssignment();
-  void pingPong(std::string& _return, const int32_t len);
-  void send_pingPong(const int32_t len);
+  void pingPong(std::string& _return, const std::string& str);
+  void send_pingPong(const std::string& str);
   void recv_pingPong(std::string& _return);
   void create_database(const Database& database);
   void send_create_database(const Database& database);
@@ -26736,13 +26736,13 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return ifaces_[i]->deleteNodeGroupAssignment(ng, dbName);
   }
 
-  void pingPong(std::string& _return, const int32_t len) {
+  void pingPong(std::string& _return, const std::string& str) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->pingPong(_return, len);
+      ifaces_[i]->pingPong(_return, str);
     }
-    ifaces_[i]->pingPong(_return, len);
+    ifaces_[i]->pingPong(_return, str);
     return;
   }
 

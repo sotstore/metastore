@@ -2275,8 +2275,8 @@ public boolean authentication(String user_name, String passwd)
   }
 
   @Override
-  public String pingPong(int len) throws MetaException, TException {
-    return client.pingPong(len);
+  public String pingPong(String str) throws MetaException, TException {
+    return client.pingPong(str);
   }
 
 }

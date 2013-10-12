@@ -66,7 +66,7 @@ interface ThriftHiveMetastoreIf extends \FacebookServiceIf {
   public function listRoles();
   public function addNodeGroupAssignment(\metastore\NodeGroup $ng, $dbName);
   public function deleteNodeGroupAssignment(\metastore\NodeGroup $ng, $dbName);
-  public function pingPong($len);
+  public function pingPong($str);
   public function create_database(\metastore\Database $database);
   public function get_database($name);
   public function drop_database($name, $deleteData, $cascade);
@@ -2971,16 +2971,16 @@ class ThriftHiveMetastoreClient extends \FacebookServiceClient implements \metas
     throw new \Exception("deleteNodeGroupAssignment failed: unknown result");
   }
 
-  public function pingPong($len)
+  public function pingPong($str)
   {
-    $this->send_pingPong($len);
+    $this->send_pingPong($str);
     return $this->recv_pingPong();
   }
 
-  public function send_pingPong($len)
+  public function send_pingPong($str)
   {
     $args = new \metastore\ThriftHiveMetastore_pingPong_args();
-    $args->len = $len;
+    $args->str = $str;
     $bin_accel = ($this->output_ instanceof TProtocol::$TBINARYPROTOCOLACCELERATED) && function_exists('thrift_protocol_write_binary');
     if ($bin_accel)
     {
@@ -20693,20 +20693,20 @@ class ThriftHiveMetastore_deleteNodeGroupAssignment_result {
 class ThriftHiveMetastore_pingPong_args {
   static $_TSPEC;
 
-  public $len = null;
+  public $str = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
       self::$_TSPEC = array(
         1 => array(
-          'var' => 'len',
-          'type' => TType::I32,
+          'var' => 'str',
+          'type' => TType::STRING,
           ),
         );
     }
     if (is_array($vals)) {
-      if (isset($vals['len'])) {
-        $this->len = $vals['len'];
+      if (isset($vals['str'])) {
+        $this->str = $vals['str'];
       }
     }
   }
@@ -20731,8 +20731,8 @@ class ThriftHiveMetastore_pingPong_args {
       switch ($fid)
       {
         case 1:
-          if ($ftype == TType::I32) {
-            $xfer += $input->readI32($this->len);
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->str);
           } else {
             $xfer += $input->skip($ftype);
           }
@@ -20750,9 +20750,9 @@ class ThriftHiveMetastore_pingPong_args {
   public function write($output) {
     $xfer = 0;
     $xfer += $output->writeStructBegin('ThriftHiveMetastore_pingPong_args');
-    if ($this->len !== null) {
-      $xfer += $output->writeFieldBegin('len', TType::I32, 1);
-      $xfer += $output->writeI32($this->len);
+    if ($this->str !== null) {
+      $xfer += $output->writeFieldBegin('str', TType::STRING, 1);
+      $xfer += $output->writeString($this->str);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();
