@@ -6430,6 +6430,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return str;
     }
 
+    @Override
+    public List<Long> listFilesByDigest(String digest) throws MetaException, TException {
+      startFunction("listFilesByDigest", "digest: " + digest);
+      return getMS().findSpecificDigestFiles(digest);
+    }
+
   }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {

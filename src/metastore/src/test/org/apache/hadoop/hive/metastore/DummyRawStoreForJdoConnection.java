@@ -1213,6 +1213,12 @@ public class DummyRawStoreForJdoConnection implements RawStore {
 
   }
 
+  @Override
+  public List<Long> findSpecificDigestFiles(String digest) throws MetaException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 }
 
 

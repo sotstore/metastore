@@ -1213,6 +1213,8 @@ public interface IMetaStoreClient {
 
   public List<Long> listTableFiles(String dbName, String tabName, int begin, int end) throws MetaException, TException;
 
+  public List<Long> listFilesByDigest(String digest) throws MetaException, TException;
+
   public List<SFile> filterTableFiles(String dbName, String tabName, List<SplitValue> values) throws MetaException, TException;
 
   public void truncTableFiles(String dbName, String tabName) throws MetaException, TException;

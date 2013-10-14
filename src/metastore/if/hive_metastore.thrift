@@ -990,6 +990,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   list<SFile> getTableNodeFiles(1:string dbName,2:string tabName,3:string nodeName)  throws (1:MetaException o1)
   
   list<i64> listTableFiles(1:string dbName,2:string tabName,3:i32 from, 4:i32 to)  throws (1:MetaException o1)
+  list<i64> listFilesByDigest(1:string digest) throws (1:MetaException o1)
   list<SFile> filterTableFiles(1:string dbName,2:string tabName,3:list<SplitValue> values)  throws (1:MetaException o1)
   void truncTableFiles(1:string dbName, 2:string tabName) throws (1:MetaException o1)
   

@@ -188,6 +188,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void getTableNodeGroups(std::vector<NodeGroup> & _return, const std::string& dbName, const std::string& tabName) = 0;
   virtual void getTableNodeFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::string& nodeName) = 0;
   virtual void listTableFiles(std::vector<int64_t> & _return, const std::string& dbName, const std::string& tabName, const int32_t from, const int32_t to) = 0;
+  virtual void listFilesByDigest(std::vector<int64_t> & _return, const std::string& digest) = 0;
   virtual void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<SplitValue> & values) = 0;
   virtual void truncTableFiles(const std::string& dbName, const std::string& tabName) = 0;
   virtual bool addNodeGroup(const NodeGroup& ng) = 0;
@@ -811,6 +812,9 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return;
   }
   void listTableFiles(std::vector<int64_t> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const int32_t /* from */, const int32_t /* to */) {
+    return;
+  }
+  void listFilesByDigest(std::vector<int64_t> & /* _return */, const std::string& /* digest */) {
     return;
   }
   void filterTableFiles(std::vector<SFile> & /* _return */, const std::string& /* dbName */, const std::string& /* tabName */, const std::vector<SplitValue> & /* values */) {
@@ -23751,6 +23755,124 @@ class ThriftHiveMetastore_listTableFiles_presult {
 
 };
 
+typedef struct _ThriftHiveMetastore_listFilesByDigest_args__isset {
+  _ThriftHiveMetastore_listFilesByDigest_args__isset() : digest(false) {}
+  bool digest;
+} _ThriftHiveMetastore_listFilesByDigest_args__isset;
+
+class ThriftHiveMetastore_listFilesByDigest_args {
+ public:
+
+  ThriftHiveMetastore_listFilesByDigest_args() : digest() {
+  }
+
+  virtual ~ThriftHiveMetastore_listFilesByDigest_args() throw() {}
+
+  std::string digest;
+
+  _ThriftHiveMetastore_listFilesByDigest_args__isset __isset;
+
+  void __set_digest(const std::string& val) {
+    digest = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listFilesByDigest_args & rhs) const
+  {
+    if (!(digest == rhs.digest))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listFilesByDigest_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listFilesByDigest_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_listFilesByDigest_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listFilesByDigest_pargs() throw() {}
+
+  const std::string* digest;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listFilesByDigest_result__isset {
+  _ThriftHiveMetastore_listFilesByDigest_result__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listFilesByDigest_result__isset;
+
+class ThriftHiveMetastore_listFilesByDigest_result {
+ public:
+
+  ThriftHiveMetastore_listFilesByDigest_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_listFilesByDigest_result() throw() {}
+
+  std::vector<int64_t>  success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listFilesByDigest_result__isset __isset;
+
+  void __set_success(const std::vector<int64_t> & val) {
+    success = val;
+  }
+
+  void __set_o1(const MetaException& val) {
+    o1 = val;
+  }
+
+  bool operator == (const ThriftHiveMetastore_listFilesByDigest_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_listFilesByDigest_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_listFilesByDigest_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_listFilesByDigest_presult__isset {
+  _ThriftHiveMetastore_listFilesByDigest_presult__isset() : success(false), o1(false) {}
+  bool success;
+  bool o1;
+} _ThriftHiveMetastore_listFilesByDigest_presult__isset;
+
+class ThriftHiveMetastore_listFilesByDigest_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_listFilesByDigest_presult() throw() {}
+
+  std::vector<int64_t> * success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_listFilesByDigest_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 typedef struct _ThriftHiveMetastore_filterTableFiles_args__isset {
   _ThriftHiveMetastore_filterTableFiles_args__isset() : dbName(false), tabName(false), values(false) {}
   bool dbName;
@@ -25818,6 +25940,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void listTableFiles(std::vector<int64_t> & _return, const std::string& dbName, const std::string& tabName, const int32_t from, const int32_t to);
   void send_listTableFiles(const std::string& dbName, const std::string& tabName, const int32_t from, const int32_t to);
   void recv_listTableFiles(std::vector<int64_t> & _return);
+  void listFilesByDigest(std::vector<int64_t> & _return, const std::string& digest);
+  void send_listFilesByDigest(const std::string& digest);
+  void recv_listFilesByDigest(std::vector<int64_t> & _return);
   void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<SplitValue> & values);
   void send_filterTableFiles(const std::string& dbName, const std::string& tabName, const std::vector<SplitValue> & values);
   void recv_filterTableFiles(std::vector<SFile> & _return);
@@ -26036,6 +26161,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_getTableNodeGroups(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getTableNodeFiles(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_listTableFiles(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_listFilesByDigest(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_filterTableFiles(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_truncTableFiles(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_addNodeGroup(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -26224,6 +26350,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["getTableNodeGroups"] = &ThriftHiveMetastoreProcessor::process_getTableNodeGroups;
     processMap_["getTableNodeFiles"] = &ThriftHiveMetastoreProcessor::process_getTableNodeFiles;
     processMap_["listTableFiles"] = &ThriftHiveMetastoreProcessor::process_listTableFiles;
+    processMap_["listFilesByDigest"] = &ThriftHiveMetastoreProcessor::process_listFilesByDigest;
     processMap_["filterTableFiles"] = &ThriftHiveMetastoreProcessor::process_filterTableFiles;
     processMap_["truncTableFiles"] = &ThriftHiveMetastoreProcessor::process_truncTableFiles;
     processMap_["addNodeGroup"] = &ThriftHiveMetastoreProcessor::process_addNodeGroup;
@@ -27898,6 +28025,16 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->listTableFiles(_return, dbName, tabName, from, to);
     }
     ifaces_[i]->listTableFiles(_return, dbName, tabName, from, to);
+    return;
+  }
+
+  void listFilesByDigest(std::vector<int64_t> & _return, const std::string& digest) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->listFilesByDigest(_return, digest);
+    }
+    ifaces_[i]->listFilesByDigest(_return, digest);
     return;
   }
 

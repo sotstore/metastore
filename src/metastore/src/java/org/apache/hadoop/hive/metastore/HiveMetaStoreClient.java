@@ -2276,7 +2276,14 @@ public boolean authentication(String user_name, String passwd)
 
   @Override
   public String pingPong(String str) throws MetaException, TException {
+    assert str != null;
     return client.pingPong(str);
+  }
+
+  @Override
+  public List<Long> listFilesByDigest(String digest) throws MetaException, TException {
+    assert digest != null;
+    return client.listFilesByDigest(digest);
   }
 
 }

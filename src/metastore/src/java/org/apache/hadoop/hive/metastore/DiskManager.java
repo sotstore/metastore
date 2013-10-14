@@ -2220,7 +2220,7 @@ public class DiskManager {
 
         // FIXME: do not print this info now
         if (r.replies != null && r.replies.size() > 0) {
-          String infos = "----> node " + r.node + ", CMDS: {";
+          String infos = "----> node " + r.node + ", CMDS: {\n";
           for (DMReply reply : r.replies) {
             infos += "\t" + reply.toString() + "\n";
           }

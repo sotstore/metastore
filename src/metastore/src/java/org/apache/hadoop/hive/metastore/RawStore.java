@@ -626,6 +626,8 @@ public interface RawStore extends Configurable {
 
   public abstract List<Long> listTableFiles(String dbName, String tableName, int begin, int end) throws MetaException;
 
+  public abstract List<Long> findSpecificDigestFiles(String digest) throws MetaException;
+
   public abstract List<SFile> filterTableFiles(String dbName, String tableName, List<SplitValue> values)
       throws MetaException;
 

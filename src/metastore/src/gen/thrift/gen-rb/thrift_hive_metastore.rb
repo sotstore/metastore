@@ -2865,6 +2865,22 @@ module ThriftHiveMetastore
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listTableFiles failed: unknown result')
     end
 
+    def listFilesByDigest(digest)
+      send_listFilesByDigest(digest)
+      return recv_listFilesByDigest()
+    end
+
+    def send_listFilesByDigest(digest)
+      send_message('listFilesByDigest', ListFilesByDigest_args, :digest => digest)
+    end
+
+    def recv_listFilesByDigest()
+      result = receive_message(ListFilesByDigest_result)
+      return result.success unless result.success.nil?
+      raise result.o1 unless result.o1.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'listFilesByDigest failed: unknown result')
+    end
+
     def filterTableFiles(dbName, tabName, values)
       send_filterTableFiles(dbName, tabName, values)
       return recv_filterTableFiles()
@@ -5184,6 +5200,17 @@ module ThriftHiveMetastore
         result.o1 = o1
       end
       write_result(result, oprot, 'listTableFiles', seqid)
+    end
+
+    def process_listFilesByDigest(seqid, iprot, oprot)
+      args = read_args(iprot, ListFilesByDigest_args)
+      result = ListFilesByDigest_result.new()
+      begin
+        result.success = @handler.listFilesByDigest(args.digest)
+      rescue ::MetaException => o1
+        result.o1 = o1
+      end
+      write_result(result, oprot, 'listFilesByDigest', seqid)
     end
 
     def process_filterTableFiles(seqid, iprot, oprot)
@@ -11778,6 +11805,40 @@ module ThriftHiveMetastore
   end
 
   class ListTableFiles_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    O1 = 1
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::I64}},
+      O1 => {:type => ::Thrift::Types::STRUCT, :name => 'o1', :class => ::MetaException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListFilesByDigest_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    DIGEST = 1
+
+    FIELDS = {
+      DIGEST => {:type => ::Thrift::Types::STRING, :name => 'digest'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class ListFilesByDigest_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
     SUCCESS = 0
     O1 = 1
