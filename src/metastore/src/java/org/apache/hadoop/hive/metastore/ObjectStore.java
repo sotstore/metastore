@@ -162,7 +162,6 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.thrift.TException;
 
 import com.taobao.metamorphosis.exception.MetaClientException;
-
 /**
  * This class is the interface between the application logic and the database
  * store that contains the objects. Refrain putting any logic in mode.M* objects
@@ -410,7 +409,7 @@ public class ObjectStore implements RawStore, Configurable {
 
   public boolean openTransaction() {
     openTrasactionCalls++;
-//    LOG.debug("-----openTransaction:"+openTrasactionCalls);
+    //LOG.debug("---" + Thread.currentThread().getId() + "--openTransaction:"+openTrasactionCalls);
     if (openTrasactionCalls == 1) {
       currentTransaction = pm.currentTransaction();
       currentTransaction.begin();
@@ -434,6 +433,11 @@ public class ObjectStore implements RawStore, Configurable {
     if (TXN_STATUS.ROLLBACK == transactionStatus) {
       return false;
     }
+    /*String str = "THIS " + Thread.currentThread().getId() + " tx = " + openTrasactionCalls + " .\n";
+    for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+      str += "\t" + ste.toString() + "\n";
+    }
+    LOG.error(str);*/
     if (openTrasactionCalls <= 0) {
       throw new RuntimeException("commitTransaction was called but openTransactionCalls = "
           + openTrasactionCalls + ". This probably indicates that there are unbalanced " +
@@ -445,7 +449,7 @@ public class ObjectStore implements RawStore, Configurable {
               + " mismatching open and close calls or rollback was called in the same trasaction");
     }
     openTrasactionCalls--;
-//    LOG.debug("-----commitTransaction:"+openTrasactionCalls);
+    //LOG.debug("---" + Thread.currentThread().getId() + "--commitTransaction:"+openTrasactionCalls);
     if ((openTrasactionCalls == 0) && currentTransaction.isActive()) {
       transactionStatus = TXN_STATUS.COMMITED;
       currentTransaction.commit();
@@ -468,7 +472,7 @@ public class ObjectStore implements RawStore, Configurable {
    * Rolls back the current transaction if it is active
    */
   public void rollbackTransaction() {
-//    LOG.debug("-----rollbackTransaction:"+openTrasactionCalls);
+    //LOG.debug("---" + Thread.currentThread().getId() + "--rollbackTransaction:"+openTrasactionCalls);
     if (openTrasactionCalls < 1) {
       return;
     }
@@ -778,30 +782,89 @@ public class ObjectStore implements RawStore, Configurable {
   }
 
   @Override
-  public List<SFile> filterTableFiles(String dbName, String tableName, List<String> values) throws MetaException {
+  public List<SFile> filterTableFiles(String dbName, String tableName, List<SplitValue> values) throws MetaException {
     List<SFile> rls = new ArrayList<SFile>();
-    int splitLen = values.size();
+    String filter = "", parameters = "java.lang.String tableName, java.lang.String dbName, java.util.Collection values";
+    Map<String, Object> params = new HashMap<String, Object>();
 
-    if (splitLen < 1 || splitLen > 2) {
+    if (values.size() == 0) {
       return rls;
     }
-
     try {
+      openTransaction();
       Query q = pm.newQuery(MFile.class, "this.table.tableName == tableName && this.table.database.name == dbName");
-      if (splitLen == 1) {
-        q.setFilter("this.values.get(0) == values.get(0)");
-      } else {
-        q.setFilter("this.values.get(0) == values.get(0) && this.values.get(1) == values.get(1)");
+      for (int i = 0; i < values.size(); i++) {
+        filter += "values.get(" + i + ").splitKeyName == 'rel_time'";
       }
-      q.declareParameters("java.lang.String tableName, java.lang.String dbName, java.util.List values");
-      Collection files = (Collection)q.execute(dbName, tableName, values);
+
+      params.put("tableName", tableName);
+      params.put("dbName", dbName);
+      params.put("values", values);
+
+      LOG.info("Got filter: " + filter);
+      LOG.info("Got parameter: " + parameters);
+
+      q.setFilter(filter);
+      q.declareParameters(parameters);
+      Collection files = (Collection)q.execute(tableName, dbName, values);
       Iterator iter = files.iterator();
       while (iter.hasNext()) {
         MFile mf = (MFile)iter.next();
+
         if (mf == null) {
           continue;
         }
-        rls.add(convertToSFile(mf));
+        List<MFileLocation> lmf = getMFileLocations(mf.getFid());
+        List<SFileLocation> l = new ArrayList<SFileLocation>();
+
+        if (lmf != null) {
+          l = convertToSFileLocation(lmf);
+        }
+
+        SFile sf = convertToSFile(mf);
+        sf.setLocations(l);
+        rls.add(sf);
+      }
+    } finally {
+      commitTransaction();
+    }
+
+    return rls;
+  }
+
+  @Override
+  public List<Long> listTableFiles(String dbName, String tableName, int begin, int end) throws MetaException {
+    List<Long> rls = new ArrayList<Long>();
+
+    try {
+      Query q0 = pm.newQuery(MFile.class, "this.table.tableName == tableName && this.table.database.name == dbName");
+      q0.setResult("count(fid)");
+      q0.declareParameters("java.lang.String tableName, java.lang.String dbName");
+      Long fnr = (Long)q0.execute(tableName, dbName);
+      LOG.info("Total hit " + fnr + " files in DB '" + dbName + "' TABLE '" + tableName + "'.");
+
+      Query q = pm.newQuery(MFile.class, "this.table.tableName == tableName && this.table.database.name == dbName");
+      if (begin < 0) {
+        begin = 0;
+      }
+      if (end < 0) {
+        end = 0;
+      }
+      // FIXME: do NOT ordering on large data set!
+      if (fnr < 1000) {
+        q.setOrdering("fid ascending");
+      }
+      q.setRange(begin, end);
+      q.declareParameters("java.lang.String tableName, java.lang.String dbName");
+      Collection files = (Collection)q.execute(tableName, dbName);
+      Iterator iter = files.iterator();
+      while (iter.hasNext()) {
+        MFile mf = (MFile)iter.next();
+
+        if (mf == null) {
+          continue;
+        }
+        rls.add(mf.getFid());
       }
     } finally {
     }
@@ -810,26 +873,33 @@ public class ObjectStore implements RawStore, Configurable {
   }
 
   @Override
-  public List<SFile> listTableFiles(String dbName, String tableName, short max_num) throws MetaException {
-    List<SFile> rls = new ArrayList<SFile>();
-
+  public void truncTableFiles(String dbName, String tableName) throws MetaException,
+    NoSuchObjectException {
+    boolean success = false;
     try {
-      Query q = pm.newQuery(MFile.class, "this.table.tableName == tableName && this.table.database.name == dbName");
-      q.setRange(0, max_num);
-      q.declareParameters("java.lang.String tableName, java.lang.String dbName");
-      Collection files = (Collection)q.execute(dbName, tableName);
-      Iterator iter = files.iterator();
-      while (iter.hasNext()) {
-        MFile mf = (MFile)iter.next();
-        if (mf == null) {
-          continue;
+      openTransaction();
+
+      for (int i = 0, step = 1000; i < Integer.MAX_VALUE; i+=step) {
+        List<Long> files = listTableFiles(dbName, tableName, i, i + step);
+        for (int j = 0; j < files.size(); j++) {
+          SFile f = this.getSFile(files.get(j));
+          if (f != null) {
+            f.setStore_status(MetaStoreConst.MFileStoreStatus.RM_PHYSICAL);
+            updateSFile(f);
+          }
         }
-        rls.add(convertToSFile(mf));
+        if (files.size() < step) {
+          break;
+        }
       }
+
+      success = commitTransaction();
     } finally {
+      if (!success) {
+        rollbackTransaction();
+      }
     }
 
-    return rls;
   }
 
   public void findVoidFiles(List<SFile> voidFiles) throws MetaException {
@@ -1529,6 +1599,28 @@ public class ObjectStore implements RawStore, Configurable {
 
   }
 
+  private void deleteBusiTypeCol(MTable mtbl) {
+    boolean commited = false;
+    try {
+      openTransaction();
+      Query query = pm.newQuery(MBusiTypeColumn.class, "table.tableName == tabName && table.database.name == dbName");
+      query.declareParameters("java.lang.String tabName, java.lang.String dbName");
+      Collection cols = (Collection)query.execute(mtbl.getTableName(), mtbl.getDatabase().getName());
+      Iterator iter = cols.iterator();
+      while (iter.hasNext()) {
+        MBusiTypeColumn col = (MBusiTypeColumn)iter.next();
+        LOG.debug("--> DEL BusiType " + col.getBusiType() + " on col " + col.getColumn() + " for db " +
+            mtbl.getDatabase().getName() + " table " + mtbl.getTableName());
+        pm.deletePersistent(col);
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+  }
+
   private void createBusiTypeCol(MTable mtbl,List<MBusiTypeColumn> bcs){
     for(MFieldSchema f : mtbl.getSd().getCD().getCols()){
       String cmet = f.getComment();
@@ -1616,6 +1708,12 @@ public class ObjectStore implements RawStore, Configurable {
         }
 
         preDropStorageDescriptor(tbl.getSd());
+        // FIXME: reset the schema here? and delete files? and delete busitypecols
+        deleteBusiTypeCol(tbl);
+
+        tbl.setSchema(null);
+        tbl.setDatabase(null);
+
         // then remove the table
         pm.deletePersistentAll(tbl);
       }
@@ -2582,7 +2680,7 @@ public class ObjectStore implements RawStore, Configurable {
     if (file.getDbName() != null && file.getTableName() != null) {
       mt = getMTable(file.getDbName(), file.getTableName());
       if (mt == null) {
-        throw new InvalidObjectException("Invalid db or table name.");
+        throw new InvalidObjectException("Invalid db or table name: db=" + file.getDbName() + ", table=" + file.getTableName());
       }
     }
     List<MSplitValue> values = new ArrayList<MSplitValue>();
@@ -4637,14 +4735,26 @@ public class ObjectStore implements RawStore, Configurable {
     try {
       openTransaction();
       MIndex index = getMIndex(dbName, origTableName, indexName);
+      MTable tmpOrigTable = null;
+
       if (index != null) {
+        // FIXME: set sd to null?
+        LOG.error("--> DROP INDEX " + index.getIndexName());
+        preDropStorageDescriptor(index.getSd());
+        tmpOrigTable = index.getOrigTable();
+
+        index.setOrigTable(null);
+        index.setIndexTable(null);
+
         pm.deletePersistent(index);
       }
       success = commitTransaction();
-      long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(index.getOrigTable().getDatabase()).toString()));
-      HashMap<String,Object> params = new HashMap<String,Object>();
-      params.put("index_name", indexName);
-      MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_INDEX, db_id, -1, pm, index, params));
+      if (tmpOrigTable != null) {
+        long db_id = Long.parseLong(MSGFactory.getIDFromJdoObjectId(pm.getObjectId(tmpOrigTable.getDatabase()).toString()));
+        HashMap<String,Object> params = new HashMap<String,Object>();
+        params.put("index_name", indexName);
+        MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_DEL_INDEX, db_id, -1, pm, index, params));
+      }
     } finally {
       if (!success) {
         rollbackTransaction();
@@ -4793,7 +4903,7 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       MRole nameCheck = this.getMRole(roleName);
       if (nameCheck != null) {
-        throw new InvalidObjectException("Role " + roleName + " already exists.");
+        throw new InvalidObjectException("Role " + roleName + " already exists");
       }
       int now = (int)(System.currentTimeMillis()/1000);
       MRole mRole = new MRole(roleName, now,
@@ -4870,7 +4980,7 @@ public class ObjectStore implements RawStore, Configurable {
       openTransaction();
       MUser nameCheck = this.getMUser(userName);
       if (nameCheck != null) {
-        LOG.info("User "+ userName +" already exists!");
+        LOG.info("User "+ userName +" already exists");
         return false;
       }
         int now = (int)(System.currentTimeMillis()/1000);
@@ -9317,13 +9427,14 @@ public MUser getMUser(String userName) {
       MDatabase mdb = this.getMDatabase(dbName);
       MNode mnd = this.getMNode(nodeName);
       Set<MNode> nodes = mdb.getNodes();
-      if (mdb.getNodes() != null) {
-        throw new MetaException("this" + nodeName + "already exists!");
-      }
+//      if (mdb.getNodes() != null) {
+//        throw new MetaException("this " + nodeName + " already exists");
+//      }
+      int now = (int) (System.currentTimeMillis() / 1000);
       nodes = new HashSet<MNode>();
       nodes.add(mnd);
       mnd.getDbs().add(mdb);
-      int now = (int) (System.currentTimeMillis() / 1000);
+      mdb.getNodes().add(mnd);
       pm.makePersistent(mnd);
       pm.makePersistent(mdb);
       commited = commitTransaction();
@@ -9346,15 +9457,17 @@ public MUser getMUser(String userName) {
       MDatabase mdb = this.getMDatabase(dbName);
       MNode mnd = this.getMNode(nodeName);
       Set<MNode> nodes = mdb.getNodes();
-      if (mdb.getNodes() != null) {
-        throw new MetaException("this" + nodeName + "already exists!");
-      }
+//      if (mdb.getNodes() != null) {
+//        throw new MetaException("this " + nodeName + " already exists");
+//      }
+      int now = (int) (System.currentTimeMillis() / 1000);
       nodes = new HashSet<MNode>();
       nodes.add(mnd);
-      mnd.getDbs().add(mdb);
-      int now = (int) (System.currentTimeMillis() / 1000);
-      pm.deletePersistent(mnd);
-      pm.deletePersistent(mdb);
+      mnd.getDbs().remove(mdb);
+      mdb.getNodes().remove(mnd);
+      pm.makePersistent(mnd);
+      pm.makePersistent(mdb);
+//      pm.deletePersistentAll(nodes);
       commited = commitTransaction();
       success = true;
     } finally {
@@ -9490,20 +9603,16 @@ public MUser getMUser(String userName) {
       MDatabase mdb = this.getMDatabase(dbName);
       MUser muser = this.getMUser(userName);
 //      if (mdb.getUsers() != null) {
-//        throw new MetaException("this" + userName + "already exists！");
+//        throw new MetaException("this" + userName + "already exists");
 //      }
-      if (muser == null) {
-        throw new MetaException("this" + userName + "does not exist.");
-      }
       int now = (int)(System.currentTimeMillis()/1000);
 //      List<User> users = this.getUserByName(userName);
-      List<MUser> musers  = new ArrayList<MUser>();
-      musers.add(muser);
+//      List<MUser> musers  = new ArrayList<MUser>();
+//      musers.add(muser);
       muser.getDbs().add(mdb);
+      mdb.getUsers().add(muser);
       pm.makePersistent(mdb);
       pm.makePersistent(muser);
-//      pm.makePersistent(mdb.getUsers());
-//      pm.makePersistent(muser.getDbs());
       commited = commitTransaction();
       success = true;
     } finally {
@@ -9523,15 +9632,19 @@ public MUser getMUser(String userName) {
       openTransaction();
       MDatabase mdb = this.getMDatabase(dbName);
       MUser muser = this.getMUser(userName);
-      if (mdb.getUsers() != null) {
-        throw new MetaException("this" + userName + "already exists！");
-      }
+//      if (mdb.getUsers() == null) {
+//        throw new MetaException("this " + userName + " does not exist");
+//      }
       int now = (int)(System.currentTimeMillis()/1000);
-      List<MUser> musers  = new ArrayList<MUser>();
-      musers.add(muser);
-      muser.getDbs().add(mdb);
-      pm.deletePersistent(mdb);
-      pm.deletePersistent(muser);
+//      List<MUser> musers  = new ArrayList<MUser>();
+//      muser.getDbs().remove(mdb);
+//      mdb.getUsers().remove(muser);
+//      musers.add(muser);
+      muser.getDbs().remove(mdb);
+      mdb.getUsers().remove(muser);
+      pm.makePersistent(mdb);
+      pm.makePersistent(muser);
+//      pm.deletePersistentAll(musers);
       commited = commitTransaction();
       success = true;
     } finally {
@@ -9583,13 +9696,14 @@ public MUser getMUser(String userName) {
       openTransaction();
       MDatabase mdb = this.getMDatabase(dbName);
       MRole mrole = this.getMRole(roleName);
-      if (mdb.getRoles() != null) {
-        throw new MetaException("this" + roleName + "already exists！");
-      }
+//      if (mdb.getRoles() != null) {
+//        throw new MetaException("this " + roleName + " already exists");
+//      }
       int now = (int)(System.currentTimeMillis()/1000);
-      List<MRole> mroles  = new ArrayList<MRole>();
-      mroles.add(mrole);
+//      List<MRole> mroles  = new ArrayList<MRole>();
+//      mroles.add(mrole);
       mrole.getDbs().add(mdb);
+      mdb.getRoles().add(mrole);
       pm.makePersistent(mdb);
       pm.makePersistent(mrole);
       commited = commitTransaction();
@@ -9611,15 +9725,17 @@ public MUser getMUser(String userName) {
       openTransaction();
       MDatabase mdb = this.getMDatabase(dbName);
       MRole mrole = this.getMRole(roleName);
-      if (mdb.getRoles() != null) {
-        throw new MetaException("this" + roleName + "already exists！");
-      }
+//      if (mdb.getRoles() != null) {
+//        throw new MetaException("this " + roleName + " already exists");
+//      }
       int now = (int)(System.currentTimeMillis()/1000);
-      List<MRole> mroles  = new ArrayList<MRole>();
-      mroles.add(mrole);
-      mrole.getDbs().add(mdb);
-      pm.deletePersistent(mdb);
-      pm.deletePersistent(mrole);
+//      List<MRole> mroles  = new ArrayList<MRole>();
+//      mroles.add(mrole);
+      mrole.getDbs().remove(mdb);
+      mdb.getRoles().remove(mrole);
+      pm.makePersistent(mdb);
+      pm.makePersistent(mrole);
+//      pm.deletePersistentAll(mroles);
       commited = commitTransaction();
       success = true;
     } finally {

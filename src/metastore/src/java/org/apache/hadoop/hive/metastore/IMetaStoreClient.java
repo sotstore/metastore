@@ -1126,6 +1126,15 @@ public interface IMetaStoreClient {
   public void update_attribution(Database db) throws NoSuchObjectException,
         InvalidOperationException, MetaException, TException;
 
+  public boolean migrate_in(Table tbl, Map<Long, SFile> files, List<Index> idxs, String from_db,
+      String to_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException;
+
+  public List<SFileLocation> migrate_stage1(String dbName, String tableName, List<Long> files,
+      String to_db) throws MetaException, TException;
+
+  public boolean migrate_stage2(String dbName, String tableName, List<Long> files,
+      String from_db, String to_db, String to_devid) throws MetaException, TException;
+
   public List<SFileLocation> migrate2_stage1(String dbName, String tableName, List<String> partNames, String to_dc)
       throws MetaException, TException;
 
@@ -1202,9 +1211,11 @@ public interface IMetaStoreClient {
 
   public List<NodeGroup> getTableNodeGroups(String dbName, String tabName) throws MetaException, TException;
 
-  public List<SFile> listTableFiles(String dbName, String tabName, short max_num) throws MetaException, TException;
+  public List<Long> listTableFiles(String dbName, String tabName, int begin, int end) throws MetaException, TException;
 
-  public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values) throws MetaException, TException;
+  public List<SFile> filterTableFiles(String dbName, String tabName, List<SplitValue> values) throws MetaException, TException;
+
+  public void truncTableFiles(String dbName, String tabName) throws MetaException, TException;
 
   public boolean addNodeGroup(NodeGroup ng) throws AlreadyExistsException, MetaException, TException;
 
@@ -1231,7 +1242,7 @@ public interface IMetaStoreClient {
 
   public List<GeoLocation> getGeoLocationByNames(List<String> geoLocNames) throws MetaException, TException;
 
-  public boolean addNodeAssignment(String nodename, String dbname) throws MetaException, NoSuchObjectException, TException;
+  public boolean addNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException, TException;
 
   public boolean deleteNodeAssignment(String nodeName, String dbName) throws MetaException, NoSuchObjectException, TException;
 
@@ -1252,5 +1263,7 @@ public interface IMetaStoreClient {
   public boolean addNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException, NoSuchObjectException, TException;
 
   public boolean deleteNodeGroupAssignment(NodeGroup ng, String dbName) throws MetaException, NoSuchObjectException, TException;
+
+  public String pingPong(String str) throws MetaException, TException;
 
 }

@@ -4428,6 +4428,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     private SFile create_file(FileLocatingPolicy flp, String node_name, int repnr, String db_name, String table_name, List<SplitValue> values)
         throws FileOperationException, TException {
+      String table_path = null;
 
       if (node_name == null) {
         // this means we should select Best Available Node and Best Available Device;
@@ -4463,9 +4464,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           try {
             tbl = getMS().getTable(db_name, table_name);
           } catch (MetaException me) {
-            throw new FileOperationException("Invalid Table name:" + db_name + "/" + table_name, FOFailReason.INVALID_TABLE);
+            throw new FileOperationException("Invalid DB or Table name:" + db_name + "." + table_name + " + " + me.getMessage(), FOFailReason.INVALID_TABLE);
           }
-          table_name = tbl.getDbName() + "/" + tbl.getTableName();
+          if (tbl == null) {
+            throw new FileOperationException("Invalid DB or Table name:" + db_name + "." + table_name, FOFailReason.INVALID_TABLE);
+          }
+          table_path = tbl.getDbName() + "/" + tbl.getTableName();
         }
 
         // how to convert table_name to tbl_id?
@@ -4480,10 +4484,10 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         do {
           String location = "/data/";
 
-          if (table_name == null) {
+          if (table_path == null) {
             location += "UNNAMED-DB/UNNAMED-TABLE/" + rand.nextInt(Integer.MAX_VALUE);
           } else {
-            location += table_name + "/" + rand.nextInt(Integer.MAX_VALUE);
+            location += table_path + "/" + rand.nextInt(Integer.MAX_VALUE);
           }
           SFileLocation sfloc = new SFileLocation(node_name, cfile.getFid(), devid, location, 0, System.currentTimeMillis(),
               MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_DEFAULT");
@@ -5174,8 +5178,10 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
     if (ret) {
       HiveMetaStoreServerContext serverContext = HiveMetaStoreServerEventHandler.getServerContext(msss.getSessionId());
-      serverContext.setUserName(user_name);
-      serverContext.setAuthenticated(true);
+      if (serverContext != null) {
+        serverContext.setUserName(user_name);
+        serverContext.setAuthenticated(true);
+      }
     }
     return ret;
   }
@@ -5220,7 +5226,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Database rdb = HMSHandler.topdcli.get_attribution(to_db);
       Database ldb;
       if (from_db == null) {
-        ldb = get_attribution(hiveConf.getVar(ConfVars.LOCAL_ATTRIBUTION));
+        ldb = get_attribution(dbName);
       } else {
         ldb = get_attribution(from_db);
       }
@@ -5232,8 +5238,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
       // prepare tbl
       Table tbl = get_table(dbName, tableName);
-      // change tbl's dbname to rdb
-      tbl.setDbName(rdb.getName());
+      // keep tbl's dbName to ldb
+      tbl.setDbName(ldb.getName());
 
       // set tbl properties
       Map<String, String> kvs = new HashMap<String, String>();
@@ -5276,6 +5282,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         }
         tbl.setParameters(kvs);
       } else {
+        // there is always a kv, thus next line would never be reached.
         tbl.setParameters(kvs);
       }
 
@@ -5891,13 +5898,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public List<SFile> listTableFiles(String dbName, String tabName, short max_num)
+    public List<Long> listTableFiles(String dbName, String tabName, int from, int to)
         throws MetaException, TException {
-      return getMS().listTableFiles(dbName, tabName, max_num);
+      return getMS().listTableFiles(dbName, tabName, from, to);
     }
 
     @Override
-    public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values)
+    public List<SFile> filterTableFiles(String dbName, String tabName, List<SplitValue> values)
         throws MetaException, TException {
       return getMS().filterTableFiles(dbName, tabName, values);
     }
@@ -6076,8 +6083,18 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return "+FAIL: No DiskManger!\n";
     }
 
+    private void migrate_rollback_tool(Set<SFile> fileToDel, Set<SFileLocation> sflToDel) throws MetaException {
+      // rollback to delete all files and locations
+      for (SFileLocation fl : sflToDel) {
+        getMS().delSFileLocation(fl.getDevid(), fl.getLocation());
+      }
+      for (SFile f : fileToDel) {
+        getMS().delSFile(f.getFid());
+      }
+    }
+
     @Override
-    public boolean migrate_in(Table tbl, List<SFile> files, List<Index> idxs, String from_db,
+    public boolean migrate_in(Table tbl, Map<Long, SFile> files, List<Index> idxs, String from_db,
         String to_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException {
 
       LOG.info("Server files2: recv " + files.size() + " files in.");
@@ -6136,42 +6153,49 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       for (Map.Entry<Long, SFileLocation> entry : fileMap.entrySet()) {
         SFileLocation sfl = entry.getValue();
 
-        LOG.info("Add NEW SFL DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
-        // FIXME: v0.2 to fix: add file values here!
-        SFile nfile = create_file_wo_location(3, tbl.getDbName(), tbl.getTableName(), null);
-        fileToDel.add(nfile);
+        try {
+          if (!dm.isSharedDevice(sfl.getDevid())) {
+            LOG.info("NEW SFL DEV " + sfl.getDevid() + " is NOT shared device??!");
+            throw new MetaException("Target device is not a valid shared device!");
+          }
 
-        sfl.setNode_name(dm.getAnyNode());
-        while (sfl.getNode_name() == null) {
-          LOG.warn("No active node in ndmap ... retry it.");
+          LOG.info("Add NEW SFL DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+          // FIXME: v0.2 to fix: add file values here!
+          SFile nfile = create_file_wo_location(3, tbl.getDbName(), tbl.getTableName(),
+              files.get(entry.getKey()).getValues());
+          fileToDel.add(nfile);
+
           sfl.setNode_name(dm.getAnyNode());
-          try {
-            Thread.sleep(1000);
-          } catch (InterruptedException e) {
-            LOG.error(e, e);
+          while (sfl.getNode_name() == null) {
+            LOG.warn("No active node in ndmap ... retry it.");
+            sfl.setNode_name(dm.getAnyNode());
+            try {
+              Thread.sleep(1000);
+            } catch (InterruptedException e) {
+              LOG.error(e, e);
+            }
           }
-        }
-        sfl.setFid(nfile.getFid());
-        sfl.setRep_id(0);
-        sfl.setUpdate_time(System.currentTimeMillis());
-        sfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
+          sfl.setFid(nfile.getFid());
+          sfl.setRep_id(0);
+          sfl.setUpdate_time(System.currentTimeMillis());
+          sfl.setVisit_status(MetaStoreConst.MFileLocationVisitStatus.ONLINE);
 
-        if (!getMS().createFileLocation(sfl)) {
-          LOG.info("[ROLLBACK] Failed to create SFL " + sfl.getDevid() + ", LOC " + sfl.getLocation());
-          // rollback to delete all files and locations
-          for (SFileLocation fl : sflToDel) {
-            getMS().delSFileLocation(fl.getDevid(), fl.getLocation());
+          if (!getMS().createFileLocation(sfl)) {
+            LOG.info("[ROLLBACK] Failed to create SFL " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+            migrate_rollback_tool(fileToDel, sflToDel);
+            return false;
+          } else {
+            sflToDel.add(sfl);
+            List<SFileLocation> locations = new ArrayList<SFileLocation>();
+            locations.add(sfl);
+            nfile.setLocations(locations);
+            oldFidToNewFile.put(entry.getKey(), nfile);
           }
-          for (SFile f : fileToDel) {
-            getMS().delSFile(f.getFid());
-          }
-          return false;
-        } else {
-          sflToDel.add(sfl);
-          List<SFileLocation> locations = new ArrayList<SFileLocation>();
-          locations.add(sfl);
-          nfile.setLocations(locations);
-          oldFidToNewFile.put(entry.getKey(), nfile);
+
+        } catch (Exception e) {
+          LOG.error(e, e);
+          migrate_rollback_tool(fileToDel, sflToDel);
+          throw new MetaException(e.getMessage());
         }
       }
 
@@ -6209,7 +6233,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             if (sfl.getNode_name().equals("")) {
               // this is the NAS location, record it
               r.add(sfl);
-              LOG.info("sp -> SHARED SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+              LOG.info("fid " + fid + " -> SHARED SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
               added = true;
               break;
             }
@@ -6219,7 +6243,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           // record a non-NAS location
           SFileLocation sfl = f.getLocations().get(0);
           r.add(sfl);
-          LOG.info("sp -> SHARED SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
+          LOG.info("fid " + fid + "-> SHARED SFL: DEV " + sfl.getDevid() + ", LOC " + sfl.getLocation());
         }
       }
 
@@ -6227,10 +6251,183 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
+    // from_db is set to table's dbName
+    // to_db only used to routing
     public boolean migrate_stage2(String dbName, String tableName, List<Long> files,
         String from_db, String to_db, String to_devid) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return false;
+      // prepare attribution connection
+      if (HMSHandler.topdcli == null) {
+        connect_to_top_attribution(hiveConf);
+        if (HMSHandler.topdcli == null) {
+          throw new MetaException("Top-level attribution metastore is null, please check!");
+        }
+      }
+      if (hiveConf.getVar(ConfVars.LOCAL_ATTRIBUTION) == null) {
+        throw new MetaException("Please set 'hive.attribution.local' as local datacenter NAME.");
+      }
+      Database rdb = HMSHandler.topdcli.get_attribution(to_db);
+      Database ldb;
+      if (from_db == null) {
+        ldb = get_attribution(dbName);
+      } else {
+        ldb = get_attribution(from_db);
+      }
+
+      IMetaStoreClient rcli = new HiveMetaStoreClient(rdb.getParameters().get("service.metastore.uri"),
+            HiveConf.getIntVar(hiveConf, HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES),
+            hiveConf.getIntVar(ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY),
+            null);
+
+      // prepare tbl
+      Table tbl = get_table(dbName, tableName);
+      // keep tbl's dbname to ldb
+      tbl.setDbName(ldb.getName());
+
+      // set tbl properties
+      Map<String, String> kvs = new HashMap<String, String>();
+      boolean isMaster = false;
+      if (tbl.getParametersSize() > 0) {
+        LOG.info(tbl.getParameters().toString());
+        kvs.putAll(tbl.getParameters());
+        kvs.put("store.remote", "both");
+        if (kvs.get("store.identify") == null) {
+          kvs.put("store.identify", "slave");
+          isMaster = true;
+        } else {
+          if (kvs.get("store.identify").equalsIgnoreCase("slave")) {
+            // this means migrate from slave table back to master table
+            LOG.info("Migrate from slave table to other table (slave?).");
+            isMaster = false;
+          } else {
+            LOG.info("Migrate from master table again.");
+            kvs.put("store.identify", "slave");
+            isMaster = true;
+          }
+        }
+
+        if (kvs.get("store.remote.dbs") == null) {
+          kvs.put("store.remote.dbs", to_db + "," + ldb.getName());
+        } else {
+          String olddcs = kvs.get("store.remote.dbs");
+          String[] dcsarray = olddcs.split(",");
+          boolean ign = false;
+          for (int i = 0; i < dcsarray.length; i++) {
+            if (dcsarray[i].equals(to_db)) {
+              ign = true;
+              break;
+            }
+          }
+          if (!ign) {
+            olddcs += "," + to_db;
+          }
+          kvs.put("store.remote.dbs", olddcs);
+        }
+        tbl.setParameters(kvs);
+      } else {
+        // there is always a kv, thus next line would never be reached.
+        tbl.setParameters(kvs);
+      }
+
+      // prepare index
+      short maxIndexNum = 1000;
+      List<Index> idxs = get_indexes(dbName, tableName, maxIndexNum);
+      if (idxs != null && idxs.size() > 0) {
+        for (Index i : idxs) {
+          i.setDbName(to_db);
+          LOG.info("IDX -> " + i.getIndexName() + ", " + i.getParameters().toString());
+        }
+      }
+
+      // TODO: prepare files
+      Map<Long, SFile> sfiles = new HashMap<Long, SFile>();
+      Map<Long, SFileLocation> targetFileMap = new HashMap<Long, SFileLocation>();
+
+      for (Long fid : files) {
+        SFile f = get_file_by_id(fid);
+        if (f != null && f.getLocationsSize() > 0) {
+          for (SFileLocation sfl : f.getLocations()) {
+            if (sfl.getNode_name().equals("")) {
+              // this is the SHARED location, record it
+              LOG.info("fid " + fid + " -> SFL: DEV" + sfl.getDevid() + ", LOC " + sfl.getLocation());
+              sfl.setDevid(to_devid);
+              sfl.setDigest("MIGRATE-DIGESTED!");
+              targetFileMap.put(fid, sfl);
+              sfiles.put(fid, f);
+            }
+          }
+        }
+      }
+
+      // call remote metastore's migrate2_in to construct metadata
+      if (rcli.migrate_in(tbl, sfiles, idxs, ldb.getName(), to_devid, targetFileMap)) {
+        // wow, it is success, change tbl's dbname to dbName
+        tbl.setDbName(dbName);
+        // set tbl properties
+        kvs = new HashMap<String, String>();
+        if (tbl.getParametersSize() > 0) {
+          LOG.info(tbl.getParameters().toString());
+          kvs.putAll(tbl.getParameters());
+          kvs.put("store.remote", "both");
+          if (isMaster) {
+            kvs.put("store.identify", "master");
+          } else {
+            kvs.put("store.identify", "slave");
+          }
+          if (kvs.get("store.remote.dbs") == null) {
+            kvs.put("store.remote.dbs", to_db + "," + ldb.getName());
+          } else {
+            String olddcs = kvs.get("store.remote.dbs");
+            String[] dcsarray = olddcs.split(",");
+            boolean ign = false;
+            for (int i = 0; i < dcsarray.length; i++) {
+              if (dcsarray[i].equals(to_db)) {
+                ign = true;
+                break;
+              }
+            }
+            if (!ign) {
+              olddcs += "," + to_db;
+            }
+            kvs.put("store.remote.dbs", olddcs);
+          }
+          tbl.setParameters(kvs);
+        } else {
+          tbl.setParameters(kvs);
+        }
+        alter_table(dbName, tableName, tbl);
+        LOG.info("Update table properties to reflect the migration.");
+
+        HashMap<String,Object> old_params= new HashMap<String,Object>();
+        List<String> tmp = new ArrayList<String>();
+        tmp.add("store.remote");
+        tmp.add("store.remote.dbs");
+
+        old_params.put("tbl_param_keys", tmp);
+        old_params.put("db_name", tbl.getDbName());
+        old_params.put("table_name", tbl.getTableName());
+        MetaMsgServer.sendMsg(MSGFactory.generateDDLMsg(MSGType.MSG_ALT_TABLE_PARAM,-1l,-1l, null,-1l,old_params));
+      } else {
+        LOG.info("Migrate2 through NAS-WAN-NAS failed at remote Attribuition " + to_db);
+        return false;
+      }
+      rcli.close();
+
+      // TODO: finally, remove local files
+
+      LOG.info("Finally, our migration succeed, files in this Attribution is deleted.");
+
+      return true;
+    }
+
+    @Override
+    public void truncTableFiles(String dbName, String tabName) throws MetaException, TException {
+      startFunction("truncTableFiles", "DB: " + dbName + " Table: " + tabName);
+      getMS().truncTableFiles(dbName, tabName);
+    }
+
+    @Override
+    public String pingPong(String str) throws MetaException, TException {
+      return str;
     }
 
   }

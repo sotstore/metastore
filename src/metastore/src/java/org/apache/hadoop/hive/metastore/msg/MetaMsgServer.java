@@ -7,7 +7,7 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.hive.metastore.ObjectStore; 
+import org.apache.hadoop.hive.metastore.ObjectStore;
 import org.apache.hadoop.hive.metastore.msg.MSGFactory.DDLMsg;
 
 import com.taobao.metamorphosis.Message;
@@ -17,7 +17,7 @@ import com.taobao.metamorphosis.client.MetaMessageSessionFactory;
 import com.taobao.metamorphosis.client.consumer.ConsumerConfig;
 import com.taobao.metamorphosis.client.consumer.MessageConsumer;
 import com.taobao.metamorphosis.client.producer.MessageProducer;
-import com.taobao.metamorphosis.client.producer.SendResult; 
+import com.taobao.metamorphosis.client.producer.SendResult;
 import com.taobao.metamorphosis.exception.MetaClientException;
 import com.taobao.metamorphosis.utils.ZkUtils.ZKConfig;
 
@@ -44,6 +44,7 @@ public class MetaMsgServer {
     server = new MetaMsgServer();
     producer.config(zkAddr);
     producer = Producer.getInstance();
+    initalized = true;
   }
 
 

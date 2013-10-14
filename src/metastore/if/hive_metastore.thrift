@@ -476,7 +476,6 @@ struct EquipRoom {
 3: optional string comment,
 4: optional GeoLocation geolocation
 }
-//end up with cry
 
 exception MetaException {
   1: string message
@@ -618,6 +617,8 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   bool addNodeGroupAssignment (1:NodeGroup ng, 2:string dbName) throws(1:MetaException o1)
   bool deleteNodeGroupAssignment (1:NodeGroup ng, 2:string dbName) throws(1:MetaException o1)
+  
+  string pingPong(1:string str) throws (1:MetaException o1);
   
 //end up with cry
 
@@ -963,7 +964,7 @@ service ThriftHiveMetastore extends fb303.FacebookService
   
   string getNodeInfo() throws(1:MetaException o1)
   
-  bool migrate_in(1:Table tbl, 2:list<SFile> files, 3:list<Index> idxs, 4:string from_db, 5:string to_devid, 6:map<i64, SFileLocation> fileMap) throws (1:MetaException o1)
+  bool migrate_in(1:Table tbl, 2:map<i64, SFile> files, 3:list<Index> idxs, 4:string from_db, 5:string to_devid, 6:map<i64, SFileLocation> fileMap) throws (1:MetaException o1)
   
   list<SFileLocation> migrate_stage1(1:string dbName, 2:string tableName, 3:list<i64> files, 4:string to_db) throws (1:MetaException o1)
   
@@ -988,8 +989,9 @@ service ThriftHiveMetastore extends fb303.FacebookService
   list<NodeGroup> getTableNodeGroups(1:string dbName,2:string tabName) throws (1:MetaException o1)
   list<SFile> getTableNodeFiles(1:string dbName,2:string tabName,3:string nodeName)  throws (1:MetaException o1)
   
-  list<SFile> listTableFiles(1:string dbName,2:string tabName,3:i16 max_num)  throws (1:MetaException o1)
-  list<SFile> filterTableFiles(1:string dbName,2:string tabName,3:list<string> values)  throws (1:MetaException o1)
+  list<i64> listTableFiles(1:string dbName,2:string tabName,3:i32 from, 4:i32 to)  throws (1:MetaException o1)
+  list<SFile> filterTableFiles(1:string dbName,2:string tabName,3:list<SplitValue> values)  throws (1:MetaException o1)
+  void truncTableFiles(1:string dbName, 2:string tabName) throws (1:MetaException o1)
   
   bool addNodeGroup(1:NodeGroup ng) throws (1:AlreadyExistsException o1,2:MetaException o2)
   bool modifyNodeGroup (1:string schemaName,2:NodeGroup ng) throws (1:MetaException o1)

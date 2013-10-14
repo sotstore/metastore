@@ -81,6 +81,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SFile;
 import org.apache.hadoop.hive.metastore.api.SFileLocation;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
+import org.apache.hadoop.hive.metastore.api.SplitValue;
 import org.apache.hadoop.hive.metastore.api.Subpartition;
 import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
@@ -2508,8 +2509,8 @@ public class Hive {
     if (metaStoreClient == null) {
       metaStoreClient = createMetaStoreClient();
       // do authentication here
-      String user_name = conf.get(HiveConf.ConfVars.HIVE_USER.varname, "root");
-      String passwd = conf.get(HiveConf.ConfVars.HIVE_USERPWD.varname, "111111");
+      String user_name = conf.getVar(HiveConf.ConfVars.HIVE_USER);
+      String passwd = conf.getVar(HiveConf.ConfVars.HIVE_USERPWD);
       try {
         metaStoreClient.authentication(user_name, passwd);
       } catch (NoSuchObjectException e) {
@@ -2524,15 +2525,30 @@ public class Hive {
   }
 
   private IMetaStoreClient getRemoteDbMSC(String db_name) throws HiveException {
+    IMetaStoreClient r = null;
+
     try{
       Database db = getMSC().get_attribution(db_name);
       if(db == null){
         throw new MetaException("There is no Attribution named:"+db_name+",or top attribution is not reachable.");
       }
-      return getMSC().getRemoteDbMSC(db_name);
+      r = getMSC().getRemoteDbMSC(db_name);
+      // do authentication here
+      String user_name = conf.getVar(HiveConf.ConfVars.HIVE_USER);
+      String passwd = conf.getVar(HiveConf.ConfVars.HIVE_USERPWD);
+      try {
+        r.authentication(user_name, passwd);
+      } catch (NoSuchObjectException e) {
+        e.printStackTrace();
+        throw new MetaException(e.getMessage());
+      } catch (TException e) {
+        e.printStackTrace();
+        throw new MetaException(e.getMessage());
+      }
     } catch (TException e) {
       throw new HiveException("Unable to alter getRemoteDcMSC,metastore service unreachable.", e);
     }
+    return r;
   }
 
   private String getUserName() {
@@ -2999,9 +3015,9 @@ public class Hive {
 
 
 
-  public List<SFile> listTableFiles(String dbName, String tabName, short max_num) throws HiveException {
+  public List<Long> listTableFiles(String dbName, String tabName, int begin, int end) throws HiveException {
     try {
-    return getMSC().listTableFiles(dbName, tabName, max_num);
+    return getMSC().listTableFiles(dbName, tabName, begin, end);
     } catch (Exception e) {
       throw new HiveException(e);
     }
@@ -3061,7 +3077,7 @@ public class Hive {
   }
 
 
-  public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values) throws HiveException {
+  public List<SFile> filterTableFiles(String dbName, String tabName, List<SplitValue> values) throws HiveException {
     try {
     return getMSC().filterTableFiles(dbName, tabName, values);
     } catch (Exception e) {

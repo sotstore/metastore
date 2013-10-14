@@ -89,7 +89,6 @@ import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.hive.metastore.api.User;
 import org.apache.hadoop.hive.metastore.model.MetaStoreConst;
-import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
@@ -260,6 +259,18 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
       // connection has died and the default connection is likely to be the first array element.
       promoteRandomMetaStoreURI();
       open();
+      // must re-authenticated here!
+      String user_name = conf.getVar(HiveConf.ConfVars.HIVE_USER);
+      String passwd = conf.getVar(HiveConf.ConfVars.HIVE_USERPWD);
+      try {
+        this.authentication(user_name, passwd);
+      } catch (NoSuchObjectException e) {
+        e.printStackTrace();
+        throw new MetaException(e.getMessage());
+      } catch (TException e) {
+        e.printStackTrace();
+        throw new MetaException(e.getMessage());
+      }
     }
   }
 
@@ -1675,12 +1686,17 @@ public boolean authentication(String user_name, String passwd)
   }
 
   @Override
+  // ignore non exist files.
   public List<SFile> get_files_by_ids(List<Long> fids) throws FileOperationException,
       MetaException, TException {
     List<SFile> lsf = new ArrayList<SFile>();
     if (fids.size() > 0) {
       for (Long id : fids) {
-        lsf.add(client.get_file_by_id(id));
+        // FIXME: ignore nonexist files.
+        try {
+          lsf.add(client.get_file_by_id(id));
+        } catch (FileOperationException e) {
+        }
       }
     }
 
@@ -2088,13 +2104,13 @@ public boolean authentication(String user_name, String passwd)
   }
 
   @Override
-  public List<SFile> listTableFiles(String dbName, String tabName, short max_num)
+  public List<Long> listTableFiles(String dbName, String tabName, int begin, int end)
       throws MetaException, TException {
-    return client.listTableFiles(dbName, tabName, max_num);
+    return client.listTableFiles(dbName, tabName, begin, end);
   }
 
   @Override
-  public List<SFile> filterTableFiles(String dbName, String tabName, List<String> values)
+  public List<SFile> filterTableFiles(String dbName, String tabName, List<SplitValue> values)
       throws MetaException, TException {
     return client.filterTableFiles(dbName, tabName, values);
   }
@@ -2215,6 +2231,52 @@ public boolean authentication(String user_name, String passwd)
   @Override
   public String getNodeInfo() throws MetaException, TException {
     return client.getNodeInfo();
+  }
+
+  @Override
+  public boolean migrate_in(Table tbl, Map<Long, SFile> files, List<Index> idxs, String from_db,
+      String to_devid, Map<Long, SFileLocation> fileMap) throws MetaException, TException {
+    assert tbl != null;
+    assert files != null;
+    assert idxs != null;
+    assert from_db != null;
+    assert to_devid != null;
+    assert fileMap != null;
+    return client.migrate_in(tbl, files, idxs, from_db, to_devid, fileMap);
+  }
+
+  @Override
+  public List<SFileLocation> migrate_stage1(String dbName, String tableName, List<Long> files,
+      String to_db) throws MetaException, TException {
+    assert dbName != null;
+    assert tableName != null;
+    assert files != null;
+    assert to_db != null;
+    return client.migrate_stage1(dbName, tableName, files, to_db);
+  }
+
+  @Override
+  public boolean migrate_stage2(String dbName, String tableName, List<Long> files, String from_db,
+      String to_db, String to_devid) throws MetaException, TException {
+    assert dbName != null;
+    assert tableName != null;
+    assert files != null;
+    assert from_db != null;
+    assert to_db != null;
+    assert to_devid != null;
+    return client.migrate_stage2(dbName, tableName, files, from_db, to_db, to_devid);
+  }
+
+  @Override
+  public void truncTableFiles(String dbName, String tabName) throws MetaException, TException {
+    assert dbName != null;
+    assert tabName != null;
+    client.truncTableFiles(dbName, tabName);
+  }
+
+  @Override
+  public String pingPong(String str) throws MetaException, TException {
+    return client.pingPong(str);
   }
 
 }

@@ -33,9 +33,9 @@
 	<classpathentry exported="true" kind="lib" path="lib/commons-logging-api-1.0.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/derby.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jdo2-api-@jdo2-api.version@.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/datanucleus-core-2.0.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/datanucleus-enhancer-2.0.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/datanucleus-rdbms-2.0.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/datanucleus-core-3.2.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/datanucleus-enhancer-@datanucleus-enhancer.version@.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/datanucleus-rdbms-3.2.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/thrift-fb303-@thrift-fb303.version@.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/thrift-@thrift.version@.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.16.jar"/>

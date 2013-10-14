@@ -156,7 +156,7 @@ public class Entity implements Serializable {
     d = null;
     p = null;
     this.t = t;
-    typ = Type.SCHEMA;
+    typ = Type.TABLE;
     name = computeName();
     this.complete = complete;
   }

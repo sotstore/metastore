@@ -272,6 +272,11 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("deleteNodeGroupAssignment\n");
   }
 
+  void pingPong(std::string& _return, const std::string& str) {
+    // Your implementation goes here
+    printf("pingPong\n");
+  }
+
   void create_database(const Database& database) {
     // Your implementation goes here
     printf("create_database\n");
@@ -797,7 +802,7 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("getNodeInfo\n");
   }
 
-  bool migrate_in(const Table& tbl, const std::vector<SFile> & files, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_devid, const std::map<int64_t, SFileLocation> & fileMap) {
+  bool migrate_in(const Table& tbl, const std::map<int64_t, SFile> & files, const std::vector<Index> & idxs, const std::string& from_db, const std::string& to_devid, const std::map<int64_t, SFileLocation> & fileMap) {
     // Your implementation goes here
     printf("migrate_in\n");
   }
@@ -872,14 +877,19 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("getTableNodeFiles\n");
   }
 
-  void listTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const int16_t max_num) {
+  void listTableFiles(std::vector<int64_t> & _return, const std::string& dbName, const std::string& tabName, const int32_t from, const int32_t to) {
     // Your implementation goes here
     printf("listTableFiles\n");
   }
 
-  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<std::string> & values) {
+  void filterTableFiles(std::vector<SFile> & _return, const std::string& dbName, const std::string& tabName, const std::vector<SplitValue> & values) {
     // Your implementation goes here
     printf("filterTableFiles\n");
+  }
+
+  void truncTableFiles(const std::string& dbName, const std::string& tabName) {
+    // Your implementation goes here
+    printf("truncTableFiles\n");
   }
 
   bool addNodeGroup(const NodeGroup& ng) {
