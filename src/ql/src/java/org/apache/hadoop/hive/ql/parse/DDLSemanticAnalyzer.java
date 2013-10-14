@@ -640,7 +640,6 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
 
   private void analyzeAlterSchemaModifyCols(ASTNode ast, AlterSchemaTypes alterType) throws SemanticException {
       String schName = getUnescapedName((ASTNode) ast.getChild(0));
-      LOG.info("****************zqh****************):"+ (ASTNode) ast.getChild(1));
       List<FieldSchema> newCols = getColumns((ASTNode) ast.getChild(1));
       AlterSchemaDesc alterSchDesc = new AlterSchemaDesc(schName, newCols,
           alterType);
