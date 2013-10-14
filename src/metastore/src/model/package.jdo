@@ -1246,11 +1246,6 @@
       <field name="values" table="FILE_KEY_VALS">
         <collection element-type="MSplitValue"/>
         <join>
-          <primary-key name="FILE_KEY_VALS_PK">
-            <column name="FILE_ID"/>
-            <column name="PKEY_NAME"/>
-            <column name="VERSION"/>
-          </primary-key>
           <column name="FILE_ID"/>
         </join>
         <element>

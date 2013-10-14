@@ -27,12 +27,10 @@ import java.lang.reflect.UndeclaredThrowableException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hive.common.JavaUtils;
 import org.apache.hadoop.hive.common.classification.InterfaceAudience;
 import org.apache.hadoop.hive.common.classification.InterfaceStability;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.MetaException;
-import org.apache.hadoop.hive.metastore.hooks.JDOConnectionURLHook;
 import org.apache.hadoop.util.ReflectionUtils;
 
 @InterfaceAudience.Private
@@ -44,7 +42,7 @@ public class RetryingRawStore implements InvocationHandler {
   private final RawStore base;
   private int retryInterval = 0;
   private int retryLimit = 0;
-  private MetaStoreInit.MetaStoreInitData metaStoreInitData =
+  private final MetaStoreInit.MetaStoreInitData metaStoreInitData =
     new MetaStoreInit.MetaStoreInitData();
   private final int id;
   private final HiveConf hiveConf;
@@ -119,9 +117,9 @@ public class RetryingRawStore implements InvocationHandler {
           // Due to reflection, the jdo exception is wrapped in
           // invocationTargetException
           caughtException = (javax.jdo.JDOException) e.getCause();
-        }
-        else
+        } else {
           throw e.getCause();
+        }
       }
 
       if (retryCount >= retryLimit) {
@@ -130,6 +128,9 @@ public class RetryingRawStore implements InvocationHandler {
 
       assert (retryInterval >= 0);
       retryCount++;
+      if (caughtException != null) {
+        LOG.error("JDO ERROR Cause: " + caughtException.getMessage());
+      }
       LOG.error(
           String.format(
               "JDO datastore error. Retrying metastore command " +

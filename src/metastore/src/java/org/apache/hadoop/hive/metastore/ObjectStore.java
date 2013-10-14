@@ -902,6 +902,32 @@ public class ObjectStore implements RawStore, Configurable {
 
   }
 
+  public List<Long> findSpecificDigestFiles(String digest) throws MetaException {
+    boolean commited = false;
+    List<Long> r = new ArrayList<Long>();
+
+    try {
+      openTransaction();
+      Query q = pm.newQuery(MFile.class, "this.digest == digest");
+      q.declareParameters("java.lang.String digest");
+      Collection files = (Collection)q.execute(digest);
+      Iterator iter = files.iterator();
+      while (iter.hasNext()) {
+        MFile f = (MFile)iter.next();
+        if (f == null) {
+          continue;
+        }
+        r.add(f.getFid());
+      }
+      commited = commitTransaction();
+    } finally {
+      if (!commited) {
+        rollbackTransaction();
+      }
+    }
+    return r;
+  }
+
   public void findVoidFiles(List<SFile> voidFiles) throws MetaException {
     boolean commited = false;
     long beginTs = System.currentTimeMillis();

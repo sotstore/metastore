@@ -4255,6 +4255,8 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       tbl = db.getTable(dropTbl.getTableName());
     } catch (InvalidTableException e) {
       // drop table is idempotent
+      // FIXME: complains about this Exception? conflicts with other code?
+      throw e;
     }
 
     if (dropTbl.getPartSpecs() == null) {

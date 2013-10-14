@@ -8,6 +8,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -286,6 +287,8 @@ public class DiskManager {
       List<JSONObject> toRep;
       String lastReportStr;
       long totalReportNr = 0;
+      long totalFileRep = 0;
+      long totalFileDel = 0;
 
       public NodeInfo(List<DeviceInfo> dis) {
         this.lastRptTs = System.currentTimeMillis();
@@ -708,8 +711,8 @@ public class DiskManager {
         }
         // find the backup devices
         findBackupDevice(spec_dev, spec_node);
-        LOG.debug("Try to write to backup device firstly: N <" + spec_node.toArray().toString() +
-            ">, D <" + spec_dev.toArray().toString() + ">");
+        LOG.debug("Try to write to backup device firstly: N <" + Arrays.toString(spec_node.toArray()) +
+            ">, D <" + Arrays.toString(spec_dev.toArray()) + ">");
 
         // find the valid entry
         for (int i = 0; i < init_size; i++) {
@@ -1178,7 +1181,10 @@ public class DiskManager {
       r += "\nActive Node Infos: {\n";
       synchronized (ndmap) {
         for (Map.Entry<String, NodeInfo> e : ndmap.entrySet()) {
-          r += prefix + " " + e.getKey() + " -> " + "Rpt TNr: " + e.getValue().totalReportNr + ", Last Rpt " + (System.currentTimeMillis() - e.getValue().lastRptTs)/1000 + "s ago, {\n";
+          r += prefix + " " + e.getKey() + " -> " + "Rpt TNr: " + e.getValue().totalReportNr +
+              ", TREP: " + e.getValue().totalFileRep +
+              ", TDEL: " + e.getValue().totalFileDel +
+              ", Last Rpt " + (System.currentTimeMillis() - e.getValue().lastRptTs)/1000 + "s ago, {\n";
           r += prefix + e.getValue().lastReportStr + "}\n";
         }
       }
@@ -1855,12 +1861,12 @@ public class DiskManager {
             flp.mode == FileLocatingPolicy.EXCLUDE_NODES_DEVS_SHARED) {
           if (flp.devs != null && flp.devs.contains(di.dev)) {
             ignore = true;
-            break;
+            continue;
           }
         } else if (flp.mode == FileLocatingPolicy.SPECIFY_NODES_DEVS) {
           if (flp.devs != null && !flp.devs.contains(di.dev)) {
             ignore = true;
-            break;
+            continue;
           }
         }
         if (!ignore && di.free > free) {
@@ -2212,14 +2218,20 @@ public class DiskManager {
           r = null;
         }
 
-        //FIXME: do not print this info now
-        /*String infos = "----node----->" + r.node + "\n";
-        if (r.dil != null) {
+        // FIXME: do not print this info now
+        if (r.replies != null && r.replies.size() > 0) {
+          String infos = "----> node " + r.node + ", CMDS: {";
+          for (DMReply reply : r.replies) {
+            infos += "\t" + reply.toString() + "\n";
+          }
+          infos += "}";
+          LOG.debug(infos);
+        }
+        /*if (r.dil != null) {
           for (DeviceInfo di : r.dil) {
             infos += "----DEVINFO------>" + di.dev + "," + di.mp + "," + di.used + "," + di.free + "\n";
           }
-        }
-        LOG.debug(infos);*/
+        }*/
 
         return r;
       }
@@ -2353,6 +2365,18 @@ public class DiskManager {
             oni = ndmap.get(reportNode.getNode_name());
             if (oni != null) {
               oni.totalReportNr++;
+              if (report.replies != null && report.replies.size() > 0) {
+                for (DMReply r : report.replies) {
+                  switch (r.type) {
+                  case REPLICATED:
+                    oni.totalFileRep++;
+                    break;
+                  case DELETED:
+                    oni.totalFileDel++;
+                    break;
+                  }
+                }
+              }
               oni.lastReportStr = report.toString();
             }
 
