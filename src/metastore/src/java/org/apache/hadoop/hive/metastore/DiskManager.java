@@ -672,11 +672,23 @@ public class DiskManager {
       public void do_delete(SFile f, int nr) {
         int i = 0;
 
-        if (nr <= 0) {
+        if (nr < 0) {
           return;
         }
 
         synchronized (ndmap) {
+          if (f.getLocationsSize() == 0 && f.getStore_status() == MetaStoreConst.MFileStoreStatus.RM_PHYSICAL) {
+            // this means it contains non-valid locations, just delete it
+            try {
+              synchronized (trs) {
+                LOG.info("----> Truely delete file " + f.getFid());
+                trs.delSFile(f.getFid());
+                return;
+              }
+            } catch (MetaException e) {
+              LOG.error(e, e);
+            }
+          }
           for (SFileLocation loc : f.getLocations()) {
             if (i >= nr) {
               break;
@@ -1929,9 +1941,31 @@ public class DiskManager {
     }
 
     public class DMRepThread implements Runnable {
+      private RawStore rrs = null;
       Thread runner;
 
+      public RawStore getRS() {
+        if (rrs != null) {
+          return rrs;
+        } else {
+          return rs;
+        }
+      }
+
+      public void init(HiveConf conf) throws MetaException {
+        String rawStoreClassName = hiveConf.getVar(HiveConf.ConfVars.METASTORE_RAW_STORE_IMPL);
+        Class<? extends RawStore> rawStoreClass = (Class<? extends RawStore>) MetaStoreUtils.getClass(
+            rawStoreClassName);
+        this.rrs = (RawStore) ReflectionUtils.newInstance(rawStoreClass, conf);
+      }
+
       public DMRepThread(String threadName) {
+        try {
+          init(hiveConf);
+        } catch (MetaException e) {
+          e.printStackTrace();
+          rrs = null;
+        }
         runner = new Thread(this, threadName);
         runner.start();
       }
@@ -2012,8 +2046,8 @@ public class DiskManager {
                 do {
                   location = "/data/";
                   if (r.file.getDbName() != null && r.file.getTableName() != null) {
-                    synchronized (rs) {
-                      Table t = rs.getTable(r.file.getDbName(), r.file.getTableName());
+                    synchronized (getRS()) {
+                      Table t = getRS().getTable(r.file.getDbName(), r.file.getTableName());
                       location += t.getDbName() + "/" + t.getTableName() + "/"
                           + rand.nextInt(Integer.MAX_VALUE);
                     }
@@ -2023,8 +2057,8 @@ public class DiskManager {
                   nloc = new SFileLocation(node_name, r.file.getFid(), devid, location,
                       i, System.currentTimeMillis(),
                       MetaStoreConst.MFileLocationVisitStatus.OFFLINE, "SFL_REP_DEFAULT");
-                  synchronized (rs) {
-                    if (rs.createFileLocation(nloc)) {
+                  synchronized (getRS()) {
+                    if (getRS().createFileLocation(nloc)) {
                       break;
                     }
                   }
@@ -2503,7 +2537,7 @@ public class DiskManager {
                     }
                   }
                 } catch (MetaException e) {
-                  e.printStackTrace();
+                  LOG.error(e, e);
                 }
               }
               toCheckDel.clear();
